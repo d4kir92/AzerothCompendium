@@ -102,6 +102,7 @@ function DungeonJournal:InitSetting()
     DungeonJournal:CreateMinimapButton({
         ["name"] = "DungeonJournal",
         ["icon"] = ICON,
+        ["noalpha"] = true,
         ["dbtab"] = DUJOTAB,
         ["vTT"] = {
             {format("|T%d:16:16:0:0|t DungeonJournal", ICON), "v" .. GetTocVersion()},
@@ -113,6 +114,7 @@ function DungeonJournal:InitSetting()
         ["dbkey"] = "MMBTN"
     })
 
+    if DungeonJournal:GetConfig("MMBTN", true) then DungeonJournal:ShowMMBtn("DungeonJournal") end
     DungeonJournal:AddSlash("dungeonjournal", HandleSlash)
     DungeonJournal:AddSlash("dj", HandleSlash)
 end

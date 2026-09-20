@@ -5,6 +5,9 @@ local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
 local SCROLLBAR_W = 18
+local MODEL_START_ROTATION = 0.4
+local MODEL_ZOOM_MIN = 0.4
+local MODEL_ZOOM_MAX = 4
 local journal = nil
 local selectedInstance = nil
 local selectedBoss = nil
@@ -296,25 +299,71 @@ local function UpdateTabs(tabs, active)
     end
 end
 
+local function UpdateModel()
+    local frame = journal.model
+    if frame == nil then return false end
+    local displayID = nil
+    local npcID = nil
+    if selectedBoss ~= nil then
+        displayID = selectedBoss.model
+        if selectedBoss.npcs then npcID = selectedBoss.npcs[1] end
+    end
+
+    if displayID == nil and npcID == nil then
+        frame.shownID = nil
+        frame.shownNPC = nil
+        frame:Hide()
+
+        return false
+    end
+
+    frame:Show()
+    if frame.shownID == displayID and frame.shownNPC == npcID then return true end
+    frame.shownID = displayID
+    frame.shownNPC = npcID
+    frame.rotation = MODEL_START_ROTATION
+    frame.zoom = 1
+    local applied = false
+    if displayID ~= nil and frame.SetDisplayInfo then applied = pcall(frame.SetDisplayInfo, frame, displayID) end
+    if not applied and npcID ~= nil and frame.SetCreature then applied = pcall(frame.SetCreature, frame, npcID) end
+    if frame.SetCamDistanceScale then pcall(frame.SetCamDistanceScale, frame, frame.zoom) end
+    if frame.SetRotation then pcall(frame.SetRotation, frame, frame.rotation) end
+    if frame.RefreshCamera then pcall(frame.RefreshCamera, frame) end
+
+    return applied
+end
+
 local function RefreshDetail()
     if journal == nil then return end
     local count = 0
+    local empty = false
     if detailKind == "loot" then
         journal.loot:SetData(GetLootList())
         journal.loot:Show()
         journal.spells:Hide()
+        if journal.model then journal.model:Hide() end
         count = #journal.loot.data
         journal.detailCount:SetText(DungeonJournal:Trans("LID_ITEMCOUNT", nil, count))
         journal.classFilter:Show()
         journal.classFilterLabel:Show()
-    else
+        empty = count == 0
+    elseif detailKind == "spells" then
         journal.spells:SetData(GetSpellList())
         journal.spells:Show()
         journal.loot:Hide()
+        if journal.model then journal.model:Hide() end
         count = #journal.spells.data
         journal.detailCount:SetText(DungeonJournal:Trans("LID_ABILITYCOUNT", nil, count))
         journal.classFilter:Hide()
         journal.classFilterLabel:Hide()
+        empty = count == 0
+    else
+        journal.loot:Hide()
+        journal.spells:Hide()
+        journal.detailCount:SetText("")
+        journal.classFilter:Hide()
+        journal.classFilterLabel:Hide()
+        empty = not UpdateModel()
     end
 
     if selectedBoss ~= nil then
@@ -323,8 +372,10 @@ local function RefreshDetail()
         journal.detailTitle:SetText("")
     end
 
-    if count == 0 then
-        if selectedInstance ~= nil and selectedInstance.forever then
+    if empty then
+        if detailKind == "model" then
+            journal.empty:SetText(DungeonJournal:Trans("LID_NOMODEL"))
+        elseif selectedInstance ~= nil and selectedInstance.forever then
             journal.empty:SetText(DungeonJournal:Trans("LID_NODATAYET"))
         else
             journal.empty:SetText(DungeonJournal:Trans("LID_NOENTRIES"))
@@ -574,6 +625,46 @@ local function AddFallbackChrome(frame)
     if close.SetText and close.GetFontString and close:GetFontString() ~= nil then close:SetText("X") end
 end
 
+local function CreateModelFrame(parent)
+    local frame = nil
+    for _, kind in ipairs({"PlayerModel", "DressUpModel", "CinematicModel", "Model"}) do
+        local ok, created = pcall(CreateFrame, kind, "DungeonJournalModel", parent)
+        if ok and created ~= nil then
+            frame = created
+            break
+        end
+    end
+
+    if frame == nil then return nil end
+    frame.rotation = MODEL_START_ROTATION
+    frame.zoom = 1
+    frame:EnableMouse(true)
+    frame:EnableMouseWheel(true)
+    frame:SetScript("OnMouseDown", function(sel, button)
+        if button ~= "LeftButton" then return end
+        sel.dragging = true
+        sel.cursorX = GetCursorPosition()
+    end)
+
+    frame:SetScript("OnMouseUp", function(sel) sel.dragging = false end)
+    frame:SetScript("OnHide", function(sel) sel.dragging = false end)
+    frame:SetScript("OnUpdate", function(sel)
+        if not sel.dragging then return end
+        local x = GetCursorPosition()
+        local last = sel.cursorX or x
+        sel.cursorX = x
+        sel.rotation = (sel.rotation or 0) + (x - last) / 60
+        if sel.SetRotation then pcall(sel.SetRotation, sel, sel.rotation) end
+    end)
+
+    frame:SetScript("OnMouseWheel", function(sel, delta)
+        sel.zoom = min(MODEL_ZOOM_MAX, max(MODEL_ZOOM_MIN, (sel.zoom or 1) - delta * 0.15))
+        if sel.SetCamDistanceScale then pcall(sel.SetCamDistanceScale, sel, sel.zoom) end
+    end)
+
+    return frame
+end
+
 local function CreateJournal()
     if journal ~= nil then return journal end
     local template = nil
@@ -651,12 +742,13 @@ local function CreateJournal()
     end)
 
     instances:SetPoint("TOPLEFT", dungeonTab, "BOTTOMLEFT", 0, -6)
-    instances:SetPoint("BOTTOMLEFT", journal, "BOTTOMLEFT", 12, 14)
+    instances:SetPoint("BOTTOMLEFT", journal, "BOTTOMLEFT", 12, 28)
     instances:SetWidth(COL_W)
     journal.instances = instances
     local bossTitle = journal:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", COL_W + 12, 4)
+    bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", COL_W + 12, 6)
     bossTitle:SetWidth(COL_W)
+    bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
     journal.bossTitle = bossTitle
     local bosses = CreateScroller(journal, ROW_H, function(scroller)
@@ -672,30 +764,59 @@ local function CreateJournal()
     bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
     bosses:SetWidth(COL_W)
     journal.bosses = bosses
-    local detailTitle = journal:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    detailTitle:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
-    detailTitle:SetJustifyH("LEFT")
-    journal.detailTitle = detailTitle
+    local loot = CreateScroller(journal, LOOT_ROW_H, CreateLootRow)
+    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
+    loot:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 28)
+    journal.loot = loot
+    local spells = CreateScroller(journal, LOOT_ROW_H, CreateSpellRow)
+    spells:SetAllPoints(loot)
+    spells:Hide()
+    journal.spells = spells
     journal.detailTabs = {}
-    local lootTab = CreateTabButton(journal, DungeonJournal:Trans("LID_LOOT"), function()
-        detailKind = "loot"
-        RefreshDetail()
-    end)
-
-    lootTab:SetPoint("TOPLEFT", detailTitle, "BOTTOMLEFT", -6, -4)
     local spellTab = CreateTabButton(journal, DungeonJournal:Trans("LID_ABILITIES"), function()
         detailKind = "spells"
         RefreshDetail()
     end)
 
-    spellTab:SetPoint("LEFT", lootTab, "RIGHT", 2, 0)
+    spellTab:SetWidth(78)
+    local lootTab = CreateTabButton(journal, DungeonJournal:Trans("LID_LOOT"), function()
+        detailKind = "loot"
+        RefreshDetail()
+    end)
+
+    lootTab:SetWidth(78)
     journal.detailTabs["loot"] = lootTab
     journal.detailTabs["spells"] = spellTab
+    local model = CreateModelFrame(journal)
+    if model ~= nil then
+        model:SetPoint("TOPLEFT", loot, "TOPLEFT", 0, 0)
+        model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
+        model:Hide()
+        journal.model = model
+        local modelTab = CreateTabButton(journal, DungeonJournal:Trans("LID_MODEL"), function()
+            detailKind = "model"
+            RefreshDetail()
+        end)
+
+        modelTab:SetWidth(78)
+        modelTab:SetPoint("TOPRIGHT", journal, "TOPRIGHT", -14, -62)
+        journal.detailTabs["model"] = modelTab
+        spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -2, 0)
+    else
+        spellTab:SetPoint("TOPRIGHT", journal, "TOPRIGHT", -14, -62)
+    end
+
+    lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -2, 0)
     local detailCount = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    detailCount:SetPoint("RIGHT", journal, "RIGHT", -20, 0)
-    detailCount:SetPoint("TOP", lootTab, "TOP", 0, -4)
+    detailCount:SetPoint("BOTTOMRIGHT", lootTab, "BOTTOMLEFT", -8, 6)
     detailCount:SetJustifyH("RIGHT")
     journal.detailCount = detailCount
+    local detailTitle = journal:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    detailTitle:SetPoint("BOTTOMLEFT", loot, "TOPLEFT", 0, 6)
+    detailTitle:SetWidth(200)
+    detailTitle:SetWordWrap(false)
+    detailTitle:SetJustifyH("LEFT")
+    journal.detailTitle = detailTitle
     local classFilter = CreateTemplated("CheckButton", "DungeonJournalClassFilter", journal, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
     classFilter:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 2)
@@ -710,14 +831,6 @@ local function CreateJournal()
 
     journal.classFilter = classFilter
     journal.classFilterLabel = classFilterLabel
-    local loot = CreateScroller(journal, LOOT_ROW_H, CreateLootRow)
-    loot:SetPoint("TOPLEFT", lootTab, "BOTTOMLEFT", 6, -4)
-    loot:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 38)
-    journal.loot = loot
-    local spells = CreateScroller(journal, LOOT_ROW_H, CreateSpellRow)
-    spells:SetAllPoints(loot)
-    spells:Hide()
-    journal.spells = spells
     local empty = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     empty:SetPoint("CENTER", loot, "CENTER", 0, 0)
     empty:SetText(DungeonJournal:Trans("LID_NOENTRIES"))
