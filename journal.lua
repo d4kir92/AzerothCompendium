@@ -5,6 +5,7 @@ local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
 local SCROLLBAR_W = 18
+local KIND_TAB_W = 100
 local MODEL_START_ROTATION = 0.4
 local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
@@ -337,6 +338,16 @@ local function RefreshDetail()
     if journal == nil then return end
     local count = 0
     local empty = false
+    local vendorMode = selectedInstance ~= nil and selectedInstance.vendor == true
+    if vendorMode and detailKind ~= "loot" then detailKind = "loot" end
+    for kind, button in pairs(journal.detailTabs) do
+        if kind ~= "loot" and vendorMode then
+            button:Hide()
+        else
+            button:Show()
+        end
+    end
+
     if detailKind == "loot" then
         journal.loot:SetData(GetLootList())
         journal.loot:Show()
@@ -710,28 +721,35 @@ local function CreateJournal()
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
     searchLabel:SetText(DungeonJournal:Trans("LID_SEARCH"))
     journal.kindTabs = {}
-    local dungeonTab = CreateTabButton(journal, DungeonJournal:Trans("LID_DUNGEONS"), function()
-        if listKind == "dungeon" then return end
-        listKind = "dungeon"
-        selectedInstance = nil
-        selectedBoss = nil
-        UpdateTabs(journal.kindTabs, listKind)
-        RefreshInstances()
-    end)
+    local previousTab = nil
+    for _, info in ipairs({
+        {"dungeon", "LID_DUNGEONS"},
+        {"raid", "LID_RAIDS"},
+        {"pvp", "LID_PVP"},
+        {"faction", "LID_REPUTATION"},
+    }) do
+        local kind = info[1]
+        local tab = CreateTabButton(journal, DungeonJournal:Trans(info[2]), function()
+            if listKind == kind then return end
+            listKind = kind
+            selectedInstance = nil
+            selectedBoss = nil
+            UpdateTabs(journal.kindTabs, listKind)
+            RefreshInstances()
+        end)
 
-    dungeonTab:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -62)
-    local raidTab = CreateTabButton(journal, DungeonJournal:Trans("LID_RAIDS"), function()
-        if listKind == "raid" then return end
-        listKind = "raid"
-        selectedInstance = nil
-        selectedBoss = nil
-        UpdateTabs(journal.kindTabs, listKind)
-        RefreshInstances()
-    end)
+        tab:SetWidth(KIND_TAB_W)
+        if previousTab == nil then
+            tab:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -62)
+        else
+            tab:SetPoint("LEFT", previousTab, "RIGHT", 2, 0)
+        end
 
-    raidTab:SetPoint("LEFT", dungeonTab, "RIGHT", 2, 0)
-    journal.kindTabs["dungeon"] = dungeonTab
-    journal.kindTabs["raid"] = raidTab
+        journal.kindTabs[kind] = tab
+        previousTab = tab
+    end
+
+    local dungeonTab = journal.kindTabs["dungeon"]
     local instances = CreateScroller(journal, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnInstanceClick)
         function row:Update(entry)

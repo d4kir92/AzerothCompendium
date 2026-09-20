@@ -187,6 +187,21 @@ end
 
 function DungeonJournal:GetInstanceName(inst)
     if inst == nil then return "" end
+    if inst.honor then return DungeonJournal:Trans("LID_HONORRANKS") end
+    if inst.factionID then
+        if C_Reputation and C_Reputation.GetFactionDataByID then
+            local data = C_Reputation.GetFactionDataByID(inst.factionID)
+            if type(data) == "table" and type(data.name) == "string" and data.name ~= "" then return data.name end
+        end
+
+        if GetFactionInfoByID then
+            local name = GetFactionInfoByID(inst.factionID)
+            if type(name) == "string" and name ~= "" then return name end
+        end
+
+        return inst.name
+    end
+
     if inst.areaID and C_Map and C_Map.GetAreaInfo then
         local name = C_Map.GetAreaInfo(inst.areaID)
         if type(name) == "string" and name ~= "" then return name end
@@ -202,6 +217,14 @@ end
 
 function DungeonJournal:GetBossName(boss)
     if boss == nil then return "" end
+    if boss.standing ~= nil then
+        local label = _G["FACTION_STANDING_LABEL" .. (boss.standing + 1)]
+        if type(label) == "string" and label ~= "" then return label end
+
+        return boss.name
+    end
+
+    if boss.rank ~= nil then return DungeonJournal:Trans("LID_RANK", nil, boss.rank) end
     local names = DungeonJournal.BOSSNAMES
     if names and boss.npcs and boss.npcs[1] then
         local localized = names[boss.npcs[1]]
@@ -219,13 +242,29 @@ function DungeonJournal:GetInstances(kind)
     if byType == nil then
         byType = {
             ["dungeon"] = {},
-            ["raid"] = {}
+            ["raid"] = {},
+            ["pvp"] = {},
+            ["faction"] = {}
         }
 
         for _, inst in ipairs(DungeonJournal.INSTANCES or {}) do
             local list = byType[inst.type]
             if list then tinsert(list, inst) end
         end
+
+        for _, inst in ipairs(DungeonJournal.VENDORS or {}) do
+            local list = byType[inst.type]
+            if list then tinsert(list, inst) end
+        end
+
+        local function ByName(a, b)
+            if (a.honor == true) ~= (b.honor == true) then return a.honor == true end
+
+            return DungeonJournal:GetInstanceName(a) < DungeonJournal:GetInstanceName(b)
+        end
+
+        table.sort(byType["faction"], ByName)
+        table.sort(byType["pvp"], ByName)
     end
 
     return byType[kind] or {}
@@ -307,10 +346,12 @@ function DungeonJournal:PreloadItems()
     local request = C_Item and C_Item.RequestLoadItemDataByID
     if request == nil then return end
     local queue = {}
-    for _, inst in ipairs(DungeonJournal.INSTANCES or {}) do
-        for _, boss in ipairs(inst.bosses or {}) do
-            for _, entry in ipairs(boss.loot or {}) do
-                tinsert(queue, entry[1])
+    for _, source in ipairs({DungeonJournal.INSTANCES or {}, DungeonJournal.VENDORS or {}}) do
+        for _, inst in ipairs(source) do
+            for _, boss in ipairs(inst.bosses or {}) do
+                for _, entry in ipairs(boss.loot or {}) do
+                    tinsert(queue, entry[1])
+                end
             end
         end
     end
