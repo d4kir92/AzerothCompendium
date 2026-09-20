@@ -1,0 +1,13 @@
+-- koKR Korean
+local _, DungeonJournal = ...
+DungeonJournal:AddTrans("koKR", "LID_DUNGEONENTRANCE", "던전 입구")
+DungeonJournal:AddTrans("koKR", "LID_DUNGEONS", "던전 입구")
+DungeonJournal:AddTrans("koKR", "LID_GENERAL", "일반")
+DungeonJournal:AddTrans("koKR", "LID_INSTANCEMAP", "월드맵에 던전 지도 표시")
+DungeonJournal:AddTrans("koKR", "LID_MINIMAPPINS", "미니맵에 아이콘 표시")
+DungeonJournal:AddTrans("koKR", "LID_MMBTN", "미니맵 버튼 표시")
+DungeonJournal:AddTrans("koKR", "LID_PIERS", "선착장")
+DungeonJournal:AddTrans("koKR", "LID_RECOMMENDEDLEVEL", "권장 레벨 %d")
+DungeonJournal:AddTrans("koKR", "LID_SHIPTO", "배 목적지")
+DungeonJournal:AddTrans("koKR", "LID_THEN", "그 다음")
+DungeonJournal:AddTrans("koKR", "LID_WORLDMAPPINS", "월드맵에 아이콘 표시")

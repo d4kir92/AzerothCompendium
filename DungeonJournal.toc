@@ -1,0 +1,51 @@
+## Interface-Forever: 16001
+## Interface: 16001
+
+## Version: 0.1.0
+## Title: DungeonJournal by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
+## Notes: Add Dungeon Journal to the game
+## Notes-deDE: 
+## Notes-esES: 
+## Notes-esMX: 
+## Notes-frFR: 
+## Notes-itIT: 
+## Notes-koKR: 
+## Notes-ptBR: 
+## Notes-ruRU: 
+## Notes-zhCN: 
+## Notes-zhTW: 
+## Author: D4KiR |T132115:16:16:0:0|t
+## Category: Map
+## Category-deDE: Karte
+## Category-esES: Mapa
+## Category-esMX: Mapa
+## Category-frFR: Carte
+## Category-itIT: Mappa
+## Category-koKR: 지도
+## Category-ptBR: Mapa
+## Category-ruRU: Карта
+## Category-zhCN: 地图
+## Category-zhTW: 地圖
+## DefaultState: enabled
+## SavedVariables: DUJOTAB
+## SavedVariablesPerCharacter: DUJOTABPC
+## X-Curse-Project-ID: 
+## X-Wago-ID: 
+## IconTexture: 
+
+libs\D4Lib\D4Lib.xml
+
+locale\enUS.lua
+locale\deDE.lua
+locale\esES.lua
+locale\esMX.lua
+locale\frFR.lua
+locale\itIT.lua
+locale\koKR.lua
+locale\ptBR.lua
+locale\ruRU.lua
+locale\zhCN.lua
+locale\zhTW.lua
+
+core.lua
+settings.lua
