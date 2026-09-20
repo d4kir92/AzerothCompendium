@@ -4,6 +4,7 @@ local HEIGHT = 580
 local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
+local SCROLLBAR_W = 18
 local journal = nil
 local selectedInstance = nil
 local selectedBoss = nil
@@ -47,121 +48,128 @@ local function InstanceMatches(inst)
     return false
 end
 
+local function HasModernScroll()
+    if ScrollUtil == nil then return false end
+    if ScrollUtil.InitScrollBoxWithScrollBar == nil then return false end
+    if CreateScrollBoxLinearView == nil then return false end
+
+    return DungeonJournal:CheckTemplates("WowScrollBox, MinimalScrollBar")
+end
+
 local function CreateScroller(parent, rowHeight, initRow)
     local scroller = CreateFrame("Frame", nil, parent)
     scroller.rowHeight = rowHeight
     scroller.initRow = initRow
     scroller.rows = {}
     scroller.data = {}
-    scroller.offset = 0
-    scroller:EnableMouseWheel(true)
-    local track = scroller:CreateTexture(nil, "BACKGROUND")
-    track:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", 0, 0)
-    track:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", 0, 0)
-    track:SetWidth(6)
-    track:SetColorTexture(0, 0, 0, 0.4)
-    local thumb = CreateFrame("Frame", nil, scroller)
-    thumb:SetWidth(6)
-    thumb:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", 0, 0)
-    local thumbTex = thumb:CreateTexture(nil, "ARTWORK")
-    thumbTex:SetAllPoints(thumb)
-    thumbTex:SetColorTexture(0.45, 0.4, 0.3, 0.9)
-    thumb:EnableMouse(true)
-    scroller.track = track
-    scroller.thumb = thumb
-    function scroller:GetVisibleCount()
-        local height = self:GetHeight()
-        if height == nil or height <= 0 then return 1 end
-
-        return max(1, floor(height / self.rowHeight))
-    end
-
-    function scroller:GetMaxOffset()
-        return max(0, #self.data - self:GetVisibleCount())
-    end
-
-    function scroller:UpdateThumb()
-        local total = #self.data
-        local visible = self:GetVisibleCount()
-        if total <= visible then
-            self.track:Hide()
-            self.thumb:Hide()
-
-            return
+    local content = nil
+    if HasModernScroll() then
+        local box = CreateFrame("Frame", nil, scroller, "WowScrollBox")
+        box:SetPoint("TOPLEFT", scroller, "TOPLEFT", 0, 0)
+        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+        local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
+        bar:SetPoint("TOPLEFT", box, "TOPRIGHT", 6, 0)
+        bar:SetPoint("BOTTOMLEFT", box, "BOTTOMRIGHT", 6, 0)
+        content = CreateFrame("Frame", nil, box)
+        content.scrollable = true
+        content:SetSize(1, 1)
+        local view = CreateScrollBoxLinearView()
+        view:SetPanExtent(rowHeight)
+        ScrollUtil.InitScrollBoxWithScrollBar(box, bar, view)
+        scroller.box = box
+        scroller.bar = bar
+    else
+        local scroll = nil
+        if DungeonJournal:CheckTemplates("UIPanelScrollFrameTemplate") then
+            scroll = CreateFrame("ScrollFrame", nil, scroller, "UIPanelScrollFrameTemplate")
+        else
+            scroll = CreateFrame("ScrollFrame", nil, scroller)
         end
 
-        self.track:Show()
-        self.thumb:Show()
-        local height = self:GetHeight()
-        local thumbHeight = max(20, height * visible / total)
-        self.thumb:SetHeight(thumbHeight)
-        local maxOffset = self:GetMaxOffset()
-        local progress = 0
-        if maxOffset > 0 then progress = self.offset / maxOffset end
-        self.thumb:ClearAllPoints()
-        self.thumb:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, -progress * (height - thumbHeight))
+        scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", 0, 0)
+        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+        scroll:EnableMouseWheel(true)
+        scroll:SetScript("OnMouseWheel", function(sel, delta)
+            local range = max(0, (sel.djHeight or 0) - sel:GetHeight())
+            sel:SetVerticalScroll(min(range, max(0, sel:GetVerticalScroll() - delta * rowHeight * 3)))
+        end)
+
+        content = CreateFrame("Frame", nil, scroll)
+        content:SetSize(1, 1)
+        scroll:SetScrollChild(content)
+        scroller.scroll = scroll
+    end
+
+    scroller.content = content
+    function scroller:GetViewport()
+        if type(self.box) == "table" then return self.box end
+        if type(self.scroll) == "table" then return self.scroll end
+
+        return nil
+    end
+
+    function scroller:UpdateScroll()
+        local height = max(1, #self.data * self.rowHeight)
+        self.content:SetHeight(height)
+        if type(self.scroll) == "table" then self.scroll.djHeight = height end
+        if type(self.box) == "table" and self.box.FullUpdate and ScrollBoxConstants then self.box:FullUpdate(ScrollBoxConstants.UpdateImmediately) end
+    end
+
+    function scroller:ScrollToTop()
+        if type(self.box) == "table" and self.box.ScrollToBegin then
+            self.box:ScrollToBegin()
+        elseif type(self.scroll) == "table" then
+            self.scroll:SetVerticalScroll(0)
+        end
     end
 
     function scroller:Scroll(offset)
-        self.offset = max(0, min(self:GetMaxOffset(), offset))
-        self:Refresh()
+        local viewport = self:GetViewport()
+        if viewport == nil then return end
+        local range = max(0, #self.data * self.rowHeight - viewport:GetHeight())
+        local target = min(range, max(0, offset * self.rowHeight))
+        if type(self.box) == "table" and self.box.SetScrollPercentage then
+            local percentage = 0
+            if range > 0 then percentage = target / range end
+            self.box:SetScrollPercentage(percentage)
+        elseif type(self.scroll) == "table" then
+            self.scroll:SetVerticalScroll(target)
+        end
     end
 
     function scroller:SetData(data)
         self.data = data or {}
-        self.offset = 0
         self:Refresh()
+        self:ScrollToTop()
     end
 
     function scroller:Refresh()
-        local visible = self:GetVisibleCount()
-        if self.offset > self:GetMaxOffset() then self.offset = self:GetMaxOffset() end
-        for i = 1, visible do
-            local row = self.rows[i]
+        local viewport = self:GetViewport()
+        local width = viewport and viewport:GetWidth() or 0
+        if width > 0 then self.content:SetWidth(width) end
+        for index, entry in ipairs(self.data) do
+            local row = self.rows[index]
             if row == nil then
-                row = self.initRow(self)
+                row = self.initRow(self.content)
                 row:SetHeight(self.rowHeight)
-                row:SetPoint("TOPLEFT", self, "TOPLEFT", 0, -(i - 1) * self.rowHeight)
-                row:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, -(i - 1) * self.rowHeight)
-                self.rows[i] = row
+                self.rows[index] = row
             end
 
-            local entry = self.data[i + self.offset]
-            if entry ~= nil then
-                row:Update(entry)
-                row:Show()
-            else
-                row:Hide()
-            end
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(index - 1) * self.rowHeight)
+            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -(index - 1) * self.rowHeight)
+            row:Update(entry)
+            row:Show()
         end
 
-        for i = visible + 1, #self.rows do
-            self.rows[i]:Hide()
+        for index = #self.data + 1, #self.rows do
+            self.rows[index]:Hide()
         end
 
-        self:UpdateThumb()
+        self:UpdateScroll()
     end
 
-    scroller:SetScript("OnMouseWheel", function(sel, delta) sel:Scroll(sel.offset - delta * 3) end)
     scroller:SetScript("OnSizeChanged", function(sel) sel:Refresh() end)
-    thumb:SetScript("OnMouseDown", function(sel)
-        sel.dragging = true
-        sel.startY = select(2, GetCursorPosition())
-        sel.startOffset = scroller.offset
-    end)
-
-    thumb:SetScript("OnMouseUp", function(sel) sel.dragging = false end)
-    thumb:SetScript("OnUpdate", function(sel)
-        if not sel.dragging then return end
-        local scale = scroller:GetEffectiveScale()
-        if scale == nil or scale == 0 then return end
-        local height = scroller:GetHeight()
-        if height <= 0 then return end
-        local total = #scroller.data
-        if total <= 0 then return end
-        local delta = (sel.startY - select(2, GetCursorPosition())) / scale
-        scroller:Scroll(sel.startOffset + floor(delta / height * total + 0.5))
-    end)
 
     return scroller
 end
@@ -620,7 +628,7 @@ local function CreateJournal()
         RefreshInstances()
     end)
 
-    dungeonTab:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -60)
+    dungeonTab:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -62)
     local raidTab = CreateTabButton(journal, DungeonJournal:Trans("LID_RAIDS"), function()
         if listKind == "raid" then return end
         listKind = "raid"
@@ -690,7 +698,7 @@ local function CreateJournal()
     journal.detailCount = detailCount
     local classFilter = CreateTemplated("CheckButton", "DungeonJournalClassFilter", journal, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
-    classFilter:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 10)
+    classFilter:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 2)
     classFilter:SetChecked(DungeonJournal:GetConfig("CLASSFILTER", false) == true)
     local classFilterLabel = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
