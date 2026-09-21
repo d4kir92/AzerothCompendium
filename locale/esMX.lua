@@ -1,6 +1,6 @@
 -- esMX Spanish Mexico
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("esMX", "LID_TITLE", "Diario de calabozos")
+AzerothCompendium:AddTrans("esMX", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("esMX", "LID_DUNGEONS", "Calabozos")
 AzerothCompendium:AddTrans("esMX", "LID_RAIDS", "Bandas")
 AzerothCompendium:AddTrans("esMX", "LID_LOOT", "Botín")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("esMX", "LID_NOENTRIES", "Sin entradas")
 AzerothCompendium:AddTrans("esMX", "LID_GENERAL", "General")
 AzerothCompendium:AddTrans("esMX", "LID_MMBTN", "Mostrar botón del minimapa")
 AzerothCompendium:AddTrans("esMX", "LID_SHOWCHANCE", "Mostrar probabilidad de botín")
-AzerothCompendium:AddTrans("esMX", "LID_OPENCOMPENDIUM", "Abrir el diario")
+AzerothCompendium:AddTrans("esMX", "LID_OPENCOMPENDIUM", "Abrir el compendio")
 AzerothCompendium:AddTrans("esMX", "LID_OPENSETTINGS", "Abrir opciones")
 AzerothCompendium:AddTrans("esMX", "LID_LEFTCLICK", "Clic izquierdo")
 AzerothCompendium:AddTrans("esMX", "LID_RIGHTCLICK", "Clic derecho")

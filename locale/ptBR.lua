@@ -1,6 +1,6 @@
 -- ptBR Portuguese Brasil
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("ptBR", "LID_TITLE", "Diário de masmorras")
+AzerothCompendium:AddTrans("ptBR", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("ptBR", "LID_DUNGEONS", "Masmorras")
 AzerothCompendium:AddTrans("ptBR", "LID_RAIDS", "Raides")
 AzerothCompendium:AddTrans("ptBR", "LID_LOOT", "Saque")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_NOENTRIES", "Nenhuma entrada")
 AzerothCompendium:AddTrans("ptBR", "LID_GENERAL", "Geral")
 AzerothCompendium:AddTrans("ptBR", "LID_MMBTN", "Mostrar botão do minimapa")
 AzerothCompendium:AddTrans("ptBR", "LID_SHOWCHANCE", "Mostrar chance de saque")
-AzerothCompendium:AddTrans("ptBR", "LID_OPENCOMPENDIUM", "Abrir diário")
+AzerothCompendium:AddTrans("ptBR", "LID_OPENCOMPENDIUM", "Abrir compêndio")
 AzerothCompendium:AddTrans("ptBR", "LID_OPENSETTINGS", "Abrir opções")
 AzerothCompendium:AddTrans("ptBR", "LID_LEFTCLICK", "Clique esquerdo")
 AzerothCompendium:AddTrans("ptBR", "LID_RIGHTCLICK", "Clique direito")

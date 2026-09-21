@@ -1,6 +1,6 @@
 -- itIT Italian Italiano
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("itIT", "LID_TITLE", "Diario dei dungeon")
+AzerothCompendium:AddTrans("itIT", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("itIT", "LID_DUNGEONS", "Dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_RAIDS", "Incursioni")
 AzerothCompendium:AddTrans("itIT", "LID_LOOT", "Bottino")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("itIT", "LID_NOENTRIES", "Nessuna voce")
 AzerothCompendium:AddTrans("itIT", "LID_GENERAL", "Generale")
 AzerothCompendium:AddTrans("itIT", "LID_MMBTN", "Mostra pulsante minimappa")
 AzerothCompendium:AddTrans("itIT", "LID_SHOWCHANCE", "Mostra probabilità di bottino")
-AzerothCompendium:AddTrans("itIT", "LID_OPENCOMPENDIUM", "Apri il diario")
+AzerothCompendium:AddTrans("itIT", "LID_OPENCOMPENDIUM", "Apri il compendio")
 AzerothCompendium:AddTrans("itIT", "LID_OPENSETTINGS", "Apri le opzioni")
 AzerothCompendium:AddTrans("itIT", "LID_LEFTCLICK", "Clic sinistro")
 AzerothCompendium:AddTrans("itIT", "LID_RIGHTCLICK", "Clic destro")

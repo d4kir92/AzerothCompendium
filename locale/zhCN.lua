@@ -1,6 +1,6 @@
 -- zhCN Chinese simplified
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("zhCN", "LID_TITLE", "地下城日志")
+AzerothCompendium:AddTrans("zhCN", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONS", "地下城")
 AzerothCompendium:AddTrans("zhCN", "LID_RAIDS", "团队副本")
 AzerothCompendium:AddTrans("zhCN", "LID_LOOT", "战利品")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_NOENTRIES", "没有条目")
 AzerothCompendium:AddTrans("zhCN", "LID_GENERAL", "常规")
 AzerothCompendium:AddTrans("zhCN", "LID_MMBTN", "显示小地图按钮")
 AzerothCompendium:AddTrans("zhCN", "LID_SHOWCHANCE", "显示掉落几率")
-AzerothCompendium:AddTrans("zhCN", "LID_OPENCOMPENDIUM", "打开日志")
+AzerothCompendium:AddTrans("zhCN", "LID_OPENCOMPENDIUM", "打开宝典")
 AzerothCompendium:AddTrans("zhCN", "LID_OPENSETTINGS", "打开设置")
 AzerothCompendium:AddTrans("zhCN", "LID_LEFTCLICK", "左键点击")
 AzerothCompendium:AddTrans("zhCN", "LID_RIGHTCLICK", "右键点击")

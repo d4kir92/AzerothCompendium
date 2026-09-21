@@ -2,18 +2,18 @@
 ## Interface: 16001
 
 ## Version: 0.1.0
-## Title: AzerothCompendium by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
-## Notes: Add Azeroth Compendium to the game
-## Notes-deDE: Fügt dem Spiel ein Azeroth-Kompendium hinzu
-## Notes-esES: Añade un diario de mazmorras al juego
-## Notes-esMX: Añade un diario de calabozos al juego
-## Notes-frFR: Ajoute un journal des donjons au jeu
-## Notes-itIT: Aggiunge un diario dei dungeon al gioco
-## Notes-koKR: 게임에 던전 지침서를 추가합니다
-## Notes-ptBR: Adiciona um diário de masmorras ao jogo
-## Notes-ruRU: Добавляет в игру журнал подземелий
-## Notes-zhCN: 为游戏添加地下城日志
-## Notes-zhTW: 為遊戲添加地城日誌
+## Title: Azeroth Compendium by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
+## Notes: Browse dungeon, raid, PvP, and reputation rewards
+## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
+## Notes-esES: Consulta recompensas de mazmorras, bandas, JcJ y reputación
+## Notes-esMX: Consulta recompensas de calabozos, bandas, JcJ y reputación
+## Notes-frFR: Consulte le butin des donjons, raids, JcJ et réputations
+## Notes-itIT: Consulta ricompense di dungeon, incursioni, PvP e reputazione
+## Notes-koKR: 던전, 공격대, PvP 및 평판 보상을 살펴봅니다
+## Notes-ptBR: Consulte recompensas de masmorras, raides, JxJ e reputação
+## Notes-ruRU: Просматривайте награды подземелий, рейдов, PvP и репутации
+## Notes-zhCN: 浏览地下城、团队副本、PvP和声望奖励
+## Notes-zhTW: 瀏覽地城、團隊副本、PvP與聲望獎勵
 ## Author: D4KiR |T132115:16:16:0:0|t
 ## Category: Map
 ## Category-deDE: Karte

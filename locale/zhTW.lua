@@ -1,6 +1,6 @@
 -- zhTW Chinese traditional
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("zhTW", "LID_TITLE", "地城日誌")
+AzerothCompendium:AddTrans("zhTW", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("zhTW", "LID_DUNGEONS", "地城")
 AzerothCompendium:AddTrans("zhTW", "LID_RAIDS", "團隊副本")
 AzerothCompendium:AddTrans("zhTW", "LID_LOOT", "戰利品")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("zhTW", "LID_NOENTRIES", "沒有項目")
 AzerothCompendium:AddTrans("zhTW", "LID_GENERAL", "一般")
 AzerothCompendium:AddTrans("zhTW", "LID_MMBTN", "顯示小地圖按鈕")
 AzerothCompendium:AddTrans("zhTW", "LID_SHOWCHANCE", "顯示掉落機率")
-AzerothCompendium:AddTrans("zhTW", "LID_OPENCOMPENDIUM", "開啟日誌")
+AzerothCompendium:AddTrans("zhTW", "LID_OPENCOMPENDIUM", "開啟寶典")
 AzerothCompendium:AddTrans("zhTW", "LID_OPENSETTINGS", "開啟設定")
 AzerothCompendium:AddTrans("zhTW", "LID_LEFTCLICK", "左鍵點擊")
 AzerothCompendium:AddTrans("zhTW", "LID_RIGHTCLICK", "右鍵點擊")

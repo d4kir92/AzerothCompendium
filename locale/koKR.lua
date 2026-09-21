@@ -1,6 +1,6 @@
 -- koKR Korean
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("koKR", "LID_TITLE", "던전 지침서")
+AzerothCompendium:AddTrans("koKR", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("koKR", "LID_DUNGEONS", "던전")
 AzerothCompendium:AddTrans("koKR", "LID_RAIDS", "공격대")
 AzerothCompendium:AddTrans("koKR", "LID_LOOT", "전리품")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("koKR", "LID_NOENTRIES", "항목 없음")
 AzerothCompendium:AddTrans("koKR", "LID_GENERAL", "일반")
 AzerothCompendium:AddTrans("koKR", "LID_MMBTN", "미니맵 버튼 표시")
 AzerothCompendium:AddTrans("koKR", "LID_SHOWCHANCE", "드롭 확률 표시")
-AzerothCompendium:AddTrans("koKR", "LID_OPENCOMPENDIUM", "지침서 열기")
+AzerothCompendium:AddTrans("koKR", "LID_OPENCOMPENDIUM", "도감 열기")
 AzerothCompendium:AddTrans("koKR", "LID_OPENSETTINGS", "설정 열기")
 AzerothCompendium:AddTrans("koKR", "LID_LEFTCLICK", "왼쪽 클릭")
 AzerothCompendium:AddTrans("koKR", "LID_RIGHTCLICK", "오른쪽 클릭")

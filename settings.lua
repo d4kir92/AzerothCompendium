@@ -82,7 +82,7 @@ function AzerothCompendium:InitSetting()
         end,
         ["getCollapsed"] = function(key) return GetCollapsed(key) end,
         ["setCollapsed"] = function(key, collapsed) SetCollapsed(key, collapsed) end,
-        ["title"] = format("|T%d:16:16:0:0|t AzerothCompendium v%s", ICON, GetTocVersion())
+        ["title"] = format("|T%d:16:16:0:0|t Azeroth Compendium v%s", ICON, GetTocVersion())
     })
 
     acoset:SuspendLayout()
@@ -105,7 +105,7 @@ function AzerothCompendium:InitSetting()
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
         ["vTT"] = {
-            {format("|T%d:16:16:0:0|t AzerothCompendium", ICON), "v" .. GetTocVersion()},
+            {format("|T%d:16:16:0:0|t Azeroth Compendium", ICON), "v" .. GetTocVersion()},
             {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
             {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
         },
@@ -116,7 +116,7 @@ function AzerothCompendium:InitSetting()
 
     if AzerothCompendium:GetConfig("MMBTN", true) then AzerothCompendium:ShowMMBtn("AzerothCompendium") end
     AzerothCompendium:AddSlash("azerothcompendium", HandleSlash)
-    AzerothCompendium:AddSlash("dj", HandleSlash)
+    AzerothCompendium:AddSlash("ac", HandleSlash)
 end
 
 local loader = CreateFrame("FRAME")

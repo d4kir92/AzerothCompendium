@@ -1,6 +1,6 @@
 -- ruRU Russian
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("ruRU", "LID_TITLE", "Журнал подземелий")
+AzerothCompendium:AddTrans("ruRU", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONS", "Подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_RAIDS", "Рейды")
 AzerothCompendium:AddTrans("ruRU", "LID_LOOT", "Добыча")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_NOENTRIES", "Нет записей")
 AzerothCompendium:AddTrans("ruRU", "LID_GENERAL", "Общее")
 AzerothCompendium:AddTrans("ruRU", "LID_MMBTN", "Показывать кнопку у миникарты")
 AzerothCompendium:AddTrans("ruRU", "LID_SHOWCHANCE", "Показывать шанс выпадения")
-AzerothCompendium:AddTrans("ruRU", "LID_OPENCOMPENDIUM", "Открыть журнал")
+AzerothCompendium:AddTrans("ruRU", "LID_OPENCOMPENDIUM", "Открыть справочник")
 AzerothCompendium:AddTrans("ruRU", "LID_OPENSETTINGS", "Открыть настройки")
 AzerothCompendium:AddTrans("ruRU", "LID_LEFTCLICK", "Левый клик")
 AzerothCompendium:AddTrans("ruRU", "LID_RIGHTCLICK", "Правый клик")

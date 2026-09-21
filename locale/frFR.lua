@@ -1,6 +1,6 @@
 -- frFR French Francais
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("frFR", "LID_TITLE", "Journal des donjons")
+AzerothCompendium:AddTrans("frFR", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONS", "Donjons")
 AzerothCompendium:AddTrans("frFR", "LID_RAIDS", "Raids")
 AzerothCompendium:AddTrans("frFR", "LID_LOOT", "Butin")
@@ -13,7 +13,7 @@ AzerothCompendium:AddTrans("frFR", "LID_NOENTRIES", "Aucune entrée")
 AzerothCompendium:AddTrans("frFR", "LID_GENERAL", "Général")
 AzerothCompendium:AddTrans("frFR", "LID_MMBTN", "Afficher le bouton de la minicarte")
 AzerothCompendium:AddTrans("frFR", "LID_SHOWCHANCE", "Afficher le taux de butin")
-AzerothCompendium:AddTrans("frFR", "LID_OPENCOMPENDIUM", "Ouvrir le journal")
+AzerothCompendium:AddTrans("frFR", "LID_OPENCOMPENDIUM", "Ouvrir le compendium")
 AzerothCompendium:AddTrans("frFR", "LID_OPENSETTINGS", "Ouvrir les options")
 AzerothCompendium:AddTrans("frFR", "LID_LEFTCLICK", "Clic gauche")
 AzerothCompendium:AddTrans("frFR", "LID_RIGHTCLICK", "Clic droit")
