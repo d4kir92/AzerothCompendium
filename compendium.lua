@@ -846,6 +846,18 @@ local function CreateFlavorControl(parent)
         table.sort(steppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
         local previous = control.DecrementButton or steppers[1]
         local following = control.IncrementButton or steppers[2]
+        local setEnabled = {}
+        local function LockStepper(button)
+            if button == nil then return end
+            setEnabled[button] = button.SetEnabled
+            local nop = function() end
+            button.SetEnabled = nop
+            button.Enable = nop
+            button.Disable = nop
+        end
+
+        LockStepper(previous)
+        LockStepper(following)
         local function SelectFlavor(value)
             AzerothCompendium:SetFlavor(value)
         end
@@ -861,9 +873,10 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = control.Dropdown
         parent.updateFlavorSteppers = function()
             local classic = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
-            if previous then previous:SetEnabled(not classic) end
-            if following then following:SetEnabled(classic) end
+            if previous then setEnabled[previous](previous, not classic) end
+            if following then setEnabled[following](following, classic) end
         end
+        control:HookScript("OnShow", parent.updateFlavorSteppers)
     else
         local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
         button:SetSize(190, 22)
