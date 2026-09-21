@@ -217,6 +217,7 @@ end
 
 function DungeonJournal:GetBossName(boss)
     if boss == nil then return "" end
+    if boss.trash then return DungeonJournal:Trans("LID_TRASH") end
     if boss.standing ~= nil then
         local label = _G["FACTION_STANDING_LABEL" .. (boss.standing + 1)]
         if type(label) == "string" and label ~= "" then return label end

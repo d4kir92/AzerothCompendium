@@ -49,6 +49,7 @@ locale\zhTW.lua
 locale\bosses_deDE.lua
 
 data\instances.lua
+data\trash.lua
 data\vendors.lua
 
 core.lua

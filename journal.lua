@@ -346,10 +346,10 @@ local function RefreshDetail()
     if journal == nil then return end
     local count = 0
     local empty = false
-    local vendorMode = selectedInstance ~= nil and selectedInstance.vendor == true
-    if vendorMode and detailKind ~= "loot" then detailKind = "loot" end
+    local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and selectedBoss.trash == true)
+    if lootOnly and detailKind ~= "loot" then detailKind = "loot" end
     for kind, button in pairs(journal.detailTabs) do
-        if kind ~= "loot" and vendorMode then
+        if kind ~= "loot" and lootOnly then
             button:Hide()
         else
             button:Show()
