@@ -1,4 +1,4 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 local WIDTH = 860
 local HEIGHT = 580
 local ROW_H = 22
@@ -10,7 +10,7 @@ local SIDE_TAB_GAP = 3
 local MODEL_START_ROTATION = 0.4
 local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
-local journal = nil
+local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
 local listKind = "dungeon"
@@ -33,10 +33,10 @@ end
 
 local function BossMatches(boss)
     if searchText == "" then return true end
-    if Matches(DungeonJournal:GetBossName(boss)) then return true end
+    if Matches(AzerothCompendium:GetBossName(boss)) then return true end
     if Matches(boss.name) then return true end
     for _, entry in ipairs(boss.loot or {}) do
-        if Matches(DungeonJournal:GetItemDisplay(entry[1])) then return true end
+        if Matches(AzerothCompendium:GetItemDisplay(entry[1])) then return true end
     end
 
     return false
@@ -44,7 +44,7 @@ end
 
 local function InstanceMatches(inst)
     if searchText == "" then return true end
-    if Matches(DungeonJournal:GetInstanceName(inst)) then return true end
+    if Matches(AzerothCompendium:GetInstanceName(inst)) then return true end
     if Matches(inst.name) then return true end
     for _, boss in ipairs(inst.bosses or {}) do
         if BossMatches(boss) then return true end
@@ -58,7 +58,7 @@ local function HasModernScroll()
     if ScrollUtil.InitScrollBoxWithScrollBar == nil then return false end
     if CreateScrollBoxLinearView == nil then return false end
 
-    return DungeonJournal:CheckTemplates("WowScrollBox, MinimalScrollBar")
+    return AzerothCompendium:CheckTemplates("WowScrollBox, MinimalScrollBar")
 end
 
 local function CreateScroller(parent, rowHeight, initRow)
@@ -85,7 +85,7 @@ local function CreateScroller(parent, rowHeight, initRow)
         scroller.bar = bar
     else
         local scroll = nil
-        if DungeonJournal:CheckTemplates("UIPanelScrollFrameTemplate") then
+        if AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
             scroll = CreateFrame("ScrollFrame", nil, scroller, "UIPanelScrollFrameTemplate")
         else
             scroll = CreateFrame("ScrollFrame", nil, scroller)
@@ -208,7 +208,7 @@ end
 
 local function UpdateInstanceRow(row, inst)
     row.entry = inst
-    row.text:SetText(DungeonJournal:GetInstanceName(inst))
+    row.text:SetText(AzerothCompendium:GetInstanceName(inst))
     if inst.minLevel and inst.maxLevel then
         row.info:SetText(inst.minLevel .. "-" .. inst.maxLevel)
     else
@@ -226,7 +226,7 @@ end
 
 local function UpdateBossRow(row, boss)
     row.entry = boss
-    row.text:SetText(DungeonJournal:GetBossName(boss))
+    row.text:SetText(AzerothCompendium:GetBossName(boss))
     local count = #(boss.loot or {})
     if count > 0 then
         row.info:SetText(count)
@@ -245,7 +245,7 @@ end
 
 local function GetInstanceList()
     local list = {}
-    for _, inst in ipairs(DungeonJournal:GetInstances(listKind)) do
+    for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
         if InstanceMatches(inst) then tinsert(list, inst) end
     end
 
@@ -265,14 +265,14 @@ end
 local function GetLootList()
     local list = {}
     if selectedBoss == nil then return list end
-    local onlyClass = DungeonJournal:GetConfig("CLASSFILTER", false)
+    local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", false)
     local class = select(2, UnitClass("player"))
-    local bossMatched = Matches(DungeonJournal:GetBossName(selectedBoss)) or Matches(selectedBoss.name)
+    local bossMatched = Matches(AzerothCompendium:GetBossName(selectedBoss)) or Matches(selectedBoss.name)
     for _, entry in ipairs(selectedBoss.loot or {}) do
         local itemID = entry[1]
         local ok = true
-        if onlyClass and not DungeonJournal:IsUsableByClass(itemID, class) then ok = false end
-        if ok and searchText ~= "" and not bossMatched and not Matches(DungeonJournal:GetItemDisplay(itemID)) then ok = false end
+        if onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then ok = false end
+        if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok then tinsert(list, entry) end
     end
 
@@ -283,7 +283,7 @@ local function GetSpellList()
     local list = {}
     if selectedBoss == nil then return list end
     for _, spellID in ipairs(selectedBoss.spells or {}) do
-        if DungeonJournal:GetSpellInfo(spellID) ~= nil then tinsert(list, spellID) end
+        if AzerothCompendium:GetSpellInfo(spellID) ~= nil then tinsert(list, spellID) end
     end
 
     return list
@@ -302,7 +302,7 @@ local function UpdateTabs(tabs, active)
 end
 
 local function UpdateModel()
-    local frame = journal.model
+    local frame = compendium.model
     if frame == nil then return false end
     local displayID = nil
     local npcID = nil
@@ -336,19 +336,19 @@ local function UpdateModel()
 end
 
 local function UpdateKindTabs()
-    if journal == nil then return end
-    for kind, tab in pairs(journal.kindTabs) do
+    if compendium == nil then return end
+    for kind, tab in pairs(compendium.kindTabs) do
         tab:SetChecked(kind == listKind)
     end
 end
 
 local function RefreshDetail()
-    if journal == nil then return end
+    if compendium == nil then return end
     local count = 0
     local empty = false
     local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and selectedBoss.trash == true)
     if lootOnly and detailKind ~= "loot" then detailKind = "loot" end
-    for kind, button in pairs(journal.detailTabs) do
+    for kind, button in pairs(compendium.detailTabs) do
         if kind ~= "loot" and lootOnly then
             button:Hide()
         else
@@ -357,81 +357,81 @@ local function RefreshDetail()
     end
 
     if detailKind == "loot" then
-        journal.loot:SetData(GetLootList())
-        journal.loot:Show()
-        journal.spells:Hide()
-        if journal.model then journal.model:Hide() end
-        count = #journal.loot.data
-        journal.detailCount:SetText(DungeonJournal:Trans("LID_ITEMCOUNT", nil, count))
-        journal.classFilter:Show()
-        journal.classFilterLabel:Show()
+        compendium.loot:SetData(GetLootList())
+        compendium.loot:Show()
+        compendium.spells:Hide()
+        if compendium.model then compendium.model:Hide() end
+        count = #compendium.loot.data
+        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
+        compendium.classFilter:Show()
+        compendium.classFilterLabel:Show()
         empty = count == 0
     elseif detailKind == "spells" then
-        journal.spells:SetData(GetSpellList())
-        journal.spells:Show()
-        journal.loot:Hide()
-        if journal.model then journal.model:Hide() end
-        count = #journal.spells.data
-        journal.detailCount:SetText(DungeonJournal:Trans("LID_ABILITYCOUNT", nil, count))
-        journal.classFilter:Hide()
-        journal.classFilterLabel:Hide()
+        compendium.spells:SetData(GetSpellList())
+        compendium.spells:Show()
+        compendium.loot:Hide()
+        if compendium.model then compendium.model:Hide() end
+        count = #compendium.spells.data
+        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_ABILITYCOUNT", nil, count))
+        compendium.classFilter:Hide()
+        compendium.classFilterLabel:Hide()
         empty = count == 0
     else
-        journal.loot:Hide()
-        journal.spells:Hide()
-        journal.detailCount:SetText("")
-        journal.classFilter:Hide()
-        journal.classFilterLabel:Hide()
+        compendium.loot:Hide()
+        compendium.spells:Hide()
+        compendium.detailCount:SetText("")
+        compendium.classFilter:Hide()
+        compendium.classFilterLabel:Hide()
         empty = not UpdateModel()
     end
 
     if selectedBoss ~= nil then
-        journal.detailTitle:SetText(DungeonJournal:GetBossName(selectedBoss))
+        compendium.detailTitle:SetText(AzerothCompendium:GetBossName(selectedBoss))
     else
-        journal.detailTitle:SetText("")
+        compendium.detailTitle:SetText("")
     end
 
     if empty then
         if detailKind == "model" then
-            journal.empty:SetText(DungeonJournal:Trans("LID_NOMODEL"))
+            compendium.empty:SetText(AzerothCompendium:Trans("LID_NOMODEL"))
         elseif selectedInstance ~= nil and selectedInstance.forever then
-            journal.empty:SetText(DungeonJournal:Trans("LID_NODATAYET"))
+            compendium.empty:SetText(AzerothCompendium:Trans("LID_NODATAYET"))
         else
-            journal.empty:SetText(DungeonJournal:Trans("LID_NOENTRIES"))
+            compendium.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
         end
 
-        journal.empty:Show()
+        compendium.empty:Show()
     else
-        journal.empty:Hide()
+        compendium.empty:Hide()
     end
 
-    UpdateTabs(journal.detailTabs, detailKind)
+    UpdateTabs(compendium.detailTabs, detailKind)
 end
 
 local function RefreshBosses()
-    if journal == nil then return end
+    if compendium == nil then return end
     local list = GetBossList()
-    journal.bosses:SetData(list)
+    compendium.bosses:SetData(list)
     local found = false
     for _, boss in ipairs(list) do
         if boss == selectedBoss then found = true end
     end
 
     if not found then selectedBoss = list[1] end
-    journal.bosses:Refresh()
+    compendium.bosses:Refresh()
     if selectedInstance ~= nil then
-        journal.bossTitle:SetText(DungeonJournal:GetInstanceName(selectedInstance))
+        compendium.bossTitle:SetText(AzerothCompendium:GetInstanceName(selectedInstance))
     else
-        journal.bossTitle:SetText("")
+        compendium.bossTitle:SetText("")
     end
 
     RefreshDetail()
 end
 
 local function RefreshInstances()
-    if journal == nil then return end
+    if compendium == nil then return end
     local list = GetInstanceList()
-    journal.instances:SetData(list)
+    compendium.instances:SetData(list)
     local found = false
     for _, inst in ipairs(list) do
         if inst == selectedInstance then found = true end
@@ -442,20 +442,20 @@ local function RefreshInstances()
         selectedBoss = nil
     end
 
-    journal.instances:Refresh()
+    compendium.instances:Refresh()
     RefreshBosses()
 end
 
 local function OnInstanceClick(inst)
     selectedInstance = inst
     selectedBoss = nil
-    journal.instances:Refresh()
+    compendium.instances:Refresh()
     RefreshBosses()
 end
 
 local function OnBossClick(boss)
     selectedBoss = boss
-    journal.bosses:Refresh()
+    compendium.bosses:Refresh()
     RefreshDetail()
 end
 
@@ -471,7 +471,7 @@ local function ShowItemTooltip(row)
     end
 
     if row.boss ~= nil then
-        GameTooltip:AddLine(format(DungeonJournal:Trans("LID_DROPPEDBY"), DungeonJournal:GetBossName(row.boss)), 1, 0.82, 0)
+        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss)), 1, 0.82, 0)
     end
 
     GameTooltip:Show()
@@ -496,7 +496,7 @@ local function CreateLootRow(scroller)
     row.slot:SetPoint("RIGHT", row.chance, "LEFT", -6, 0)
     row.slot:SetJustifyH("LEFT")
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
-    row:SetScript("OnLeave", function() DungeonJournal:HideGameTooltip() end)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel)
         if sel.link == nil then return end
         if HandleModifiedItemClick then HandleModifiedItemClick(sel.link) end
@@ -507,10 +507,10 @@ local function CreateLootRow(scroller)
         local chance = entry[2]
         self.itemID = itemID
         self.boss = selectedInstance and not selectedInstance.vendor and selectedBoss or nil
-        local name, link, quality, _, icon = DungeonJournal:GetItemDisplay(itemID)
+        local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)
-        self.name:SetText(name or DungeonJournal:Trans("LID_LOADING"))
+        self.name:SetText(name or AzerothCompendium:Trans("LID_LOADING"))
         local color = nil
         if quality ~= nil and ITEM_QUALITY_COLORS ~= nil then color = ITEM_QUALITY_COLORS[quality] end
         if color ~= nil then
@@ -519,8 +519,8 @@ local function CreateLootRow(scroller)
             self.name:SetTextColor(0.6, 0.6, 0.6)
         end
 
-        self.slot:SetText(DungeonJournal:GetItemSlotText(itemID))
-        if chance ~= nil and DungeonJournal:GetConfig("SHOWCHANCE", true) then
+        self.slot:SetText(AzerothCompendium:GetItemSlotText(itemID))
+        if chance ~= nil and AzerothCompendium:GetConfig("SHOWCHANCE", true) then
             self.chance:SetText(format("%.1f%%", chance))
             if chance >= 50 then
                 self.chance:SetTextColor(0.4, 0.9, 0.4)
@@ -529,8 +529,8 @@ local function CreateLootRow(scroller)
             else
                 self.chance:SetTextColor(0.9, 0.55, 0.45)
             end
-        elseif DungeonJournal:IsForeverItem(itemID) then
-            self.chance:SetText(DungeonJournal:Trans("LID_NEWITEM"))
+        elseif AzerothCompendium:IsForeverItem(itemID) then
+            self.chance:SetText(AzerothCompendium:Trans("LID_NEWITEM"))
             self.chance:SetTextColor(0.4, 0.8, 1)
         else
             self.chance:SetText("")
@@ -558,10 +558,10 @@ local function CreateSpellRow(scroller)
         GameTooltip:Show()
     end)
 
-    row:SetScript("OnLeave", function() DungeonJournal:HideGameTooltip() end)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     function row:Update(entry)
         self.spellID = entry
-        local name, _, icon = DungeonJournal:GetSpellInfo(entry)
+        local name, _, icon = AzerothCompendium:GetSpellInfo(entry)
         self.icon:SetTexture(icon or 134400)
         self.name:SetText(name or entry)
         self.name:SetTextColor(0.9, 0.9, 0.9)
@@ -642,7 +642,7 @@ local function AddFallbackChrome(frame)
     local background = frame:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(frame)
     background:SetColorTexture(0.05, 0.05, 0.06, 0.94)
-    local close = CreateTemplated("Button", "DungeonJournalCloseButton", frame, {"UIPanelCloseButton"})
+    local close = CreateTemplated("Button", "AzerothCompendiumCloseButton", frame, {"UIPanelCloseButton"})
     close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
     close:SetSize(28, 28)
     close:SetScript("OnClick", function() frame:Hide() end)
@@ -680,7 +680,7 @@ local function CreateSideTab(parent, label, icon, onClick)
         GameTooltip:Show()
     end)
 
-    tab:SetScript("OnLeave", function() DungeonJournal:HideGameTooltip() end)
+    tab:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     if large then
         tab:EnableMouse(true)
         tab:SetCustomOnMouseUpHandler(function(_, button, upInside)
@@ -696,7 +696,7 @@ end
 local function CreateModelFrame(parent)
     local frame = nil
     for _, kind in ipairs({"PlayerModel", "DressUpModel", "CinematicModel", "Model"}) do
-        local ok, created = pcall(CreateFrame, kind, "DungeonJournalModel", parent)
+        local ok, created = pcall(CreateFrame, kind, "AzerothCompendiumModel", parent)
         if ok and created ~= nil then
             frame = created
             break
@@ -734,33 +734,33 @@ local function CreateModelFrame(parent)
 end
 
 local function CreateJournal()
-    if journal ~= nil then return journal end
+    if compendium ~= nil then return compendium end
     local template = nil
-    journal, template = CreateTemplated(
+    compendium, template = CreateTemplated(
         "Frame",
-        "DungeonJournalFrame",
+        "AzerothCompendiumFrame",
         UIParent,
         {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"}
     )
 
-    if template == nil then AddFallbackChrome(journal) end
-    if type(journal.Inset) == "table" and type(journal.Inset.Bg) == "table" then journal.Inset.Bg:SetAlpha(0.6) end
-    SetFramePortrait(journal, DungeonJournal:GetIcon())
-    journal:SetSize(WIDTH, HEIGHT)
-    journal:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    journal:SetFrameStrata("HIGH")
-    journal:SetMovable(true)
-    journal:EnableMouse(true)
-    journal:RegisterForDrag("LeftButton")
-    journal:SetScript("OnDragStart", function(sel) sel:StartMoving() end)
-    journal:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
-    DungeonJournal:SetClampedToScreen(journal, true, "DungeonJournal")
-    journal:Hide()
-    SetFrameTitle(journal, DungeonJournal:Trans("LID_TITLE"))
-    if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "DungeonJournalFrame") end
-    local search = CreateTemplated("EditBox", "DungeonJournalSearchBox", journal, {"InputBoxTemplate", "SearchBoxTemplate"})
+    if template == nil then AddFallbackChrome(compendium) end
+    if type(compendium.Inset) == "table" and type(compendium.Inset.Bg) == "table" then compendium.Inset.Bg:SetAlpha(0.6) end
+    SetFramePortrait(compendium, AzerothCompendium:GetIcon())
+    compendium:SetSize(WIDTH, HEIGHT)
+    compendium:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    compendium:SetFrameStrata("HIGH")
+    compendium:SetMovable(true)
+    compendium:EnableMouse(true)
+    compendium:RegisterForDrag("LeftButton")
+    compendium:SetScript("OnDragStart", function(sel) sel:StartMoving() end)
+    compendium:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
+    AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
+    compendium:Hide()
+    SetFrameTitle(compendium, AzerothCompendium:Trans("LID_TITLE"))
+    if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
+    local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
     search:SetSize(180, 20)
-    search:SetPoint("TOPRIGHT", journal, "TOPRIGHT", -30, -32)
+    search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -30, -32)
     search:SetFontObject("ChatFontNormal")
     search:SetAutoFocus(false)
     search:SetScript("OnTextChanged", function(sel)
@@ -773,11 +773,11 @@ local function CreateJournal()
         sel:ClearFocus()
     end)
 
-    journal.search = search
-    local searchLabel = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    compendium.search = search
+    local searchLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
-    searchLabel:SetText(DungeonJournal:Trans("LID_SEARCH"))
-    journal.kindTabs = {}
+    searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
+    compendium.kindTabs = {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
     local previousTab = nil
@@ -788,7 +788,7 @@ local function CreateJournal()
         {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
     }) do
         local kind = info[1]
-        local tab = CreateSideTab(journal, DungeonJournal:Trans(info[2]), info[3], function()
+        local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
             if listKind == kind then
                 UpdateKindTabs()
 
@@ -803,16 +803,16 @@ local function CreateJournal()
         end)
 
         if previousTab == nil then
-            tab:SetPoint("TOPLEFT", journal, "TOPRIGHT", -2, -SIDE_TAB_TOP)
+            tab:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2, -SIDE_TAB_TOP)
         else
             tab:SetPoint("TOPLEFT", previousTab, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
         end
 
-        journal.kindTabs[kind] = tab
+        compendium.kindTabs[kind] = tab
         previousTab = tab
     end
 
-    local instances = CreateScroller(journal, ROW_H, function(scroller)
+    local instances = CreateScroller(compendium, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnInstanceClick)
         function row:Update(entry)
             UpdateInstanceRow(self, entry)
@@ -821,17 +821,17 @@ local function CreateJournal()
         return row
     end)
 
-    instances:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -90)
-    instances:SetPoint("BOTTOMLEFT", journal, "BOTTOMLEFT", 12, 28)
+    instances:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
+    instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
     instances:SetWidth(COL_W)
-    journal.instances = instances
-    local bossTitle = journal:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    compendium.instances = instances
+    local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", COL_W + 12, 6)
     bossTitle:SetWidth(COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
-    journal.bossTitle = bossTitle
-    local bosses = CreateScroller(journal, ROW_H, function(scroller)
+    compendium.bossTitle = bossTitle
+    local bosses = CreateScroller(compendium, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnBossClick)
         function row:Update(entry)
             UpdateBossRow(self, entry)
@@ -843,132 +843,132 @@ local function CreateJournal()
     bosses:SetPoint("TOPLEFT", instances, "TOPRIGHT", 12, 0)
     bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
     bosses:SetWidth(COL_W)
-    journal.bosses = bosses
-    local loot = CreateScroller(journal, LOOT_ROW_H, CreateLootRow)
+    compendium.bosses = bosses
+    local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
-    loot:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 28)
-    journal.loot = loot
-    local spells = CreateScroller(journal, LOOT_ROW_H, CreateSpellRow)
+    loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    compendium.loot = loot
+    local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow)
     spells:SetAllPoints(loot)
     spells:Hide()
-    journal.spells = spells
-    journal.detailTabs = {}
-    local spellTab = CreateTabButton(journal, DungeonJournal:Trans("LID_ABILITIES"), function()
+    compendium.spells = spells
+    compendium.detailTabs = {}
+    local spellTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_ABILITIES"), function()
         detailKind = "spells"
         RefreshDetail()
     end)
 
     spellTab:SetWidth(78)
-    local lootTab = CreateTabButton(journal, DungeonJournal:Trans("LID_LOOT"), function()
+    local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), function()
         detailKind = "loot"
         RefreshDetail()
     end)
 
     lootTab:SetWidth(78)
-    journal.detailTabs["loot"] = lootTab
-    journal.detailTabs["spells"] = spellTab
-    local model = CreateModelFrame(journal)
+    compendium.detailTabs["loot"] = lootTab
+    compendium.detailTabs["spells"] = spellTab
+    local model = CreateModelFrame(compendium)
     if model ~= nil then
         model:SetPoint("TOPLEFT", loot, "TOPLEFT", 0, 0)
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()
-        journal.model = model
-        local modelTab = CreateTabButton(journal, DungeonJournal:Trans("LID_MODEL"), function()
+        compendium.model = model
+        local modelTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MODEL"), function()
             detailKind = "model"
             RefreshDetail()
         end)
 
         modelTab:SetWidth(78)
-        modelTab:SetPoint("TOPRIGHT", journal, "TOPRIGHT", -14, -62)
-        journal.detailTabs["model"] = modelTab
+        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62)
+        compendium.detailTabs["model"] = modelTab
         spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -2, 0)
     else
-        spellTab:SetPoint("TOPRIGHT", journal, "TOPRIGHT", -14, -62)
+        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62)
     end
 
     lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -2, 0)
-    local detailCount = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    local detailCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     detailCount:SetPoint("BOTTOMRIGHT", lootTab, "BOTTOMLEFT", -8, 6)
     detailCount:SetJustifyH("RIGHT")
-    journal.detailCount = detailCount
-    local detailTitle = journal:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    compendium.detailCount = detailCount
+    local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     detailTitle:SetPoint("BOTTOMLEFT", loot, "TOPLEFT", 0, 6)
     detailTitle:SetWidth(200)
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
-    journal.detailTitle = detailTitle
-    local classFilter = CreateTemplated("CheckButton", "DungeonJournalClassFilter", journal, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
+    compendium.detailTitle = detailTitle
+    local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
-    classFilter:SetPoint("BOTTOMRIGHT", journal, "BOTTOMRIGHT", -14, 2)
-    classFilter:SetChecked(DungeonJournal:GetConfig("CLASSFILTER", false) == true)
-    local classFilterLabel = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 2)
+    classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
+    local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
-    classFilterLabel:SetText(DungeonJournal:Trans("LID_CLASSFILTER"))
+    classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
     classFilter:SetScript("OnClick", function(sel)
-        DungeonJournal:SetConfig("CLASSFILTER", sel:GetChecked() == true)
+        AzerothCompendium:SetConfig("CLASSFILTER", sel:GetChecked() == true)
         RefreshDetail()
     end)
 
-    journal.classFilter = classFilter
-    journal.classFilterLabel = classFilterLabel
-    local empty = journal:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+    compendium.classFilter = classFilter
+    compendium.classFilterLabel = classFilterLabel
+    local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     empty:SetPoint("CENTER", loot, "CENTER", 0, 0)
-    empty:SetText(DungeonJournal:Trans("LID_NOENTRIES"))
+    empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     empty:Hide()
-    journal.empty = empty
+    compendium.empty = empty
 
-    return journal
+    return compendium
 end
 
-function DungeonJournal:RefreshJournal()
-    if journal == nil or not journal:IsShown() then return end
+function AzerothCompendium:RefreshCompendium()
+    if compendium == nil or not compendium:IsShown() then return end
     RefreshInstances()
 end
 
-function DungeonJournal:ToggleJournal()
+function AzerothCompendium:ToggleCompendium()
     CreateJournal()
-    if journal:IsShown() then
-        journal:Hide()
+    if compendium:IsShown() then
+        compendium:Hide()
 
         return
     end
 
-    journal:Show()
+    compendium:Show()
     UpdateKindTabs()
     RefreshInstances()
 end
 
-function DungeonJournal:OpenJournal()
+function AzerothCompendium:OpenCompendium()
     CreateJournal()
-    if journal:IsShown() then return end
-    journal:Show()
+    if compendium:IsShown() then return end
+    compendium:Show()
     UpdateKindTabs()
     RefreshInstances()
 end
 
 local loader = CreateFrame("Frame")
-DungeonJournal:RegisterEvent(loader, "PLAYER_LOGIN")
-DungeonJournal:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
+AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
+AzerothCompendium:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
 loader:SetScript("OnEvent", function(sel, event)
     if event == "PLAYER_LOGIN" then
-        DungeonJournal:PreloadItems()
+        AzerothCompendium:PreloadItems()
 
         return
     end
 
-    if journal == nil or not journal:IsShown() then return end
+    if compendium == nil or not compendium:IsShown() then return end
     if refreshPending then return end
     refreshPending = true
-    DungeonJournal:After(
+    AzerothCompendium:After(
         0.25,
         function()
             refreshPending = false
-            if journal ~= nil and journal:IsShown() then
-                journal.instances:Refresh()
-                journal.bosses:Refresh()
-                journal.loot:Refresh()
+            if compendium ~= nil and compendium:IsShown() then
+                compendium.instances:Refresh()
+                compendium.bosses:Refresh()
+                compendium.loot:Refresh()
             end
         end,
-        "DungeonJournal:ItemInfo"
+        "AzerothCompendium:ItemInfo"
     )
 end)

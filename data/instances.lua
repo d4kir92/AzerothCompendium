@@ -1,6 +1,6 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 
-DungeonJournal.INSTANCES = {
+AzerothCompendium.INSTANCES = {
 	{
 		["id"] = 16919,
 		["name"] = "The Hall of Thanes",

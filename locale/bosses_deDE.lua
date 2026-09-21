@@ -1,8 +1,8 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 
 if GetLocale() ~= "deDE" then return end
 
-DungeonJournal.BOSSNAMES = {
+AzerothCompendium.BOSSNAMES = {
 	[11517] = "Flintauge",
 	[11520] = "Taragaman der Hungerleider",
 	[11518] = "Jergosh der Herbeirufer",

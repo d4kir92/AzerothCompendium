@@ -1,9 +1,9 @@
 ## Interface: 16001
 
 ## Version: 0.1.0
-## Title: DungeonJournal by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
-## Notes: Add Dungeon Journal to the game
-## Notes-deDE: Fügt dem Spiel ein Dungeonjournal hinzu
+## Title: AzerothCompendium by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
+## Notes: Add Azeroth Compendium to the game
+## Notes-deDE: Fügt dem Spiel ein Azeroth-Kompendium hinzu
 ## Notes-esES: Añade un diario de mazmorras al juego
 ## Notes-esMX: Añade un diario de calabozos al juego
 ## Notes-frFR: Ajoute un journal des donjons au jeu
@@ -26,8 +26,8 @@
 ## Category-zhCN: 地图
 ## Category-zhTW: 地圖
 ## DefaultState: enabled
-## SavedVariables: DUJOTAB
-## SavedVariablesPerCharacter: DUJOTABPC
+## SavedVariables: ACOTAB
+## SavedVariablesPerCharacter: ACOTABPC
 ## X-Curse-Project-ID: 
 ## X-Wago-ID: 
 ## IconTexture: 132115
@@ -52,5 +52,5 @@ data\trash.lua
 data\vendors.lua
 
 core.lua
-journal.lua
+compendium.lua
 settings.lua

@@ -1,4 +1,4 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 
 local lootByInstance = {
     ["Wailing Caverns"] = {{10413}},
@@ -20,7 +20,7 @@ local lootByInstance = {
     ["Stratholme"] = {{16697}, {16685}, {16702}, {16710}, {16714}, {16681}, {16671}, {16723}, {16736}, {12811}, {12735}, {12843}, {12841}, {12840}, {18742}, {18743}, {17061}, {18741}, {18744}, {18745}, {18736}, {16249}, {16248}, {14495}, {15777}, {15768}, {18658}, {16052}},
 }
 
-for _, inst in ipairs(DungeonJournal.INSTANCES or {}) do
+for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
     if inst.type == "dungeon" then
         tinsert(inst.bosses, {
             ["name"] = "Trash",

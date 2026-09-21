@@ -1,7 +1,7 @@
-local _, DungeonJournal = ...
-local ADDON = "DungeonJournal"
+local _, AzerothCompendium = ...
+local ADDON = "AzerothCompendium"
 local ICON = 132115
-DungeonJournal:SetAddonOutput(ADDON, ICON)
+AzerothCompendium:SetAddonOutput(ADDON, ICON)
 local byType = nil
 local preloaded = false
 local FOREVER_ITEM_MIN = 200000
@@ -173,21 +173,21 @@ local PROFICIENCY = {
     },
 }
 
-function DungeonJournal:GetConfig(key, value)
-    DUJOTAB = DUJOTAB or {}
-    if DUJOTAB[key] == nil then DUJOTAB[key] = value end
+function AzerothCompendium:GetConfig(key, value)
+    ACOTAB = ACOTAB or {}
+    if ACOTAB[key] == nil then ACOTAB[key] = value end
 
-    return DUJOTAB[key]
+    return ACOTAB[key]
 end
 
-function DungeonJournal:SetConfig(key, value)
-    DUJOTAB = DUJOTAB or {}
-    DungeonJournal:SV(DUJOTAB, key, value)
+function AzerothCompendium:SetConfig(key, value)
+    ACOTAB = ACOTAB or {}
+    AzerothCompendium:SV(ACOTAB, key, value)
 end
 
-function DungeonJournal:GetInstanceName(inst)
+function AzerothCompendium:GetInstanceName(inst)
     if inst == nil then return "" end
-    if inst.honor then return DungeonJournal:Trans("LID_HONORRANKS") end
+    if inst.honor then return AzerothCompendium:Trans("LID_HONORRANKS") end
     if inst.factionID then
         if C_Reputation and C_Reputation.GetFactionDataByID then
             local data = C_Reputation.GetFactionDataByID(inst.factionID)
@@ -215,9 +215,9 @@ function DungeonJournal:GetInstanceName(inst)
     return inst.name
 end
 
-function DungeonJournal:GetBossName(boss)
+function AzerothCompendium:GetBossName(boss)
     if boss == nil then return "" end
-    if boss.trash then return DungeonJournal:Trans("LID_TRASH") end
+    if boss.trash then return AzerothCompendium:Trans("LID_TRASH") end
     if boss.standing ~= nil then
         local label = _G["FACTION_STANDING_LABEL" .. (boss.standing + 1)]
         if type(label) == "string" and label ~= "" then return label end
@@ -225,8 +225,8 @@ function DungeonJournal:GetBossName(boss)
         return boss.name
     end
 
-    if boss.rank ~= nil then return DungeonJournal:Trans("LID_RANK", nil, boss.rank) end
-    local names = DungeonJournal.BOSSNAMES
+    if boss.rank ~= nil then return AzerothCompendium:Trans("LID_RANK", nil, boss.rank) end
+    local names = AzerothCompendium.BOSSNAMES
     if names and boss.npcs and boss.npcs[1] then
         local localized = names[boss.npcs[1]]
         if localized then return localized end
@@ -235,11 +235,11 @@ function DungeonJournal:GetBossName(boss)
     return boss.name
 end
 
-function DungeonJournal:IsForeverItem(itemID)
+function AzerothCompendium:IsForeverItem(itemID)
     return type(itemID) == "number" and itemID >= FOREVER_ITEM_MIN
 end
 
-function DungeonJournal:GetInstances(kind)
+function AzerothCompendium:GetInstances(kind)
     if byType == nil then
         byType = {
             ["dungeon"] = {},
@@ -248,12 +248,12 @@ function DungeonJournal:GetInstances(kind)
             ["faction"] = {}
         }
 
-        for _, inst in ipairs(DungeonJournal.INSTANCES or {}) do
+        for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
             local list = byType[inst.type]
             if list then tinsert(list, inst) end
         end
 
-        for _, inst in ipairs(DungeonJournal.VENDORS or {}) do
+        for _, inst in ipairs(AzerothCompendium.VENDORS or {}) do
             local list = byType[inst.type]
             if list then tinsert(list, inst) end
         end
@@ -261,7 +261,7 @@ function DungeonJournal:GetInstances(kind)
         local function ByName(a, b)
             if (a.honor == true) ~= (b.honor == true) then return a.honor == true end
 
-            return DungeonJournal:GetInstanceName(a) < DungeonJournal:GetInstanceName(b)
+            return AzerothCompendium:GetInstanceName(a) < AzerothCompendium:GetInstanceName(b)
         end
 
         table.sort(byType["faction"], ByName)
@@ -271,10 +271,10 @@ function DungeonJournal:GetInstances(kind)
     return byType[kind] or {}
 end
 
-function DungeonJournal:GetItemDisplay(itemID)
-    local name, link, quality, _, _, _, _, _, equipLoc, icon = DungeonJournal:GetItemInfo(itemID)
+function AzerothCompendium:GetItemDisplay(itemID)
+    local name, link, quality, _, _, _, _, _, equipLoc, icon = AzerothCompendium:GetItemInfo(itemID)
     if icon == nil then
-        local _, _, _, invType, texture = DungeonJournal:GetItemInfoInstant(itemID)
+        local _, _, _, invType, texture = AzerothCompendium:GetItemInfoInstant(itemID)
         icon = texture
         equipLoc = equipLoc or invType
     end
@@ -282,8 +282,8 @@ function DungeonJournal:GetItemDisplay(itemID)
     return name, link, quality, equipLoc, icon
 end
 
-function DungeonJournal:GetItemSlotText(itemID)
-    local _, itemType, itemSubType, invType = DungeonJournal:GetItemInfoInstant(itemID)
+function AzerothCompendium:GetItemSlotText(itemID)
+    local _, itemType, itemSubType, invType = AzerothCompendium:GetItemInfoInstant(itemID)
     local slot = nil
     if type(invType) == "string" and invType ~= "" then
         local global = _G[invType]
@@ -297,9 +297,9 @@ function DungeonJournal:GetItemSlotText(itemID)
     return itemType or ""
 end
 
-function DungeonJournal:IsUsableByClass(itemID, class)
+function AzerothCompendium:IsUsableByClass(itemID, class)
     if itemID == nil then return true end
-    local _, _, _, invType, _, classID, subClassID = DungeonJournal:GetItemInfoInstant(itemID)
+    local _, _, _, invType, _, classID, subClassID = AzerothCompendium:GetItemInfoInstant(itemID)
     if classID == nil then return true end
     if ALWAYS_USABLE_SLOTS[invType or ""] then return true end
     local prof = PROFICIENCY[class or ""]
@@ -319,7 +319,7 @@ function DungeonJournal:IsUsableByClass(itemID, class)
     return true
 end
 
-function DungeonJournal:HasWidgetSet(tooltip)
+function AzerothCompendium:HasWidgetSet(tooltip)
     if type(tooltip) ~= "table" then return false end
     local container = tooltip.widgetContainer
     if type(container) ~= "table" then return false end
@@ -334,20 +334,20 @@ function DungeonJournal:HasWidgetSet(tooltip)
     return false
 end
 
-function DungeonJournal:HideGameTooltip()
+function AzerothCompendium:HideGameTooltip()
     if type(GameTooltip) ~= "table" then return end
     if not GameTooltip:IsShown() then return end
-    if DungeonJournal:HasWidgetSet(GameTooltip) then return end
+    if AzerothCompendium:HasWidgetSet(GameTooltip) then return end
     GameTooltip:Hide()
 end
 
-function DungeonJournal:PreloadItems()
+function AzerothCompendium:PreloadItems()
     if preloaded then return end
     preloaded = true
     local request = C_Item and C_Item.RequestLoadItemDataByID
     if request == nil then return end
     local queue = {}
-    for _, source in ipairs({DungeonJournal.INSTANCES or {}, DungeonJournal.VENDORS or {}}) do
+    for _, source in ipairs({AzerothCompendium.INSTANCES or {}, AzerothCompendium.VENDORS or {}}) do
         for _, inst in ipairs(source) do
             for _, boss in ipairs(inst.bosses or {}) do
                 for _, entry in ipairs(boss.loot or {}) do
@@ -365,16 +365,16 @@ function DungeonJournal:PreloadItems()
         end
 
         index = last + 1
-        if index <= #queue then DungeonJournal:After(0.1, Step, "DungeonJournal:PreloadItems") end
+        if index <= #queue then AzerothCompendium:After(0.1, Step, "AzerothCompendium:PreloadItems") end
     end
 
     Step()
 end
 
-function DungeonJournal:GetAddonName()
+function AzerothCompendium:GetAddonName()
     return ADDON
 end
 
-function DungeonJournal:GetIcon()
+function AzerothCompendium:GetIcon()
     return ICON
 end

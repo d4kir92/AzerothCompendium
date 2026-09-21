@@ -1,6 +1,6 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 
-DungeonJournal.VENDORS = {
+AzerothCompendium.VENDORS = {
 	{
 		["id"] = 1,
 		["name"] = "Honor Ranks",

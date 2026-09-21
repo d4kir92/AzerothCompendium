@@ -1,41 +1,41 @@
-local _, DungeonJournal = ...
+local _, AzerothCompendium = ...
 local ICON = 132115
 local DEFAULT_WIDTH = 420
 local DEFAULT_HEIGHT = 260
-local dujoset = nil
+local acoset = nil
 local function GetTocVersion()
-    if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata("DungeonJournal", "Version") end
-    if GetAddOnMetadata then return GetAddOnMetadata("DungeonJournal", "Version") end
+    if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata("AzerothCompendium", "Version") end
+    if GetAddOnMetadata then return GetAddOnMetadata("AzerothCompendium", "Version") end
 
     return "0.0.0"
 end
 
-function DungeonJournal:ToggleSettings()
-    if dujoset == nil then return end
-    dujoset:Toggle()
+function AzerothCompendium:ToggleSettings()
+    if acoset == nil then return end
+    acoset:Toggle()
 end
 
 local function GetCollapsed(key)
     if key == nil then return nil end
-    if type(DUJOTAB) ~= "table" then return nil end
-    if type(DUJOTAB["COLLAPSED"]) ~= "table" then return nil end
+    if type(ACOTAB) ~= "table" then return nil end
+    if type(ACOTAB["COLLAPSED"]) ~= "table" then return nil end
 
-    return DUJOTAB["COLLAPSED"][key]
+    return ACOTAB["COLLAPSED"][key]
 end
 
 local function SetCollapsed(key, collapsed)
     if key == nil then return end
-    if type(DUJOTAB) ~= "table" then return end
-    if type(DUJOTAB["COLLAPSED"]) ~= "table" then DUJOTAB["COLLAPSED"] = {} end
+    if type(ACOTAB) ~= "table" then return end
+    if type(ACOTAB["COLLAPSED"]) ~= "table" then ACOTAB["COLLAPSED"] = {} end
     if collapsed then
-        DUJOTAB["COLLAPSED"][key] = true
+        ACOTAB["COLLAPSED"][key] = true
     else
-        DUJOTAB["COLLAPSED"][key] = nil
+        ACOTAB["COLLAPSED"][key] = nil
     end
 end
 
 local function AddCategory(key, level)
-    dujoset:AddCategory({
+    acoset:AddCategory({
         ["label"] = "LID_" .. key,
         ["key"] = key,
         ["search"] = key,
@@ -44,12 +44,12 @@ local function AddCategory(key, level)
 end
 
 local function AddCheckbox(key, default, func, label)
-    dujoset:AddCheckbox({
+    acoset:AddCheckbox({
         ["label"] = label or ("LID_" .. key),
         ["search"] = key,
-        ["value"] = DungeonJournal:GetConfig(key, default),
+        ["value"] = AzerothCompendium:GetConfig(key, default),
         ["func"] = function(value)
-            DungeonJournal:SV(DUJOTAB, key, value)
+            AzerothCompendium:SV(ACOTAB, key, value)
             if func then func() end
         end
     })
@@ -58,67 +58,67 @@ end
 local function HandleSlash(args)
     local sub = strlower(strtrim(args or ""))
     if sub == "settings" or sub == "options" or sub == "config" then
-        DungeonJournal:ToggleSettings()
+        AzerothCompendium:ToggleSettings()
     else
-        DungeonJournal:ToggleJournal()
+        AzerothCompendium:ToggleCompendium()
     end
 end
 
-function DungeonJournal:InitSetting()
-    if dujoset ~= nil then return end
-    DUJOTAB = DUJOTAB or {}
-    DungeonJournal:SetVersion(ICON, GetTocVersion())
-    DungeonJournal:SetAppendTab(DUJOTAB)
-    dujoset = DungeonJournal:CreateUIWindow({
-        ["name"] = "DungeonJournalSettings",
+function AzerothCompendium:InitSetting()
+    if acoset ~= nil then return end
+    ACOTAB = ACOTAB or {}
+    AzerothCompendium:SetVersion(ICON, GetTocVersion())
+    AzerothCompendium:SetAppendTab(ACOTAB)
+    acoset = AzerothCompendium:CreateUIWindow({
+        ["name"] = "AzerothCompendiumSettings",
         ["pTab"] = {"CENTER"},
-        ["width"] = DungeonJournal:GetConfig("WINDOWWIDTH", DEFAULT_WIDTH),
-        ["height"] = DungeonJournal:GetConfig("WINDOWHEIGHT", DEFAULT_HEIGHT),
+        ["width"] = AzerothCompendium:GetConfig("WINDOWWIDTH", DEFAULT_WIDTH),
+        ["height"] = AzerothCompendium:GetConfig("WINDOWHEIGHT", DEFAULT_HEIGHT),
         ["minWidth"] = 340,
         ["minHeight"] = 220,
         ["onResize"] = function(width, height)
-            DungeonJournal:SV(DUJOTAB, "WINDOWWIDTH", width)
-            DungeonJournal:SV(DUJOTAB, "WINDOWHEIGHT", height)
+            AzerothCompendium:SV(ACOTAB, "WINDOWWIDTH", width)
+            AzerothCompendium:SV(ACOTAB, "WINDOWHEIGHT", height)
         end,
         ["getCollapsed"] = function(key) return GetCollapsed(key) end,
         ["setCollapsed"] = function(key, collapsed) SetCollapsed(key, collapsed) end,
-        ["title"] = format("|T%d:16:16:0:0|t DungeonJournal v%s", ICON, GetTocVersion())
+        ["title"] = format("|T%d:16:16:0:0|t AzerothCompendium v%s", ICON, GetTocVersion())
     })
 
-    dujoset:SuspendLayout()
-    dujoset:AddSearch()
+    acoset:SuspendLayout()
+    acoset:AddSearch()
     AddCategory("GENERAL")
     AddCheckbox("MMBTN", true, function()
-        if DUJOTAB["MMBTN"] then
-            DungeonJournal:ShowMMBtn("DungeonJournal")
+        if ACOTAB["MMBTN"] then
+            AzerothCompendium:ShowMMBtn("AzerothCompendium")
         else
-            DungeonJournal:HideMMBtn("DungeonJournal")
+            AzerothCompendium:HideMMBtn("AzerothCompendium")
         end
     end)
 
-    AddCheckbox("SHOWCHANCE", true, function() DungeonJournal:RefreshJournal() end)
-    AddCheckbox("CLASSFILTER", false, function() DungeonJournal:RefreshJournal() end)
-    dujoset:ResumeLayout()
-    DungeonJournal:CreateMinimapButton({
-        ["name"] = "DungeonJournal",
+    AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
+    AddCheckbox("CLASSFILTER", false, function() AzerothCompendium:RefreshCompendium() end)
+    acoset:ResumeLayout()
+    AzerothCompendium:CreateMinimapButton({
+        ["name"] = "AzerothCompendium",
         ["icon"] = ICON,
         ["noalpha"] = true,
-        ["dbtab"] = DUJOTAB,
+        ["dbtab"] = ACOTAB,
         ["vTT"] = {
-            {format("|T%d:16:16:0:0|t DungeonJournal", ICON), "v" .. GetTocVersion()},
-            {DungeonJournal:Trans("LID_LEFTCLICK"), DungeonJournal:Trans("LID_OPENJOURNAL")},
-            {DungeonJournal:Trans("LID_RIGHTCLICK"), DungeonJournal:Trans("LID_OPENSETTINGS")}
+            {format("|T%d:16:16:0:0|t AzerothCompendium", ICON), "v" .. GetTocVersion()},
+            {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
+            {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
         },
-        ["funcL"] = function() DungeonJournal:ToggleJournal() end,
-        ["funcR"] = function() DungeonJournal:ToggleSettings() end,
+        ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
+        ["funcR"] = function() AzerothCompendium:ToggleSettings() end,
         ["dbkey"] = "MMBTN"
     })
 
-    if DungeonJournal:GetConfig("MMBTN", true) then DungeonJournal:ShowMMBtn("DungeonJournal") end
-    DungeonJournal:AddSlash("dungeonjournal", HandleSlash)
-    DungeonJournal:AddSlash("dj", HandleSlash)
+    if AzerothCompendium:GetConfig("MMBTN", true) then AzerothCompendium:ShowMMBtn("AzerothCompendium") end
+    AzerothCompendium:AddSlash("azerothcompendium", HandleSlash)
+    AzerothCompendium:AddSlash("dj", HandleSlash)
 end
 
 local loader = CreateFrame("FRAME")
-DungeonJournal:RegisterEvent(loader, "PLAYER_LOGIN")
-loader:SetScript("OnEvent", function() DungeonJournal:InitSetting() end)
+AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
+loader:SetScript("OnEvent", function() AzerothCompendium:InitSetting() end)
