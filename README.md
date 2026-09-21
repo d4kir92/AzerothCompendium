@@ -8,6 +8,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   View boss loot, drop chances, abilities, and 3D models.
 *   Browse PvP honor rewards and battleground faction rewards.
 *   Browse reputation rewards grouped by faction and standing.
+*   Save items to an account-wide wishlist and jump back to their source.
 *   Search instances, bosses, factions, and items.
 *   Filter loot to items usable by the current class.
 *   Show or hide drop chances.
@@ -20,6 +21,9 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Right-click the minimap button to open the settings.
 *   Use `/azerothcompendium` or `/ac` to open the compendium.
 *   Use `/azerothcompendium settings` or `/ac settings` to open the settings.
+*   Right-click an item to add it to or remove it from the wishlist.
+*   Open the Wishlist tab and left-click an item to jump to its category, instance, and boss.
+*   Right-click an item in the Wishlist tab to remove it.
 
 The **Only my class** option is shared between the compendium and the settings window. Changing it in either place updates the other checkbox immediately.
 

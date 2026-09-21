@@ -4,6 +4,13 @@ local ICON = 133737
 AzerothCompendium:SetAddonOutput(ADDON, ICON)
 local byType = nil
 local preloaded = false
+
+function AzerothCompendium:GetAddonVersion()
+    if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata(ADDON, "Version") end
+    if GetAddOnMetadata then return GetAddOnMetadata(ADDON, "Version") end
+
+    return "0.0.0"
+end
 local FOREVER_ITEM_MIN = 200000
 local ARMOR_MISC = 0
 local ARMOR_CLOTH = 1
@@ -190,6 +197,23 @@ function AzerothCompendium:SetClassFilter(value)
     if AzerothCompendium.SyncCompendiumClassFilter then AzerothCompendium:SyncCompendiumClassFilter() end
     if AzerothCompendium.SyncSettingsClassFilter then AzerothCompendium:SyncSettingsClassFilter() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+function AzerothCompendium:GetWishlist()
+    ACOTAB = ACOTAB or {}
+    if type(ACOTAB["WISHLIST"]) ~= "table" then ACOTAB["WISHLIST"] = {} end
+
+    return ACOTAB["WISHLIST"]
+end
+
+function AzerothCompendium:IsWishlisted(itemID)
+    return AzerothCompendium:GetWishlist()[itemID] ~= nil
+end
+
+function AzerothCompendium:SetWishlistItem(itemID, source)
+    if type(itemID) ~= "number" then return end
+    AzerothCompendium:GetWishlist()[itemID] = source
+    if AzerothCompendium.RefreshWishlist then AzerothCompendium:RefreshWishlist() end
 end
 
 function AzerothCompendium:GetInstanceName(inst)

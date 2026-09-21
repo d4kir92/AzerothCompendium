@@ -289,6 +289,92 @@ local function GetSpellList()
     return list
 end
 
+local function GetInstanceKey(inst)
+    if inst == nil then return nil end
+    if inst.honor then return "honor" end
+    if inst.factionID ~= nil then return "faction:" .. inst.factionID end
+    if inst.id ~= nil then return "instance:" .. inst.id end
+
+    return "name:" .. (inst.name or "")
+end
+
+local function GetBossKey(boss)
+    if boss == nil then return nil end
+    if boss.trash then return "trash" end
+    if boss.npcs and boss.npcs[1] then return "npc:" .. boss.npcs[1] end
+    if boss.standing ~= nil then return "standing:" .. boss.standing end
+    if boss.rank ~= nil then return "rank:" .. boss.rank end
+
+    return "name:" .. (boss.name or "")
+end
+
+local function BossHasItem(boss, itemID)
+    for _, loot in ipairs(boss.loot or {}) do
+        if loot[1] == itemID then return true end
+    end
+
+    return false
+end
+
+local function FindWishlistSource(itemID, source)
+    local kinds = {"dungeon", "raid", "pvp", "faction"}
+    if type(source) == "table" and source.kind ~= nil then
+        for _, inst in ipairs(AzerothCompendium:GetInstances(source.kind)) do
+            if GetInstanceKey(inst) == source.instance then
+                for _, boss in ipairs(inst.bosses or {}) do
+                    if GetBossKey(boss) == source.boss and BossHasItem(boss, itemID) then return source.kind, inst, boss end
+                end
+            end
+        end
+    end
+
+    for _, kind in ipairs(kinds) do
+        for _, inst in ipairs(AzerothCompendium:GetInstances(kind)) do
+            for _, boss in ipairs(inst.bosses or {}) do
+                if BossHasItem(boss, itemID) then return kind, inst, boss end
+            end
+        end
+    end
+
+    return nil, nil, nil
+end
+
+local function GetCurrentWishlistSource()
+    if selectedInstance == nil or selectedBoss == nil then return nil end
+
+    return {
+        ["kind"] = listKind,
+        ["instance"] = GetInstanceKey(selectedInstance),
+        ["boss"] = GetBossKey(selectedBoss)
+    }
+end
+
+local function GetWishlistList()
+    local list = {}
+    for itemID, source in pairs(AzerothCompendium:GetWishlist()) do
+        itemID = tonumber(itemID)
+        if itemID ~= nil then
+            local name = AzerothCompendium:GetItemDisplay(itemID)
+            local _, inst, boss = FindWishlistSource(itemID, source)
+            local sourceText = ""
+            if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
+            if Matches(name) or Matches(sourceText) then
+                tinsert(list, {itemID = itemID, source = source, sourceText = sourceText, name = name})
+            end
+        end
+    end
+
+    table.sort(list, function(a, b)
+        local aName = Lower(a.name or tostring(a.itemID))
+        local bName = Lower(b.name or tostring(b.itemID))
+        if aName == bName then return a.itemID < b.itemID end
+
+        return aName < bName
+    end)
+
+    return list
+end
+
 local function UpdateTabs(tabs, active)
     for kind, button in pairs(tabs) do
         if kind == active then
@@ -477,8 +563,32 @@ local function ShowItemTooltip(row)
     GameTooltip:Show()
 end
 
+local contextMenu = nil
+local function ShowWishlistMenu(owner, itemID, source)
+    local listed = AzerothCompendium:IsWishlisted(itemID)
+    local label = AzerothCompendium:Trans(listed and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST")
+    local action = function()
+        if listed then
+            AzerothCompendium:SetWishlistItem(itemID, nil)
+        else
+            AzerothCompendium:SetWishlistItem(itemID, source)
+        end
+    end
+
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, function(_, rootDescription) rootDescription:CreateButton(label, action) end)
+
+        return
+    end
+
+    if EasyMenu == nil then return end
+    if contextMenu == nil then contextMenu = CreateFrame("Frame", "AzerothCompendiumContextMenu", UIParent, "UIDropDownMenuTemplate") end
+    EasyMenu({{text = label, notCheckable = true, func = action}}, contextMenu, "cursor", 0, 0, "MENU")
+end
+
 local function CreateLootRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(26, 26)
@@ -497,7 +607,13 @@ local function CreateLootRow(scroller)
     row.slot:SetJustifyH("LEFT")
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-    row:SetScript("OnClick", function(sel)
+    row:SetScript("OnClick", function(sel, button)
+        if button == "RightButton" then
+            ShowWishlistMenu(sel, sel.itemID, sel.wishlistSource)
+
+            return
+        end
+
         if sel.link == nil then return end
         if HandleModifiedItemClick then HandleModifiedItemClick(sel.link) end
     end)
@@ -507,6 +623,7 @@ local function CreateLootRow(scroller)
         local chance = entry[2]
         self.itemID = itemID
         self.boss = selectedInstance and not selectedInstance.vendor and selectedBoss or nil
+        self.wishlistSource = GetCurrentWishlistSource()
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)
@@ -535,6 +652,58 @@ local function CreateLootRow(scroller)
         else
             self.chance:SetText("")
         end
+    end
+
+    return row
+end
+
+local NavigateToWishlistItem = nil
+local function CreateWishlistRow(scroller)
+    local row = CreateFrame("Button", nil, scroller)
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    StyleRow(row)
+    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon:SetSize(28, 28)
+    row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)
+    row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+    row.name:SetJustifyH("LEFT")
+    row.source = row:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    row.source:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 1)
+    row.source:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+    row.source:SetJustifyH("LEFT")
+    row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    row:SetScript("OnClick", function(sel, button)
+        if button == "RightButton" then
+            ShowWishlistMenu(sel, sel.itemID, nil)
+
+            return
+        end
+
+        if NavigateToWishlistItem then NavigateToWishlistItem(sel.entry) end
+    end)
+
+    function row:Update(entry)
+        self.entry = entry
+        self.itemID = entry.itemID
+        local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(entry.itemID)
+        self.link = link
+        self.icon:SetTexture(icon or 134400)
+        self.name:SetText(name or AzerothCompendium:Trans("LID_LOADING"))
+        self.source:SetText(entry.sourceText or "")
+        local color = nil
+        if quality ~= nil and ITEM_QUALITY_COLORS ~= nil then color = ITEM_QUALITY_COLORS[quality] end
+        if color ~= nil then
+            self.name:SetTextColor(color.r, color.g, color.b)
+        else
+            self.name:SetTextColor(0.6, 0.6, 0.6)
+        end
+
+        local _, _, boss = FindWishlistSource(entry.itemID, entry.source)
+        self.boss = boss
     end
 
     return row
@@ -733,6 +902,90 @@ local function CreateModelFrame(parent)
     return frame
 end
 
+local function SetWishlistMode(enabled)
+    if compendium == nil then return end
+    local regular = {
+        compendium.instances,
+        compendium.bossTitle,
+        compendium.bosses,
+        compendium.loot,
+        compendium.spells,
+        compendium.detailCount,
+        compendium.detailTitle,
+        compendium.classFilter,
+        compendium.classFilterLabel,
+        compendium.empty
+    }
+
+    if compendium.model then tinsert(regular, compendium.model) end
+    for _, tab in pairs(compendium.detailTabs or {}) do tinsert(regular, tab) end
+    for _, frame in ipairs(regular) do
+        if enabled then
+            frame:Hide()
+        else
+            frame:Show()
+        end
+    end
+
+    if compendium.wishlist then
+        if enabled then
+            compendium.wishlist:Show()
+            compendium.wishlistTitle:Show()
+            compendium.wishlistCount:Show()
+        else
+            compendium.wishlist:Hide()
+            compendium.wishlistTitle:Hide()
+            compendium.wishlistCount:Hide()
+            compendium.wishlistEmpty:Hide()
+        end
+    end
+end
+
+local function RefreshWishlistView()
+    if compendium == nil or compendium.wishlist == nil then return end
+    SetWishlistMode(true)
+    local list = GetWishlistList()
+    compendium.wishlist:SetData(list)
+    compendium.wishlistCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
+    if #list == 0 then
+        compendium.wishlistEmpty:Show()
+    else
+        compendium.wishlistEmpty:Hide()
+    end
+end
+
+local function RefreshCurrentView()
+    if listKind == "wishlist" then
+        RefreshWishlistView()
+    else
+        SetWishlistMode(false)
+        RefreshInstances()
+    end
+end
+
+NavigateToWishlistItem = function(entry)
+    if entry == nil then return end
+    local kind, inst, boss = FindWishlistSource(entry.itemID, entry.source)
+    if kind == nil or inst == nil or boss == nil then return end
+    listKind = kind
+    selectedInstance = inst
+    selectedBoss = boss
+    detailKind = "loot"
+    searchText = ""
+    UpdateKindTabs()
+    SetWishlistMode(false)
+    if compendium.search:GetText() ~= "" then
+        compendium.search:SetText("")
+    else
+        RefreshInstances()
+    end
+end
+
+function AzerothCompendium:RefreshWishlist()
+    if compendium == nil or not compendium:IsShown() or listKind ~= "wishlist" then return end
+    RefreshWishlistView()
+end
+
 local function CreateJournal()
     if compendium ~= nil then return compendium end
     local template = nil
@@ -756,7 +1009,7 @@ local function CreateJournal()
     compendium:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
-    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE")))
+    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s v%s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:GetAddonVersion()))
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
     search:SetSize(180, 20)
@@ -765,7 +1018,7 @@ local function CreateJournal()
     search:SetAutoFocus(false)
     search:SetScript("OnTextChanged", function(sel)
         searchText = Lower(strtrim(sel:GetText() or ""))
-        RefreshInstances()
+        RefreshCurrentView()
     end)
 
     search:SetScript("OnEscapePressed", function(sel)
@@ -786,6 +1039,7 @@ local function CreateJournal()
         {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"},
         {"pvp", "LID_PVP", pvpIcon},
         {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
+        {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},
     }) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
@@ -799,7 +1053,7 @@ local function CreateJournal()
             selectedInstance = nil
             selectedBoss = nil
             UpdateKindTabs()
-            RefreshInstances()
+            RefreshCurrentView()
         end)
 
         if previousTab == nil then
@@ -848,6 +1102,26 @@ local function CreateJournal()
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
+    local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
+    wishlist:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
+    wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    wishlist:Hide()
+    compendium.wishlist = wishlist
+    local wishlistTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    wishlistTitle:SetPoint("BOTTOMLEFT", wishlist, "TOPLEFT", 0, 6)
+    wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
+    wishlistTitle:Hide()
+    compendium.wishlistTitle = wishlistTitle
+    local wishlistCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    wishlistCount:SetPoint("BOTTOMRIGHT", wishlist, "TOPRIGHT", 0, 6)
+    wishlistCount:SetJustifyH("RIGHT")
+    wishlistCount:Hide()
+    compendium.wishlistCount = wishlistCount
+    local wishlistEmpty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+    wishlistEmpty:SetPoint("CENTER", wishlist, "CENTER", 0, 0)
+    wishlistEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+    wishlistEmpty:Hide()
+    compendium.wishlistEmpty = wishlistEmpty
     local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow)
     spells:SetAllPoints(loot)
     spells:Hide()
@@ -927,7 +1201,7 @@ end
 function AzerothCompendium:RefreshCompendium()
     AzerothCompendium:SyncCompendiumClassFilter()
     if compendium == nil or not compendium:IsShown() then return end
-    RefreshInstances()
+    RefreshCurrentView()
 end
 
 function AzerothCompendium:ToggleCompendium()
@@ -940,7 +1214,7 @@ function AzerothCompendium:ToggleCompendium()
 
     compendium:Show()
     UpdateKindTabs()
-    RefreshInstances()
+    RefreshCurrentView()
 end
 
 function AzerothCompendium:OpenCompendium()
@@ -948,7 +1222,7 @@ function AzerothCompendium:OpenCompendium()
     if compendium:IsShown() then return end
     compendium:Show()
     UpdateKindTabs()
-    RefreshInstances()
+    RefreshCurrentView()
 end
 
 local loader = CreateFrame("Frame")
@@ -969,9 +1243,13 @@ loader:SetScript("OnEvent", function(sel, event)
         function()
             refreshPending = false
             if compendium ~= nil and compendium:IsShown() then
-                compendium.instances:Refresh()
-                compendium.bosses:Refresh()
-                compendium.loot:Refresh()
+                if listKind == "wishlist" then
+                    RefreshWishlistView()
+                else
+                    compendium.instances:Refresh()
+                    compendium.bosses:Refresh()
+                    compendium.loot:Refresh()
+                end
             end
         end,
         "AzerothCompendium:ItemInfo"

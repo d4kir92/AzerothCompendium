@@ -4,12 +4,6 @@ local DEFAULT_WIDTH = 420
 local DEFAULT_HEIGHT = 260
 local acoset = nil
 local classFilterSetting = nil
-local function GetTocVersion()
-    if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata("AzerothCompendium", "Version") end
-    if GetAddOnMetadata then return GetAddOnMetadata("AzerothCompendium", "Version") end
-
-    return "0.0.0"
-end
 
 function AzerothCompendium:ToggleSettings()
     if acoset == nil then return end
@@ -73,7 +67,7 @@ end
 function AzerothCompendium:InitSetting()
     if acoset ~= nil then return end
     ACOTAB = ACOTAB or {}
-    AzerothCompendium:SetVersion(ICON, GetTocVersion())
+    AzerothCompendium:SetVersion(ICON, AzerothCompendium:GetAddonVersion())
     AzerothCompendium:SetAppendTab(ACOTAB)
     acoset = AzerothCompendium:CreateUIWindow({
         ["name"] = "AzerothCompendiumSettings",
@@ -88,7 +82,7 @@ function AzerothCompendium:InitSetting()
         end,
         ["getCollapsed"] = function(key) return GetCollapsed(key) end,
         ["setCollapsed"] = function(key, collapsed) SetCollapsed(key, collapsed) end,
-        ["title"] = format("|T%d:16:16:0:0|t Azeroth Compendium v%s", ICON, GetTocVersion())
+        ["title"] = format("|T%d:16:16:0:0|t Azeroth Compendium v%s", ICON, AzerothCompendium:GetAddonVersion())
     })
 
     acoset:SuspendLayout()
@@ -111,7 +105,7 @@ function AzerothCompendium:InitSetting()
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
         ["vTT"] = {
-            {format("|T%d:16:16:0:0|t Azeroth Compendium", ICON), "v" .. GetTocVersion()},
+            {format("|T%d:16:16:0:0|t Azeroth Compendium", ICON), "v" .. AzerothCompendium:GetAddonVersion()},
             {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
             {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
         },
