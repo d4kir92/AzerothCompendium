@@ -1,6 +1,6 @@
 -- deDE German Deutsch
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("deDE", "LID_TITLE", "Azeroth-Kompendium")
+AzerothCompendium:AddTrans("deDE", "LID_TITLE", "Azeroth Compendium")
 AzerothCompendium:AddTrans("deDE", "LID_DUNGEONS", "Dungeons")
 AzerothCompendium:AddTrans("deDE", "LID_RAIDS", "Schlachtzüge")
 AzerothCompendium:AddTrans("deDE", "LID_LOOT", "Beute")
