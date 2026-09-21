@@ -5,7 +5,9 @@ local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
 local SCROLLBAR_W = 18
-local KIND_TAB_W = 100
+local SIDE_TAB_SIZE = 32
+local SIDE_TAB_TOP = 62
+local SIDE_TAB_GAP = 10
 local MODEL_START_ROTATION = 0.4
 local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
@@ -334,6 +336,13 @@ local function UpdateModel()
     return applied
 end
 
+local function UpdateKindTabs()
+    if journal == nil then return end
+    for kind, tab in pairs(journal.kindTabs) do
+        tab:SetChecked(kind == listKind)
+    end
+end
+
 local function RefreshDetail()
     if journal == nil then return end
     local count = 0
@@ -636,6 +645,36 @@ local function AddFallbackChrome(frame)
     if close.SetText and close.GetFontString and close:GetFontString() ~= nil then close:SetText("X") end
 end
 
+local function CreateSideTab(parent, label, icon, onClick)
+    local tab = CreateTemplated("CheckButton", nil, parent, {"RightSideTabTemplate", "SpellBookSkillLineTabTemplate"})
+    tab:SetSize(SIDE_TAB_SIZE, SIDE_TAB_SIZE)
+    if type(tab.Icon) ~= "table" then
+        local background = tab:CreateTexture(nil, "BACKGROUND")
+        background:SetAllPoints(tab)
+        background:SetColorTexture(0.05, 0.05, 0.06, 0.9)
+        local texture = tab:CreateTexture(nil, "ARTWORK")
+        texture:SetSize(SIDE_TAB_SIZE - 2, SIDE_TAB_SIZE - 2)
+        texture:SetPoint("CENTER", tab, "CENTER", 0, 0)
+        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        tab.Icon = texture
+        tab:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        tab:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight", "ADD")
+    end
+
+    tab.Icon:SetTexture(icon)
+    tab.tooltip = label
+    tab:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(sel.tooltip)
+        GameTooltip:Show()
+    end)
+
+    tab:SetScript("OnLeave", function() DungeonJournal:HideGameTooltip() end)
+    tab:HookScript("OnClick", onClick)
+
+    return tab
+end
+
 local function CreateModelFrame(parent)
     local frame = nil
     for _, kind in ipairs({"PlayerModel", "DressUpModel", "CinematicModel", "Model"}) do
@@ -721,35 +760,40 @@ local function CreateJournal()
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
     searchLabel:SetText(DungeonJournal:Trans("LID_SEARCH"))
     journal.kindTabs = {}
+    local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
+    if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
     local previousTab = nil
     for _, info in ipairs({
-        {"dungeon", "LID_DUNGEONS"},
-        {"raid", "LID_RAIDS"},
-        {"pvp", "LID_PVP"},
-        {"faction", "LID_REPUTATION"},
+        {"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Map_01"},
+        {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"},
+        {"pvp", "LID_PVP", pvpIcon},
+        {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
     }) do
         local kind = info[1]
-        local tab = CreateTabButton(journal, DungeonJournal:Trans(info[2]), function()
-            if listKind == kind then return end
+        local tab = CreateSideTab(journal, DungeonJournal:Trans(info[2]), info[3], function()
+            if listKind == kind then
+                UpdateKindTabs()
+
+                return
+            end
+
             listKind = kind
             selectedInstance = nil
             selectedBoss = nil
-            UpdateTabs(journal.kindTabs, listKind)
+            UpdateKindTabs()
             RefreshInstances()
         end)
 
-        tab:SetWidth(KIND_TAB_W)
         if previousTab == nil then
-            tab:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -62)
+            tab:SetPoint("TOPLEFT", journal, "TOPRIGHT", -2, -SIDE_TAB_TOP)
         else
-            tab:SetPoint("LEFT", previousTab, "RIGHT", 2, 0)
+            tab:SetPoint("TOPLEFT", previousTab, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
         end
 
         journal.kindTabs[kind] = tab
         previousTab = tab
     end
 
-    local dungeonTab = journal.kindTabs["dungeon"]
     local instances = CreateScroller(journal, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnInstanceClick)
         function row:Update(entry)
@@ -759,7 +803,7 @@ local function CreateJournal()
         return row
     end)
 
-    instances:SetPoint("TOPLEFT", dungeonTab, "BOTTOMLEFT", 0, -6)
+    instances:SetPoint("TOPLEFT", journal, "TOPLEFT", 14, -90)
     instances:SetPoint("BOTTOMLEFT", journal, "BOTTOMLEFT", 12, 28)
     instances:SetWidth(COL_W)
     journal.instances = instances
@@ -872,7 +916,7 @@ function DungeonJournal:ToggleJournal()
     end
 
     journal:Show()
-    UpdateTabs(journal.kindTabs, listKind)
+    UpdateKindTabs()
     RefreshInstances()
 end
 
@@ -880,7 +924,7 @@ function DungeonJournal:OpenJournal()
     CreateJournal()
     if journal:IsShown() then return end
     journal:Show()
-    UpdateTabs(journal.kindTabs, listKind)
+    UpdateKindTabs()
     RefreshInstances()
 end
 
