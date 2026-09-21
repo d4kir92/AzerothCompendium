@@ -5,9 +5,8 @@ local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
 local SCROLLBAR_W = 18
-local SIDE_TAB_SIZE = 32
 local SIDE_TAB_TOP = 62
-local SIDE_TAB_GAP = 10
+local SIDE_TAB_GAP = 3
 local MODEL_START_ROTATION = 0.4
 local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
@@ -646,14 +645,19 @@ local function AddFallbackChrome(frame)
 end
 
 local function CreateSideTab(parent, label, icon, onClick)
-    local tab = CreateTemplated("CheckButton", nil, parent, {"RightSideTabTemplate", "SpellBookSkillLineTabTemplate"})
-    tab:SetSize(SIDE_TAB_SIZE, SIDE_TAB_SIZE)
+    local ok, tab = pcall(CreateFrame, "Frame", nil, parent, "LargeSideTabButtonTemplate")
+    local large = ok and tab ~= nil
+    if not large then
+        tab = CreateTemplated("CheckButton", nil, parent, {"RightSideTabTemplate", "SpellBookSkillLineTabTemplate"})
+        tab:SetSize(32, 32)
+    end
+
     if type(tab.Icon) ~= "table" then
         local background = tab:CreateTexture(nil, "BACKGROUND")
         background:SetAllPoints(tab)
         background:SetColorTexture(0.05, 0.05, 0.06, 0.9)
         local texture = tab:CreateTexture(nil, "ARTWORK")
-        texture:SetSize(SIDE_TAB_SIZE - 2, SIDE_TAB_SIZE - 2)
+        texture:SetSize(30, 30)
         texture:SetPoint("CENTER", tab, "CENTER", 0, 0)
         texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         tab.Icon = texture
@@ -662,7 +666,9 @@ local function CreateSideTab(parent, label, icon, onClick)
     end
 
     tab.Icon:SetTexture(icon)
+    if large and type(tab.SetFillToInterior) == "function" then tab:SetFillToInterior(true) end
     tab.tooltip = label
+    tab.tooltipText = label
     tab:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         GameTooltip:SetText(sel.tooltip)
@@ -670,7 +676,14 @@ local function CreateSideTab(parent, label, icon, onClick)
     end)
 
     tab:SetScript("OnLeave", function() DungeonJournal:HideGameTooltip() end)
-    tab:HookScript("OnClick", onClick)
+    if large then
+        tab:EnableMouse(true)
+        tab:SetCustomOnMouseUpHandler(function(_, button, upInside)
+            if button == "LeftButton" and upInside then onClick() end
+        end)
+    else
+        tab:HookScript("OnClick", onClick)
+    end
 
     return tab
 end
