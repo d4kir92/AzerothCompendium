@@ -19,6 +19,8 @@ local listKind = "dungeon"
 local detailKind = "loot"
 local searchText = ""
 local refreshPending = false
+local FLAVOR_FOREVER = "forever"
+local FLAVOR_CLASSIC_ERA = "classic_era"
 
 local function Lower(text)
     if text == nil then return "" end
@@ -33,12 +35,40 @@ local function Matches(text)
     return strfind(Lower(text), searchText, 1, true) ~= nil
 end
 
+local function IsClassicEra()
+    return AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
+end
+
+local function IsItemVisible(itemID)
+    return not IsClassicEra() or not AzerothCompendium:IsForeverItem(itemID)
+end
+
+local function VisibleLootCount(boss)
+    local count = 0
+    for _, entry in ipairs(boss.loot or {}) do
+        if IsItemVisible(entry[1]) then count = count + 1 end
+    end
+
+    return count
+end
+
+local function IsInstanceVisible(inst)
+    if not IsClassicEra() then return true end
+    if inst.forever then return false end
+    if not inst.vendor then return true end
+    for _, boss in ipairs(inst.bosses or {}) do
+        if VisibleLootCount(boss) > 0 then return true end
+    end
+
+    return false
+end
+
 local function BossMatches(boss)
     if searchText == "" then return true end
     if Matches(AzerothCompendium:GetBossName(boss)) then return true end
     if Matches(boss.name) then return true end
     for _, entry in ipairs(boss.loot or {}) do
-        if Matches(AzerothCompendium:GetItemDisplay(entry[1])) then return true end
+        if IsItemVisible(entry[1]) and Matches(AzerothCompendium:GetItemDisplay(entry[1])) then return true end
     end
 
     return false
@@ -229,7 +259,7 @@ end
 local function UpdateBossRow(row, boss)
     row.entry = boss
     row.text:SetText(AzerothCompendium:GetBossName(boss))
-    local count = #(boss.loot or {})
+    local count = VisibleLootCount(boss)
     if count > 0 then
         row.info:SetText(count)
     else
@@ -248,7 +278,7 @@ end
 local function GetInstanceList()
     local list = {}
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
-        if InstanceMatches(inst) then tinsert(list, inst) end
+        if IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
     end
 
     return list
@@ -258,7 +288,7 @@ local function GetBossList()
     local list = {}
     if selectedInstance == nil then return list end
     for _, boss in ipairs(selectedInstance.bosses or {}) do
-        if BossMatches(boss) then tinsert(list, boss) end
+        if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) then tinsert(list, boss) end
     end
 
     return list
@@ -272,7 +302,7 @@ local function GetLootList()
     local bossMatched = Matches(AzerothCompendium:GetBossName(selectedBoss)) or Matches(selectedBoss.name)
     for _, entry in ipairs(selectedBoss.loot or {}) do
         local itemID = entry[1]
-        local ok = true
+        local ok = IsItemVisible(itemID)
         if onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then ok = false end
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok then tinsert(list, entry) end
@@ -319,10 +349,11 @@ local function BossHasItem(boss, itemID)
 end
 
 local function FindWishlistSource(itemID, source)
+    if not IsItemVisible(itemID) then return nil, nil, nil end
     local kinds = {"dungeon", "raid", "pvp", "faction"}
     if type(source) == "table" and source.kind ~= nil then
         for _, inst in ipairs(AzerothCompendium:GetInstances(source.kind)) do
-            if GetInstanceKey(inst) == source.instance then
+            if IsInstanceVisible(inst) and GetInstanceKey(inst) == source.instance then
                 for _, boss in ipairs(inst.bosses or {}) do
                     if GetBossKey(boss) == source.boss and BossHasItem(boss, itemID) then return source.kind, inst, boss end
                 end
@@ -332,8 +363,10 @@ local function FindWishlistSource(itemID, source)
 
     for _, kind in ipairs(kinds) do
         for _, inst in ipairs(AzerothCompendium:GetInstances(kind)) do
-            for _, boss in ipairs(inst.bosses or {}) do
-                if BossHasItem(boss, itemID) then return kind, inst, boss end
+            if IsInstanceVisible(inst) then
+                for _, boss in ipairs(inst.bosses or {}) do
+                    if BossHasItem(boss, itemID) then return kind, inst, boss end
+                end
             end
         end
     end
@@ -355,12 +388,12 @@ local function GetWishlistList()
     local list = {}
     for itemID, source in pairs(AzerothCompendium:GetWishlist()) do
         itemID = tonumber(itemID)
-        if itemID ~= nil then
+        if itemID ~= nil and IsItemVisible(itemID) then
             local name = AzerothCompendium:GetItemDisplay(itemID)
             local _, inst, boss = FindWishlistSource(itemID, source)
             local sourceText = ""
             if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
-            if Matches(name) or Matches(sourceText) then
+            if (not IsClassicEra() or inst ~= nil) and (Matches(name) or Matches(sourceText)) then
                 tinsert(list, {itemID = itemID, source = source, sourceText = sourceText, name = name})
             end
         end
@@ -770,6 +803,86 @@ local function CreateTemplated(kind, name, parent, templates)
     return CreateFrame(kind, name, parent), nil
 end
 
+local function GetFlavorText()
+    if AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA then return "Classic Era" end
+
+    return "Forever"
+end
+
+local flavorMenu = nil
+local function ShowFlavorMenu(owner)
+    local function SelectFlavor(value)
+        AzerothCompendium:SetFlavor(value)
+    end
+
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, function(_, rootDescription)
+            rootDescription:CreateRadio("Classic Era", function() return AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA end, function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
+            rootDescription:CreateRadio("Forever", function() return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER end, function() SelectFlavor(FLAVOR_FOREVER) end)
+        end)
+
+        return
+    end
+
+    if EasyMenu == nil then return end
+    if flavorMenu == nil then flavorMenu = CreateFrame("Frame", "AzerothCompendiumFlavorMenu", UIParent, "UIDropDownMenuTemplate") end
+    EasyMenu({
+        {text = "Classic Era", checked = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA, func = function() SelectFlavor(FLAVOR_CLASSIC_ERA) end},
+        {text = "Forever", checked = AzerothCompendium:GetFlavor() == FLAVOR_FOREVER, func = function() SelectFlavor(FLAVOR_FOREVER) end}
+    }, flavorMenu, owner, 0, 0, "MENU")
+end
+
+local function CreateFlavorControl(parent)
+    if AzerothCompendium:CheckTemplates("SettingsDropdownWithButtonsTemplate") then
+        local control = CreateFrame("Frame", "AzerothCompendiumFlavorControl", parent, "SettingsDropdownWithButtonsTemplate")
+        control:SetPoint("LEFT", parent, "TOPLEFT", 14, -73)
+        control:SetWidth(190)
+        control.Dropdown:SetWidth(120)
+        local steppers = {}
+        for _, child in ipairs({control:GetChildren()}) do
+            if child ~= control.Dropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(steppers, child) end
+        end
+
+        table.sort(steppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
+        local previous = control.DecrementButton or steppers[1]
+        local following = control.IncrementButton or steppers[2]
+        local function SelectFlavor(value)
+            AzerothCompendium:SetFlavor(value)
+        end
+
+        if previous then previous:SetScript("OnClick", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end) end
+        if following then following:SetScript("OnClick", function() SelectFlavor(FLAVOR_FOREVER) end) end
+        control.Dropdown:SetupMenu(function(_, rootDescription)
+            rootDescription:CreateTitle(AzerothCompendium:Trans("LID_FLAVOR"))
+            rootDescription:CreateButton("Classic Era", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
+            rootDescription:CreateButton("Forever", function() SelectFlavor(FLAVOR_FOREVER) end)
+        end)
+        parent.flavorControl = control
+        parent.flavorDropdown = control.Dropdown
+        parent.updateFlavorSteppers = function()
+            local classic = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
+            if previous then previous:SetEnabled(not classic) end
+            if following then following:SetEnabled(classic) end
+        end
+    else
+        local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
+        button:SetSize(190, 22)
+        button:SetPoint("LEFT", parent, "TOPLEFT", 14, -73)
+        button:SetScript("OnClick", function(sel) ShowFlavorMenu(sel) end)
+        local arrow = button:CreateTexture(nil, "ARTWORK")
+        arrow:SetSize(16, 16)
+        arrow:SetPoint("RIGHT", button, "RIGHT", -3, 0)
+        arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+        parent.flavorDropdown = button
+    end
+
+    local text = GetFlavorText()
+    if parent.flavorDropdown.SetDefaultText then parent.flavorDropdown:SetDefaultText(text) end
+    if parent.flavorDropdown.Update then parent.flavorDropdown:Update() end
+    if parent.flavorDropdown.SetText then parent.flavorDropdown:SetText(text) end
+    if parent.updateFlavorSteppers then parent.updateFlavorSteppers() end
+end
+
 local function SetFrameTitle(frame, text)
     if type(frame.SetTitle) == "function" then
         local ok = pcall(frame.SetTitle, frame, text)
@@ -962,6 +1075,14 @@ local function SetWishlistMode(enabled)
         end
     end
 
+    for _, frame in ipairs({compendium.flavorControl or compendium.flavorDropdown}) do
+        if enabled then
+            frame:Hide()
+        else
+            frame:Show()
+        end
+    end
+
     if compendium.wishlist then
         if enabled then
             compendium.wishlist:Show()
@@ -1068,6 +1189,7 @@ local function CreateJournal()
     local searchLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
     searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
+    CreateFlavorControl(compendium)
     compendium.kindTabs = {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
@@ -1236,8 +1358,19 @@ function AzerothCompendium:SyncCompendiumClassFilter()
     compendium.classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
 end
 
+function AzerothCompendium:SyncCompendiumFlavor()
+    if compendium == nil or compendium.flavorDropdown == nil then return end
+    local dropdown = compendium.flavorDropdown
+    local text = GetFlavorText()
+    if dropdown.SetDefaultText then dropdown:SetDefaultText(text) end
+    if dropdown.Update then dropdown:Update() end
+    if dropdown.SetText then dropdown:SetText(text) end
+    if compendium.updateFlavorSteppers then compendium.updateFlavorSteppers() end
+end
+
 function AzerothCompendium:RefreshCompendium()
     AzerothCompendium:SyncCompendiumClassFilter()
+    AzerothCompendium:SyncCompendiumFlavor()
     if compendium == nil or not compendium:IsShown() then return end
     RefreshCurrentView()
 end

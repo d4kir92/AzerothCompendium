@@ -12,6 +12,8 @@ function AzerothCompendium:GetAddonVersion()
     return "0.0.0"
 end
 local FOREVER_ITEM_MIN = 200000
+local FLAVOR_FOREVER = "forever"
+local FLAVOR_CLASSIC_ERA = "classic_era"
 local ARMOR_MISC = 0
 local ARMOR_CLOTH = 1
 local ARMOR_LEATHER = 2
@@ -196,6 +198,23 @@ function AzerothCompendium:SetClassFilter(value)
     AzerothCompendium:SetConfig("CLASSFILTER", value == true)
     if AzerothCompendium.SyncCompendiumClassFilter then AzerothCompendium:SyncCompendiumClassFilter() end
     if AzerothCompendium.SyncSettingsClassFilter then AzerothCompendium:SyncSettingsClassFilter() end
+    if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+function AzerothCompendium:GetFlavor()
+    local flavor = AzerothCompendium:GetConfig("FLAVOR", FLAVOR_FOREVER)
+    if flavor ~= FLAVOR_FOREVER and flavor ~= FLAVOR_CLASSIC_ERA then
+        flavor = FLAVOR_FOREVER
+        AzerothCompendium:SetConfig("FLAVOR", flavor)
+    end
+
+    return flavor
+end
+
+function AzerothCompendium:SetFlavor(value)
+    if value ~= FLAVOR_CLASSIC_ERA then value = FLAVOR_FOREVER end
+    AzerothCompendium:SetConfig("FLAVOR", value)
+    if AzerothCompendium.SyncCompendiumFlavor then AzerothCompendium:SyncCompendiumFlavor() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
 

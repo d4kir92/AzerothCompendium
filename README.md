@@ -10,6 +10,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Browse reputation rewards grouped by faction and standing.
 *   Save items to an account-wide wishlist and jump back to their source.
 *   Search instances, bosses, factions, and items.
+*   Switch the compendium between the complete Forever data and the Classic Era data.
 *   Filter loot to items usable by the current class.
 *   Show or hide drop chances.
 *   Open the compendium from a minimap button or slash command.
@@ -25,6 +26,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Right-click an item to add it to or remove it from the wishlist.
 *   Open the Wishlist tab and left-click an item to jump to its category, instance, and boss.
 *   Right-click an item in the Wishlist tab to remove it.
+*   Use the **Flavor** dropdown above the left list to show either all Forever data or only Classic Era content.
 
 The **Only my class** option is shared between the compendium and the settings window. Changing it in either place updates the other checkbox immediately.
 
