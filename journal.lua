@@ -470,6 +470,10 @@ local function ShowItemTooltip(row)
         GameTooltip:SetHyperlink("item:" .. row.itemID)
     end
 
+    if row.boss ~= nil then
+        GameTooltip:AddLine(format(DungeonJournal:Trans("LID_DROPPEDBY"), DungeonJournal:GetBossName(row.boss)), 1, 0.82, 0)
+    end
+
     GameTooltip:Show()
 end
 
@@ -502,6 +506,7 @@ local function CreateLootRow(scroller)
         local itemID = entry[1]
         local chance = entry[2]
         self.itemID = itemID
+        self.boss = selectedInstance and not selectedInstance.vendor and selectedBoss or nil
         local name, link, quality, _, icon = DungeonJournal:GetItemDisplay(itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)
