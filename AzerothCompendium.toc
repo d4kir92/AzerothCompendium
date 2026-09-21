@@ -2,7 +2,7 @@
 ## Interface: 16001
 
 ## Version: 0.1.0
-## Title: Azeroth Compendium by |cff55d2ffD4KiR |T132115:16:16:0:0|t 
+## Title: Azeroth Compendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
 ## Notes: Browse dungeon, raid, PvP, and reputation rewards
 ## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
 ## Notes-esES: Consulta recompensas de mazmorras, bandas, JcJ y reputación
@@ -14,7 +14,7 @@
 ## Notes-ruRU: Просматривайте награды подземелий, рейдов, PvP и репутации
 ## Notes-zhCN: 浏览地下城、团队副本、PvP和声望奖励
 ## Notes-zhTW: 瀏覽地城、團隊副本、PvP與聲望獎勵
-## Author: D4KiR |T132115:16:16:0:0|t
+## Author: D4KiR |T133737:16:16:0:0|t
 ## Category: Map
 ## Category-deDE: Karte
 ## Category-esES: Mapa
@@ -31,7 +31,7 @@
 ## SavedVariablesPerCharacter: ACOTABPC
 ## X-Curse-Project-ID: 
 ## X-Wago-ID: 
-## IconTexture: 132115
+## IconTexture: 133737
 
 libs\D4Lib\D4Lib.xml
 

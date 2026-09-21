@@ -1,5 +1,5 @@
 local _, AzerothCompendium = ...
-local ICON = 132115
+local ICON = 133737
 local DEFAULT_WIDTH = 420
 local DEFAULT_HEIGHT = 260
 local acoset = nil

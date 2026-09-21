@@ -1,6 +1,6 @@
 local _, AzerothCompendium = ...
 local ADDON = "AzerothCompendium"
-local ICON = 132115
+local ICON = 133737
 AzerothCompendium:SetAddonOutput(ADDON, ICON)
 local byType = nil
 local preloaded = false
