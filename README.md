@@ -13,6 +13,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Filter loot to items usable by the current class.
 *   Show or hide drop chances.
 *   Open the compendium from a minimap button or slash command.
+*   Resize the compendium with the grip in its bottom-right corner; its size is remembered.
 *   Use localized interface text for all supported game languages.
 
 ## Usage

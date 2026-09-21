@@ -1,6 +1,8 @@
 local _, AzerothCompendium = ...
 local WIDTH = 860
 local HEIGHT = 580
+local MIN_WIDTH = 700
+local MIN_HEIGHT = 400
 local ROW_H = 22
 local LOOT_ROW_H = 34
 local COL_W = 200
@@ -818,6 +820,39 @@ local function AddFallbackChrome(frame)
     if close.SetText and close.GetFontString and close:GetFontString() ~= nil then close:SetText("X") end
 end
 
+local function MakeResizable(frame)
+    frame:SetResizable(true)
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(MIN_WIDTH, MIN_HEIGHT, 0, 0)
+    elseif frame.SetMinResize then
+        frame:SetMinResize(MIN_WIDTH, MIN_HEIGHT)
+    end
+
+    local grip = CreateFrame("Button", "AzerothCompendiumResize", frame)
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -4, 4)
+    grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    grip:SetScript("OnMouseDown", function()
+        local left = frame:GetLeft()
+        local top = frame:GetTop()
+        if left ~= nil and top ~= nil then
+            frame:ClearAllPoints()
+            frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+        end
+
+        frame:StartSizing("BOTTOMRIGHT")
+    end)
+
+    grip:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing()
+        AzerothCompendium:SetConfig("COMPENDIUMWIDTH", floor(frame:GetWidth() + 0.5))
+        AzerothCompendium:SetConfig("COMPENDIUMHEIGHT", floor(frame:GetHeight() + 0.5))
+    end)
+    frame.resizeGrip = grip
+end
+
 local function CreateSideTab(parent, label, icon, onClick)
     local ok, tab = pcall(CreateFrame, "Frame", nil, parent, "LargeSideTabButtonTemplate")
     local large = ok and tab ~= nil
@@ -999,7 +1034,9 @@ local function CreateJournal()
     if template == nil then AddFallbackChrome(compendium) end
     if type(compendium.Inset) == "table" and type(compendium.Inset.Bg) == "table" then compendium.Inset.Bg:SetAlpha(0.6) end
     SetFramePortrait(compendium, AzerothCompendium:GetIcon())
-    compendium:SetSize(WIDTH, HEIGHT)
+    local width = tonumber(AzerothCompendium:GetConfig("COMPENDIUMWIDTH", WIDTH)) or WIDTH
+    local height = tonumber(AzerothCompendium:GetConfig("COMPENDIUMHEIGHT", HEIGHT)) or HEIGHT
+    compendium:SetSize(max(MIN_WIDTH, width), max(MIN_HEIGHT, height))
     compendium:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     compendium:SetFrameStrata("HIGH")
     compendium:SetMovable(true)
@@ -1007,6 +1044,7 @@ local function CreateJournal()
     compendium:RegisterForDrag("LeftButton")
     compendium:SetScript("OnDragStart", function(sel) sel:StartMoving() end)
     compendium:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
+    MakeResizable(compendium)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
     SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s v%s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:GetAddonVersion()))
@@ -1173,7 +1211,7 @@ local function CreateJournal()
     compendium.detailTitle = detailTitle
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
-    classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 2)
+    classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -32, 2)
     classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
     local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
