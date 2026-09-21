@@ -29,8 +29,8 @@
 ## DefaultState: enabled
 ## SavedVariables: ACOTAB
 ## SavedVariablesPerCharacter: ACOTABPC
-## X-Curse-Project-ID: 
-## X-Wago-ID: 
+## X-Curse-Project-ID: 1698451
+## X-Wago-ID: qGZAX2Kd
 ## IconTexture: 133737
 
 libs\D4Lib\D4Lib.xml
