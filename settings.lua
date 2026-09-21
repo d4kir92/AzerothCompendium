@@ -3,6 +3,7 @@ local ICON = 133737
 local DEFAULT_WIDTH = 420
 local DEFAULT_HEIGHT = 260
 local acoset = nil
+local classFilterSetting = nil
 local function GetTocVersion()
     if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata("AzerothCompendium", "Version") end
     if GetAddOnMetadata then return GetAddOnMetadata("AzerothCompendium", "Version") end
@@ -44,15 +45,20 @@ local function AddCategory(key, level)
 end
 
 local function AddCheckbox(key, default, func, label)
-    acoset:AddCheckbox({
+    return acoset:AddCheckbox({
         ["label"] = label or ("LID_" .. key),
         ["search"] = key,
         ["value"] = AzerothCompendium:GetConfig(key, default),
         ["func"] = function(value)
             AzerothCompendium:SV(ACOTAB, key, value)
-            if func then func() end
+            if func then func(value) end
         end
     })
+end
+
+function AzerothCompendium:SyncSettingsClassFilter()
+    if classFilterSetting == nil then return end
+    classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
 end
 
 local function HandleSlash(args)
@@ -97,7 +103,7 @@ function AzerothCompendium:InitSetting()
     end)
 
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
-    AddCheckbox("CLASSFILTER", false, function() AzerothCompendium:RefreshCompendium() end)
+    classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     acoset:ResumeLayout()
     AzerothCompendium:CreateMinimapButton({
         ["name"] = "AzerothCompendium",

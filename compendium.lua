@@ -756,7 +756,7 @@ local function CreateJournal()
     compendium:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
-    SetFrameTitle(compendium, AzerothCompendium:Trans("LID_TITLE"))
+    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE")))
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
     search:SetSize(180, 20)
@@ -905,8 +905,7 @@ local function CreateJournal()
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
     classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
     classFilter:SetScript("OnClick", function(sel)
-        AzerothCompendium:SetConfig("CLASSFILTER", sel:GetChecked() == true)
-        RefreshDetail()
+        AzerothCompendium:SetClassFilter(sel:GetChecked() == true)
     end)
 
     compendium.classFilter = classFilter
@@ -920,7 +919,13 @@ local function CreateJournal()
     return compendium
 end
 
+function AzerothCompendium:SyncCompendiumClassFilter()
+    if compendium == nil or compendium.classFilter == nil then return end
+    compendium.classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
+end
+
 function AzerothCompendium:RefreshCompendium()
+    AzerothCompendium:SyncCompendiumClassFilter()
     if compendium == nil or not compendium:IsShown() then return end
     RefreshInstances()
 end

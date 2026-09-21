@@ -185,6 +185,13 @@ function AzerothCompendium:SetConfig(key, value)
     AzerothCompendium:SV(ACOTAB, key, value)
 end
 
+function AzerothCompendium:SetClassFilter(value)
+    AzerothCompendium:SetConfig("CLASSFILTER", value == true)
+    if AzerothCompendium.SyncCompendiumClassFilter then AzerothCompendium:SyncCompendiumClassFilter() end
+    if AzerothCompendium.SyncSettingsClassFilter then AzerothCompendium:SyncSettingsClassFilter() end
+    if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
 function AzerothCompendium:GetInstanceName(inst)
     if inst == nil then return "" end
     if inst.honor then return AzerothCompendium:Trans("LID_HONORRANKS") end
