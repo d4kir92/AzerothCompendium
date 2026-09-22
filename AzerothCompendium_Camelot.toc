@@ -1,6 +1,6 @@
 ## Interface: 16001
 
-## Version: 0.1.1
+## Version: 0.1.2
 ## Title: Azeroth Compendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
 ## Notes: Browse dungeon, raid, PvP, and reputation rewards
 ## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
@@ -14,17 +14,17 @@
 ## Notes-zhCN: 浏览地下城、团队副本、PvP和声望奖励
 ## Notes-zhTW: 瀏覽地城、團隊副本、PvP與聲望獎勵
 ## Author: D4KiR |T133737:16:16:0:0|t
-## Category: Map
-## Category-deDE: Karte
-## Category-esES: Mapa
-## Category-esMX: Mapa
-## Category-frFR: Carte
-## Category-itIT: Mappa
-## Category-koKR: 지도
-## Category-ptBR: Mapa
-## Category-ruRU: Карта
-## Category-zhCN: 地图
-## Category-zhTW: 地圖
+## Category: Loot
+## Category-deDE: Beute
+## Category-esES: Botín
+## Category-esMX: Botín
+## Category-frFR: Butin 
+## Category-itIT: Bottino
+## Category-koKR: 전리품
+## Category-ptBR: Saque
+## Category-ruRU: Добыча
+## Category-zhCN: 战利品
+## Category-zhTW: 戰利品
 ## DefaultState: enabled
 ## SavedVariables: ACOTAB
 ## SavedVariablesPerCharacter: ACOTABPC
