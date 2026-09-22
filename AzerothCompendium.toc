@@ -50,6 +50,7 @@ locale\bosses_deDE.lua
 
 data\instances.lua
 data\quests.lua
+data\quest_chains.lua
 data\trash.lua
 data\vendors.lua
 

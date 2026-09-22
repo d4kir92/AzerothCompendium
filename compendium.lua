@@ -15,6 +15,7 @@ local MODEL_ZOOM_MAX = 4
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
+local selectedQuest = nil
 local listKind = "dungeon"
 local middleKind = "bosses"
 local detailKind = "loot"
@@ -297,6 +298,13 @@ local function UpdateQuestRow(row, quest)
     end
 
     row.info:SetText(prefix .. (quest[2] or ""))
+    if selectedQuest == quest then
+        row.text:SetTextColor(1, 0.82, 0)
+        row.selected:Show()
+    else
+        row.text:SetTextColor(0.9, 0.9, 0.9)
+        row.selected:Hide()
+    end
 end
 
 local function GetInstanceList()
@@ -504,16 +512,28 @@ local function RefreshDetail()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
         for _, button in pairs(compendium.detailTabs) do button:Hide() end
-        compendium.detailTitle:Hide()
-        compendium.detailCount:Hide()
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
-        compendium.questHint:Show()
+        if selectedQuest == nil then
+            compendium.questChain:Hide()
+            compendium.detailTitle:SetText("")
+            compendium.detailCount:SetText("")
+            compendium.questHint:SetText(AzerothCompendium:Trans("LID_SELECTQUEST"))
+            compendium.questHint:Show()
+        else
+            local chain = AzerothCompendium:GetQuestChain(selectedQuest[1])
+            compendium.questChain:SetData(chain)
+            compendium.questChain:Show()
+            compendium.detailTitle:SetText(AzerothCompendium:GetQuestName(selectedQuest))
+            compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTSTEPS", nil, #chain))
+            compendium.questHint:Hide()
+        end
 
         return
     end
 
+    compendium.questChain:Hide()
     compendium.questHint:Hide()
     compendium.detailTitle:Show()
     compendium.detailCount:Show()
@@ -591,7 +611,13 @@ local function RefreshBosses()
     UpdateTabs(compendium.middleTabs, middleKind)
     if middleKind == "quests" then
         compendium.bosses:Hide()
-        compendium.quests:SetData(GetQuestList())
+        local quests = GetQuestList()
+        compendium.quests:SetData(quests)
+        local found = false
+        for _, quest in ipairs(quests) do
+            if quest == selectedQuest then found = true end
+        end
+        if not found then selectedQuest = nil end
         compendium.quests:Show()
         compendium.bossTitle:Hide()
         RefreshDetail()
@@ -632,6 +658,7 @@ local function RefreshInstances()
     if not found then
         selectedInstance = list[1]
         selectedBoss = nil
+        selectedQuest = nil
     end
 
     compendium.instances:Refresh()
@@ -641,6 +668,7 @@ end
 local function OnInstanceClick(inst)
     selectedInstance = inst
     selectedBoss = nil
+    selectedQuest = nil
     compendium.instances:Refresh()
     RefreshBosses()
 end
@@ -664,14 +692,52 @@ end
 
 local function CreateQuestRow(scroller)
     local row = CreateTextRow(scroller, function(quest)
-        if not IsShiftKeyDown() or ChatEdit_InsertLink == nil then return end
-        local link = GetQuestLink and GetQuestLink(quest[1])
-        if link then ChatEdit_InsertLink(link) end
+        if IsShiftKeyDown() and ChatEdit_InsertLink ~= nil then
+            local link = GetQuestLink and GetQuestLink(quest[1])
+            if link then ChatEdit_InsertLink(link) end
+
+            return
+        end
+        selectedQuest = quest
+        compendium.quests:Refresh()
+        RefreshDetail()
     end)
     row:SetScript("OnEnter", ShowQuestTooltip)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     function row:Update(entry)
         UpdateQuestRow(self, entry)
+    end
+
+    return row
+end
+
+local function CreateQuestChainRow(scroller)
+    local row = CreateTextRow(scroller, function(entry)
+        if not AzerothCompendium:SetQuestWaypoint(entry[1]) then
+            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_NOQUESTGIVER"))
+        end
+    end)
+    row:SetScript("OnEnter", function(sel)
+        if sel.entry == nil then return end
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. sel.entry[1])
+        if not shown then
+            GameTooltip:ClearLines()
+            GameTooltip:AddLine(sel.entry[2], 1, 0.82, 0)
+        end
+        GameTooltip:Show()
+    end)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    function row:Update(entry)
+        self.entry = entry
+        self.text:SetText(entry[2])
+        self.info:SetText(entry[3])
+        if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then
+            self.text:SetTextColor(0.9, 0.9, 0.9)
+        else
+            self.text:SetTextColor(0.55, 0.55, 0.55)
+        end
+        self.selected:Hide()
     end
 
     return row
@@ -1167,6 +1233,7 @@ local function SetWishlistMode(enabled)
         compendium.bossTitle,
         compendium.bosses,
         compendium.quests,
+        compendium.questChain,
         compendium.questHint,
         compendium.loot,
         compendium.spells,
@@ -1326,6 +1393,7 @@ local function CreateJournal()
             middleKind = "bosses"
             selectedInstance = nil
             selectedBoss = nil
+            selectedQuest = nil
             UpdateKindTabs()
             RefreshCurrentView()
         end)
@@ -1395,6 +1463,10 @@ local function CreateJournal()
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
+    local questChain = CreateScroller(compendium, ROW_H, CreateQuestChainRow)
+    questChain:SetAllPoints(loot)
+    questChain:Hide()
+    compendium.questChain = questChain
     local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
     wishlist:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
     wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
@@ -1466,7 +1538,7 @@ local function CreateJournal()
     compendium.detailTitle = detailTitle
     local questHint = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     questHint:SetPoint("CENTER", loot, "CENTER", 0, 0)
-    questHint:SetText(AzerothCompendium:Trans("LID_QUESTHINT"))
+    questHint:SetText(AzerothCompendium:Trans("LID_SELECTQUEST"))
     questHint:Hide()
     compendium.questHint = questHint
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})

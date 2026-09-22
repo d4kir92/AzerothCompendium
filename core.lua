@@ -4,6 +4,7 @@ local ICON = 133737
 AzerothCompendium:SetAddonOutput(ADDON, ICON)
 local byType = nil
 local preloaded = false
+local questsByID = nil
 
 function AzerothCompendium:GetAddonVersion()
     if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata(ADDON, "Version") end
@@ -304,6 +305,52 @@ function AzerothCompendium:GetQuestName(quest)
     end
 
     return quest[4] or ("Quest " .. questID)
+end
+
+function AzerothCompendium:GetQuestNameByID(questID)
+    if C_QuestLog and C_QuestLog.GetTitleForQuestID then
+        local title = C_QuestLog.GetTitleForQuestID(questID)
+        if type(title) == "string" and title ~= "" then return title end
+    end
+    if QuestUtils_GetQuestName then
+        local title = QuestUtils_GetQuestName(questID)
+        if type(title) == "string" and title ~= "" then return title end
+    end
+    if questsByID == nil then
+        questsByID = {}
+        for _, quests in pairs(AzerothCompendium.QUESTS or {}) do
+            for _, quest in ipairs(quests) do questsByID[quest[1]] = quest[4] end
+        end
+    end
+
+    return questsByID[questID] or AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or ("Quest " .. questID)
+end
+
+function AzerothCompendium:GetQuestChain(questID)
+    local ids = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[questID] or {questID}
+    local quests = {}
+    for index, id in ipairs(ids) do
+        tinsert(quests, {id, AzerothCompendium:GetQuestNameByID(id), index})
+    end
+
+    return quests
+end
+
+function AzerothCompendium:SetQuestWaypoint(questID)
+    local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
+    if giver == nil then return false end
+    if C_Map == nil or C_Map.SetUserWaypoint == nil or UiMapPoint == nil or UiMapPoint.CreateFromCoordinates == nil then return false end
+    local point = UiMapPoint.CreateFromCoordinates(giver[1], giver[2] / 100, giver[3] / 100)
+    C_Map.SetUserWaypoint(point)
+    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
+    if OpenWorldMap then
+        OpenWorldMap(giver[1])
+    elseif WorldMapFrame then
+        if WorldMapFrame.SetMapID then WorldMapFrame:SetMapID(giver[1]) end
+        if ShowUIPanel then ShowUIPanel(WorldMapFrame) else WorldMapFrame:Show() end
+    end
+
+    return true
 end
 
 function AzerothCompendium:IsForeverItem(itemID)
