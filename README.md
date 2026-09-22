@@ -5,7 +5,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 ## Features
 
 *   Browse Classic dungeons and raids by instance and encounter.
-*   Switch each dungeon between boss and quest lists, including faction and quest level.
+*   Switch each dungeon and raid between boss and quest lists, including faction and quest level.
 *   Select a quest to see every required predecessor in order; select a chain step to place a
     world-map waypoint at its Wowhead quest giver when coordinates are available.
 *   View boss loot, drop chances, abilities, and 3D models.

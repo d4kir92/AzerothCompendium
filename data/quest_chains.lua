@@ -89,3 +89,27 @@ AzerothCompendium.QUESTNAMES = {
     [4787] = "The Ancient Egg", [4941] = "Eitrigg's Wisdom", [5065] = "The Lost Tablets of Mosh'aru",
     [6627] = "Test of Lore",
 }
+
+AzerothCompendium.QUESTCHAINS[8578] = {8577,8578}
+
+local raidQuestGivers = {
+    [8041] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8044] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8045] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8048] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"},
+    [8049] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8052] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8053] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8054] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8055] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"},
+    [8056] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8057] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8058] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8059] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8060] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"},
+    [8061] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8062] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8063] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8064] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8065] = {1434,15.2,16,14904,"Maywiki of Zuldazar"},
+    [8066] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8067] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8068] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8069] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8070] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"},
+    [8071] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8072] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8073] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8074] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8075] = {1434,15.2,16,14904,"Maywiki of Zuldazar"},
+    [8076] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8077] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8078] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"}, [8079] = {1434,15.2,14.4,14902,"Jin'rokh the Breaker"},
+    [8101] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8104] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8106] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"}, [8109] = {1434,15.2,16,14903,"Al'tabim the All-Seeing"},
+    [8110] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8113] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8116] = {1434,15.2,16,14904,"Maywiki of Zuldazar"}, [8119] = {1434,15.2,16,14904,"Maywiki of Zuldazar"},
+    [8141] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8144] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8145] = {1434,14,13.6,14905,"Falthir the Sightless"}, [8148] = {1434,14,13.6,14905,"Falthir the Sightless"},
+    [8181] = {1446,66.8,24,10460,"Prospector Ironboot"}, [8195] = {1434,14.4,15.8,15070,"Vinchaxa"}, [8196] = {1434,15,16,14921,"Rin'wosho the Trader"}, [8201] = {1434,15.2,15.4,14910,"Exzhal"},
+    [8238] = {1434,14.4,15.8,15070,"Vinchaxa"}, [8239] = {1434,14.4,15.8,15070,"Vinchaxa"}, [8240] = {1434,14.4,15.8,15070,"Vinchaxa"}, [8243] = {1434,15,16,14921,"Rin'wosho the Trader"}, [8246] = {1434,15,16,14921,"Rin'wosho the Trader"},
+    [8288] = {1451,49.4,36.6,15180,"Baristolth of the Shifting Sands"}, [8556] = {1451,52,38,15498,"Windcaller Yessendra"}, [8557] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8558] = {1451,51,38.8,15499,"Warden Haro"},
+    [8578] = {1421,46.2,86.6,180642,"Inconspicuous Crate"}, [8689] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8690] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8691] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"},
+    [8692] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8693] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8694] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8695] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"}, [8696] = {1451,51.8,39.4,15500,"Keyl Swiftclaw"},
+    [8697] = {1451,52,38,15498,"Windcaller Yessendra"}, [8698] = {1451,52,38,15498,"Windcaller Yessendra"}, [8699] = {1451,52,38,15498,"Windcaller Yessendra"}, [8700] = {1451,52,38,15498,"Windcaller Yessendra"}, [8701] = {1451,52,38,15498,"Windcaller Yessendra"}, [8702] = {1451,52,38,15498,"Windcaller Yessendra"},
+}
+
+for questID, giver in pairs(raidQuestGivers) do AzerothCompendium.QUESTGIVERS[questID] = giver end
+AzerothCompendium.QUESTNAMES[8577] = "Stewvul, Ex-B.F.F."

@@ -507,7 +507,7 @@ end
 
 local function RefreshDetail()
     if compendium == nil then return end
-    if middleKind == "quests" and listKind == "dungeon" then
+    if middleKind == "quests" and (listKind == "dungeon" or listKind == "raid") then
         compendium.loot:Hide()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
@@ -603,7 +603,7 @@ end
 
 local function RefreshBosses()
     if compendium == nil then return end
-    local showMiddleTabs = listKind == "dungeon"
+    local showMiddleTabs = listKind == "dungeon" or listKind == "raid"
     if not showMiddleTabs then middleKind = "bosses" end
     for _, tab in pairs(compendium.middleTabs) do
         if showMiddleTabs then tab:Show() else tab:Hide() end
