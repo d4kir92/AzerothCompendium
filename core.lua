@@ -285,6 +285,27 @@ function AzerothCompendium:GetBossName(boss)
     return boss.name
 end
 
+function AzerothCompendium:GetInstanceQuests(inst)
+    if inst == nil or inst.id == nil then return {} end
+
+    return AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
+end
+
+function AzerothCompendium:GetQuestName(quest)
+    if quest == nil then return "" end
+    local questID = quest[1]
+    if C_QuestLog and C_QuestLog.GetTitleForQuestID then
+        local title = C_QuestLog.GetTitleForQuestID(questID)
+        if type(title) == "string" and title ~= "" then return title end
+    end
+    if QuestUtils_GetQuestName then
+        local title = QuestUtils_GetQuestName(questID)
+        if type(title) == "string" and title ~= "" then return title end
+    end
+
+    return quest[4] or ("Quest " .. questID)
+end
+
 function AzerothCompendium:IsForeverItem(itemID)
     return type(itemID) == "number" and itemID >= FOREVER_ITEM_MIN
 end

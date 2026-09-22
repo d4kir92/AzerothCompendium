@@ -16,6 +16,7 @@ local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
 local listKind = "dungeon"
+local middleKind = "bosses"
 local detailKind = "loot"
 local searchText = ""
 local refreshPending = false
@@ -74,12 +75,21 @@ local function BossMatches(boss)
     return false
 end
 
+local function QuestMatches(quest)
+    if searchText == "" then return true end
+
+    return Matches(AzerothCompendium:GetQuestName(quest))
+end
+
 local function InstanceMatches(inst)
     if searchText == "" then return true end
     if Matches(AzerothCompendium:GetInstanceName(inst)) then return true end
     if Matches(inst.name) then return true end
     for _, boss in ipairs(inst.bosses or {}) do
         if BossMatches(boss) then return true end
+    end
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
+        if QuestMatches(quest) then return true end
     end
 
     return false
@@ -275,6 +285,20 @@ local function UpdateBossRow(row, boss)
     end
 end
 
+local function UpdateQuestRow(row, quest)
+    row.entry = quest
+    row.text:SetText(AzerothCompendium:GetQuestName(quest))
+    local side = quest[3]
+    local prefix = ""
+    if side == 1 then
+        prefix = "|cff4c9cff[A]|r "
+    elseif side == 2 then
+        prefix = "|cffff4c4c[H]|r "
+    end
+
+    row.info:SetText(prefix .. (quest[2] or ""))
+end
+
 local function GetInstanceList()
     local list = {}
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
@@ -289,6 +313,16 @@ local function GetBossList()
     if selectedInstance == nil then return list end
     for _, boss in ipairs(selectedInstance.bosses or {}) do
         if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) then tinsert(list, boss) end
+    end
+
+    return list
+end
+
+local function GetQuestList()
+    local list = {}
+    if selectedInstance == nil then return list end
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(selectedInstance)) do
+        if QuestMatches(quest) then tinsert(list, quest) end
     end
 
     return list
@@ -465,6 +499,24 @@ end
 
 local function RefreshDetail()
     if compendium == nil then return end
+    if middleKind == "quests" and listKind == "dungeon" then
+        compendium.loot:Hide()
+        compendium.spells:Hide()
+        if compendium.model then compendium.model:Hide() end
+        for _, button in pairs(compendium.detailTabs) do button:Hide() end
+        compendium.detailTitle:Hide()
+        compendium.detailCount:Hide()
+        compendium.classFilter:Hide()
+        compendium.classFilterLabel:Hide()
+        compendium.empty:Hide()
+        compendium.questHint:Show()
+
+        return
+    end
+
+    compendium.questHint:Hide()
+    compendium.detailTitle:Show()
+    compendium.detailCount:Show()
     local count = 0
     local empty = false
     local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and selectedBoss.trash == true)
@@ -531,6 +583,24 @@ end
 
 local function RefreshBosses()
     if compendium == nil then return end
+    local showMiddleTabs = listKind == "dungeon"
+    if not showMiddleTabs then middleKind = "bosses" end
+    for _, tab in pairs(compendium.middleTabs) do
+        if showMiddleTabs then tab:Show() else tab:Hide() end
+    end
+    UpdateTabs(compendium.middleTabs, middleKind)
+    if middleKind == "quests" then
+        compendium.bosses:Hide()
+        compendium.quests:SetData(GetQuestList())
+        compendium.quests:Show()
+        compendium.bossTitle:Hide()
+        RefreshDetail()
+
+        return
+    end
+
+    compendium.quests:Hide()
+    compendium.bosses:Show()
     local list = GetBossList()
     compendium.bosses:SetData(list)
     local found = false
@@ -545,6 +615,7 @@ local function RefreshBosses()
     else
         compendium.bossTitle:SetText("")
     end
+    if showMiddleTabs then compendium.bossTitle:Hide() else compendium.bossTitle:Show() end
 
     RefreshDetail()
 end
@@ -578,6 +649,32 @@ local function OnBossClick(boss)
     selectedBoss = boss
     compendium.bosses:Refresh()
     RefreshDetail()
+end
+
+local function ShowQuestTooltip(row)
+    if row.entry == nil then return end
+    GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+    local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. row.entry[1])
+    if not shown then
+        GameTooltip:ClearLines()
+        GameTooltip:AddLine(AzerothCompendium:GetQuestName(row.entry), 1, 0.82, 0)
+    end
+    GameTooltip:Show()
+end
+
+local function CreateQuestRow(scroller)
+    local row = CreateTextRow(scroller, function(quest)
+        if not IsShiftKeyDown() or ChatEdit_InsertLink == nil then return end
+        local link = GetQuestLink and GetQuestLink(quest[1])
+        if link then ChatEdit_InsertLink(link) end
+    end)
+    row:SetScript("OnEnter", ShowQuestTooltip)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    function row:Update(entry)
+        UpdateQuestRow(self, entry)
+    end
+
+    return row
 end
 
 local function ShowItemTooltip(row)
@@ -1069,6 +1166,8 @@ local function SetWishlistMode(enabled)
         compendium.instances,
         compendium.bossTitle,
         compendium.bosses,
+        compendium.quests,
+        compendium.questHint,
         compendium.loot,
         compendium.spells,
         compendium.detailCount,
@@ -1080,6 +1179,7 @@ local function SetWishlistMode(enabled)
 
     if compendium.model then tinsert(regular, compendium.model) end
     for _, tab in pairs(compendium.detailTabs or {}) do tinsert(regular, tab) end
+    for _, tab in pairs(compendium.middleTabs or {}) do tinsert(regular, tab) end
     for _, frame in ipairs(regular) do
         if enabled then
             frame:Hide()
@@ -1223,6 +1323,7 @@ local function CreateJournal()
             end
 
             listKind = kind
+            middleKind = "bosses"
             selectedInstance = nil
             selectedBoss = nil
             UpdateKindTabs()
@@ -1271,6 +1372,25 @@ local function CreateJournal()
     bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
     bosses:SetWidth(COL_W)
     compendium.bosses = bosses
+    local quests = CreateScroller(compendium, ROW_H, CreateQuestRow)
+    quests:SetAllPoints(bosses)
+    quests:Hide()
+    compendium.quests = quests
+    compendium.middleTabs = {}
+    local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), function()
+        middleKind = "bosses"
+        RefreshBosses()
+    end)
+    bossTab:SetWidth(88)
+    bossTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
+    local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), function()
+        middleKind = "quests"
+        RefreshBosses()
+    end)
+    questTab:SetWidth(88)
+    questTab:SetPoint("LEFT", bossTab, "RIGHT", 2, 0)
+    compendium.middleTabs["bosses"] = bossTab
+    compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
@@ -1344,6 +1464,11 @@ local function CreateJournal()
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
     compendium.detailTitle = detailTitle
+    local questHint = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+    questHint:SetPoint("CENTER", loot, "CENTER", 0, 0)
+    questHint:SetText(AzerothCompendium:Trans("LID_QUESTHINT"))
+    questHint:Hide()
+    compendium.questHint = questHint
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
     classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -32, 2)

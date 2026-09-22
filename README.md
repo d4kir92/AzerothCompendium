@@ -5,6 +5,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 ## Features
 
 *   Browse Classic dungeons and raids by instance and encounter.
+*   Switch each dungeon between boss and quest lists, including faction and quest level.
 *   View boss loot, drop chances, abilities, and 3D models.
 *   Browse PvP honor rewards and battleground faction rewards.
 *   Browse reputation rewards grouped by faction and standing.
@@ -36,6 +37,7 @@ The addon ships with a static database and does not record loot while playing.
 
 *   Classic instance, encounter, loot, and ability data is based on the CMaNGOS Classic database.
 *   Curated dungeon trash loot is based on AtlasLootClassic data.
+*   Dungeon quest IDs, levels, factions, and fallback names are based on Wowhead Classic and Forever zone pages.
 *   World of Warcraft: Forever additions are based on publicly available Forever data.
 *   Item names, icons, faction names, standing labels, and instance names are localized by the game client whenever possible.
 
