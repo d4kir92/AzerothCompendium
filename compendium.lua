@@ -732,6 +732,10 @@ local function CreateQuestChainRow(scroller)
             GameTooltip:AddLine(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2]), 1, 0.82, 0)
             if source then GameTooltip:AddLine(format("%s: %s", _G.SOURCE or "Source", source[5]), 0.75, 0.75, 0.75) end
         end
+        if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[sel.entry[1]] then
+            local locationText = sel.entry[4] and "LID_SHOWQUESTITEMSOURCE" or "LID_SHOWQUESTGIVER"
+            GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":", AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
+        end
         GameTooltip:Show()
     end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
@@ -1468,7 +1472,8 @@ local function CreateJournal()
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
     local questChain = CreateScroller(compendium, ROW_H, CreateQuestChainRow)
-    questChain:SetAllPoints(loot)
+    questChain:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
+    questChain:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     questChain:Hide()
     compendium.questChain = questChain
     local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
@@ -1531,17 +1536,17 @@ local function CreateJournal()
 
     lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -2, 0)
     local detailCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    detailCount:SetPoint("BOTTOMRIGHT", lootTab, "BOTTOMLEFT", -8, 6)
+    detailCount:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, ROW_H + 6)
     detailCount:SetJustifyH("RIGHT")
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     detailTitle:SetPoint("BOTTOMLEFT", bosses, "TOPRIGHT", 14, 6)
-    detailTitle:SetWidth(200)
+    detailTitle:SetPoint("RIGHT", detailCount, "LEFT", -8, 0)
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
     compendium.detailTitle = detailTitle
     local questHint = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
-    questHint:SetPoint("CENTER", loot, "CENTER", 0, 0)
+    questHint:SetPoint("CENTER", questChain, "CENTER", 0, 0)
     questHint:SetText(AzerothCompendium:Trans("LID_SELECTQUEST"))
     questHint:Hide()
     compendium.questHint = questHint

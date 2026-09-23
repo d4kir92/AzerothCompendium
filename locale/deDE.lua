@@ -37,3 +37,5 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTHINT", "Für Details mit der Maus �
 AzerothCompendium:AddTrans("deDE", "LID_SELECTQUEST", "Wähle eine Quest, um ihre Kette anzuzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTSTEPS", "%d Schritte")
 AzerothCompendium:AddTrans("deDE", "LID_NOQUESTGIVER", "Keine Position des Questgebers verfügbar")
+AzerothCompendium:AddTrans("deDE", "LID_SHOWQUESTGIVER", "Position des Questgebers anzeigen")
+AzerothCompendium:AddTrans("deDE", "LID_SHOWQUESTITEMSOURCE", "Position der Questgegenstandsquelle anzeigen")

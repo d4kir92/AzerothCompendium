@@ -37,3 +37,5 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTHINT", "Hover over a quest for deta
 AzerothCompendium:AddTrans("enUS", "LID_SELECTQUEST", "Select a quest to view its chain")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTSTEPS", "%d steps")
 AzerothCompendium:AddTrans("enUS", "LID_NOQUESTGIVER", "No quest giver location is available")
+AzerothCompendium:AddTrans("enUS", "LID_SHOWQUESTGIVER", "Show quest giver location")
+AzerothCompendium:AddTrans("enUS", "LID_SHOWQUESTITEMSOURCE", "Show quest item source location")
