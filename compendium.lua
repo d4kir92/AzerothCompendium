@@ -779,7 +779,7 @@ local function CreateQuestChainRow(scroller)
         local depth = entry[5] or 0
         self.text:SetText(string.rep("|cff707070> |r", depth) .. GetQuestStatusPrefix(entry[1]) .. entry[2])
         local info = tostring(entry[3])
-        if depth > 0 then info = info .. " · " .. AzerothCompendium:Trans("LID_PREREQUISITECHAIN") end
+        if (entry[6] or 0) > 0 then info = info .. " · " .. AzerothCompendium:Trans("LID_PREREQUISITECHAIN") end
         if entry[4] then info = info .. " · " .. (_G.ITEM or "Item") end
         self.info:SetText(info)
         if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then

@@ -374,6 +374,14 @@ function AzerothCompendium:GetQuestChain(questID)
     for _, id in ipairs(ids) do
         AddQuest(id, 0)
     end
+    local maxDepth = 0
+    for _, quest in ipairs(quests) do
+        if quest[5] > maxDepth then maxDepth = quest[5] end
+    end
+    for _, quest in ipairs(quests) do
+        quest[6] = quest[5]
+        quest[5] = maxDepth - quest[5]
+    end
 
     return quests
 end
