@@ -1135,13 +1135,6 @@ local function MakeResizable(frame)
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
     grip:SetScript("OnMouseDown", function()
-        local left = frame:GetLeft()
-        local top = frame:GetTop()
-        if left ~= nil and top ~= nil then
-            frame:ClearAllPoints()
-            frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
-        end
-
         frame:StartSizing("BOTTOMRIGHT")
     end)
 
@@ -1349,7 +1342,7 @@ local function CreateJournal()
     local width = tonumber(AzerothCompendium:GetConfig("COMPENDIUMWIDTH", WIDTH)) or WIDTH
     local height = tonumber(AzerothCompendium:GetConfig("COMPENDIUMHEIGHT", HEIGHT)) or HEIGHT
     compendium:SetSize(max(MIN_WIDTH, width), max(MIN_HEIGHT, height))
-    compendium:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    compendium:SetPoint("TOPLEFT", UIParent, "CENTER", -compendium:GetWidth() / 2, compendium:GetHeight() / 2)
     compendium:SetFrameStrata("HIGH")
     compendium:SetMovable(true)
     compendium:EnableMouse(true)
@@ -1471,7 +1464,7 @@ local function CreateJournal()
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
-    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
+    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, -ROW_H)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
     local questChain = CreateScroller(compendium, ROW_H, CreateQuestChainRow)
@@ -1529,11 +1522,11 @@ local function CreateJournal()
         end)
 
         modelTab:SetWidth(78)
-        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62)
+        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62 - ROW_H)
         compendium.detailTabs["model"] = modelTab
         spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -2, 0)
     else
-        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62)
+        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62 - ROW_H)
     end
 
     lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -2, 0)
@@ -1542,7 +1535,7 @@ local function CreateJournal()
     detailCount:SetJustifyH("RIGHT")
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    detailTitle:SetPoint("BOTTOMLEFT", loot, "TOPLEFT", 0, 6)
+    detailTitle:SetPoint("BOTTOMLEFT", bosses, "TOPRIGHT", 14, 6)
     detailTitle:SetWidth(200)
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
