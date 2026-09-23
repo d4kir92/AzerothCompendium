@@ -326,6 +326,19 @@ function AzerothCompendium:GetQuestNameByID(questID)
     return questsByID[questID] or AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or ("Quest " .. questID)
 end
 
+function AzerothCompendium:IsQuestCompleted(questID)
+    if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
+        local ok, completed = pcall(C_QuestLog.IsQuestFlaggedCompleted, questID)
+        if ok then return completed == true end
+    end
+    if IsQuestFlaggedCompleted then
+        local ok, completed = pcall(IsQuestFlaggedCompleted, questID)
+        if ok then return completed == true end
+    end
+
+    return false
+end
+
 function AzerothCompendium:GetQuestChain(questID)
     local ids = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[questID] or {questID}
     local quests = {}

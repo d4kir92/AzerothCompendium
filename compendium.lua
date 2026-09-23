@@ -82,6 +82,21 @@ local function QuestMatches(quest)
     return Matches(AzerothCompendium:GetQuestName(quest))
 end
 
+local function GetQuestStatusPrefix(questID)
+    if AzerothCompendium:IsQuestCompleted(questID) then return "|cff20c020[x]|r " end
+
+    return "|cff808080[ ]|r "
+end
+
+local function AddQuestStatusToTooltip(questID)
+    local completed = AzerothCompendium:IsQuestCompleted(questID)
+    local status = completed and (_G.COMPLETE or "Complete") or (_G.INCOMPLETE or "Incomplete")
+    local red = completed and 0.1 or 0.9
+    local green = completed and 1 or 0.8
+    local blue = completed and 0.1 or 0.2
+    GameTooltip:AddDoubleLine(_G.STATUS or "Status", status, 0.9, 0.9, 0.9, red, green, blue)
+end
+
 local function InstanceMatches(inst)
     if searchText == "" then return true end
     if Matches(AzerothCompendium:GetInstanceName(inst)) then return true end
@@ -288,7 +303,7 @@ end
 
 local function UpdateQuestRow(row, quest)
     row.entry = quest
-    row.text:SetText(AzerothCompendium:GetQuestName(quest))
+    row.text:SetText(GetQuestStatusPrefix(quest[1]) .. AzerothCompendium:GetQuestName(quest))
     local side = quest[3]
     local prefix = ""
     if side == 1 then
@@ -687,6 +702,7 @@ local function ShowQuestTooltip(row)
         GameTooltip:ClearLines()
         GameTooltip:AddLine(AzerothCompendium:GetQuestName(row.entry), 1, 0.82, 0)
     end
+    AddQuestStatusToTooltip(row.entry[1])
     GameTooltip:Show()
 end
 
@@ -732,6 +748,7 @@ local function CreateQuestChainRow(scroller)
             GameTooltip:ClearLines()
             GameTooltip:AddLine(sel.entry[2], 1, 0.82, 0)
         end
+        AddQuestStatusToTooltip(sel.entry[1])
         if sel.entry[4] then
             local startItem = AzerothCompendium.QUESTSTARTITEMS[sel.entry[1]]
             local source = AzerothCompendium.QUESTGIVERS[sel.entry[1]]
@@ -748,7 +765,7 @@ local function CreateQuestChainRow(scroller)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     function row:Update(entry)
         self.entry = entry
-        self.text:SetText(entry[2])
+        self.text:SetText(GetQuestStatusPrefix(entry[1]) .. entry[2])
         if entry[4] then
             self.info:SetText(format("%d · %s", entry[3], _G.ITEM or "Item"))
         else
@@ -1625,9 +1642,20 @@ end
 local loader = CreateFrame("Frame")
 AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
 AzerothCompendium:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
+AzerothCompendium:RegisterEvent(loader, "QUEST_LOG_UPDATE")
+AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 loader:SetScript("OnEvent", function(sel, event)
     if event == "PLAYER_LOGIN" then
         AzerothCompendium:PreloadItems()
+
+        return
+    end
+
+    if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" then
+        if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then
+            compendium.quests:Refresh()
+            compendium.questChain:Refresh()
+        end
 
         return
     end
