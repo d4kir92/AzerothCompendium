@@ -330,7 +330,8 @@ function AzerothCompendium:GetQuestChain(questID)
     local ids = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[questID] or {questID}
     local quests = {}
     for index, id in ipairs(ids) do
-        tinsert(quests, {id, AzerothCompendium:GetQuestNameByID(id), index})
+        local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[id]
+        tinsert(quests, {id, AzerothCompendium:GetQuestNameByID(id), index, startItem and startItem[1]})
     end
 
     return quests
@@ -473,6 +474,9 @@ function AzerothCompendium:PreloadItems()
                 end
             end
         end
+    end
+    for _, entry in pairs(AzerothCompendium.QUESTSTARTITEMS or {}) do
+        tinsert(queue, entry[1])
     end
 
     local index = 1

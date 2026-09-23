@@ -725,13 +725,24 @@ local function CreateQuestChainRow(scroller)
             GameTooltip:ClearLines()
             GameTooltip:AddLine(sel.entry[2], 1, 0.82, 0)
         end
+        if sel.entry[4] then
+            local startItem = AzerothCompendium.QUESTSTARTITEMS[sel.entry[1]]
+            local source = AzerothCompendium.QUESTGIVERS[sel.entry[1]]
+            local name, link = AzerothCompendium:GetItemDisplay(sel.entry[4])
+            GameTooltip:AddLine(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2]), 1, 0.82, 0)
+            if source then GameTooltip:AddLine(format("%s: %s", _G.SOURCE or "Source", source[5]), 0.75, 0.75, 0.75) end
+        end
         GameTooltip:Show()
     end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     function row:Update(entry)
         self.entry = entry
         self.text:SetText(entry[2])
-        self.info:SetText(entry[3])
+        if entry[4] then
+            self.info:SetText(format("%d · %s", entry[3], _G.ITEM or "Item"))
+        else
+            self.info:SetText(entry[3])
+        end
         if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then
             self.text:SetTextColor(0.9, 0.9, 0.9)
         else
