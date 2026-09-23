@@ -690,14 +690,20 @@ local function ShowQuestTooltip(row)
     GameTooltip:Show()
 end
 
+local function InsertQuestLink(questID)
+    if IsShiftKeyDown == nil or not IsShiftKeyDown() or ChatEdit_InsertLink == nil then return false end
+    if ChatEdit_GetActiveWindow ~= nil and ChatEdit_GetActiveWindow() == nil then return false end
+    local link = C_QuestLog and C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID)
+    if link == nil and GetQuestLink ~= nil then link = GetQuestLink(questID) end
+    if link == nil then return false end
+    ChatEdit_InsertLink(link)
+
+    return true
+end
+
 local function CreateQuestRow(scroller)
     local row = CreateTextRow(scroller, function(quest)
-        if IsShiftKeyDown() and ChatEdit_InsertLink ~= nil then
-            local link = GetQuestLink and GetQuestLink(quest[1])
-            if link then ChatEdit_InsertLink(link) end
-
-            return
-        end
+        if InsertQuestLink(quest[1]) then return end
         selectedQuest = quest
         compendium.quests:Refresh()
         RefreshDetail()
@@ -713,6 +719,7 @@ end
 
 local function CreateQuestChainRow(scroller)
     local row = CreateTextRow(scroller, function(entry)
+        if InsertQuestLink(entry[1]) then return end
         if not AzerothCompendium:SetQuestWaypoint(entry[1]) then
             AzerothCompendium:INFO(AzerothCompendium:Trans("LID_NOQUESTGIVER"))
         end
