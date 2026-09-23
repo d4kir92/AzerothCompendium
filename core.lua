@@ -289,7 +289,15 @@ end
 function AzerothCompendium:GetInstanceQuests(inst)
     if inst == nil or inst.id == nil then return {} end
 
-    return AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
+    local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
+    local available = {}
+    for _, quest in ipairs(quests) do
+        if not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) then
+            tinsert(available, quest)
+        end
+    end
+
+    return available
 end
 
 function AzerothCompendium:GetQuestName(quest)
@@ -356,6 +364,7 @@ function AzerothCompendium:GetQuestChain(questID)
     local quests = {}
     local seen = {}
     local function AddQuest(id, depth)
+        if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[id] then return end
         if seen[id] then return end
         local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
         for _, prerequisiteID in ipairs(prerequisites or {}) do

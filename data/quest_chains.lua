@@ -1,5 +1,12 @@
 local _, AzerothCompendium = ...
 
+AzerothCompendium.UNAVAILABLEQUESTS = {
+    [999] = true,
+    [1500] = true,
+    [5383] = true,
+    [9030] = true,
+}
+
 AzerothCompendium.QUESTCHAINS = {
     [166] = {155,166},
     [391] = {373,389,391},
