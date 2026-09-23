@@ -363,16 +363,16 @@ end
 function AzerothCompendium:GetQuestChain(questID)
     local quests = {}
     local seen = {}
-    local function AddQuest(id, depth)
+    local function AddQuest(id, depth, prerequisiteChain)
         if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[id] then return end
         if seen[id] then return end
         local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
         for _, prerequisiteID in ipairs(prerequisites or {}) do
-            AddQuest(prerequisiteID, depth + 1)
+            AddQuest(prerequisiteID, prerequisiteChain and depth or depth + 1, true)
         end
         local nested = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[id]
         for _, nestedID in ipairs(nested or {}) do
-            if nestedID ~= id then AddQuest(nestedID, depth + 1) end
+            if nestedID ~= id then AddQuest(nestedID, depth, prerequisiteChain) end
         end
         if seen[id] then return end
         seen[id] = true

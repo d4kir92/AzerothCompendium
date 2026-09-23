@@ -3,6 +3,7 @@ local _, AzerothCompendium = ...
 AzerothCompendium.UNAVAILABLEQUESTS = {
     [999] = true,
     [1500] = true,
+    [3366] = true,
     [5383] = true,
     [9030] = true,
 }
