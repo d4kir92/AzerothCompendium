@@ -339,20 +339,56 @@ function AzerothCompendium:IsQuestCompleted(questID)
     return false
 end
 
+function AzerothCompendium:IsQuestActive(questID)
+    if C_QuestLog and C_QuestLog.IsOnQuest then
+        local ok, active = pcall(C_QuestLog.IsOnQuest, questID)
+        if ok then return active == true end
+    end
+    if GetQuestLogIndexByID then
+        local ok, index = pcall(GetQuestLogIndexByID, questID)
+        if ok then return type(index) == "number" and index > 0 end
+    end
+
+    return false
+end
+
 function AzerothCompendium:GetQuestChain(questID)
-    local ids = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[questID] or {questID}
     local quests = {}
-    for index, id in ipairs(ids) do
+    local seen = {}
+    local function AddQuest(id, depth)
+        if seen[id] then return end
+        local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
+        for _, prerequisiteID in ipairs(prerequisites or {}) do
+            AddQuest(prerequisiteID, depth + 1)
+        end
+        local nested = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[id]
+        for _, nestedID in ipairs(nested or {}) do
+            if nestedID ~= id then AddQuest(nestedID, depth + 1) end
+        end
+        if seen[id] then return end
+        seen[id] = true
         local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[id]
-        tinsert(quests, {id, AzerothCompendium:GetQuestNameByID(id), index, startItem and startItem[1]})
+        tinsert(quests, {id, AzerothCompendium:GetQuestNameByID(id), #quests + 1, startItem and startItem[1], depth})
+    end
+    local ids = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[questID] or {questID}
+    for _, id in ipairs(ids) do
+        AddQuest(id, 0)
     end
 
     return quests
 end
 
+function AzerothCompendium:IsQuestStartInInstance(questID)
+    local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
+
+    return giver ~= nil and giver[6] == true
+end
+
 function AzerothCompendium:SetQuestWaypoint(questID)
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
     if giver == nil then return false end
+    if giver[6] == true then return false end
+    if InCombatLockdown and InCombatLockdown() then return false, "combat" end
     if C_Map == nil or C_Map.SetUserWaypoint == nil or UiMapPoint == nil or UiMapPoint.CreateFromCoordinates == nil then return false end
     local point = UiMapPoint.CreateFromCoordinates(giver[1], giver[2] / 100, giver[3] / 100)
     C_Map.SetUserWaypoint(point)

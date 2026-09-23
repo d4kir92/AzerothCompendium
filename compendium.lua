@@ -5,7 +5,8 @@ local MIN_WIDTH = 700
 local MIN_HEIGHT = 400
 local ROW_H = 22
 local LOOT_ROW_H = 34
-local COL_W = 200
+local INSTANCE_COL_W = 200
+local MIDDLE_COL_W = 240
 local SCROLLBAR_W = 18
 local SIDE_TAB_TOP = 62
 local SIDE_TAB_GAP = 3
@@ -84,16 +85,18 @@ end
 
 local function GetQuestStatusPrefix(questID)
     if AzerothCompendium:IsQuestCompleted(questID) then return "|cff20c020[x]|r " end
+    if AzerothCompendium:IsQuestActive(questID) then return "|cffffd200[!]|r " end
 
     return "|cff808080[ ]|r "
 end
 
 local function AddQuestStatusToTooltip(questID)
     local completed = AzerothCompendium:IsQuestCompleted(questID)
-    local status = completed and (_G.COMPLETE or "Complete") or (_G.INCOMPLETE or "Incomplete")
-    local red = completed and 0.1 or 0.9
-    local green = completed and 1 or 0.8
-    local blue = completed and 0.1 or 0.2
+    local active = not completed and AzerothCompendium:IsQuestActive(questID)
+    local status = completed and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or active and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
+    local red = completed and 0.1 or active and 1 or 0.65
+    local green = completed and 1 or active and 0.82 or 0.65
+    local blue = completed and 0.1 or active and 0 or 0.65
     GameTooltip:AddDoubleLine(_G.STATUS or "Status", status, 0.9, 0.9, 0.9, red, green, blue)
 end
 
@@ -736,8 +739,14 @@ end
 local function CreateQuestChainRow(scroller)
     local row = CreateTextRow(scroller, function(entry)
         if InsertQuestLink(entry[1]) then return end
-        if not AzerothCompendium:SetQuestWaypoint(entry[1]) then
-            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_NOQUESTGIVER"))
+        if AzerothCompendium:IsQuestStartInInstance(entry[1]) then
+            AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), entry[2]))
+        else
+            local waypointSet, reason = AzerothCompendium:SetQuestWaypoint(entry[1])
+            if not waypointSet then
+                local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
+                AzerothCompendium:INFO(AzerothCompendium:Trans(message))
+            end
         end
     end)
     row:SetScript("OnEnter", function(sel)
@@ -756,7 +765,9 @@ local function CreateQuestChainRow(scroller)
             GameTooltip:AddLine(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2]), 1, 0.82, 0)
             if source then GameTooltip:AddLine(format("%s: %s", _G.SOURCE or "Source", source[5]), 0.75, 0.75, 0.75) end
         end
-        if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[sel.entry[1]] then
+        if AzerothCompendium:IsQuestStartInInstance(sel.entry[1]) then
+            GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), sel.entry[2]), 1, 0.82, 0)
+        elseif AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[sel.entry[1]] then
             local locationText = sel.entry[4] and "LID_SHOWQUESTITEMSOURCE" or "LID_SHOWQUESTGIVER"
             GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":", AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
         end
@@ -765,12 +776,12 @@ local function CreateQuestChainRow(scroller)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     function row:Update(entry)
         self.entry = entry
-        self.text:SetText(GetQuestStatusPrefix(entry[1]) .. entry[2])
-        if entry[4] then
-            self.info:SetText(format("%d · %s", entry[3], _G.ITEM or "Item"))
-        else
-            self.info:SetText(entry[3])
-        end
+        local depth = entry[5] or 0
+        self.text:SetText(string.rep("|cff707070> |r", depth) .. GetQuestStatusPrefix(entry[1]) .. entry[2])
+        local info = tostring(entry[3])
+        if depth > 0 then info = info .. " · " .. AzerothCompendium:Trans("LID_PREREQUISITECHAIN") end
+        if entry[4] then info = info .. " · " .. (_G.ITEM or "Item") end
+        self.info:SetText(info)
         if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then
             self.text:SetTextColor(0.9, 0.9, 0.9)
         else
@@ -1451,11 +1462,11 @@ local function CreateJournal()
 
     instances:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
     instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
-    instances:SetWidth(COL_W)
+    instances:SetWidth(INSTANCE_COL_W)
     compendium.instances = instances
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", COL_W + 12, 6)
-    bossTitle:SetWidth(COL_W)
+    bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", INSTANCE_COL_W + 12, 6)
+    bossTitle:SetWidth(MIDDLE_COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
     compendium.bossTitle = bossTitle
@@ -1470,7 +1481,7 @@ local function CreateJournal()
 
     bosses:SetPoint("TOPLEFT", instances, "TOPRIGHT", 12, 0)
     bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
-    bosses:SetWidth(COL_W)
+    bosses:SetWidth(MIDDLE_COL_W)
     compendium.bosses = bosses
     local quests = CreateScroller(compendium, ROW_H, CreateQuestRow)
     quests:SetAllPoints(bosses)
@@ -1481,13 +1492,13 @@ local function CreateJournal()
         middleKind = "bosses"
         RefreshBosses()
     end)
-    bossTab:SetWidth(88)
+    bossTab:SetWidth((MIDDLE_COL_W - 2) / 2)
     bossTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
     local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), function()
         middleKind = "quests"
         RefreshBosses()
     end)
-    questTab:SetWidth(88)
+    questTab:SetWidth((MIDDLE_COL_W - 2) / 2)
     questTab:SetPoint("LEFT", bossTab, "RIGHT", 2, 0)
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
