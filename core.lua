@@ -462,6 +462,101 @@ function AzerothCompendium:GetQuestChain(questID)
     return quests
 end
 
+local prerequisiteInstancesByQuestID = nil
+
+local function GetPrerequisiteInstancesByQuestID()
+    if prerequisiteInstancesByQuestID ~= nil then return prerequisiteInstancesByQuestID end
+    prerequisiteInstancesByQuestID = {}
+    local seen = {}
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
+            for _, step in ipairs(AzerothCompendium:GetQuestChain(quest[1])) do
+                local stepID = step[1]
+                if stepID ~= quest[1] then
+                    prerequisiteInstancesByQuestID[stepID] = prerequisiteInstancesByQuestID[stepID] or {}
+                    seen[stepID] = seen[stepID] or {}
+                    if not seen[stepID][inst.id] then
+                        seen[stepID][inst.id] = true
+                        tinsert(prerequisiteInstancesByQuestID[stepID], inst)
+                    end
+                end
+            end
+        end
+    end
+
+    return prerequisiteInstancesByQuestID
+end
+
+local function GetTooltipQuestTitle(tooltip)
+    local name = tooltip.GetName and tooltip:GetName()
+    local line = name and _G[name .. "TextLeft1"]
+
+    return line and line:GetText()
+end
+
+local function TooltipContainsLine(tooltip, text)
+    local name = tooltip.GetName and tooltip:GetName()
+    if name == nil or tooltip.NumLines == nil then return false end
+    for index = 1, tooltip:NumLines() do
+        local line = _G[name .. "TextLeft" .. index]
+        if line and line:GetText() == text then return true end
+    end
+
+    return false
+end
+
+local function AddQuestPrerequisiteTooltip(tooltip, questID)
+    local destinations = GetPrerequisiteInstancesByQuestID()
+    local instances = questID and destinations[questID]
+    if instances == nil then
+        local title = GetTooltipQuestTitle(tooltip)
+        if type(title) ~= "string" or title == "" then return end
+        local matched = {}
+        instances = {}
+        for id, destinationList in pairs(destinations) do
+            if AzerothCompendium:GetQuestNameByID(id) == title then
+                for _, inst in ipairs(destinationList) do
+                    if not matched[inst.id] then
+                        matched[inst.id] = true
+                        tinsert(instances, inst)
+                    end
+                end
+            end
+        end
+    end
+    if instances == nil or #instances == 0 then return end
+    local added = false
+    for _, inst in ipairs(instances) do
+        local text = AzerothCompendium:Trans("LID_PREREQUISITEFOR", nil, AzerothCompendium:GetInstanceName(inst))
+        if not TooltipContainsLine(tooltip, text) then
+            tooltip:AddLine(text, 1, 0.82, 0, true)
+            added = true
+        end
+    end
+    if added then tooltip:Show() end
+end
+
+local function InstallQuestTooltipHook(tooltip)
+    if type(tooltip) ~= "table" or tooltip.AzerothCompendiumQuestHook then return end
+    tooltip.AzerothCompendiumQuestHook = true
+    tooltip:HookScript("OnTooltipSetQuest", function(owner)
+        AddQuestPrerequisiteTooltip(owner, tonumber(owner.AzerothCompendiumQuestID or owner.questID))
+    end)
+    tooltip:HookScript("OnTooltipCleared", function(owner)
+        owner.AzerothCompendiumQuestID = nil
+    end)
+    if hooksecurefunc then
+        hooksecurefunc(tooltip, "SetHyperlink", function(owner, link)
+            local questID = type(link) == "string" and tonumber(string.match(link, "^quest:(%d+)"))
+            owner.AzerothCompendiumQuestID = questID
+            if questID then AddQuestPrerequisiteTooltip(owner, questID) end
+        end)
+    end
+end
+
+InstallQuestTooltipHook(GameTooltip)
+InstallQuestTooltipHook(ItemRefTooltip)
+
 function AzerothCompendium:IsQuestStartInInstance(questID)
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
 
