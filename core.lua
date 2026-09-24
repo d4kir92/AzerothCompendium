@@ -5,6 +5,7 @@ AzerothCompendium:SetAddonOutput(ADDON, ICON)
 local byType = nil
 local preloaded = false
 local questsByID = nil
+local questSidesByID = nil
 
 function AzerothCompendium:GetAddonVersion()
     if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata(ADDON, "Version") end
@@ -334,7 +335,21 @@ function AzerothCompendium:GetQuestNameByID(questID)
     return questsByID[questID] or AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or ("Quest " .. questID)
 end
 
+local function IsQuestForOpposingFaction(questID)
+    if questSidesByID == nil then
+        questSidesByID = {}
+        for _, quests in pairs(AzerothCompendium.QUESTS or {}) do
+            for _, quest in ipairs(quests) do questSidesByID[quest[1]] = quest[3] end
+        end
+    end
+    local side = questSidesByID[questID]
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+
+    return side == 1 and faction == "Horde" or side == 2 and faction == "Alliance"
+end
+
 function AzerothCompendium:IsQuestCompleted(questID)
+    if IsQuestForOpposingFaction(questID) then return false end
     if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
         local ok, completed = pcall(C_QuestLog.IsQuestFlaggedCompleted, questID)
         if ok then return completed == true end
@@ -348,6 +363,7 @@ function AzerothCompendium:IsQuestCompleted(questID)
 end
 
 function AzerothCompendium:IsQuestActive(questID)
+    if IsQuestForOpposingFaction(questID) then return false end
     if C_QuestLog and C_QuestLog.IsOnQuest then
         local ok, active = pcall(C_QuestLog.IsOnQuest, questID)
         if ok then return active == true end
