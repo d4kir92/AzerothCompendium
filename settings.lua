@@ -105,9 +105,9 @@ function AzerothCompendium:InitSetting()
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
         ["vTT"] = {
-            {format("|T%d:16:16:0:0|t Azeroth Compendium", ICON), "v" .. AzerothCompendium:GetAddonVersion()},
-            {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
-            {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
+            {AzerothCompendium:GetCompendiumTooltipLabel("Azeroth Compendium", 16), "v" .. AzerothCompendium:GetAddonVersion()},
+            {AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK")), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
+            {AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK")), AzerothCompendium:Trans("LID_OPENSETTINGS")}
         },
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
         ["funcR"] = function() AzerothCompendium:ToggleSettings() end,

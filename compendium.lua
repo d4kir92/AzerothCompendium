@@ -111,10 +111,10 @@ local function AddQuestStatusToTooltip(questID, quest)
     local red = completed and 0.1 or active and 1 or 0.65
     local green = completed and 1 or active and 0.82 or 0.65
     local blue = completed and 0.1 or active and 0 or 0.65
-    GameTooltip:AddDoubleLine(_G.STATUS or "Status", status, 0.9, 0.9, 0.9, red, green, blue)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.STATUS or "Status"), status, 0.9, 0.9, 0.9, red, green, blue)
     quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
-    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL"), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
-    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL"), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL")), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL")), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
 end
 
 local function InstanceMatches(inst)
@@ -723,7 +723,7 @@ local function ShowQuestTooltip(row)
     local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. row.entry[1])
     if not shown then
         GameTooltip:ClearLines()
-        GameTooltip:AddLine(AzerothCompendium:GetQuestName(row.entry), 1, 0.82, 0)
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetQuestName(row.entry)), 1, 0.82, 0)
     end
     AddQuestStatusToTooltip(row.entry[1], row.entry)
     GameTooltip:Show()
@@ -775,21 +775,21 @@ local function CreateQuestChainRow(scroller)
         local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. sel.entry[1])
         if not shown then
             GameTooltip:ClearLines()
-            GameTooltip:AddLine(sel.entry[2], 1, 0.82, 0)
+            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(sel.entry[2]), 1, 0.82, 0)
         end
         AddQuestStatusToTooltip(sel.entry[1])
         if sel.entry[4] then
             local startItem = AzerothCompendium.QUESTSTARTITEMS[sel.entry[1]]
             local source = AzerothCompendium.QUESTGIVERS[sel.entry[1]]
             local name, link = AzerothCompendium:GetItemDisplay(sel.entry[4])
-            GameTooltip:AddLine(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2]), 1, 0.82, 0)
-            if source then GameTooltip:AddLine(format("%s: %s", _G.SOURCE or "Source", source[5]), 0.75, 0.75, 0.75) end
+            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2])), 1, 0.82, 0)
+            if source then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.SOURCE or "Source", source[5])), 0.75, 0.75, 0.75) end
         end
         if AzerothCompendium:IsQuestStartInInstance(sel.entry[1]) then
-            GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), sel.entry[2]), 1, 0.82, 0)
+            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), sel.entry[2])), 1, 0.82, 0)
         elseif AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[sel.entry[1]] then
             local locationText = sel.entry[4] and "LID_SHOWQUESTITEMSOURCE" or "LID_SHOWQUESTGIVER"
-            GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":", AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
+            GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
         end
         GameTooltip:Show()
     end)
@@ -830,7 +830,7 @@ local function ShowItemTooltip(row)
     end
 
     if row.boss ~= nil then
-        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss)), 1, 0.82, 0)
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss))), 1, 0.82, 0)
     end
 
     GameTooltip:Show()
@@ -1237,7 +1237,7 @@ local function CreateSideTab(parent, label, icon, onClick)
     tab.tooltipText = label
     tab:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        GameTooltip:SetText(sel.tooltip)
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(sel.tooltip))
         GameTooltip:Show()
     end)
 

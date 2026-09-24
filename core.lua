@@ -8,6 +8,12 @@ local questsByID = nil
 local questSidesByID = nil
 local questDataByID = nil
 
+function AzerothCompendium:GetCompendiumTooltipLabel(text, size)
+    size = tonumber(size) or 14
+
+    return format("|T%d:%d:%d:0:0|t %s", ICON, size, size, tostring(text or ""))
+end
+
 local function IsOpposingQuestSide(side)
     local faction = UnitFactionGroup and UnitFactionGroup("player")
 
@@ -527,7 +533,7 @@ local function AddQuestPrerequisiteTooltip(tooltip, questID)
     if instances == nil or #instances == 0 then return end
     local added = false
     for _, inst in ipairs(instances) do
-        local text = AzerothCompendium:Trans("LID_PREREQUISITEFOR", nil, AzerothCompendium:GetInstanceName(inst))
+        local text = AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_PREREQUISITEFOR", nil, AzerothCompendium:GetInstanceName(inst)))
         if not TooltipContainsLine(tooltip, text) then
             tooltip:AddLine(text, 1, 0.82, 0, true)
             added = true
