@@ -4,7 +4,6 @@ local DEFAULT_WIDTH = 420
 local DEFAULT_HEIGHT = 260
 local acoset = nil
 local classFilterSetting = nil
-
 function AzerothCompendium:ToggleSettings()
     if acoset == nil then return end
     acoset:Toggle()
@@ -14,7 +13,6 @@ local function GetCollapsed(key)
     if key == nil then return nil end
     if type(ACOTAB) ~= "table" then return nil end
     if type(ACOTAB["COLLAPSED"]) ~= "table" then return nil end
-
     return ACOTAB["COLLAPSED"][key]
 end
 
@@ -104,11 +102,7 @@ function AzerothCompendium:InitSetting()
         ["icon"] = ICON,
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
-        ["vTT"] = {
-            {AzerothCompendium:GetCompendiumTooltipLabel("Azeroth Compendium", 16), "v" .. AzerothCompendium:GetAddonVersion()},
-            {AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK")), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")},
-            {AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK")), AzerothCompendium:Trans("LID_OPENSETTINGS")}
-        },
+        ["vTT"] = {{AzerothCompendium:GetCompendiumTooltipLabel("Azeroth Compendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}, {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}, {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}},
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
         ["funcR"] = function() AzerothCompendium:ToggleSettings() end,
         ["dbkey"] = "MMBTN"
