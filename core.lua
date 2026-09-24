@@ -7,6 +7,12 @@ local preloaded = false
 local questsByID = nil
 local questSidesByID = nil
 
+local function IsOpposingQuestSide(side)
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+
+    return side == 1 and faction == "Horde" or side == 2 and faction == "Alliance"
+end
+
 function AzerothCompendium:GetAddonVersion()
     if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata(ADDON, "Version") end
     if GetAddOnMetadata then return GetAddOnMetadata(ADDON, "Version") end
@@ -293,10 +299,20 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) then
+        if not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and not IsOpposingQuestSide(quest[3]) then
             tinsert(available, quest)
         end
     end
+    table.sort(available, function(a, b)
+        local levelA = a[2] or 0
+        local levelB = b[2] or 0
+        if levelA ~= levelB then return levelA < levelB end
+        local nameA = AzerothCompendium:GetQuestName(a)
+        local nameB = AzerothCompendium:GetQuestName(b)
+        if nameA ~= nameB then return nameA < nameB end
+
+        return a[1] < b[1]
+    end)
 
     return available
 end
@@ -343,9 +359,8 @@ local function IsQuestForOpposingFaction(questID)
         end
     end
     local side = questSidesByID[questID]
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
 
-    return side == 1 and faction == "Horde" or side == 2 and faction == "Alliance"
+    return IsOpposingQuestSide(side)
 end
 
 function AzerothCompendium:IsQuestCompleted(questID)
