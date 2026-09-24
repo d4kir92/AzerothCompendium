@@ -13,6 +13,9 @@ local SIDE_TAB_GAP = 3
 local MODEL_START_ROTATION = 0.4
 local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
+local SCALE_MIN = 0.5
+local SCALE_MAX = 1.5
+local SCALE_STEP = 0.1
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
@@ -90,7 +93,18 @@ local function GetQuestStatusPrefix(questID)
     return "|cff808080[ ]|r "
 end
 
-local function AddQuestStatusToTooltip(questID)
+local function GetQuestDifficultyColorCode(level)
+    if type(GetQuestDifficultyColor) ~= "function" then return "|cffffffff" end
+    local ok, color = pcall(GetQuestDifficultyColor, level)
+    if not ok or type(color) ~= "table" then return "|cffffffff" end
+    local red = min(255, max(0, floor((color.r or 1) * 255 + 0.5)))
+    local green = min(255, max(0, floor((color.g or 1) * 255 + 0.5)))
+    local blue = min(255, max(0, floor((color.b or 1) * 255 + 0.5)))
+
+    return format("|cff%02x%02x%02x", red, green, blue)
+end
+
+local function AddQuestStatusToTooltip(questID, quest)
     local completed = AzerothCompendium:IsQuestCompleted(questID)
     local active = not completed and AzerothCompendium:IsQuestActive(questID)
     local status = completed and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or active and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
@@ -98,6 +112,10 @@ local function AddQuestStatusToTooltip(questID)
     local green = completed and 1 or active and 0.82 or 0.65
     local blue = completed and 0.1 or active and 0 or 0.65
     GameTooltip:AddDoubleLine(_G.STATUS or "Status", status, 0.9, 0.9, 0.9, red, green, blue)
+    quest = quest or AzerothCompendium:GetQuestDataByID(questID)
+    if quest == nil then return end
+    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL"), tostring(quest[5] or quest[2] or 0), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL"), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
 end
 
 local function InstanceMatches(inst)
@@ -306,7 +324,10 @@ end
 
 local function UpdateQuestRow(row, quest)
     row.entry = quest
-    row.text:SetText(GetQuestStatusPrefix(quest[1]) .. AzerothCompendium:GetQuestName(quest))
+    local requiredLevel = quest[5] or quest[2] or 0
+    local recommendedLevel = AzerothCompendium:GetQuestRecommendedLevel(quest)
+    local color = GetQuestDifficultyColorCode(recommendedLevel)
+    row.text:SetText(GetQuestStatusPrefix(quest[1]) .. color .. "[" .. recommendedLevel .. "] " .. AzerothCompendium:GetQuestName(quest) .. "|r")
     local side = quest[3]
     local prefix = ""
     if side == 1 then
@@ -315,7 +336,7 @@ local function UpdateQuestRow(row, quest)
         prefix = "|cffff4c4c[H]|r "
     end
 
-    row.info:SetText(prefix .. (quest[2] or ""))
+    row.info:SetText(prefix .. color .. "(" .. requiredLevel .. ")|r")
     if selectedQuest == quest then
         row.text:SetTextColor(1, 0.82, 0)
         row.selected:Show()
@@ -705,7 +726,7 @@ local function ShowQuestTooltip(row)
         GameTooltip:ClearLines()
         GameTooltip:AddLine(AzerothCompendium:GetQuestName(row.entry), 1, 0.82, 0)
     end
-    AddQuestStatusToTooltip(row.entry[1])
+    AddQuestStatusToTooltip(row.entry[1], row.entry)
     GameTooltip:Show()
 end
 
@@ -1269,6 +1290,83 @@ local function CreateModelFrame(parent)
     return frame
 end
 
+local function NormalizeScale(value)
+    value = tonumber(value) or 1
+
+    return min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
+end
+
+local function CreateScaleSlider(parent)
+    local value = NormalizeScale(AzerothCompendium:GetConfig("COMPENDIUMSCALE", 1))
+    local function ApplyScale(scale)
+        scale = NormalizeScale(scale)
+        parent:SetScale(scale)
+        AzerothCompendium:SetConfig("COMPENDIUMSCALE", scale)
+    end
+    local ok, slider = pcall(CreateFrame, "Frame", nil, parent, "MinimalSliderWithSteppersTemplate")
+    if ok and slider ~= nil and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" then
+        slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 16, 1)
+        slider:SetSize(150, 25)
+        local formatters = {}
+        if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then
+            formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(scale)
+                return format("%d%%", floor(NormalizeScale(scale) * 100 + 0.5))
+            end
+        end
+        slider:Init(value, SCALE_MIN, SCALE_MAX, (SCALE_MAX - SCALE_MIN) / SCALE_STEP, formatters)
+        local pendingScale = value
+        slider:RegisterCallback("OnValueChanged", function(_, scale)
+            pendingScale = NormalizeScale(scale)
+            if slider.InteractionFlags == nil or not slider.InteractionFlags:IsAnySet() then ApplyScale(pendingScale) end
+        end, parent)
+        slider.Slider:HookScript("OnMouseUp", function()
+            ApplyScale(pendingScale)
+        end)
+        parent.scaleSlider = slider
+
+        return
+    end
+    local minimal
+    minimal, slider = pcall(CreateFrame, "Slider", nil, parent, "MinimalSliderTemplate")
+    if not minimal or slider == nil then
+        slider = CreateFrame("Slider", nil, parent)
+        local track = slider:CreateTexture(nil, "BACKGROUND")
+        track:SetPoint("LEFT", slider, "LEFT", 0, 0)
+        track:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
+        track:SetHeight(4)
+        track:SetColorTexture(0.25, 0.25, 0.25, 1)
+        local thumb = slider:CreateTexture(nil, "ARTWORK")
+        thumb:SetTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+        thumb:SetSize(24, 24)
+        slider:SetThumbTexture(thumb)
+    end
+    slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 20, 5)
+    slider:SetSize(120, 19)
+    slider:SetOrientation("HORIZONTAL")
+    slider:SetMinMaxValues(SCALE_MIN, SCALE_MAX)
+    slider:SetValueStep(SCALE_STEP)
+    if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
+    local valueText = parent:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    valueText:SetPoint("LEFT", slider, "RIGHT", 6, 0)
+    valueText:SetWidth(42)
+    valueText:SetJustifyH("LEFT")
+    local pendingScale = value
+    local interacting = false
+    slider:SetScript("OnMouseDown", function() interacting = true end)
+    slider:SetScript("OnMouseUp", function()
+        interacting = false
+        ApplyScale(pendingScale)
+    end)
+    slider:SetScript("OnValueChanged", function(_, scale)
+        pendingScale = NormalizeScale(scale)
+        valueText:SetFormattedText("%d%%", floor(pendingScale * 100 + 0.5))
+        if not interacting then ApplyScale(pendingScale) end
+    end)
+    slider:SetValue(value)
+    parent.scaleSlider = slider
+    parent.scaleValue = valueText
+end
+
 local function SetWishlistMode(enabled)
     if compendium == nil then return end
     local regular = {
@@ -1380,6 +1478,7 @@ local function CreateJournal()
     SetFramePortrait(compendium, AzerothCompendium:GetIcon())
     local width = tonumber(AzerothCompendium:GetConfig("COMPENDIUMWIDTH", WIDTH)) or WIDTH
     local height = tonumber(AzerothCompendium:GetConfig("COMPENDIUMHEIGHT", HEIGHT)) or HEIGHT
+    compendium:SetScale(NormalizeScale(AzerothCompendium:GetConfig("COMPENDIUMSCALE", 1)))
     compendium:SetSize(max(MIN_WIDTH, width), max(MIN_HEIGHT, height))
     compendium:SetPoint("TOPLEFT", UIParent, "CENTER", -compendium:GetWidth() / 2, compendium:GetHeight() / 2)
     compendium:SetFrameStrata("HIGH")
@@ -1598,6 +1697,7 @@ local function CreateJournal()
 
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
+    CreateScaleSlider(compendium)
     local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     empty:SetPoint("CENTER", loot, "CENTER", 0, 0)
     empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))

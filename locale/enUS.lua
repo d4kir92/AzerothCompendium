@@ -43,5 +43,7 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTSTARTSININSTANCE", "%s: Starts insi
 AzerothCompendium:AddTrans("enUS", "LID_QUESTCOMPLETE", "Complete")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTACTIVE", "In quest log")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTNOTACCEPTED", "Not accepted")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTREQUIREDLEVEL", "Available from")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTRECOMMENDEDLEVEL", "Recommended from")
 AzerothCompendium:AddTrans("enUS", "LID_PREREQUISITECHAIN", "Prerequisite chain")
 AzerothCompendium:AddTrans("enUS", "LID_WAYPOINTCOMBAT", "Waypoints cannot be shown during combat")

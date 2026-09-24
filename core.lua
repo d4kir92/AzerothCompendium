@@ -6,6 +6,7 @@ local byType = nil
 local preloaded = false
 local questsByID = nil
 local questSidesByID = nil
+local questDataByID = nil
 
 local function IsOpposingQuestSide(side)
     local faction = UnitFactionGroup and UnitFactionGroup("player")
@@ -304,8 +305,8 @@ function AzerothCompendium:GetInstanceQuests(inst)
         end
     end
     table.sort(available, function(a, b)
-        local levelA = a[2] or 0
-        local levelB = b[2] or 0
+        local levelA = AzerothCompendium:GetQuestRecommendedLevel(a)
+        local levelB = AzerothCompendium:GetQuestRecommendedLevel(b)
         if levelA ~= levelB then return levelA < levelB end
         local nameA = AzerothCompendium:GetQuestName(a)
         local nameB = AzerothCompendium:GetQuestName(b)
@@ -315,6 +316,16 @@ function AzerothCompendium:GetInstanceQuests(inst)
     end)
 
     return available
+end
+
+function AzerothCompendium:GetQuestRecommendedLevel(quest)
+    if quest == nil then return 0 end
+    if C_QuestLog and C_QuestLog.GetQuestDifficultyLevel then
+        local ok, level = pcall(C_QuestLog.GetQuestDifficultyLevel, quest[1])
+        if ok and type(level) == "number" and level > 0 then return level end
+    end
+
+    return quest[2] or 0
 end
 
 function AzerothCompendium:GetQuestName(quest)
@@ -349,6 +360,17 @@ function AzerothCompendium:GetQuestNameByID(questID)
     end
 
     return questsByID[questID] or AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or ("Quest " .. questID)
+end
+
+function AzerothCompendium:GetQuestDataByID(questID)
+    if questDataByID == nil then
+        questDataByID = {}
+        for _, quests in pairs(AzerothCompendium.QUESTS or {}) do
+            for _, quest in ipairs(quests) do questDataByID[quest[1]] = quest end
+        end
+    end
+
+    return questDataByID[questID]
 end
 
 local function IsQuestForOpposingFaction(questID)

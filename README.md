@@ -5,7 +5,8 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 ## Features
 
 *   Browse Classic dungeons and raids by instance and encounter.
-*   Switch each dungeon and raid between boss and quest lists, including faction and quest level.
+*   Switch each dungeon and raid between boss and quest lists, filtered by faction and sorted by
+    quest level, with minimum acceptance levels and standard quest-difficulty colors.
 *   Select a quest to see every required predecessor in order; select a chain step to place a
     world-map waypoint at its Wowhead quest giver when coordinates are available.
 *   View boss loot, drop chances, abilities, and 3D models.
@@ -17,7 +18,8 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Filter loot to items usable by the current class.
 *   Show or hide drop chances.
 *   Open the compendium from a minimap button or slash command.
-*   Resize the compendium with the grip in its bottom-right corner; its size is remembered.
+*   Resize the compendium with the grip in its bottom-right corner and scale it from 50% to 150%;
+    both values are remembered.
 *   Use localized interface text for all supported game languages.
 
 ## Usage
@@ -39,7 +41,8 @@ The addon ships with a static database and does not record loot while playing.
 
 *   Classic instance, encounter, loot, and ability data is based on the CMaNGOS Classic database.
 *   Curated dungeon trash loot is based on AtlasLootClassic data.
-*   Dungeon quest IDs, levels, factions, and fallback names are based on Wowhead Classic and Forever zone pages.
+*   Dungeon quest IDs, levels, factions, and fallback names are based on Wowhead Classic and Forever zone pages;
+    Classic minimum acceptance levels are supplemented by QuestieDB.
 *   World of Warcraft: Forever additions are based on publicly available Forever data.
 *   Item names, icons, faction names, standing labels, and instance names are localized by the game client whenever possible.
 

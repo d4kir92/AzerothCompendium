@@ -43,5 +43,7 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTSTARTSININSTANCE", "%s: Startet in 
 AzerothCompendium:AddTrans("deDE", "LID_QUESTCOMPLETE", "Abgeschlossen")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTACTIVE", "Im Questlog")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTNOTACCEPTED", "Nicht angenommen")
+AzerothCompendium:AddTrans("deDE", "LID_QUESTREQUIREDLEVEL", "Annehmbar ab")
+AzerothCompendium:AddTrans("deDE", "LID_QUESTRECOMMENDEDLEVEL", "Empfohlen ab")
 AzerothCompendium:AddTrans("deDE", "LID_PREREQUISITECHAIN", "Vorkette")
 AzerothCompendium:AddTrans("deDE", "LID_WAYPOINTCOMBAT", "Wegpunkte können im Kampf nicht angezeigt werden")
