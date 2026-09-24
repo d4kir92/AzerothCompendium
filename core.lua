@@ -536,13 +536,14 @@ local function AddQuestPrerequisiteTooltip(tooltip, questID)
     if added then tooltip:Show() end
 end
 
-local function InstallQuestTooltipHook(tooltip)
+local function InstallLegacyQuestTooltipHook(tooltip)
     if type(tooltip) ~= "table" or tooltip.AzerothCompendiumQuestHook then return end
-    tooltip.AzerothCompendiumQuestHook = true
-    tooltip:HookScript("OnTooltipSetQuest", function(owner)
+    local hooked = pcall(tooltip.HookScript, tooltip, "OnTooltipSetQuest", function(owner)
         AddQuestPrerequisiteTooltip(owner, tonumber(owner.AzerothCompendiumQuestID or owner.questID))
     end)
-    tooltip:HookScript("OnTooltipCleared", function(owner)
+    if not hooked then return end
+    tooltip.AzerothCompendiumQuestHook = true
+    pcall(tooltip.HookScript, tooltip, "OnTooltipCleared", function(owner)
         owner.AzerothCompendiumQuestID = nil
     end)
     if hooksecurefunc then
@@ -554,8 +555,30 @@ local function InstallQuestTooltipHook(tooltip)
     end
 end
 
-InstallQuestTooltipHook(GameTooltip)
-InstallQuestTooltipHook(ItemRefTooltip)
+local function InstallQuestTooltipHooks()
+    if EventRegistry and EventRegistry.RegisterCallback then
+        local function OnManualQuestTooltip(_, _, questID)
+            AddQuestPrerequisiteTooltip(GameTooltip, tonumber(questID))
+        end
+        pcall(EventRegistry.RegisterCallback, EventRegistry, "QuestMapLogTitleButton.OnEnter", OnManualQuestTooltip, AzerothCompendium)
+        pcall(EventRegistry.RegisterCallback, EventRegistry, "MapCanvas.QuestPin.OnEnter", OnManualQuestTooltip, AzerothCompendium)
+    end
+    local tooltipType = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Quest
+    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and tooltipType then
+        local installed = pcall(TooltipDataProcessor.AddTooltipPostCall, tooltipType, function(tooltip, data)
+            local questID = data and tonumber(data.id or data.questID)
+            if questID == nil and data and type(data.hyperlink) == "string" then
+                questID = tonumber(string.match(data.hyperlink, "^quest:(%d+)"))
+            end
+            AddQuestPrerequisiteTooltip(tooltip, questID)
+        end)
+        if installed then return end
+    end
+    InstallLegacyQuestTooltipHook(GameTooltip)
+    InstallLegacyQuestTooltipHook(ItemRefTooltip)
+end
+
+InstallQuestTooltipHooks()
 
 function AzerothCompendium:IsQuestStartInInstance(questID)
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
