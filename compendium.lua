@@ -112,9 +112,8 @@ local function AddQuestStatusToTooltip(questID, quest)
     local green = completed and 1 or active and 0.82 or 0.65
     local blue = completed and 0.1 or active and 0 or 0.65
     GameTooltip:AddDoubleLine(_G.STATUS or "Status", status, 0.9, 0.9, 0.9, red, green, blue)
-    quest = quest or AzerothCompendium:GetQuestDataByID(questID)
-    if quest == nil then return end
-    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL"), tostring(quest[5] or quest[2] or 0), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
+    GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL"), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
     GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL"), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
 end
 
@@ -798,10 +797,15 @@ local function CreateQuestChainRow(scroller)
     function row:Update(entry)
         self.entry = entry
         local depth = entry[5] or 0
-        self.text:SetText(string.rep("|cff707070> |r", depth) .. GetQuestStatusPrefix(entry[1]) .. entry[2])
+        local quest = AzerothCompendium:GetQuestDataByID(entry[1]) or entry[1]
+        local recommendedLevel = AzerothCompendium:GetQuestRecommendedLevel(quest)
+        local requiredLevel = AzerothCompendium:GetQuestRequiredLevel(quest)
+        local color = GetQuestDifficultyColorCode(recommendedLevel)
+        self.text:SetText(string.rep("|cff707070> |r", depth) .. GetQuestStatusPrefix(entry[1]) .. color .. "[" .. recommendedLevel .. "] " .. entry[2] .. "|r")
         local info = tostring(entry[3])
         if (entry[6] or 0) > 0 then info = info .. " · " .. AzerothCompendium:Trans("LID_PREREQUISITECHAIN") end
         if entry[4] then info = info .. " · " .. (_G.ITEM or "Item") end
+        info = info .. " · " .. color .. "(" .. requiredLevel .. ")|r"
         self.info:SetText(info)
         if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then
             self.text:SetTextColor(0.9, 0.9, 0.9)

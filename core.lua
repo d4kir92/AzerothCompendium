@@ -320,12 +320,26 @@ end
 
 function AzerothCompendium:GetQuestRecommendedLevel(quest)
     if quest == nil then return 0 end
+    local questID = type(quest) == "table" and quest[1] or quest
     if C_QuestLog and C_QuestLog.GetQuestDifficultyLevel then
-        local ok, level = pcall(C_QuestLog.GetQuestDifficultyLevel, quest[1])
+        local ok, level = pcall(C_QuestLog.GetQuestDifficultyLevel, questID)
         if ok and type(level) == "number" and level > 0 then return level end
     end
+    if type(quest) == "table" and type(quest[2]) == "number" then return quest[2] end
+    local data = AzerothCompendium:GetQuestDataByID(questID)
+    if data and type(data[2]) == "number" then return data[2] end
 
-    return quest[2] or 0
+    return AzerothCompendium.QUESTRECOMMENDEDLEVELS and AzerothCompendium.QUESTRECOMMENDEDLEVELS[questID] or 0
+end
+
+function AzerothCompendium:GetQuestRequiredLevel(quest)
+    if quest == nil then return 0 end
+    if type(quest) == "table" and type(quest[5]) == "number" then return quest[5] end
+    local questID = type(quest) == "table" and quest[1] or quest
+    local data = AzerothCompendium:GetQuestDataByID(questID)
+    if data and type(data[5]) == "number" then return data[5] end
+
+    return AzerothCompendium.QUESTREQUIREDLEVELS and AzerothCompendium.QUESTREQUIREDLEVELS[questID] or 0
 end
 
 function AzerothCompendium:GetQuestName(quest)
