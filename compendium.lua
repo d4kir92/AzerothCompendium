@@ -5,6 +5,10 @@ local MIN_WIDTH = 700
 local MIN_HEIGHT = 400
 local ROW_H = 22
 local INSTANCE_ROW_H = ROW_H * 3
+local BOSS_ROW_H = ROW_H * 2
+local BOSS_PORTRAIT_FALLBACK = "Interface\\Icons\\INV_Misc_QuestionMark"
+local TRASH_PORTRAIT = 133639
+local TRASH_PORTRAIT_ZOOM = 0.04
 local LOOT_ROW_H = 34
 local LOADSCREEN_CLASSIC = {
     aspect = 4 / 3,
@@ -396,8 +400,61 @@ local function UpdateInstanceRow(row, inst)
     end
 end
 
+local function UsesBossPortraits()
+    return selectedInstance ~= nil and selectedInstance.vendor ~= true
+end
+
+local function AddBossPortrait(row)
+    local size = BOSS_ROW_H - 6
+    row.portraitFrame = CreateFrame("Frame", nil, row)
+    row.portraitFrame:SetSize(size, size)
+    row.portraitFrame:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.portrait = row.portraitFrame:CreateTexture(nil, "ARTWORK")
+    row.portrait:SetSize(size, size)
+    row.portrait:SetPoint("CENTER", row.portraitFrame, "CENTER", 0, 0)
+    if row.portraitFrame.CreateMaskTexture and row.portrait.AddMaskTexture then
+        local mask = row.portraitFrame:CreateMaskTexture()
+        mask:SetAllPoints(row.portraitFrame)
+        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        row.portrait:AddMaskTexture(mask)
+        row.portraitZoomable = true
+    elseif row.portrait.SetMask then
+        row.portrait:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask")
+    end
+
+    row.portraitFrame:Hide()
+end
+
+local function UpdateBossPortrait(row, boss)
+    if row.portrait == nil then return end
+    row.text:ClearAllPoints()
+    if not UsesBossPortraits() then
+        row.portraitFrame:Hide()
+        row.text:SetPoint("LEFT", row, "LEFT", 6, 0)
+        row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+
+        return
+    end
+
+    local size = row.portraitFrame:GetWidth()
+    if boss.trash then
+        row.portrait:SetTexture(TRASH_PORTRAIT)
+        if row.portraitZoomable then size = size / (1 - 2 * TRASH_PORTRAIT_ZOOM) end
+    else
+        local applied = false
+        if boss.model ~= nil and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, row.portrait, boss.model) end
+        if not applied then row.portrait:SetTexture(BOSS_PORTRAIT_FALLBACK) end
+    end
+
+    row.portrait:SetSize(size, size)
+    row.portraitFrame:Show()
+    row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", 6, 0)
+    row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+end
+
 local function UpdateBossRow(row, boss)
     row.entry = boss
+    UpdateBossPortrait(row, boss)
     row.text:SetText(AzerothCompendium:GetBossName(boss))
     local count = VisibleLootCount(boss)
     if count > 0 then
@@ -760,6 +817,12 @@ local function RefreshBosses()
     compendium.quests:Hide()
     compendium.bosses:Show()
     local list = GetBossList()
+    if UsesBossPortraits() then
+        compendium.bosses:SetRowHeight(BOSS_ROW_H)
+    else
+        compendium.bosses:SetRowHeight(ROW_H)
+    end
+
     compendium.bosses:SetData(list)
     local found = false
     for _, boss in ipairs(list) do
@@ -1676,6 +1739,7 @@ local function CreateJournal()
     compendium.bossTitle = bossTitle
     local bosses = CreateScroller(compendium, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnBossClick)
+        AddBossPortrait(row)
         function row:Update(entry)
             UpdateBossRow(self, entry)
         end
