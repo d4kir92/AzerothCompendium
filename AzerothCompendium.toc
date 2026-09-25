@@ -1,7 +1,7 @@
 ## Interface-Forever: 16001
 ## Interface: 16001
 
-## Version: 0.2.0
+## Version: 0.2.1
 ## Title: Azeroth Compendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
 ## Notes: Browse dungeon, raid, PvP, and reputation rewards
 ## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf

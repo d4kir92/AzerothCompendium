@@ -8,7 +8,8 @@ local INSTANCE_ROW_H = ROW_H * 3
 local BOSS_ROW_H = ROW_H * 2
 local BOSS_PORTRAIT_FALLBACK = "Interface\\Icons\\INV_Misc_QuestionMark"
 local TRASH_PORTRAIT = 133639
-local TRASH_PORTRAIT_ZOOM = 0.04
+local ALL_PORTRAIT = 132594
+local PORTRAIT_ICON_ZOOM = 0.05
 local LOOT_ROW_H = 34
 local LOADSCREEN_CLASSIC = {
     aspect = 4 / 3,
@@ -74,6 +75,30 @@ local function VisibleLootCount(boss)
     end
 
     return count
+end
+
+local allEntries = {}
+local function GetAllEntry(inst)
+    if allEntries[inst] == nil then allEntries[inst] = {all = true} end
+
+    return allEntries[inst]
+end
+
+local function GetAllLoot(inst)
+    local list = {}
+    local seen = {}
+    if inst == nil then return list end
+    for _, boss in ipairs(inst.bosses or {}) do
+        for _, entry in ipairs(boss.loot or {}) do
+            local itemID = entry[1]
+            if not seen[itemID] and IsItemVisible(itemID) then
+                seen[itemID] = true
+                tinsert(list, {itemID, entry[2], source = boss})
+            end
+        end
+    end
+
+    return list
 end
 
 local function IsInstanceVisible(inst)
@@ -437,9 +462,9 @@ local function UpdateBossPortrait(row, boss)
     end
 
     local size = row.portraitFrame:GetWidth()
-    if boss.trash then
-        row.portrait:SetTexture(TRASH_PORTRAIT)
-        if row.portraitZoomable then size = size / (1 - 2 * TRASH_PORTRAIT_ZOOM) end
+    if boss.all or boss.trash then
+        row.portrait:SetTexture(boss.all and ALL_PORTRAIT or TRASH_PORTRAIT)
+        if row.portraitZoomable then size = size / (1 - 2 * PORTRAIT_ICON_ZOOM) end
     else
         local applied = false
         if boss.model ~= nil and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, row.portrait, boss.model) end
@@ -456,7 +481,7 @@ local function UpdateBossRow(row, boss)
     row.entry = boss
     UpdateBossPortrait(row, boss)
     row.text:SetText(AzerothCompendium:GetBossName(boss))
-    local count = VisibleLootCount(boss)
+    local count = boss.all and #GetAllLoot(selectedInstance) or VisibleLootCount(boss)
     if count > 0 then
         row.info:SetText(count)
     else
@@ -512,6 +537,8 @@ local function GetBossList()
         if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) then tinsert(list, boss) end
     end
 
+    if #list > 0 and not selectedInstance.vendor and (listKind == "dungeon" or listKind == "raid") then tinsert(list, 1, GetAllEntry(selectedInstance)) end
+
     return list
 end
 
@@ -530,9 +557,12 @@ local function GetLootList()
     if selectedBoss == nil then return list end
     local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", false)
     local class = select(2, UnitClass("player"))
-    local bossMatched = Matches(AzerothCompendium:GetBossName(selectedBoss)) or Matches(selectedBoss.name)
-    for _, entry in ipairs(selectedBoss.loot or {}) do
+    local loot = selectedBoss.loot or {}
+    if selectedBoss.all then loot = GetAllLoot(selectedInstance) end
+    for _, entry in ipairs(loot) do
         local itemID = entry[1]
+        local boss = entry.source or selectedBoss
+        local bossMatched = Matches(AzerothCompendium:GetBossName(boss)) or Matches(boss.name)
         local ok = IsItemVisible(itemID)
         if onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then ok = false end
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
@@ -605,13 +635,14 @@ local function FindWishlistSource(itemID, source)
     return nil, nil, nil
 end
 
-local function GetCurrentWishlistSource()
-    if selectedInstance == nil or selectedBoss == nil then return nil end
+local function GetCurrentWishlistSource(boss)
+    boss = boss or selectedBoss
+    if selectedInstance == nil or boss == nil or boss.all then return nil end
 
     return {
         ["kind"] = listKind,
         ["instance"] = GetInstanceKey(selectedInstance),
-        ["boss"] = GetBossKey(selectedBoss)
+        ["boss"] = GetBossKey(boss)
     }
 end
 
@@ -728,7 +759,7 @@ local function RefreshDetail()
     compendium.detailCount:Show()
     local count = 0
     local empty = false
-    local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and selectedBoss.trash == true)
+    local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and (selectedBoss.trash == true or selectedBoss.all == true))
     if lootOnly and detailKind ~= "loot" then detailKind = "loot" end
     for kind, button in pairs(compendium.detailTabs) do
         if kind ~= "loot" and lootOnly then
@@ -1050,6 +1081,12 @@ local function CreateLootRow(scroller)
             return
         end
 
+        if sel.jumpBoss ~= nil and not (IsModifiedClick and IsModifiedClick()) then
+            OnBossClick(sel.jumpBoss)
+
+            return
+        end
+
         if sel.link == nil then return end
         if HandleModifiedItemClick then HandleModifiedItemClick(sel.link) end
     end)
@@ -1058,8 +1095,9 @@ local function CreateLootRow(scroller)
         local itemID = entry[1]
         local chance = entry[2]
         self.itemID = itemID
-        self.boss = selectedInstance and not selectedInstance.vendor and selectedBoss or nil
-        self.wishlistSource = GetCurrentWishlistSource()
+        self.jumpBoss = entry.source
+        self.boss = entry.source or selectedInstance and not selectedInstance.vendor and selectedBoss or nil
+        self.wishlistSource = GetCurrentWishlistSource(entry.source)
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)

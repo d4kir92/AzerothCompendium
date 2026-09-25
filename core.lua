@@ -282,6 +282,7 @@ end
 
 function AzerothCompendium:GetBossName(boss)
     if boss == nil then return "" end
+    if boss.all then return AzerothCompendium:Trans("LID_ALLLOOT") end
     if boss.trash then return AzerothCompendium:Trans("LID_TRASH") end
     if boss.standing ~= nil then
         local label = _G["FACTION_STANDING_LABEL" .. (boss.standing + 1)]
