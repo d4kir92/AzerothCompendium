@@ -6,10 +6,19 @@ local MIN_HEIGHT = 400
 local ROW_H = 22
 local INSTANCE_ROW_H = ROW_H * 3
 local LOOT_ROW_H = 34
-local LOADSCREEN_ASPECT = 4 / 3
-local LOADSCREEN_U_SPAN = 0.96
-local LOADSCREEN_V_SPAN_MAX = 0.56
-local LOADSCREEN_V_CENTER = 0.49
+local LOADSCREEN_CLASSIC = {
+    aspect = 4 / 3,
+    uSpan = 0.96,
+    vSpanMax = 0.56,
+    vCenter = 0.49
+}
+
+local LOADSCREEN_WIDE = {
+    aspect = 2992 / 1684,
+    uSpan = 1,
+    vSpanMax = 0.66,
+    vCenter = 0.5
+}
 local INSTANCE_COL_W = 200
 local MIDDLE_COL_W = 240
 local SCROLLBAR_W = 18
@@ -302,14 +311,22 @@ end
 local function UpdateLoadingScreenCrop(row)
     local width, height = row:GetWidth(), row:GetHeight()
     if width <= 0 or height <= 0 then return end
-    local uSpan = LOADSCREEN_U_SPAN
-    local vSpan = uSpan * LOADSCREEN_ASPECT * height / width
-    if vSpan > LOADSCREEN_V_SPAN_MAX then
-        vSpan = LOADSCREEN_V_SPAN_MAX
-        uSpan = vSpan * width / (height * LOADSCREEN_ASPECT)
+    local layout = row.loadingLayout or LOADSCREEN_CLASSIC
+    local uSpan = layout.uSpan
+    local vSpan = uSpan * layout.aspect * height / width
+    if vSpan > layout.vSpanMax then
+        vSpan = layout.vSpanMax
+        uSpan = vSpan * width / (height * layout.aspect)
     end
 
-    row.loadingScreen:SetTexCoord(0.5 - uSpan / 2, 0.5 + uSpan / 2, LOADSCREEN_V_CENTER - vSpan / 2, LOADSCREEN_V_CENTER + vSpan / 2)
+    row.loadingScreen:SetTexCoord(0.5 - uSpan / 2, 0.5 + uSpan / 2, layout.vCenter - vSpan / 2, layout.vCenter + vSpan / 2)
+end
+
+local function GetLoadingScreen(inst)
+    if AzerothCompendium.LOADINGSCREENS_WIDE and AzerothCompendium.LOADINGSCREENS_WIDE[inst.id] then return AzerothCompendium.LOADINGSCREENS_WIDE[inst.id], LOADSCREEN_WIDE end
+    if AzerothCompendium.LOADINGSCREENS and AzerothCompendium.LOADINGSCREENS[inst.id] then return AzerothCompendium.LOADINGSCREENS[inst.id], LOADSCREEN_CLASSIC end
+
+    return nil, nil
 end
 
 local function AddLoadingScreen(row)
@@ -326,9 +343,10 @@ end
 
 local function UpdateInstanceBackground(row, inst)
     if row.loadingScreen == nil then return end
-    local fileID = nil
-    if UsesLoadingScreens() and AzerothCompendium.LOADINGSCREENS then fileID = AzerothCompendium.LOADINGSCREENS[inst.id] end
+    local fileID, layout = nil, nil
+    if UsesLoadingScreens() then fileID, layout = GetLoadingScreen(inst) end
     if fileID ~= nil then
+        row.loadingLayout = layout
         row.loadingScreen:SetTexture(fileID)
         UpdateLoadingScreenCrop(row)
         row.loadingScreen:Show()

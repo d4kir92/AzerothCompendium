@@ -28,3 +28,10 @@ AzerothCompendium.LOADINGSCREENS = {
 	[531] = 131819,
 	[533] = 131854,
 }
+
+AzerothCompendium.LOADINGSCREENS_WIDE = {
+	[16544] = 7963775,
+	[16611] = 7963782,
+	[16732] = 7963777,
+	[16919] = 7963781,
+}
