@@ -24,6 +24,8 @@ AzerothCompendium.INSTANCES = {
 			},
 			{
 				["name"] = "Plunder",
+				["npcs"] = {261311},
+				["model"] = 142840,
 				["loot"] = {{270228}, {271098}, {270229}},
 			},
 			{
@@ -45,6 +47,8 @@ AzerothCompendium.INSTANCES = {
 		["bosses"] = {
 			{
 				["name"] = "The Baron",
+				["npcs"] = {250660},
+				["model"] = 144188,
 				["loot"] = {{271204}, {271205}, {271206}},
 			},
 			{
@@ -55,6 +59,8 @@ AzerothCompendium.INSTANCES = {
 			},
 			{
 				["name"] = "The Abandoned",
+				["npcs"] = {250631},
+				["model"] = 138667,
 				["loot"] = {{271207}, {271208}, {271216}},
 			},
 			{
@@ -65,6 +71,8 @@ AzerothCompendium.INSTANCES = {
 			},
 			{
 				["name"] = "Rath'mael",
+				["npcs"] = {250657},
+				["model"] = 144175,
 				["loot"] = {{271213}, {271214}, {271215}},
 			},
 			{
