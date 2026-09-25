@@ -4,7 +4,12 @@ local HEIGHT = 580
 local MIN_WIDTH = 700
 local MIN_HEIGHT = 400
 local ROW_H = 22
+local INSTANCE_ROW_H = ROW_H * 3
 local LOOT_ROW_H = 34
+local LOADSCREEN_ASPECT = 4 / 3
+local LOADSCREEN_U_SPAN = 0.96
+local LOADSCREEN_V_SPAN_MAX = 0.56
+local LOADSCREEN_V_CENTER = 0.49
 local INSTANCE_COL_W = 200
 local MIDDLE_COL_W = 240
 local SCROLLBAR_W = 18
@@ -161,6 +166,7 @@ local function CreateScroller(parent, rowHeight, initRow)
         ScrollUtil.InitScrollBoxWithScrollBar(box, bar, view)
         scroller.box = box
         scroller.bar = bar
+        scroller.view = view
     else
         local scroll = nil
         if AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
@@ -174,7 +180,7 @@ local function CreateScroller(parent, rowHeight, initRow)
         scroll:EnableMouseWheel(true)
         scroll:SetScript("OnMouseWheel", function(sel, delta)
             local range = max(0, (sel.djHeight or 0) - sel:GetHeight())
-            sel:SetVerticalScroll(min(range, max(0, sel:GetVerticalScroll() - delta * rowHeight * 3)))
+            sel:SetVerticalScroll(min(range, max(0, sel:GetVerticalScroll() - delta * scroller.rowHeight * 3)))
         end)
 
         content = CreateFrame("Frame", nil, scroll)
@@ -220,6 +226,11 @@ local function CreateScroller(parent, rowHeight, initRow)
         end
     end
 
+    function scroller:SetRowHeight(height)
+        self.rowHeight = height
+        if type(self.view) == "table" and self.view.SetPanExtent then self.view:SetPanExtent(height) end
+    end
+
     function scroller:SetData(data)
         self.data = data or {}
         self:Refresh()
@@ -234,10 +245,10 @@ local function CreateScroller(parent, rowHeight, initRow)
             local row = self.rows[index]
             if row == nil then
                 row = self.initRow(self.content)
-                row:SetHeight(self.rowHeight)
                 self.rows[index] = row
             end
 
+            row:SetHeight(self.rowHeight)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(index - 1) * self.rowHeight)
             row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -(index - 1) * self.rowHeight)
@@ -284,10 +295,75 @@ local function CreateTextRow(scroller, onClick)
     return row
 end
 
+local function UsesLoadingScreens()
+    return listKind == "dungeon" or listKind == "raid"
+end
+
+local function UpdateLoadingScreenCrop(row)
+    local width, height = row:GetWidth(), row:GetHeight()
+    if width <= 0 or height <= 0 then return end
+    local uSpan = LOADSCREEN_U_SPAN
+    local vSpan = uSpan * LOADSCREEN_ASPECT * height / width
+    if vSpan > LOADSCREEN_V_SPAN_MAX then
+        vSpan = LOADSCREEN_V_SPAN_MAX
+        uSpan = vSpan * width / (height * LOADSCREEN_ASPECT)
+    end
+
+    row.loadingScreen:SetTexCoord(0.5 - uSpan / 2, 0.5 + uSpan / 2, LOADSCREEN_V_CENTER - vSpan / 2, LOADSCREEN_V_CENTER + vSpan / 2)
+end
+
+local function AddLoadingScreen(row)
+    row.loadingScreen = row:CreateTexture(nil, "BACKGROUND", nil, -8)
+    row.loadingScreen:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -1)
+    row.loadingScreen:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 1)
+    row.loadingScreen:Hide()
+    row.loadingShade = row:CreateTexture(nil, "BACKGROUND", nil, -7)
+    row.loadingShade:SetAllPoints(row.loadingScreen)
+    row.loadingShade:SetColorTexture(0, 0, 0, 0.35)
+    row.loadingShade:Hide()
+    row:HookScript("OnSizeChanged", UpdateLoadingScreenCrop)
+end
+
+local function UpdateInstanceBackground(row, inst)
+    if row.loadingScreen == nil then return end
+    local fileID = nil
+    if UsesLoadingScreens() and AzerothCompendium.LOADINGSCREENS then fileID = AzerothCompendium.LOADINGSCREENS[inst.id] end
+    if fileID ~= nil then
+        row.loadingScreen:SetTexture(fileID)
+        UpdateLoadingScreenCrop(row)
+        row.loadingScreen:Show()
+    else
+        row.loadingScreen:Hide()
+    end
+
+    row.text:ClearAllPoints()
+    row.info:ClearAllPoints()
+    if UsesLoadingScreens() then
+        row.loadingShade:Show()
+        row.text:SetFontObject("GameFontNormal")
+        row.text:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -6)
+        row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -6)
+        row.info:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 6, 6)
+        row.info:SetJustifyH("LEFT")
+        row.info:SetTextColor(1, 1, 1)
+    else
+        row.loadingShade:Hide()
+        row.text:SetFontObject("GameFontNormalSmall")
+        row.info:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+        row.info:SetJustifyH("RIGHT")
+        row.info:SetTextColor(0.5, 0.5, 0.5)
+        row.text:SetPoint("LEFT", row, "LEFT", 6, 0)
+        row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+    end
+end
+
 local function UpdateInstanceRow(row, inst)
     row.entry = inst
+    UpdateInstanceBackground(row, inst)
     row.text:SetText(AzerothCompendium:GetInstanceName(inst))
-    if inst.minLevel and inst.maxLevel then
+    if inst.minLevel and inst.maxLevel and inst.minLevel == inst.maxLevel then
+        row.info:SetText(inst.minLevel)
+    elseif inst.minLevel and inst.maxLevel then
         row.info:SetText(inst.minLevel .. "-" .. inst.maxLevel)
     else
         row.info:SetText("")
@@ -687,6 +763,12 @@ end
 local function RefreshInstances()
     if compendium == nil then return end
     local list = GetInstanceList()
+    if UsesLoadingScreens() then
+        compendium.instances:SetRowHeight(INSTANCE_ROW_H)
+    else
+        compendium.instances:SetRowHeight(ROW_H)
+    end
+
     compendium.instances:SetData(list)
     local found = false
     for _, inst in ipairs(list) do
@@ -1556,6 +1638,7 @@ local function CreateJournal()
 
     local instances = CreateScroller(compendium, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnInstanceClick)
+        AddLoadingScreen(row)
         function row:Update(entry)
             UpdateInstanceRow(self, entry)
         end
