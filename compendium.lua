@@ -585,7 +585,7 @@ local function UpdateBossLevelBadge(row, boss)
     row.levelBadge:Hide()
     if boss.all or boss.trash then return end
     local npcID = boss.npcs and boss.npcs[1]
-    local rank = boss.rank or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK
+    local rank = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK
     local style = LEVEL_BADGE_STYLE[rank] or LEVEL_BADGE_STYLE[0]
     if style.dragon then
         row.bossDragon:SetTexture(MEDIA_PATH .. style.dragon)
