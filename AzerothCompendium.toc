@@ -53,6 +53,8 @@ data\quests.lua
 data\raid_quests.lua
 data\quest_chains.lua
 data\quest_followups.lua
+data\instance_entrances.lua
+data\instance_maps.lua
 data\quest_rewards.lua
 data\trash.lua
 data\vendors.lua

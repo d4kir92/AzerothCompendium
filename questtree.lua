@@ -70,20 +70,31 @@ local STATUS_ICON = {
     ["complete"] = {"Interface\\RaidFrame\\ReadyCheck-Ready", false},
     ["ready"] = {"Interface\\GossipFrame\\ActiveQuestIcon", false},
     ["active"] = {"Interface\\GossipFrame\\ActiveQuestIcon", true},
-    ["open"] = {"Interface\\GossipFrame\\AvailableQuestIcon", false}
+    ["open"] = {"Interface\\GossipFrame\\AvailableQuestIcon", false},
+    ["locked"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true}
 }
 
 local STATUS_BORDER = {
     ["complete"] = {0.13, 0.75, 0.13, 1},
     ["ready"] = {1, 0.82, 0, 1},
     ["active"] = {0.7, 0.6, 0.25, 1},
-    ["open"] = {0.35, 0.35, 0.38, 1}
+    ["open"] = {0.35, 0.35, 0.38, 1},
+    ["locked"] = {0.35, 0.35, 0.38, 1}
 }
 
-local function GetQuestStatus(questID)
+local function IsQuestLocked(node)
+    for _, parent in ipairs(node and node.parents or {}) do
+        if not AzerothCompendium:IsQuestCompleted(parent.id) then return true end
+    end
+
+    return false
+end
+
+local function GetQuestStatus(questID, node)
     if AzerothCompendium:IsQuestCompleted(questID) then return "complete" end
     if AzerothCompendium:IsQuestReadyForTurnIn(questID) then return "ready" end
     if AzerothCompendium:IsQuestActive(questID) then return "active" end
+    if IsQuestLocked(node) then return "locked" end
 
     return "open"
 end
@@ -99,10 +110,10 @@ local function GetQuestDifficultyColorCode(level)
     return format("|cff%02x%02x%02x", red, green, blue)
 end
 
-local function AddQuestStatusToTooltip(questID, quest)
-    local status = GetQuestStatus(questID)
-    local text = status == "complete" and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or status == "ready" and AzerothCompendium:Trans("LID_QUESTREADY") or status == "active" and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
-    local color = status == "open" and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
+local function AddQuestStatusToTooltip(questID, quest, node)
+    local status = GetQuestStatus(questID, node)
+    local text = status == "complete" and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or status == "ready" and AzerothCompendium:Trans("LID_QUESTREADY") or status == "active" and AzerothCompendium:Trans("LID_QUESTACTIVE") or status == "locked" and AzerothCompendium:Trans("LID_QUESTLOCKED") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
+    local color = (status == "open" or status == "locked") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.STATUS or "Status"), text, 0.9, 0.9, 0.9, color[1], color[2], color[3])
     quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL")), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
@@ -209,7 +220,7 @@ local function ShowNodeTooltip(button)
         RequestQuestData(node.id)
     end
 
-    AddQuestStatusToTooltip(node.id, node.quest)
+    AddQuestStatusToTooltip(node.id, node.quest, node)
     if node.outside then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTOUTSIDE")), 1, 0.82, 0) end
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
@@ -218,7 +229,8 @@ local function ShowNodeTooltip(button)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2])), 1, 0.82, 0)
         if giver then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.SOURCE or "Source", giver[5])), 0.75, 0.75, 0.75) end
     elseif giver then
-        local mapName = GetMapName(giver[1])
+        local mapID, _, _, instanceID = AzerothCompendium:GetQuestGiverLocation(node.id)
+        local mapName = AzerothCompendium:GetQuestGiverInstanceName(instanceID) or (mapID and GetMapName(mapID))
         local text = giver[5]
         if mapName then text = format("%s (%s)", text, mapName) end
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTGIVER")), text, 0.9, 0.9, 0.9, 1, 1, 1)
@@ -401,7 +413,7 @@ end
 local function UpdateNode(button, node, width)
     button.node = node
     button:SetSize(width, node.h)
-    local status = GetQuestStatus(node.id)
+    local status = GetQuestStatus(node.id, node)
     local statusIcon = STATUS_ICON[status]
     button.statusIcon:SetTexture(statusIcon[1])
     button.statusIcon:SetDesaturated(statusIcon[2])

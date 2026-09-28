@@ -898,19 +898,40 @@ function AzerothCompendium:IsQuestStartInInstance(questID)
     return giver ~= nil and giver[6] == true
 end
 
+function AzerothCompendium:GetQuestGiverLocation(questID)
+    local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
+    if giver == nil then return nil end
+    if giver[7] == nil then return giver[1], giver[2], giver[3] end
+    local entrance = AzerothCompendium.INSTANCEENTRANCES and AzerothCompendium.INSTANCEENTRANCES[giver[7]]
+    if entrance == nil then return nil end
+
+    return entrance[1], entrance[2], entrance[3], entrance[4] or giver[7]
+end
+
+function AzerothCompendium:GetQuestGiverInstanceName(instanceID)
+    if instanceID == nil then return nil end
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        if inst.id == instanceID or inst.parentID == instanceID then return AzerothCompendium:GetInstanceBaseName(inst) end
+    end
+
+    return nil
+end
+
 function AzerothCompendium:SetQuestWaypoint(questID)
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[questID]
     if giver == nil then return false end
     if giver[6] == true then return false end
+    local mapID, x, y = AzerothCompendium:GetQuestGiverLocation(questID)
+    if mapID == nil then return false end
     if InCombatLockdown and InCombatLockdown() then return false, "combat" end
     if C_Map == nil or C_Map.SetUserWaypoint == nil or UiMapPoint == nil or UiMapPoint.CreateFromCoordinates == nil then return false end
-    local point = UiMapPoint.CreateFromCoordinates(giver[1], giver[2] / 100, giver[3] / 100)
+    local point = UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100)
     C_Map.SetUserWaypoint(point)
     if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
     if OpenWorldMap then
-        OpenWorldMap(giver[1])
+        OpenWorldMap(mapID)
     elseif WorldMapFrame then
-        if WorldMapFrame.SetMapID then WorldMapFrame:SetMapID(giver[1]) end
+        if WorldMapFrame.SetMapID then WorldMapFrame:SetMapID(mapID) end
         if ShowUIPanel then ShowUIPanel(WorldMapFrame) else WorldMapFrame:Show() end
     end
 

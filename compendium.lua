@@ -39,8 +39,11 @@ local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
 local listKind = "dungeon"
-local middleKind = "bosses"
+local middleKind = "map"
 local detailKind = "loot"
+local mapLevel = 1
+local mapInstance = nil
+local mapLevelMenu = nil
 local searchText = ""
 local refreshPending = false
 local FLAVOR_FOREVER = "forever"
@@ -693,8 +696,123 @@ local function UpdateKindTabs()
     end
 end
 
+local function GetInstanceMaps()
+    if selectedInstance == nil or AzerothCompendium.INSTANCEMAPS == nil then return nil end
+
+    return AzerothCompendium.INSTANCEMAPS[selectedInstance.id]
+end
+
+local function GetMapLevelLabel(maps, index)
+    local info = maps[index]
+    if info == nil then return "" end
+    if info.name then return info.name end
+
+    return selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or ""
+end
+
+local function LayoutMapArt()
+    local view = compendium.mapView
+    local info = view.info
+    if info == nil then return end
+    local w = view:GetWidth()
+    local h = view:GetHeight()
+    if w == nil or h == nil or w <= 0 or h <= 0 then return end
+    local ratio = info.height / info.width
+    local width = w
+    local height = w * ratio
+    if height > h then
+        height = h
+        width = h / ratio
+    end
+
+    view.art:SetSize(width, height)
+end
+
+local function UpdateMapView()
+    local view = compendium.mapView
+    local control = compendium.mapLevel
+    local maps = GetInstanceMaps()
+    view:Show()
+    if selectedInstance ~= mapInstance then
+        mapInstance = selectedInstance
+        mapLevel = 1
+    end
+
+    if maps == nil or #maps == 0 then
+        view.info = nil
+        view.art:Hide()
+        view.empty:Show()
+        control:Hide()
+
+        return
+    end
+
+    if mapLevel > #maps then mapLevel = 1 end
+    local info = maps[mapLevel]
+    view.info = info
+    view.art:SetTexture(info.file)
+    view.art:SetTexCoord(0, info.width / info.fileWidth, 0, info.height / info.fileHeight)
+    view.art:Show()
+    view.empty:Hide()
+    LayoutMapArt()
+    if #maps > 1 then
+        compendium.detailTitle:SetText("")
+        control:Show()
+        if control.GenerateMenu then
+            control:GenerateMenu()
+        elseif control.SetText then
+            control:SetText(GetMapLevelLabel(maps, mapLevel))
+        end
+    else
+        control:Hide()
+    end
+end
+
+local function SelectMapLevel(index)
+    mapLevel = index
+    UpdateMapView()
+end
+
+local function ShowMapLevelMenu(owner)
+    local maps = GetInstanceMaps()
+    if maps == nil then return end
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, function(_, rootDescription)
+            for i in ipairs(maps) do
+                rootDescription:CreateRadio(GetMapLevelLabel(maps, i), function() return mapLevel == i end, function() SelectMapLevel(i) end)
+            end
+        end)
+
+        return
+    end
+
+    if EasyMenu == nil then return end
+    if mapLevelMenu == nil then mapLevelMenu = CreateFrame("Frame", "AzerothCompendiumMapLevelMenu", UIParent, "UIDropDownMenuTemplate") end
+    local entries = {}
+    for i in ipairs(maps) do
+        tinsert(entries, {text = GetMapLevelLabel(maps, i), checked = mapLevel == i, func = function() SelectMapLevel(i) end})
+    end
+
+    EasyMenu(entries, mapLevelMenu, owner, 0, 0, "MENU")
+end
+
 local function RefreshDetail()
     if compendium == nil then return end
+    if middleKind == "map" and (listKind == "dungeon" or listKind == "raid") then
+        compendium.loot:Hide()
+        compendium.spells:Hide()
+        if compendium.model then compendium.model:Hide() end
+        for _, button in pairs(compendium.detailTabs) do button:Hide() end
+        compendium.classFilter:Hide()
+        compendium.classFilterLabel:Hide()
+        compendium.empty:Hide()
+        compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
+        compendium.detailCount:SetText("")
+        UpdateMapView()
+
+        return
+    end
+
     if middleKind == "quests" and (listKind == "dungeon" or listKind == "raid") then
         compendium.loot:Hide()
         compendium.spells:Hide()
@@ -784,6 +902,17 @@ local function RefreshBosses()
         if showMiddleTabs then tab:Show() else tab:Hide() end
     end
     UpdateTabs(compendium.middleTabs, middleKind)
+    if middleKind == "map" then
+        compendium.bosses:Hide()
+        compendium.bossTitle:Hide()
+        compendium.questTree:Hide()
+        RefreshDetail()
+
+        return
+    end
+
+    compendium.mapView:Hide()
+    compendium.mapLevel:Hide()
     if middleKind == "quests" then
         compendium.bosses:Hide()
         compendium.bossTitle:Hide()
@@ -1478,6 +1607,8 @@ local function SetWishlistMode(enabled)
         compendium.bossTitle,
         compendium.bosses,
         compendium.questTree,
+        compendium.mapView,
+        compendium.mapLevel,
         compendium.loot,
         compendium.spells,
         compendium.detailCount,
@@ -1634,7 +1765,7 @@ local function CreateJournal()
             end
 
             listKind = kind
-            middleKind = "bosses"
+            middleKind = "map"
             selectedInstance = nil
             selectedBoss = nil
             UpdateKindTabs()
@@ -1690,19 +1821,60 @@ local function CreateJournal()
     questTree:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     questTree:Hide()
     compendium.questTree = questTree
+    local mapView = CreateFrame("Frame", nil, compendium)
+    mapView:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
+    mapView:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    mapView.art = mapView:CreateTexture(nil, "ARTWORK")
+    mapView.art:SetPoint("CENTER", mapView, "CENTER", 0, 0)
+    mapView.empty = mapView:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+    mapView.empty:SetPoint("CENTER", mapView, "CENTER", 0, 0)
+    mapView.empty:SetText(AzerothCompendium:Trans("LID_NOMAP"))
+    mapView:SetScript("OnSizeChanged", LayoutMapArt)
+    mapView:Hide()
+    compendium.mapView = mapView
+    local mapLevelControl = nil
+    if AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate") then
+        mapLevelControl = CreateTemplated("DropdownButton", nil, compendium, {"WowStyle1DropdownTemplate"})
+        mapLevelControl:SetupMenu(function(_, rootDescription)
+            local maps = GetInstanceMaps() or {}
+            for i in ipairs(maps) do
+                rootDescription:CreateRadio(GetMapLevelLabel(maps, i), function() return mapLevel == i end, function() SelectMapLevel(i) end)
+            end
+        end)
+    else
+        mapLevelControl = CreateTemplated("Button", nil, compendium, {"UIPanelButtonTemplate"})
+        mapLevelControl:SetScript("OnClick", function(sel) ShowMapLevelMenu(sel) end)
+        local arrow = mapLevelControl:CreateTexture(nil, "ARTWORK")
+        arrow:SetSize(16, 16)
+        arrow:SetPoint("RIGHT", mapLevelControl, "RIGHT", -3, 0)
+        arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    end
+
+    mapLevelControl:SetSize(220, 22)
+    mapLevelControl:SetPoint("BOTTOMRIGHT", mapView, "TOPRIGHT", 0, 2)
+    mapLevelControl:Hide()
+    compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
+    local tabWidth = (MIDDLE_COL_W - 4) / 3
+    local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), function()
+        middleKind = "map"
+        RefreshBosses()
+    end)
+    mapTab:SetWidth(tabWidth)
+    mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
     local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), function()
         middleKind = "bosses"
         RefreshBosses()
     end)
-    bossTab:SetWidth((MIDDLE_COL_W - 2) / 2)
-    bossTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
+    bossTab:SetWidth(tabWidth)
+    bossTab:SetPoint("LEFT", mapTab, "RIGHT", 2, 0)
     local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), function()
         middleKind = "quests"
         RefreshBosses()
     end)
-    questTab:SetWidth((MIDDLE_COL_W - 2) / 2)
+    questTab:SetWidth(tabWidth)
     questTab:SetPoint("LEFT", bossTab, "RIGHT", 2, 0)
+    compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
