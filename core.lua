@@ -993,6 +993,22 @@ function AzerothCompendium:GetInstances(kind)
             return AzerothCompendium:GetInstanceName(a) < AzerothCompendium:GetInstanceName(b)
         end
 
+        for _, levelKind in ipairs({"dungeon", "raid"}) do
+            local order = {}
+            for index, inst in ipairs(byType[levelKind]) do
+                order[inst] = index
+            end
+
+            table.sort(byType[levelKind], function(a, b)
+                local aMin, bMin = a.minLevel or math.huge, b.minLevel or math.huge
+                if aMin ~= bMin then return aMin < bMin end
+                local aMax, bMax = a.maxLevel or math.huge, b.maxLevel or math.huge
+                if aMax ~= bMax then return aMax < bMax end
+
+                return order[a] < order[b]
+            end)
+        end
+
         table.sort(byType["faction"], ByName)
         table.sort(byType["pvp"], ByName)
     end
