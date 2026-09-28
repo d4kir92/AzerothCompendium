@@ -22,6 +22,14 @@ local HBAR_H = 12
 local HBAR_MIN_THUMB = 30
 local DRAG_THRESHOLD = 4
 local WHEEL_STEP = 60
+local QUEST_TAG_LETTER = {
+    [81] = "D",
+    [62] = "R"
+}
+
+local SECTION_COUNT = 3
+local SECTION_TITLES = {"LID_QUESTTREESTART", "LID_QUESTTREEINSTANCE", "LID_QUESTTREEAFTER"}
+local SECTION_EMPTY = {"LID_QUESTTREENOSTART", "LID_NOENTRIES", "LID_QUESTTREENOAFTER"}
 local ZOOM_MIN = 0.4
 local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
@@ -350,7 +358,8 @@ local function UpdateNode(button, node, width)
         prefix = format("|T%s:12:12:0:0|t ", tostring(icon or 134400))
     end
 
-    button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
+    local tag = AzerothCompendium.QUESTTAGS and QUEST_TAG_LETTER[AzerothCompendium.QUESTTAGS[node.id]] or ""
+    button.title:SetText(prefix .. color .. "[" .. tag .. node.level .. "] " .. node.name .. "|r")
     local border = STATUS_BORDER[status]
     button.border:SetColor(border[1], border[2], border[3], border[4])
     local y = NODE_PAD_TOP + TITLE_H
@@ -450,7 +459,7 @@ local function ComputeLayers(nodes)
         stack[node] = true
         local layer = 0
         for _, parent in ipairs(node.parents) do
-            if parent.bottom == node.bottom then layer = max(layer, Layer(parent, stack) + 1) end
+            if parent.section == node.section then layer = max(layer, Layer(parent, stack) + 1) end
         end
 
         stack[node] = nil
@@ -480,7 +489,7 @@ local function BuildComponents(nodes)
             while #stack > 0 do
                 local node = tremove(stack)
                 tinsert(component.nodes, node)
-                if not node.bottom then component.hasTop = true end
+                if node.section == 1 then component.hasTop = true end
                 if node.instance and node.level < component.level then component.level = node.level end
                 for _, list in ipairs({node.parents, node.children}) do
                     for _, other in ipairs(list) do
@@ -507,23 +516,26 @@ local function BuildComponents(nodes)
 end
 
 local function ArrangeComponent(component)
-    local layers = {
-        ["top"] = {},
-        ["bottom"] = {}
-    }
+    local layers = {}
+    for section = 1, SECTION_COUNT do
+        layers[section] = {}
+    end
 
     for _, node in ipairs(component.nodes) do
-        local list = layers[node.bottom and "bottom" or "top"]
+        local list = layers[node.section]
         list[node.layer + 1] = list[node.layer + 1] or {}
         tinsert(list[node.layer + 1], node)
     end
 
-    component.topLayers = #layers.top
-    component.bottomLayers = #layers.bottom
+    component.layers = {}
+    for section = 1, SECTION_COUNT do
+        component.layers[section] = #layers[section]
+    end
+
     local placed = {}
     local width = 1
-    for _, key in ipairs({"top", "bottom"}) do
-        for _, layer in ipairs(layers[key]) do
+    for section = 1, SECTION_COUNT do
+        for _, layer in ipairs(layers[section]) do
             for _, node in ipairs(layer) do
                 local sum = 0
                 local count = 0
@@ -751,9 +763,15 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.nodes = {}
     tree.lines = {}
     tree.graph = {}
-    tree.topBox = CreateBox(canvas, AzerothCompendium:Trans("LID_QUESTTREESTART"))
-    tree.bottomBox = CreateBox(canvas, AzerothCompendium:Trans("LID_QUESTTREEINSTANCE"))
-    tree.topBox.empty:SetText(AzerothCompendium:Trans("LID_QUESTTREENOSTART"))
+    tree.boxes = {}
+    tree.boxTops = {}
+    for section = 1, SECTION_COUNT do
+        local box = CreateBox(canvas, AzerothCompendium:Trans(SECTION_TITLES[section]))
+        box.empty:SetText(AzerothCompendium:Trans(SECTION_EMPTY[section]))
+        tree.boxes[section] = box
+    end
+
+    tree.topBox = tree.boxes[1]
     tree.empty = tree:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     tree.empty:SetPoint("CENTER", tree, "CENTER", 0, 0)
     tree.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
@@ -795,7 +813,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local midY = cy - gapY / 2
-        if parentNode.bottom ~= childNode.bottom then midY = tree.bottomBoxTop - BOX_GAP / 2 end
+        if parentNode.section ~= childNode.section then midY = tree.boxTops[childNode.section] - BOX_GAP / 2 end
         AddLine(px - half, py, LINE_W, midY - py, r, g, b, a)
         AddLine(min(px, cx) - half, midY - half, math.abs(cx - px) + LINE_W, LINE_W, r, g, b, a)
         AddLine(cx - half, midY, LINE_W, cy - midY, r, g, b, a)
@@ -812,8 +830,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         local graph = self.graph
         lineCount = 0
         local baseLevel = canvas:GetFrameLevel() or 0
-        self.topBox:SetFrameLevel(baseLevel + 1)
-        self.bottomBox:SetFrameLevel(baseLevel + 1)
+        for _, box in ipairs(self.boxes) do
+            box:SetFrameLevel(baseLevel + 1)
+        end
         lineLayer:SetFrameLevel(baseLevel + 2)
         local viewW = (scroll:GetWidth() or 0) / self.zoom
         if viewW <= 0 then viewW = NODE_MIN_W + 2 * PAD end
@@ -831,15 +850,18 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local totalCols = 0
-        local topRows = 0
-        local bottomRows = 0
+        local rows = {}
+        for section = 1, SECTION_COUNT do
+            rows[section] = 0
+        end
+
         for _, list in ipairs({connected, loose}) do
             for _, component in ipairs(list) do
                 component.col = totalCols
-                component.row = 0
                 totalCols = totalCols + component.width
-                topRows = max(topRows, component.topLayers)
-                bottomRows = max(bottomRows, component.bottomLayers)
+                for section = 1, SECTION_COUNT do
+                    rows[section] = max(rows[section], component.layers[section])
+                end
             end
         end
 
@@ -855,45 +877,46 @@ function AzerothCompendium:CreateQuestTree(parent)
         if cols == viewCols then nodeW = max(NODE_MIN_W, min(NODE_MAX_W, floor((viewW - 2 * PAD - (cols - 1) * GAP_X) / cols))) end
         local rowStep = nodeH + GAP_Y
         local colStep = nodeW + GAP_X
-        local function BoxHeight(rows)
-            if rows <= 0 then return HEADER_H + EMPTY_H end
+        local function BoxHeight(count)
+            if count <= 0 then return HEADER_H + EMPTY_H end
 
-            return HEADER_H + PAD + rows * nodeH + (rows - 1) * GAP_Y + PAD
+            return HEADER_H + PAD + count * nodeH + (count - 1) * GAP_Y + PAD
         end
 
-        local topH = BoxHeight(topRows)
-        local bottomTop = topH + BOX_GAP
         local canvasW = max(viewW, 2 * PAD + cols * nodeW + (cols - 1) * GAP_X)
-        local canvasH = bottomTop + BoxHeight(bottomRows)
-        self.bottomBoxTop = bottomTop
+        local canvasH = 0
+        for section = 1, SECTION_COUNT do
+            self.boxTops[section] = canvasH
+            canvasH = canvasH + BoxHeight(rows[section]) + BOX_GAP
+        end
+
+        canvasH = canvasH - BOX_GAP
+        self.bottomBoxTop = self.boxTops[2]
         for _, component in ipairs(components) do
             for _, node in ipairs(component.nodes) do
                 node.x = PAD + (component.col + node.column) * colStep
-                if node.bottom then
-                    node.y = bottomTop + HEADER_H + PAD + (component.row + node.layer) * rowStep
-                else
-                    node.y = HEADER_H + PAD + (topRows - component.topLayers + node.layer) * rowStep
-                end
+                local row = node.layer
+                if node.section == 1 then row = rows[1] - component.layers[1] + node.layer end
+                node.y = self.boxTops[node.section] + HEADER_H + PAD + row * rowStep
             end
         end
 
         if #graph == 0 then
-            self.topBox:Hide()
-            self.bottomBox:Hide()
+            for _, box in ipairs(self.boxes) do
+                box:Hide()
+            end
+
             self.empty:Show()
             canvasH = 1
         else
             self.empty:Hide()
-            self.topBox:ClearAllPoints()
-            self.topBox:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, 0)
-            self.topBox:SetSize(canvasW, topH)
-            if topRows == 0 then self.topBox.empty:Show() else self.topBox.empty:Hide() end
-            self.topBox:Show()
-            self.bottomBox:ClearAllPoints()
-            self.bottomBox:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, -bottomTop)
-            self.bottomBox:SetSize(canvasW, BoxHeight(bottomRows))
-            self.bottomBox.empty:Hide()
-            self.bottomBox:Show()
+            for section, box in ipairs(self.boxes) do
+                box:ClearAllPoints()
+                box:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, -self.boxTops[section])
+                box:SetSize(canvasW, BoxHeight(rows[section]))
+                if rows[section] == 0 then box.empty:Show() else box.empty:Hide() end
+                box:Show()
+            end
         end
 
         for index, node in ipairs(graph) do

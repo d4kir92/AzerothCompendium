@@ -517,6 +517,35 @@ local function IsQuestHidden(questID)
     return IsQuestForOpposingFaction(questID)
 end
 
+local questFollowUps = nil
+local function GetQuestFollowUps()
+    if questFollowUps then return questFollowUps end
+    questFollowUps = {}
+    local seen = {}
+    local function Add(parentID, childID)
+        if parentID == childID then return end
+        seen[parentID] = seen[parentID] or {}
+        if seen[parentID][childID] then return end
+        seen[parentID][childID] = true
+        questFollowUps[parentID] = questFollowUps[parentID] or {}
+        tinsert(questFollowUps[parentID], childID)
+    end
+
+    for _, chain in pairs(AzerothCompendium.QUESTCHAINS or {}) do
+        for index = 2, #chain do
+            Add(chain[index - 1], chain[index])
+        end
+    end
+
+    for childID, prerequisites in pairs(AzerothCompendium.QUESTPREREQUISITES or {}) do
+        for _, parentID in ipairs(prerequisites) do
+            Add(parentID, childID)
+        end
+    end
+
+    return questFollowUps
+end
+
 function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     local nodes = {}
     local list = {}
@@ -587,6 +616,27 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
     for id in pairs(inInstance) do
         Visit(id)
+    end
+
+    local followUps = GetQuestFollowUps()
+    local expanded = {}
+    local queue = {}
+    for id in pairs(inInstance) do
+        tinsert(queue, id)
+    end
+
+    while #queue > 0 do
+        local id = tremove(queue)
+        if not expanded[id] then
+            expanded[id] = true
+            for _, childID in ipairs(followUps[id] or {}) do
+                if not IsQuestHidden(childID) then
+                    Visit(childID)
+                    Link(id, childID)
+                    tinsert(queue, childID)
+                end
+            end
+        end
     end
 
     if filter ~= nil then
@@ -661,8 +711,32 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         return bottom
     end
 
+    local leadsIntoInstance = {}
+    local function LeadsIntoInstance(node, stack)
+        if leadsIntoInstance[node] ~= nil then return leadsIntoInstance[node] end
+        if stack[node] then return false end
+        stack[node] = true
+        local result = false
+        for _, child in ipairs(node.children) do
+            if child.instance or LeadsIntoInstance(child, stack) then result = true end
+        end
+
+        stack[node] = nil
+        leadsIntoInstance[node] = result
+
+        return result
+    end
+
     for _, node in ipairs(list) do
         IsBottom(node, {})
+        if not node.bottom then
+            node.section = 1
+        elseif node.instance or LeadsIntoInstance(node, {}) then
+            node.section = 2
+        else
+            node.section = 3
+        end
+
         node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
     end
