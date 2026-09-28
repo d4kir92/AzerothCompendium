@@ -926,25 +926,46 @@ function AzerothCompendium:SetQuestWaypoint(questID)
     return AzerothCompendium:SetMapWaypoint(mapID, x, y)
 end
 
-function AzerothCompendium:GetInstanceEntrance(inst)
-    local entrances = AzerothCompendium.INSTANCEENTRANCES
-    if inst == nil or entrances == nil then return nil end
+local function GetInstanceLocation(locations, inst)
+    if inst == nil or locations == nil then return nil end
 
-    return entrances[inst.id] or (inst.parentID and entrances[inst.parentID]) or entrances[inst.id * 1000 + 1]
+    return locations[inst.id] or (inst.parentID and locations[inst.parentID]) or locations[inst.id * 1000 + 1]
 end
 
-function AzerothCompendium:GetInstanceEntranceZoneName(inst)
-    local entrance = AzerothCompendium:GetInstanceEntrance(inst)
-    local info = entrance and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(entrance[1])
+local function GetLocationZoneName(location)
+    local info = location and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(location[1])
 
     return info and info.name
 end
 
-function AzerothCompendium:SetInstanceEntranceWaypoint(inst)
-    local entrance = AzerothCompendium:GetInstanceEntrance(inst)
-    if entrance == nil then return false end
+local function SetLocationWaypoint(location)
+    if location == nil then return false end
 
-    return AzerothCompendium:SetMapWaypoint(entrance[1], entrance[2], entrance[3])
+    return AzerothCompendium:SetMapWaypoint(location[1], location[2], location[3])
+end
+
+function AzerothCompendium:GetInstanceEntrance(inst)
+    return GetInstanceLocation(AzerothCompendium.INSTANCEENTRANCES, inst)
+end
+
+function AzerothCompendium:GetInstanceEntranceZoneName(inst)
+    return GetLocationZoneName(AzerothCompendium:GetInstanceEntrance(inst))
+end
+
+function AzerothCompendium:SetInstanceEntranceWaypoint(inst)
+    return SetLocationWaypoint(AzerothCompendium:GetInstanceEntrance(inst))
+end
+
+function AzerothCompendium:GetInstanceMeetingStone(inst)
+    return GetInstanceLocation(AzerothCompendium.MEETINGSTONES, inst)
+end
+
+function AzerothCompendium:GetInstanceMeetingStoneZoneName(inst)
+    return GetLocationZoneName(AzerothCompendium:GetInstanceMeetingStone(inst))
+end
+
+function AzerothCompendium:SetInstanceMeetingStoneWaypoint(inst)
+    return SetLocationWaypoint(AzerothCompendium:GetInstanceMeetingStone(inst))
 end
 
 function AzerothCompendium:SetMapWaypoint(mapID, x, y)
@@ -954,6 +975,18 @@ function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     local point = UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100)
     C_Map.SetUserWaypoint(point)
     if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
+
+    return true
+end
+
+function AzerothCompendium:CanOpenWorldMapTo()
+    return C_Map ~= nil and C_Map.OpenWorldMap ~= nil
+end
+
+function AzerothCompendium:OpenWorldMapTo(mapID)
+    if mapID == nil or not AzerothCompendium:CanOpenWorldMapTo() then return false end
+    if InCombatLockdown and InCombatLockdown() then return false end
+    C_Map.OpenWorldMap(mapID)
 
     return true
 end

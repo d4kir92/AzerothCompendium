@@ -1,7 +1,7 @@
 ## Interface-Forever: 16001
 ## Interface: 16001
 
-## Version: 0.3.1
+## Version: 0.3.2
 ## Title: Azeroth Compendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
 ## Notes: Browse dungeon, raid, PvP, and reputation rewards
 ## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
@@ -54,6 +54,7 @@ data\raid_quests.lua
 data\quest_chains.lua
 data\quest_followups.lua
 data\instance_entrances.lua
+data\meeting_stones.lua
 data\instance_maps.lua
 data\quest_rewards.lua
 data\trash.lua

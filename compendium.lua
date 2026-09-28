@@ -384,61 +384,155 @@ local function AddLoadingScreen(row)
     row:HookScript("OnSizeChanged", UpdateLoadingScreenCrop)
 end
 
-local ENTRANCE_PIN_SIZE = 18
-local ENTRANCE_PIN_ATLAS = "Waypoint-MapPin-Untracked"
-local ENTRANCE_PIN_HIGHLIGHT_ATLAS = "Waypoint-MapPin-Highlight"
-local ENTRANCE_PIN_FALLBACK = 134269
+local LOCATION_PIN_SIZE = 20
+local LOCATION_PIN_SPACING = 2
+local LOCATION_PIN_BADGE_SIZE = 11
+local LOCATION_PIN_BADGE_ATLAS = "Waypoint-MapPin-Untracked"
+local LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS = "Waypoint-MapPin-Highlight"
+local LOCATION_PIN_BADGE_FALLBACK = 134269
+local DUNGEON_ICON_CANDIDATES = {"Dungeon", "DungeonSkull", "Dungeon-Normal"}
+local DUNGEON_ICON_FALLBACK = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
+local RAID_ICON_CANDIDATES = {"Raid"}
+local MEETING_STONE_ICON = {"Interface\\AddOns\\AzerothCompendium\\media\\meetingstone", false, true}
 
 local function HasAtlas(atlas)
     return C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(atlas) ~= nil
 end
 
-local function CreateEntrancePin(row)
+local resolvedIcons = {}
+local function ResolveIcon(candidates, fallback)
+    if resolvedIcons[candidates] == nil then
+        resolvedIcons[candidates] = {fallback, false}
+        for _, atlas in ipairs(candidates) do
+            if HasAtlas(atlas) then
+                resolvedIcons[candidates] = {atlas, true}
+                break
+            end
+        end
+    end
+
+    return resolvedIcons[candidates]
+end
+
+local function ApplyIcon(texture, icon)
+    if icon[2] then
+        texture:SetTexCoord(0, 1, 0, 1)
+        texture:SetAtlas(icon[1])
+    elseif icon[3] then
+        texture:SetTexture(icon[1])
+        texture:SetTexCoord(0, 1, 0, 1)
+    else
+        texture:SetTexture(icon[1])
+        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+end
+
+local function SetBadgeHighlight(pin, highlighted)
+    if not HasAtlas(LOCATION_PIN_BADGE_ATLAS) then return end
+    if highlighted and HasAtlas(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS) then
+        pin.badge:SetAtlas(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS)
+    else
+        pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
+    end
+end
+
+local LOCATION_PINS = {
+    entrance = {
+        getIcon = function(inst)
+            if inst.type == "raid" then return ResolveIcon(RAID_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK) end
+
+            return ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK)
+        end,
+        get = function(inst) return AzerothCompendium:GetInstanceEntrance(inst) end,
+        getZone = function(inst) return AzerothCompendium:GetInstanceEntranceZoneName(inst) end,
+        setWaypoint = function(inst) return AzerothCompendium:SetInstanceEntranceWaypoint(inst) end,
+        title = "LID_SETENTRANCEWAYPOINT",
+        label = "LID_ENTRANCE",
+    },
+    meetingStone = {
+        getIcon = function() return MEETING_STONE_ICON end,
+        get = function(inst) return AzerothCompendium:GetInstanceMeetingStone(inst) end,
+        getZone = function(inst) return AzerothCompendium:GetInstanceMeetingStoneZoneName(inst) end,
+        setWaypoint = function(inst) return AzerothCompendium:SetInstanceMeetingStoneWaypoint(inst) end,
+        title = "LID_SETMEETINGSTONEWAYPOINT",
+        label = "LID_MEETINGSTONE",
+    },
+}
+
+local function CreateLocationPin(row, def)
     local pin = CreateFrame("Button", nil, row)
-    pin:SetSize(ENTRANCE_PIN_SIZE, ENTRANCE_PIN_SIZE)
-    pin:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -4)
+    pin.def = def
+    pin:SetSize(LOCATION_PIN_SIZE, LOCATION_PIN_SIZE)
     pin:SetFrameLevel(row:GetFrameLevel() + 2)
     pin.icon = pin:CreateTexture(nil, "ARTWORK")
     pin.icon:SetAllPoints(pin)
-    local highlight = pin:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints(pin)
-    if HasAtlas(ENTRANCE_PIN_ATLAS) then
-        pin.icon:SetAtlas(ENTRANCE_PIN_ATLAS)
-        if HasAtlas(ENTRANCE_PIN_HIGHLIGHT_ATLAS) then
-            highlight:SetAtlas(ENTRANCE_PIN_HIGHLIGHT_ATLAS)
-        else
-            highlight:SetAtlas(ENTRANCE_PIN_ATLAS)
-            highlight:SetBlendMode("ADD")
-        end
+    pin.highlight = pin:CreateTexture(nil, "HIGHLIGHT")
+    pin.highlight:SetAllPoints(pin)
+    pin.highlight:SetBlendMode("ADD")
+    pin.highlight:SetAlpha(0.5)
+    pin.badge = pin:CreateTexture(nil, "OVERLAY")
+    pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
+    pin.badge:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 3, -2)
+    if HasAtlas(LOCATION_PIN_BADGE_ATLAS) then
+        pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
     else
-        pin.icon:SetTexture(ENTRANCE_PIN_FALLBACK)
-        pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-        highlight:SetTexture(ENTRANCE_PIN_FALLBACK)
-        highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-        highlight:SetBlendMode("ADD")
+        pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
+        pin.badge:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     end
 
     pin:SetScript("OnClick", function(sel)
-        local waypointSet, reason = AzerothCompendium:SetInstanceEntranceWaypoint(sel:GetParent().entry)
-        if not waypointSet and reason == "combat" then AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT")) end
+        local inst = sel:GetParent().entry
+        local waypointSet, reason = sel.def.setWaypoint(inst)
+        if waypointSet then
+            local location = sel.def.get(inst)
+            if location then AzerothCompendium:OpenWorldMapTo(location[1]) end
+        elseif reason == "combat" then
+            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT"))
+        end
     end)
 
     pin:SetScript("OnEnter", function(sel)
-        AzerothCompendium:AttachMapOpener(sel, function(owner)
-            return AzerothCompendium:SetInstanceEntranceWaypoint(owner:GetParent().entry)
-        end)
+        SetBadgeHighlight(sel, true)
+        if not AzerothCompendium:CanOpenWorldMapTo() then
+            AzerothCompendium:AttachMapOpener(sel, function(owner)
+                return owner.def.setWaypoint(owner:GetParent().entry)
+            end)
+        end
         local inst = sel:GetParent().entry
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SETENTRANCEWAYPOINT")))
-        local zone = AzerothCompendium:GetInstanceEntranceZoneName(inst)
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(sel.def.title)))
+        GameTooltip:AddLine(AzerothCompendium:Trans(sel.def.label), 1, 0.82, 0)
+        local zone = sel.def.getZone(inst)
         if zone then GameTooltip:AddLine(zone, 1, 1, 1) end
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_WORLDMAPWAYPOINTHINT"), 0.6, 0.6, 0.6)
         GameTooltip:Show()
     end)
 
-    pin:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    pin:SetScript("OnLeave", function(sel)
+        SetBadgeHighlight(sel, false)
+        AzerothCompendium:HideGameTooltip()
+    end)
     pin:Hide()
 
     return pin
+end
+
+local function UpdateLocationPins(row, inst)
+    local right = -4
+    for _, pin in ipairs(row.locationPins) do
+        pin:Hide()
+        if pin.def.get(inst) then
+            local icon = pin.def.getIcon(inst)
+            ApplyIcon(pin.icon, icon)
+            ApplyIcon(pin.highlight, icon)
+            pin:ClearAllPoints()
+            pin:SetPoint("TOPRIGHT", row, "TOPRIGHT", right, -4)
+            pin:Show()
+            right = right - LOCATION_PIN_SIZE - LOCATION_PIN_SPACING
+        end
+    end
+
+    return right
 end
 
 local function UpdateInstanceBackground(row, inst)
@@ -467,13 +561,13 @@ local function UpdateInstanceBackground(row, inst)
         row.questCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
         row.questCount:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
         row.questCount:SetJustifyH("RIGHT")
-        row.entrancePin = CreateEntrancePin(row)
+        row.locationPins = {CreateLocationPin(row, LOCATION_PINS.entrance), CreateLocationPin(row, LOCATION_PINS.meetingStone)}
     end
 
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
-    row.entrancePin:Hide()
+    for _, pin in ipairs(row.locationPins) do pin:Hide() end
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
@@ -505,11 +599,7 @@ local function UpdateInstanceBackground(row, inst)
         end
 
         local textY = -INSTANCE_TYPE_ICON_OFFSET - floor((INSTANCE_TYPE_ICON_SIZE - INSTANCE_NAME_FONT_SIZE) / 2)
-        local textRight = -6
-        if AzerothCompendium:GetInstanceEntrance(inst) then
-            row.entrancePin:Show()
-            textRight = -ENTRANCE_PIN_SIZE - 8
-        end
+        local textRight = UpdateLocationPins(row, inst) - 2
 
         row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, textY)
         row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", textRight, textY)
