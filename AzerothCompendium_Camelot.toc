@@ -55,6 +55,7 @@ data\quest_rewards.lua
 data\trash.lua
 data\vendors.lua
 data\loadingscreens.lua
+data\instance_wings.lua
 
 core.lua
 questtree.lua

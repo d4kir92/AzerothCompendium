@@ -250,7 +250,21 @@ function AzerothCompendium:SetWishlistItem(itemID, source)
     if AzerothCompendium.RefreshWishlist then AzerothCompendium:RefreshWishlist() end
 end
 
+function AzerothCompendium:GetInstanceWingName(inst)
+    if inst == nil or inst.wing == nil then return nil end
+
+    return AzerothCompendium:Trans(inst.wing)
+end
+
 function AzerothCompendium:GetInstanceName(inst)
+    local base = AzerothCompendium:GetInstanceBaseName(inst)
+    local wing = AzerothCompendium:GetInstanceWingName(inst)
+    if wing then return base .. " - " .. wing end
+
+    return base
+end
+
+function AzerothCompendium:GetInstanceBaseName(inst)
     if inst == nil then return "" end
     if inst.honor then return AzerothCompendium:Trans("LID_HONORRANKS") end
     if inst.factionID then
@@ -429,6 +443,30 @@ function AzerothCompendium:IsQuestActive(questID)
     if GetQuestLogIndexByID then
         local ok, index = pcall(GetQuestLogIndexByID, questID)
         if ok then return type(index) == "number" and index > 0 end
+    end
+
+    return false
+end
+
+function AzerothCompendium:IsQuestReadyForTurnIn(questID)
+    if not AzerothCompendium:IsQuestActive(questID) then return false end
+    if C_QuestLog then
+        for _, name in ipairs({"ReadyForTurnIn", "IsComplete"}) do
+            local fn = C_QuestLog[name]
+            if type(fn) == "function" then
+                local ok, done = pcall(fn, questID)
+                if ok and done ~= nil then return done == true end
+            end
+        end
+    end
+
+    if GetQuestLogIndexByID and GetQuestLogTitle then
+        local ok, index = pcall(GetQuestLogIndexByID, questID)
+        if ok and type(index) == "number" and index > 0 then
+            local isComplete = select(6, GetQuestLogTitle(index))
+
+            return isComplete == 1 or isComplete == true
+        end
     end
 
     return false

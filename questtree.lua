@@ -1,7 +1,13 @@
 local _, AzerothCompendium = ...
-local NODE_MIN_W = 150
-local NODE_MAX_W = 220
-local NODE_H = 42
+local NODE_MIN_W = 180
+local NODE_MAX_W = 240
+local NODE_PAD_X = 6
+local NODE_PAD_TOP = 5
+local NODE_PAD_BOTTOM = 5
+local TITLE_H = 16
+local TEXT_LINE_H = 13
+local REWARD_LINE_H = 20
+local STATUS_ICON_SIZE = 14
 local GAP_X = 14
 local GAP_Y = 22
 local PAD = 10
@@ -12,21 +18,31 @@ local ICON_SIZE = 16
 local ICON_GAP = 3
 local LINE_W = 2
 local SCROLLBAR_W = 18
+local HBAR_H = 12
+local HBAR_MIN_THUMB = 30
+local DRAG_THRESHOLD = 4
 local WHEEL_STEP = 60
-local STATUS_PREFIX = {
-    ["complete"] = "|cff20c020[x]|r ",
-    ["active"] = "|cffffd200[!]|r ",
-    ["open"] = "|cff808080[ ]|r "
+local ZOOM_MIN = 0.4
+local ZOOM_MAX = 1.5
+local ZOOM_BAR_STEP = 5
+local ZOOM_BAR_W = 90
+local STATUS_ICON = {
+    ["complete"] = {"Interface\\RaidFrame\\ReadyCheck-Ready", false},
+    ["ready"] = {"Interface\\GossipFrame\\ActiveQuestIcon", false},
+    ["active"] = {"Interface\\GossipFrame\\ActiveQuestIcon", true},
+    ["open"] = {"Interface\\GossipFrame\\AvailableQuestIcon", false}
 }
 
 local STATUS_BORDER = {
     ["complete"] = {0.13, 0.75, 0.13, 1},
-    ["active"] = {1, 0.82, 0, 1},
+    ["ready"] = {1, 0.82, 0, 1},
+    ["active"] = {0.7, 0.6, 0.25, 1},
     ["open"] = {0.35, 0.35, 0.38, 1}
 }
 
 local function GetQuestStatus(questID)
     if AzerothCompendium:IsQuestCompleted(questID) then return "complete" end
+    if AzerothCompendium:IsQuestReadyForTurnIn(questID) then return "ready" end
     if AzerothCompendium:IsQuestActive(questID) then return "active" end
 
     return "open"
@@ -45,7 +61,7 @@ end
 
 local function AddQuestStatusToTooltip(questID, quest)
     local status = GetQuestStatus(questID)
-    local text = status == "complete" and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or status == "active" and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
+    local text = status == "complete" and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or status == "ready" and AzerothCompendium:Trans("LID_QUESTREADY") or status == "active" and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
     local color = status == "open" and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.STATUS or "Status"), text, 0.9, 0.9, 0.9, color[1], color[2], color[3])
     quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
@@ -64,19 +80,17 @@ local function InsertQuestLink(questID)
     return true
 end
 
+local COIN_ICON = "%d|TInterface\\MoneyFrame\\UI-%sIcon:0:0:2:0|t"
 local function GetMoneyText(money)
-    if GetCoinTextureString then
-        local ok, text = pcall(GetCoinTextureString, money)
-        if ok and type(text) == "string" then return text end
-    end
-
     local gold = floor(money / 10000)
     local silver = floor(money / 100) % 100
     local copper = money % 100
-    if gold > 0 then return format("%dg %ds %dc", gold, silver, copper) end
-    if silver > 0 then return format("%ds %dc", silver, copper) end
+    local parts = {}
+    if gold > 0 then tinsert(parts, format(COIN_ICON, gold, "Gold")) end
+    if silver > 0 then tinsert(parts, format(COIN_ICON, silver, "Silver")) end
+    if copper > 0 or #parts == 0 then tinsert(parts, format(COIN_ICON, copper, "Copper")) end
 
-    return format("%dc", copper)
+    return table.concat(parts, " ")
 end
 
 local function GetFactionName(factionID)
@@ -168,7 +182,7 @@ end
 
 local function OnNodeClick(button)
     local node = button.node
-    if node == nil then return end
+    if node == nil or button.tree.dragMoved then return end
     if InsertQuestLink(node.id) then return end
     if AzerothCompendium:IsQuestStartInInstance(node.id) then
         AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name))
@@ -213,15 +227,16 @@ end
 local function CreateRewardIcon(node)
     local button = CreateFrame("Button", nil, node)
     button:SetSize(ICON_SIZE, ICON_SIZE)
-    button.choiceFrame = button:CreateTexture(nil, "BACKGROUND")
-    button.choiceFrame:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
-    button.choiceFrame:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
-    button.choiceFrame:SetColorTexture(0.9, 0.75, 0.3, 0.9)
+    button.qualityFrame = button:CreateTexture(nil, "BACKGROUND")
+    button.qualityFrame:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 1)
+    button.qualityFrame:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
+    button.qualityFrame:SetColorTexture(0.9, 0.75, 0.3, 0.9)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetAllPoints(button)
     button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     button.count = button:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
     button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 3, -2)
+    button:SetScript("OnMouseDown", function(sel, mouseButton) node.tree:StartDrag(mouseButton) end)
     button:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         if GameTooltip.SetItemByID then
@@ -243,9 +258,9 @@ local function CreateRewardIcon(node)
     return button
 end
 
-local function CreateNode(canvas)
+local function CreateNode(canvas, tree)
     local node = CreateFrame("Button", nil, canvas)
-    node:SetHeight(NODE_H)
+    node.tree = tree
     node:RegisterForClicks("LeftButtonUp")
     node.background = node:CreateTexture(nil, "BACKGROUND")
     node.background:SetAllPoints(node)
@@ -254,17 +269,32 @@ local function CreateNode(canvas)
     local highlight = node:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(node)
     highlight:SetColorTexture(1, 1, 1, 0.08)
+    node.statusIcon = node:CreateTexture(nil, "ARTWORK")
+    node.statusIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    node.statusIcon:SetPoint("TOPLEFT", node, "TOPLEFT", NODE_PAD_X - 1, -NODE_PAD_TOP)
     node.title = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    node.title:SetPoint("TOPLEFT", node, "TOPLEFT", 6, -6)
-    node.title:SetPoint("TOPRIGHT", node, "TOPRIGHT", -6, -6)
+    node.title:SetPoint("LEFT", node.statusIcon, "RIGHT", 3, 0)
+    node.title:SetPoint("RIGHT", node, "RIGHT", -NODE_PAD_X, 0)
     node.title:SetJustifyH("LEFT")
     node.title:SetWordWrap(false)
-    node.info = node:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    node.info:SetJustifyH("LEFT")
-    node.info:SetWordWrap(false)
+    node.levelText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.levelText:SetJustifyH("LEFT")
+    node.levelText:SetWordWrap(false)
+    node.rewardLabel = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    node.rewardLabel:SetJustifyH("LEFT")
+    node.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
+    node.overflow = node:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    node.overflow:SetJustifyH("RIGHT")
+    node.xpText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.xpText:SetJustifyH("LEFT")
+    node.xpText:SetWordWrap(false)
+    node.moneyText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.moneyText:SetJustifyH("RIGHT")
+    node.moneyText:SetWordWrap(false)
     node.icons = {}
     node:SetScript("OnEnter", ShowNodeTooltip)
     node:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    node:SetScript("OnMouseDown", function(sel, mouseButton) sel.tree:StartDrag(mouseButton) end)
     node:SetScript("OnClick", OnNodeClick)
 
     return node
@@ -285,61 +315,120 @@ local function GetRewardEntries(questID)
     return entries, rewards
 end
 
+local function GetNodeRequiredLevel(node)
+    local level = AzerothCompendium:GetQuestRequiredLevel(node.quest or node.id)
+
+    return type(level) == "number" and level > 0 and level or nil
+end
+
+local function GetNodeHeight(node)
+    local height = NODE_PAD_TOP + TITLE_H + REWARD_LINE_H + TEXT_LINE_H + NODE_PAD_BOTTOM
+    if GetNodeRequiredLevel(node) then height = height + TEXT_LINE_H end
+
+    return height
+end
+
+local function PlaceLine(region, button, y, height)
+    region:ClearAllPoints()
+    region:SetPoint("TOPLEFT", button, "TOPLEFT", NODE_PAD_X, -y)
+    region:SetPoint("TOPRIGHT", button, "TOPRIGHT", -NODE_PAD_X, -y)
+    region:SetHeight(height)
+end
+
 local function UpdateNode(button, node, width)
     button.node = node
-    button:SetWidth(width)
+    button:SetSize(width, node.h)
     local status = GetQuestStatus(node.id)
+    local statusIcon = STATUS_ICON[status]
+    button.statusIcon:SetTexture(statusIcon[1])
+    button.statusIcon:SetDesaturated(statusIcon[2])
     local color = GetQuestDifficultyColorCode(node.level)
-    local prefix = STATUS_PREFIX[status]
+    local prefix = ""
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
         local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
-        prefix = prefix .. format("|T%s:12:12:0:0|t ", tostring(icon or 134400))
+        prefix = format("|T%s:12:12:0:0|t ", tostring(icon or 134400))
     end
 
     button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
     local border = STATUS_BORDER[status]
     button.border:SetColor(border[1], border[2], border[3], border[4])
-    local entries, rewards = GetRewardEntries(node.id)
-    local capacity = max(1, floor((width - 12 + ICON_GAP) / (ICON_SIZE + ICON_GAP)))
-    local shown = #entries
-    if shown > capacity then shown = capacity - 1 end
-    for index = 1, shown do
-        local icon = button.icons[index]
-        if icon == nil then
-            icon = CreateRewardIcon(button)
-            button.icons[index] = icon
+    local y = NODE_PAD_TOP + TITLE_H
+    local requiredLevel = GetNodeRequiredLevel(node)
+    if requiredLevel then
+        PlaceLine(button.levelText, button, y, TEXT_LINE_H)
+        button.levelText:SetText(format(_G.ITEM_MIN_LEVEL or "Requires Level %d", requiredLevel))
+        local playerLevel = UnitLevel and UnitLevel("player") or requiredLevel
+        if playerLevel < requiredLevel then
+            button.levelText:SetTextColor(1, 0.25, 0.25)
+        else
+            button.levelText:SetTextColor(0.75, 0.75, 0.75)
         end
 
-        local entry = entries[index]
-        local _, _, _, _, texture = AzerothCompendium:GetItemDisplay(entry[1])
-        icon.itemID = entry[1]
-        icon.choice = entry[3]
-        icon.icon:SetTexture(texture or 134400)
-        icon.count:SetText(entry[2] > 1 and entry[2] or "")
-        if entry[3] then icon.choiceFrame:Show() else icon.choiceFrame:Hide() end
-        icon:ClearAllPoints()
-        icon:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 6 + (index - 1) * (ICON_SIZE + ICON_GAP), 5)
-        icon:Show()
+        button.levelText:Show()
+        y = y + TEXT_LINE_H
+    else
+        button.levelText:Hide()
     end
+
+    local entries, rewards = GetRewardEntries(node.id)
+    local shown = 0
+    button.rewardLabel:ClearAllPoints()
+    button.rewardLabel:SetPoint("LEFT", button, "TOPLEFT", NODE_PAD_X, -(y + REWARD_LINE_H / 2))
+    button.rewardLabel:Show()
+    button.overflow:Hide()
+    if #entries > 0 then
+        local step = ICON_SIZE + ICON_GAP
+        local free = width - 2 * NODE_PAD_X - (button.rewardLabel:GetStringWidth() or 0) - 6
+        local capacity = max(1, floor((free + ICON_GAP) / step))
+        shown = #entries
+        if shown > capacity then shown = max(1, capacity - 1) end
+        for index = 1, shown do
+            local icon = button.icons[index]
+            if icon == nil then
+                icon = CreateRewardIcon(button)
+                button.icons[index] = icon
+            end
+
+            local entry = entries[index]
+            local _, _, quality, _, texture = AzerothCompendium:GetItemDisplay(entry[1])
+            icon.itemID = entry[1]
+            icon.choice = entry[3]
+            icon.icon:SetTexture(texture or 134400)
+            icon.count:SetText(entry[2] > 1 and entry[2] or "")
+            local qualityColor = quality ~= nil and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+            if qualityColor then
+                icon.qualityFrame:SetColorTexture(qualityColor.r, qualityColor.g, qualityColor.b, 1)
+            else
+                icon.qualityFrame:SetColorTexture(0.4, 0.4, 0.4, 1)
+            end
+            icon:ClearAllPoints()
+            icon:SetPoint("RIGHT", button, "TOPRIGHT", -NODE_PAD_X - (shown - index) * step, -(y + REWARD_LINE_H / 2))
+            icon:Show()
+        end
+
+        if #entries > shown then
+            button.overflow:ClearAllPoints()
+            button.overflow:SetPoint("RIGHT", button.icons[1], "LEFT", -3, 0)
+            button.overflow:SetText("+" .. (#entries - shown))
+            button.overflow:Show()
+        end
+    end
+
+    y = y + REWARD_LINE_H
 
     for index = shown + 1, #button.icons do
         button.icons[index]:Hide()
     end
 
-    button.info:ClearAllPoints()
-    button.info:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -6, 7)
-    if shown > 0 then
-        button.info:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 6 + shown * (ICON_SIZE + ICON_GAP), 7)
-        button.info:SetText(#entries > shown and ("+" .. (#entries - shown)) or "")
-    else
-        button.info:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 6, 7)
-        local parts = {}
-        if rewards and rewards.xp then tinsert(parts, rewards.xp .. " " .. AzerothCompendium:Trans("LID_QUESTXPSHORT")) end
-        if rewards and rewards.money then tinsert(parts, GetMoneyText(rewards.money)) end
-        button.info:SetText(table.concat(parts, "  "))
-    end
-
+    PlaceLine(button.xpText, button, y, TEXT_LINE_H)
+    PlaceLine(button.moneyText, button, y, TEXT_LINE_H)
+    local xp = rewards and rewards.xp or 0
+    local money = rewards and rewards.money or 0
+    button.xpText:SetText(xp .. " " .. AzerothCompendium:Trans("LID_QUESTXPSHORT"))
+    button.moneyText:SetText(GetMoneyText(money))
+    if xp > 0 then button.xpText:SetTextColor(1, 1, 1) else button.xpText:SetTextColor(1, 0.25, 0.25) end
+    if money > 0 then button.moneyText:SetTextColor(1, 1, 1) else button.moneyText:SetTextColor(1, 0.25, 0.25) end
     button:Show()
 end
 
@@ -506,32 +595,133 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 0, 0)
-    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, HBAR_H + 4)
     local canvas = CreateFrame("Frame", nil, scroll)
     canvas:SetSize(1, 1)
     scroll:SetScrollChild(canvas)
+    local zoomText = tree:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    zoomText:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+    zoomText:SetSize(34, HBAR_H + 2)
+    zoomText:SetJustifyH("RIGHT")
+    zoomText:SetText("100%")
+    local zoomBar = CreateFrame("Slider", nil, tree)
+    zoomBar:SetOrientation("HORIZONTAL")
+    zoomBar:SetPoint("BOTTOMRIGHT", zoomText, "BOTTOMLEFT", -4, 1)
+    zoomBar:SetSize(ZOOM_BAR_W, HBAR_H)
+    zoomBar:SetMinMaxValues(ZOOM_MIN * 100, ZOOM_MAX * 100)
+    zoomBar:SetValueStep(ZOOM_BAR_STEP)
+    if zoomBar.SetObeyStepOnDrag then zoomBar:SetObeyStepOnDrag(true) end
+    zoomBar:SetValue(100)
+    zoomBar.track = zoomBar:CreateTexture(nil, "BACKGROUND")
+    zoomBar.track:SetPoint("LEFT", zoomBar, "LEFT", 0, 0)
+    zoomBar.track:SetPoint("RIGHT", zoomBar, "RIGHT", 0, 0)
+    zoomBar.track:SetHeight(4)
+    zoomBar.track:SetColorTexture(0, 0, 0, 0.6)
+    zoomBar.thumb = zoomBar:CreateTexture(nil, "OVERLAY")
+    zoomBar.thumb:SetColorTexture(0.75, 0.6, 0.25, 1)
+    zoomBar.thumb:SetSize(8, HBAR_H)
+    zoomBar:SetThumbTexture(zoomBar.thumb)
+    zoomBar:EnableMouseWheel(true)
+    local zoomIcon = tree:CreateTexture(nil, "ARTWORK")
+    zoomIcon:SetTexture("Interface\\Common\\UI-Searchbox-Icon")
+    zoomIcon:SetSize(HBAR_H, HBAR_H)
+    zoomIcon:SetPoint("RIGHT", zoomBar, "LEFT", -4, 0)
+    tree.zoomBar = zoomBar
+    local hbar = CreateFrame("Slider", nil, tree)
+    hbar:SetOrientation("HORIZONTAL")
+    hbar:SetPoint("BOTTOMLEFT", tree, "BOTTOMLEFT", 0, 1)
+    hbar:SetPoint("BOTTOMRIGHT", zoomIcon, "BOTTOMLEFT", -8, 0)
+    hbar:SetHeight(HBAR_H)
+    hbar:SetMinMaxValues(0, 0)
+    hbar:SetValueStep(1)
+    hbar:SetValue(0)
+    hbar.track = hbar:CreateTexture(nil, "BACKGROUND")
+    hbar.track:SetAllPoints(hbar)
+    hbar.track:SetColorTexture(0, 0, 0, 0.45)
+    hbar.thumb = hbar:CreateTexture(nil, "OVERLAY")
+    hbar.thumb:SetColorTexture(0.75, 0.6, 0.25, 0.9)
+    hbar.thumb:SetSize(HBAR_MIN_THUMB, HBAR_H)
+    hbar:SetThumbTexture(hbar.thumb)
+    hbar:EnableMouseWheel(true)
+    tree.hbar = hbar
+    local syncing = false
+    local function SetHScroll(value)
+        value = ClampScroll(scroll, true, value)
+        scroll:SetHorizontalScroll(value)
+        syncing = true
+        hbar:SetValue(value)
+        syncing = false
+    end
+
+    local function UpdateHBar()
+        local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+        local barW = hbar:GetWidth() or 0
+        local viewW = scroll:GetWidth() or 0
+        syncing = true
+        hbar:SetMinMaxValues(0, range)
+        hbar:SetValue(min(range, scroll:GetHorizontalScroll()))
+        syncing = false
+        if range <= 0 or barW <= 0 then
+            hbar:Hide()
+
+            return
+        end
+
+        hbar.thumb:SetWidth(max(HBAR_MIN_THUMB, floor(barW * viewW / (viewW + range))))
+        hbar:Show()
+    end
+
+    hbar:SetScript("OnValueChanged", function(_, value)
+        if not syncing then scroll:SetHorizontalScroll(ClampScroll(scroll, true, value)) end
+    end)
+
+    hbar:SetScript("OnSizeChanged", UpdateHBar)
+    if scroll.HookScript then scroll:HookScript("OnScrollRangeChanged", UpdateHBar) end
+    hbar:SetScript("OnMouseWheel", function(_, delta) SetHScroll(scroll:GetHorizontalScroll() - delta * WHEEL_STEP) end)
+    tree.zoom = 1
+    local function SetZoom(zoom)
+        zoom = min(ZOOM_MAX, max(ZOOM_MIN, zoom))
+        zoomText:SetText(floor(zoom * 100 + 0.5) .. "%")
+        if math.abs(zoom - tree.zoom) < 0.001 then return end
+        local cx = (scroll:GetWidth() or 0) / 2
+        local cy = (scroll:GetHeight() or 0) / 2
+        local contentX = (scroll:GetHorizontalScroll() + cx) / tree.zoom
+        local contentY = (scroll:GetVerticalScroll() + cy) / tree.zoom
+        tree.zoom = zoom
+        canvas:SetScale(zoom)
+        tree:Layout()
+        SetHScroll(contentX * zoom - cx)
+        scroll:SetVerticalScroll(ClampScroll(scroll, false, contentY * zoom - cy))
+        UpdateHBar()
+    end
+
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(sel, delta)
         if IsShiftKeyDown and IsShiftKeyDown() then
-            sel:SetHorizontalScroll(ClampScroll(sel, true, sel:GetHorizontalScroll() - delta * WHEEL_STEP))
+            SetHScroll(sel:GetHorizontalScroll() - delta * WHEEL_STEP)
         else
             sel:SetVerticalScroll(ClampScroll(sel, false, sel:GetVerticalScroll() - delta * WHEEL_STEP))
         end
     end)
 
-    scroll:EnableMouse(true)
-    scroll:SetScript("OnMouseDown", function(sel, button)
-        if button ~= "LeftButton" then return end
+    zoomBar:SetScript("OnValueChanged", function(_, value) SetZoom(floor(value / ZOOM_BAR_STEP + 0.5) * ZOOM_BAR_STEP / 100) end)
+    zoomBar:SetScript("OnMouseWheel", function(sel, delta) sel:SetValue(sel:GetValue() + delta * ZOOM_BAR_STEP) end)
+
+    function tree:StartDrag(mouseButton)
+        self.dragMoved = false
+        if mouseButton ~= "LeftButton" then return end
         local x, y = GetCursorPosition()
-        local scale = sel:GetEffectiveScale()
-        tree.drag = {
+        local scale = scroll:GetEffectiveScale()
+        self.drag = {
             x = x / scale,
             y = y / scale,
-            h = sel:GetHorizontalScroll(),
-            v = sel:GetVerticalScroll()
+            h = scroll:GetHorizontalScroll(),
+            v = scroll:GetVerticalScroll()
         }
-    end)
+    end
 
+    scroll:EnableMouse(true)
+    scroll:SetScript("OnMouseDown", function(_, mouseButton) tree:StartDrag(mouseButton) end)
     scroll:SetScript("OnMouseUp", function() tree.drag = nil end)
     tree:SetScript("OnHide", function() tree.drag = nil end)
     tree:SetScript("OnUpdate", function(sel)
@@ -545,8 +735,12 @@ function AzerothCompendium:CreateQuestTree(parent)
 
         local x, y = GetCursorPosition()
         local scale = scroll:GetEffectiveScale()
-        scroll:SetHorizontalScroll(ClampScroll(scroll, true, drag.h - (x / scale - drag.x)))
-        scroll:SetVerticalScroll(ClampScroll(scroll, false, drag.v + (y / scale - drag.y)))
+        local dx = x / scale - drag.x
+        local dy = y / scale - drag.y
+        if not sel.dragMoved and math.abs(dx) < DRAG_THRESHOLD and math.abs(dy) < DRAG_THRESHOLD then return end
+        sel.dragMoved = true
+        SetHScroll(drag.h - dx)
+        scroll:SetVerticalScroll(ClampScroll(scroll, false, drag.v + dy))
     end)
 
     local lineLayer = CreateFrame("Frame", nil, canvas)
@@ -586,7 +780,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     local function AddEdge(parentNode, childNode, nodeW, gapY)
         local px = parentNode.x + nodeW / 2
-        local py = parentNode.y + NODE_H
+        local py = parentNode.y + parentNode.h
         local cx = childNode.x + nodeW / 2
         local cy = childNode.y
         if cy <= py then return end
@@ -610,7 +804,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     function tree:SetGraph(graph)
         self.graph = graph or {}
         self:Layout()
-        scroll:SetHorizontalScroll(0)
+        SetHScroll(0)
         scroll:SetVerticalScroll(0)
     end
 
@@ -621,7 +815,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         self.topBox:SetFrameLevel(baseLevel + 1)
         self.bottomBox:SetFrameLevel(baseLevel + 1)
         lineLayer:SetFrameLevel(baseLevel + 2)
-        local viewW = scroll:GetWidth() or 0
+        local viewW = (scroll:GetWidth() or 0) / self.zoom
         if viewW <= 0 then viewW = NODE_MIN_W + 2 * PAD end
         ComputeLayers(graph)
         local components = BuildComponents(graph)
@@ -636,43 +830,35 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
         end
 
-        local connectedCols = 0
+        local totalCols = 0
         local topRows = 0
-        local shelfH = 0
-        for _, component in ipairs(connected) do
-            component.col = connectedCols
-            component.row = 0
-            connectedCols = connectedCols + component.width
-            topRows = max(topRows, component.topLayers)
-            shelfH = max(shelfH, component.bottomLayers)
+        local bottomRows = 0
+        for _, list in ipairs({connected, loose}) do
+            for _, component in ipairs(list) do
+                component.col = totalCols
+                component.row = 0
+                totalCols = totalCols + component.width
+                topRows = max(topRows, component.topLayers)
+                bottomRows = max(bottomRows, component.bottomLayers)
+            end
+        end
+
+        local nodeH = 0
+        for _, node in ipairs(graph) do
+            node.h = GetNodeHeight(node)
+            nodeH = max(nodeH, node.h)
         end
 
         local viewCols = max(1, floor((viewW - 2 * PAD + GAP_X) / (NODE_MIN_W + GAP_X)))
-        local cols = max(viewCols, connectedCols)
+        local cols = max(viewCols, totalCols)
         local nodeW = NODE_MIN_W
         if cols == viewCols then nodeW = max(NODE_MIN_W, min(NODE_MAX_W, floor((viewW - 2 * PAD - (cols - 1) * GAP_X) / cols))) end
-        local shelfY = 0
-        local cursor = connectedCols
-        for _, component in ipairs(loose) do
-            if cursor > 0 and cursor + component.width > cols then
-                shelfY = shelfY + shelfH
-                shelfH = 0
-                cursor = 0
-            end
-
-            component.col = cursor
-            component.row = shelfY
-            cursor = cursor + component.width
-            shelfH = max(shelfH, component.bottomLayers)
-        end
-
-        local bottomRows = shelfY + shelfH
-        local rowStep = NODE_H + GAP_Y
+        local rowStep = nodeH + GAP_Y
         local colStep = nodeW + GAP_X
         local function BoxHeight(rows)
             if rows <= 0 then return HEADER_H + EMPTY_H end
 
-            return HEADER_H + PAD + rows * NODE_H + (rows - 1) * GAP_Y + PAD
+            return HEADER_H + PAD + rows * nodeH + (rows - 1) * GAP_Y + PAD
         end
 
         local topH = BoxHeight(topRows)
@@ -713,7 +899,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         for index, node in ipairs(graph) do
             local button = self.nodes[index]
             if button == nil then
-                button = CreateNode(canvas)
+                button = CreateNode(canvas, self)
                 self.nodes[index] = button
             end
 
@@ -737,8 +923,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         canvas:SetSize(canvasW, canvasH)
         if canvasW > viewW + 1 then self.hint:Show() else self.hint:Hide() end
         if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
-        scroll:SetHorizontalScroll(ClampScroll(scroll, true, scroll:GetHorizontalScroll()))
+        SetHScroll(scroll:GetHorizontalScroll())
         scroll:SetVerticalScroll(ClampScroll(scroll, false, scroll:GetVerticalScroll()))
+        UpdateHBar()
     end
 
     function tree:Refresh()

@@ -32,3 +32,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_WISHLIST", "Список желаний"
 AzerothCompendium:AddTrans("ruRU", "LID_ADDTOWISHLIST", "Добавить в список желаний")
 AzerothCompendium:AddTrans("ruRU", "LID_REMOVEFROMWISHLIST", "Удалить из списка желаний")
 AzerothCompendium:AddTrans("ruRU", "LID_FLAVOR", "Flavor")
+AzerothCompendium:AddTrans("ruRU", "LID_WING_GRAVEYARD", "Кладбище")
+AzerothCompendium:AddTrans("ruRU", "LID_WING_LIBRARY", "Библиотека")
+AzerothCompendium:AddTrans("ruRU", "LID_WING_ARMORY", "Оружейная")
+AzerothCompendium:AddTrans("ruRU", "LID_WING_CATHEDRAL", "Собор")

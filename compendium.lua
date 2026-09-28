@@ -353,11 +353,21 @@ local function UpdateInstanceBackground(row, inst)
 
     row.text:ClearAllPoints()
     row.info:ClearAllPoints()
+    if row.subText == nil then
+        row.subText = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        row.subText:SetJustifyH("LEFT")
+        row.subText:SetWordWrap(false)
+    end
+
+    row.subText:Hide()
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
         row.text:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -6)
         row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -6)
+        row.subText:ClearAllPoints()
+        row.subText:SetPoint("TOPLEFT", row.text, "BOTTOMLEFT", 0, -2)
+        row.subText:SetPoint("TOPRIGHT", row.text, "BOTTOMRIGHT", 0, -2)
         row.info:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 6, 6)
         row.info:SetJustifyH("LEFT")
         row.info:SetTextColor(1, 1, 1)
@@ -375,7 +385,14 @@ end
 local function UpdateInstanceRow(row, inst)
     row.entry = inst
     UpdateInstanceBackground(row, inst)
-    row.text:SetText(AzerothCompendium:GetInstanceName(inst))
+    local wing = AzerothCompendium:GetInstanceWingName(inst)
+    if wing and row.subText and UsesLoadingScreens() then
+        row.text:SetText(wing)
+        row.subText:SetText(AzerothCompendium:GetInstanceBaseName(inst))
+        row.subText:Show()
+    else
+        row.text:SetText(AzerothCompendium:GetInstanceName(inst))
+    end
     if inst.minLevel and inst.maxLevel and inst.minLevel == inst.maxLevel then
         row.info:SetText(inst.minLevel)
     elseif inst.minLevel and inst.maxLevel then
@@ -1222,21 +1239,74 @@ local function MakeResizable(frame)
         frame:SetMinResize(MIN_WIDTH, MIN_HEIGHT)
     end
 
+    local function GetMaxSize()
+        local left, top = frame:GetLeft(), frame:GetTop()
+        local scale = frame:GetEffectiveScale()
+        local right = UIParent:GetRight()
+        if left == nil or top == nil or right == nil or scale == nil or scale <= 0 then return nil, nil end
+        local screenRight = right * UIParent:GetEffectiveScale() / scale
+
+        return max(MIN_WIDTH, screenRight - left), max(MIN_HEIGHT, top)
+    end
+
+    local function ApplySize(width, height)
+        local maxWidth, maxHeight = GetMaxSize()
+        if maxWidth then
+            width = min(width, maxWidth)
+            height = min(height, maxHeight)
+        end
+
+        width = floor(max(MIN_WIDTH, width) + 0.5)
+        height = floor(max(MIN_HEIGHT, height) + 0.5)
+        if width ~= floor(frame:GetWidth() + 0.5) or height ~= floor(frame:GetHeight() + 0.5) then frame:SetSize(width, height) end
+    end
+
     local grip = CreateFrame("Button", "AzerothCompendiumResize", frame)
     grip:SetSize(16, 16)
     grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -4, 4)
     grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-    grip:SetScript("OnMouseDown", function()
-        frame:StartSizing("BOTTOMRIGHT")
+    grip:SetScript("OnMouseDown", function(sel, button)
+        if button ~= "LeftButton" then return end
+        local left, top = frame:GetLeft(), frame:GetTop()
+        if left == nil or top == nil then return end
+        frame:ClearAllPoints()
+        frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+        local x, y = GetCursorPosition()
+        local scale = frame:GetEffectiveScale()
+        sel.sizing = {
+            x = x / scale,
+            y = y / scale,
+            w = frame:GetWidth(),
+            h = frame:GetHeight()
+        }
     end)
 
-    grip:SetScript("OnMouseUp", function()
-        frame:StopMovingOrSizing()
+    local function StopSizing(sel)
+        if sel.sizing == nil then return end
+        sel.sizing = nil
         AzerothCompendium:SetConfig("COMPENDIUMWIDTH", floor(frame:GetWidth() + 0.5))
         AzerothCompendium:SetConfig("COMPENDIUMHEIGHT", floor(frame:GetHeight() + 0.5))
+    end
+
+    grip:SetScript("OnMouseUp", StopSizing)
+    grip:SetScript("OnHide", StopSizing)
+    grip:SetScript("OnUpdate", function(sel)
+        local sizing = sel.sizing
+        if sizing == nil then return end
+        if IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then
+            StopSizing(sel)
+
+            return
+        end
+
+        local x, y = GetCursorPosition()
+        local scale = frame:GetEffectiveScale()
+        ApplySize(sizing.w + x / scale - sizing.x, sizing.h + sizing.y - y / scale)
     end)
+
+    frame:HookScript("OnShow", function() ApplySize(frame:GetWidth(), frame:GetHeight()) end)
     frame.resizeGrip = grip
 end
 
