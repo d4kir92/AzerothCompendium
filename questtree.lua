@@ -58,6 +58,10 @@ local function GetQuestTagIcon(tagID)
     return questTagIcons[tagID]
 end
 
+function AzerothCompendium:GetQuestTagIcon(tagID)
+    return GetQuestTagIcon(tagID)
+end
+
 local OUTSIDE_ICON = "Interface\\Icons\\INV_Misc_Map_01"
 local SECTION_COUNT = 3
 local SECTION_TITLES = {"LID_QUESTTREESTART", "LID_QUESTTREEINSTANCE", "LID_QUESTTREEAFTER"}

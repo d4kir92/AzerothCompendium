@@ -11,6 +11,15 @@ local TRASH_PORTRAIT = 133639
 local ALL_PORTRAIT = 132594
 local PORTRAIT_ICON_ZOOM = 0.05
 local LOOT_ROW_H = 34
+local INSTANCE_TYPE_ICON_SIZE = 16
+local INSTANCE_TYPE_ATLAS_SIZE = 24
+local INSTANCE_TYPE_ATLAS_INSET = 4
+local INSTANCE_TYPE_TAGS = {
+    ["dungeon"] = 81,
+    ["raid"] = 62
+}
+
+local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
 local LOADSCREEN_CLASSIC = {
     aspect = 4 / 3,
     uSpan = 0.96,
@@ -362,11 +371,47 @@ local function UpdateInstanceBackground(row, inst)
         row.subText:SetWordWrap(false)
     end
 
+    if row.typeIcon == nil then
+        row.typeIcon = row:CreateTexture(nil, "ARTWORK")
+        row.questCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        row.questCount:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
+        row.questCount:SetJustifyH("RIGHT")
+    end
+
     row.subText:Hide()
+    row.typeIcon:Hide()
+    row.questCount:Hide()
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
-        row.text:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -6)
+        local textX = 6
+        local typeIcon = AzerothCompendium:GetQuestTagIcon(INSTANCE_TYPE_TAGS[inst.type or listKind])
+        if typeIcon then
+            row.typeIcon:ClearAllPoints()
+            if typeIcon[2] and not typeIcon[3] then
+                row.typeIcon:SetTexCoord(0, 1, 0, 1)
+                row.typeIcon:SetAtlas(typeIcon[1])
+                row.typeIcon:SetSize(INSTANCE_TYPE_ATLAS_SIZE, INSTANCE_TYPE_ATLAS_SIZE)
+                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", 3 - INSTANCE_TYPE_ATLAS_INSET, 0)
+                textX = 6 + INSTANCE_TYPE_ATLAS_SIZE + 3 - INSTANCE_TYPE_ATLAS_INSET * 2
+            elseif typeIcon[2] then
+                row.typeIcon:SetTexCoord(0, 1, 0, 1)
+                row.typeIcon:SetAtlas(typeIcon[1])
+                row.typeIcon:SetSize(INSTANCE_TYPE_ICON_SIZE, INSTANCE_TYPE_ICON_SIZE)
+                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", -3, 0)
+                textX = 6 + INSTANCE_TYPE_ICON_SIZE + 3
+            else
+                row.typeIcon:SetTexture(typeIcon[1])
+                row.typeIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+                row.typeIcon:SetSize(INSTANCE_TYPE_ICON_SIZE, INSTANCE_TYPE_ICON_SIZE)
+                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", -3, 0)
+                textX = 6 + INSTANCE_TYPE_ICON_SIZE + 3
+            end
+
+            row.typeIcon:Show()
+        end
+
+        row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, -6)
         row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -6)
         row.subText:ClearAllPoints()
         row.subText:SetPoint("TOPLEFT", row.text, "BOTTOMLEFT", 0, -2)
@@ -402,6 +447,25 @@ local function UpdateInstanceRow(row, inst)
         row.info:SetText(inst.minLevel .. "-" .. inst.maxLevel)
     else
         row.info:SetText("")
+    end
+
+    if UsesLoadingScreens() then
+        local quests = AzerothCompendium:GetInstanceQuests(inst)
+        if #quests > 0 then
+            local done = 0
+            for _, quest in ipairs(quests) do
+                if AzerothCompendium:IsQuestCompleted(quest[1]) then done = done + 1 end
+            end
+
+            if done == #quests then
+                row.questCount:SetTextColor(0.25, 1, 0.25)
+            else
+                row.questCount:SetTextColor(1, 1, 1)
+            end
+
+            row.questCount:SetText(format("|T%s:14:14|t %d/%d", QUEST_COUNT_ICON, done, #quests))
+            row.questCount:Show()
+        end
     end
 
     if selectedInstance == inst then
