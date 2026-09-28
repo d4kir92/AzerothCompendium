@@ -469,6 +469,169 @@ function AzerothCompendium:GetQuestChain(questID)
     return quests
 end
 
+function AzerothCompendium:GetQuestRewards(questID)
+    return AzerothCompendium.QUESTREWARDS and AzerothCompendium.QUESTREWARDS[questID]
+end
+
+local function IsQuestHidden(questID)
+    if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
+
+    return IsQuestForOpposingFaction(questID)
+end
+
+function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
+    local nodes = {}
+    local list = {}
+    local inInstance = {}
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
+        inInstance[quest[1]] = quest
+    end
+
+    local function GetNode(id)
+        local node = nodes[id]
+        if node == nil then
+            node = {
+                id = id,
+                quest = inInstance[id] or AzerothCompendium:GetQuestDataByID(id),
+                instance = inInstance[id] ~= nil,
+                parents = {},
+                children = {},
+                parentSet = {}
+            }
+
+            nodes[id] = node
+            tinsert(list, node)
+        end
+
+        return node
+    end
+
+    local function Link(parentID, childID)
+        if parentID == childID then return end
+        local child = GetNode(childID)
+        if child.parentSet[parentID] then return end
+        local parent = GetNode(parentID)
+        child.parentSet[parentID] = true
+        tinsert(child.parents, parent)
+        tinsert(parent.children, child)
+    end
+
+    local visited = {}
+    local function Visit(id)
+        if visited[id] then return end
+        visited[id] = true
+        GetNode(id)
+        local chain = AzerothCompendium.QUESTCHAINS and AzerothCompendium.QUESTCHAINS[id]
+        if chain then
+            local previous = nil
+            for _, chainID in ipairs(chain) do
+                if not IsQuestHidden(chainID) then
+                    if previous ~= nil then Link(previous, chainID) end
+                    previous = chainID
+                end
+
+                if chainID == id then break end
+            end
+
+            for _, chainID in ipairs(chain) do
+                if chainID == id then break end
+                if not IsQuestHidden(chainID) then Visit(chainID) end
+            end
+        end
+
+        for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id] or {}) do
+            if not IsQuestHidden(prerequisiteID) then
+                Link(prerequisiteID, id)
+                Visit(prerequisiteID)
+            end
+        end
+    end
+
+    for id in pairs(inInstance) do
+        Visit(id)
+    end
+
+    if filter ~= nil then
+        local matched = {}
+        local function AncestorMatches(node, seen)
+            if matched[node] ~= nil then return matched[node] end
+            if seen[node] then return false end
+            seen[node] = true
+            local result = filter(node) == true
+            for _, parent in ipairs(node.parents) do
+                if not result and AncestorMatches(parent, seen) then result = true end
+            end
+
+            matched[node] = result
+
+            return result
+        end
+
+        local keep = {}
+        local function Keep(node)
+            if keep[node] then return end
+            keep[node] = true
+            for _, parent in ipairs(node.parents) do
+                Keep(parent)
+            end
+        end
+
+        for _, node in ipairs(list) do
+            if node.instance and AncestorMatches(node, {}) then Keep(node) end
+        end
+
+        local filtered = {}
+        for _, node in ipairs(list) do
+            if keep[node] then
+                local parents = {}
+                local children = {}
+                for _, parent in ipairs(node.parents) do
+                    if keep[parent] then tinsert(parents, parent) end
+                end
+
+                for _, child in ipairs(node.children) do
+                    if keep[child] then tinsert(children, child) end
+                end
+
+                node.parents = parents
+                node.children = children
+                tinsert(filtered, node)
+            end
+        end
+
+        list = filtered
+    end
+
+    local function IsBottom(node, stack)
+        if node.bottom ~= nil then return node.bottom end
+        if node.instance then
+            node.bottom = true
+
+            return true
+        end
+
+        if stack[node] then return false end
+        stack[node] = true
+        local bottom = false
+        for _, parent in ipairs(node.parents) do
+            if IsBottom(parent, stack) then bottom = true end
+        end
+
+        stack[node] = nil
+        node.bottom = bottom
+
+        return bottom
+    end
+
+    for _, node in ipairs(list) do
+        IsBottom(node, {})
+        node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)
+        node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
+    end
+
+    return list
+end
+
 local prerequisiteInstancesByQuestID = nil
 
 local function GetPrerequisiteInstancesByQuestID()
@@ -735,6 +898,14 @@ function AzerothCompendium:PreloadItems()
     end
     for _, entry in pairs(AzerothCompendium.QUESTSTARTITEMS or {}) do
         tinsert(queue, entry[1])
+    end
+
+    for _, rewards in pairs(AzerothCompendium.QUESTREWARDS or {}) do
+        for _, list in ipairs({rewards.items or {}, rewards.choices or {}}) do
+            for _, entry in ipairs(list) do
+                tinsert(queue, entry[1])
+            end
+        end
     end
 
     local index = 1

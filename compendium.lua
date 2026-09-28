@@ -38,7 +38,6 @@ local SCALE_STEP = 0.05
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
-local selectedQuest = nil
 local listKind = "dungeon"
 local middleKind = "bosses"
 local detailKind = "loot"
@@ -127,37 +126,6 @@ local function QuestMatches(quest)
     if searchText == "" then return true end
 
     return Matches(AzerothCompendium:GetQuestName(quest))
-end
-
-local function GetQuestStatusPrefix(questID)
-    if AzerothCompendium:IsQuestCompleted(questID) then return "|cff20c020[x]|r " end
-    if AzerothCompendium:IsQuestActive(questID) then return "|cffffd200[!]|r " end
-
-    return "|cff808080[ ]|r "
-end
-
-local function GetQuestDifficultyColorCode(level)
-    if type(GetQuestDifficultyColor) ~= "function" then return "|cffffffff" end
-    local ok, color = pcall(GetQuestDifficultyColor, level)
-    if not ok or type(color) ~= "table" then return "|cffffffff" end
-    local red = min(255, max(0, floor((color.r or 1) * 255 + 0.5)))
-    local green = min(255, max(0, floor((color.g or 1) * 255 + 0.5)))
-    local blue = min(255, max(0, floor((color.b or 1) * 255 + 0.5)))
-
-    return format("|cff%02x%02x%02x", red, green, blue)
-end
-
-local function AddQuestStatusToTooltip(questID, quest)
-    local completed = AzerothCompendium:IsQuestCompleted(questID)
-    local active = not completed and AzerothCompendium:IsQuestActive(questID)
-    local status = completed and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or active and AzerothCompendium:Trans("LID_QUESTACTIVE") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
-    local red = completed and 0.1 or active and 1 or 0.65
-    local green = completed and 1 or active and 0.82 or 0.65
-    local blue = completed and 0.1 or active and 0 or 0.65
-    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.STATUS or "Status"), status, 0.9, 0.9, 0.9, red, green, blue)
-    quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
-    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL")), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
-    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL")), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
 end
 
 local function InstanceMatches(inst)
@@ -497,30 +465,6 @@ local function UpdateBossRow(row, boss)
     end
 end
 
-local function UpdateQuestRow(row, quest)
-    row.entry = quest
-    local requiredLevel = quest[5] or quest[2] or 0
-    local recommendedLevel = AzerothCompendium:GetQuestRecommendedLevel(quest)
-    local color = GetQuestDifficultyColorCode(recommendedLevel)
-    row.text:SetText(GetQuestStatusPrefix(quest[1]) .. color .. "[" .. recommendedLevel .. "] " .. AzerothCompendium:GetQuestName(quest) .. "|r")
-    local side = quest[3]
-    local prefix = ""
-    if side == 1 then
-        prefix = "|cff4c9cff[A]|r "
-    elseif side == 2 then
-        prefix = "|cffff4c4c[H]|r "
-    end
-
-    row.info:SetText(prefix .. color .. "(" .. requiredLevel .. ")|r")
-    if selectedQuest == quest then
-        row.text:SetTextColor(1, 0.82, 0)
-        row.selected:Show()
-    else
-        row.text:SetTextColor(0.9, 0.9, 0.9)
-        row.selected:Hide()
-    end
-end
-
 local function GetInstanceList()
     local list = {}
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
@@ -542,14 +486,21 @@ local function GetBossList()
     return list
 end
 
-local function GetQuestList()
-    local list = {}
-    if selectedInstance == nil then return list end
-    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(selectedInstance)) do
-        if QuestMatches(quest) then tinsert(list, quest) end
+local function GetQuestGraph()
+    if selectedInstance == nil then return {} end
+    local filter = nil
+    if searchText ~= "" then filter = function(node) return Matches(node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)) end end
+
+    return AzerothCompendium:GetInstanceQuestGraph(selectedInstance, filter)
+end
+
+local function CountInstanceQuests(graph)
+    local count = 0
+    for _, node in ipairs(graph) do
+        if node.instance then count = count + 1 end
     end
 
-    return list
+    return count
 end
 
 local function GetLootList()
@@ -735,26 +686,13 @@ local function RefreshDetail()
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
-        if selectedQuest == nil then
-            compendium.questChain:Hide()
-            compendium.detailTitle:SetText("")
-            compendium.detailCount:SetText("")
-            compendium.questHint:SetText(AzerothCompendium:Trans("LID_SELECTQUEST"))
-            compendium.questHint:Show()
-        else
-            local chain = AzerothCompendium:GetQuestChain(selectedQuest[1])
-            compendium.questChain:SetData(chain)
-            compendium.questChain:Show()
-            compendium.detailTitle:SetText(AzerothCompendium:GetQuestName(selectedQuest))
-            compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTSTEPS", nil, #chain))
-            compendium.questHint:Hide()
-        end
+        compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
+        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
 
         return
     end
 
-    compendium.questChain:Hide()
-    compendium.questHint:Hide()
+    compendium.questTree:Hide()
     compendium.detailTitle:Show()
     compendium.detailCount:Show()
     local count = 0
@@ -831,21 +769,15 @@ local function RefreshBosses()
     UpdateTabs(compendium.middleTabs, middleKind)
     if middleKind == "quests" then
         compendium.bosses:Hide()
-        local quests = GetQuestList()
-        compendium.quests:SetData(quests)
-        local found = false
-        for _, quest in ipairs(quests) do
-            if quest == selectedQuest then found = true end
-        end
-        if not found then selectedQuest = nil end
-        compendium.quests:Show()
         compendium.bossTitle:Hide()
+        compendium.questTree:Show()
+        compendium.questTree:SetGraph(GetQuestGraph())
         RefreshDetail()
 
         return
     end
 
-    compendium.quests:Hide()
+    compendium.questTree:Hide()
     compendium.bosses:Show()
     local list = GetBossList()
     if UsesBossPortraits() then
@@ -890,7 +822,6 @@ local function RefreshInstances()
     if not found then
         selectedInstance = list[1]
         selectedBoss = nil
-        selectedQuest = nil
     end
 
     compendium.instances:Refresh()
@@ -900,7 +831,6 @@ end
 local function OnInstanceClick(inst)
     selectedInstance = inst
     selectedBoss = nil
-    selectedQuest = nil
     compendium.instances:Refresh()
     RefreshBosses()
 end
@@ -909,107 +839,6 @@ local function OnBossClick(boss)
     selectedBoss = boss
     compendium.bosses:Refresh()
     RefreshDetail()
-end
-
-local function ShowQuestTooltip(row)
-    if row.entry == nil then return end
-    GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
-    local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. row.entry[1])
-    if not shown then
-        GameTooltip:ClearLines()
-        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetQuestName(row.entry)), 1, 0.82, 0)
-    end
-    AddQuestStatusToTooltip(row.entry[1], row.entry)
-    GameTooltip:Show()
-end
-
-local function InsertQuestLink(questID)
-    if IsShiftKeyDown == nil or not IsShiftKeyDown() or ChatEdit_InsertLink == nil then return false end
-    if ChatEdit_GetActiveWindow ~= nil and ChatEdit_GetActiveWindow() == nil then return false end
-    local link = C_QuestLog and C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID)
-    if link == nil and GetQuestLink ~= nil then link = GetQuestLink(questID) end
-    if link == nil then return false end
-    ChatEdit_InsertLink(link)
-
-    return true
-end
-
-local function CreateQuestRow(scroller)
-    local row = CreateTextRow(scroller, function(quest)
-        if InsertQuestLink(quest[1]) then return end
-        selectedQuest = quest
-        compendium.quests:Refresh()
-        RefreshDetail()
-    end)
-    row:SetScript("OnEnter", ShowQuestTooltip)
-    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-    function row:Update(entry)
-        UpdateQuestRow(self, entry)
-    end
-
-    return row
-end
-
-local function CreateQuestChainRow(scroller)
-    local row = CreateTextRow(scroller, function(entry)
-        if InsertQuestLink(entry[1]) then return end
-        if AzerothCompendium:IsQuestStartInInstance(entry[1]) then
-            AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), entry[2]))
-        else
-            local waypointSet, reason = AzerothCompendium:SetQuestWaypoint(entry[1])
-            if not waypointSet then
-                local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
-                AzerothCompendium:INFO(AzerothCompendium:Trans(message))
-            end
-        end
-    end)
-    row:SetScript("OnEnter", function(sel)
-        if sel.entry == nil then return end
-        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. sel.entry[1])
-        if not shown then
-            GameTooltip:ClearLines()
-            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(sel.entry[2]), 1, 0.82, 0)
-        end
-        AddQuestStatusToTooltip(sel.entry[1])
-        if sel.entry[4] then
-            local startItem = AzerothCompendium.QUESTSTARTITEMS[sel.entry[1]]
-            local source = AzerothCompendium.QUESTGIVERS[sel.entry[1]]
-            local name, link = AzerothCompendium:GetItemDisplay(sel.entry[4])
-            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.ITEM or "Item", link or name or startItem[2])), 1, 0.82, 0)
-            if source then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format("%s: %s", _G.SOURCE or "Source", source[5])), 0.75, 0.75, 0.75) end
-        end
-        if AzerothCompendium:IsQuestStartInInstance(sel.entry[1]) then
-            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), sel.entry[2])), 1, 0.82, 0)
-        elseif AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[sel.entry[1]] then
-            local locationText = sel.entry[4] and "LID_SHOWQUESTITEMSOURCE" or "LID_SHOWQUESTGIVER"
-            GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
-        end
-        GameTooltip:Show()
-    end)
-    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-    function row:Update(entry)
-        self.entry = entry
-        local depth = entry[5] or 0
-        local quest = AzerothCompendium:GetQuestDataByID(entry[1]) or entry[1]
-        local recommendedLevel = AzerothCompendium:GetQuestRecommendedLevel(quest)
-        local requiredLevel = AzerothCompendium:GetQuestRequiredLevel(quest)
-        local color = GetQuestDifficultyColorCode(recommendedLevel)
-        self.text:SetText(string.rep("|cff707070> |r", depth) .. GetQuestStatusPrefix(entry[1]) .. color .. "[" .. recommendedLevel .. "] " .. entry[2] .. "|r")
-        local info = tostring(entry[3])
-        if (entry[6] or 0) > 0 then info = info .. " · " .. AzerothCompendium:Trans("LID_PREREQUISITECHAIN") end
-        if entry[4] then info = info .. " · " .. (_G.ITEM or "Item") end
-        info = info .. " · " .. color .. "(" .. requiredLevel .. ")|r"
-        self.info:SetText(info)
-        if AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[entry[1]] then
-            self.text:SetTextColor(0.9, 0.9, 0.9)
-        else
-            self.text:SetTextColor(0.55, 0.55, 0.55)
-        end
-        self.selected:Hide()
-    end
-
-    return row
 end
 
 local function ShowItemTooltip(row)
@@ -1578,9 +1407,7 @@ local function SetWishlistMode(enabled)
         compendium.instances,
         compendium.bossTitle,
         compendium.bosses,
-        compendium.quests,
-        compendium.questChain,
-        compendium.questHint,
+        compendium.questTree,
         compendium.loot,
         compendium.spells,
         compendium.detailCount,
@@ -1740,7 +1567,6 @@ local function CreateJournal()
             middleKind = "bosses"
             selectedInstance = nil
             selectedBoss = nil
-            selectedQuest = nil
             UpdateKindTabs()
             RefreshCurrentView()
         end)
@@ -1789,10 +1615,11 @@ local function CreateJournal()
     bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
     bosses:SetWidth(MIDDLE_COL_W)
     compendium.bosses = bosses
-    local quests = CreateScroller(compendium, ROW_H, CreateQuestRow)
-    quests:SetAllPoints(bosses)
-    quests:Hide()
-    compendium.quests = quests
+    local questTree = AzerothCompendium:CreateQuestTree(compendium)
+    questTree:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
+    questTree:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    questTree:Hide()
+    compendium.questTree = questTree
     compendium.middleTabs = {}
     local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), function()
         middleKind = "bosses"
@@ -1812,11 +1639,6 @@ local function CreateJournal()
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, -ROW_H)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
-    local questChain = CreateScroller(compendium, ROW_H, CreateQuestChainRow)
-    questChain:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
-    questChain:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
-    questChain:Hide()
-    compendium.questChain = questChain
     local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
     wishlist:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
     wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
@@ -1886,11 +1708,6 @@ local function CreateJournal()
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
     compendium.detailTitle = detailTitle
-    local questHint = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
-    questHint:SetPoint("CENTER", questChain, "CENTER", 0, 0)
-    questHint:SetText(AzerothCompendium:Trans("LID_SELECTQUEST"))
-    questHint:Hide()
-    compendium.questHint = questHint
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
     classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -32, 2)
@@ -1971,8 +1788,7 @@ loader:SetScript("OnEvent", function(sel, event)
 
     if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" then
         if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then
-            compendium.quests:Refresh()
-            compendium.questChain:Refresh()
+            compendium.questTree:Refresh()
         end
 
         return
@@ -1992,6 +1808,7 @@ loader:SetScript("OnEvent", function(sel, event)
                     compendium.instances:Refresh()
                     compendium.bosses:Refresh()
                     compendium.loot:Refresh()
+                    compendium.questTree:Refresh()
                 end
             end
         end,
