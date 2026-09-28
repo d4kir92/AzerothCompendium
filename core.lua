@@ -922,6 +922,32 @@ function AzerothCompendium:SetQuestWaypoint(questID)
     if giver == nil then return false end
     if giver[6] == true then return false end
     local mapID, x, y = AzerothCompendium:GetQuestGiverLocation(questID)
+
+    return AzerothCompendium:SetMapWaypoint(mapID, x, y)
+end
+
+function AzerothCompendium:GetInstanceEntrance(inst)
+    local entrances = AzerothCompendium.INSTANCEENTRANCES
+    if inst == nil or entrances == nil then return nil end
+
+    return entrances[inst.id] or (inst.parentID and entrances[inst.parentID]) or entrances[inst.id * 1000 + 1]
+end
+
+function AzerothCompendium:GetInstanceEntranceZoneName(inst)
+    local entrance = AzerothCompendium:GetInstanceEntrance(inst)
+    local info = entrance and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(entrance[1])
+
+    return info and info.name
+end
+
+function AzerothCompendium:SetInstanceEntranceWaypoint(inst)
+    local entrance = AzerothCompendium:GetInstanceEntrance(inst)
+    if entrance == nil then return false end
+
+    return AzerothCompendium:SetMapWaypoint(entrance[1], entrance[2], entrance[3])
+end
+
+function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     if mapID == nil then return false end
     if InCombatLockdown and InCombatLockdown() then return false, "combat" end
     if C_Map == nil or C_Map.SetUserWaypoint == nil or UiMapPoint == nil or UiMapPoint.CreateFromCoordinates == nil then return false end

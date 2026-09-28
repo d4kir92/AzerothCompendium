@@ -384,6 +384,60 @@ local function AddLoadingScreen(row)
     row:HookScript("OnSizeChanged", UpdateLoadingScreenCrop)
 end
 
+local ENTRANCE_PIN_SIZE = 18
+local ENTRANCE_PIN_ATLAS = "Waypoint-MapPin-Untracked"
+local ENTRANCE_PIN_HIGHLIGHT_ATLAS = "Waypoint-MapPin-Highlight"
+local ENTRANCE_PIN_FALLBACK = 134269
+
+local function HasAtlas(atlas)
+    return C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(atlas) ~= nil
+end
+
+local function CreateEntrancePin(row)
+    local pin = CreateFrame("Button", nil, row)
+    pin:SetSize(ENTRANCE_PIN_SIZE, ENTRANCE_PIN_SIZE)
+    pin:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -4)
+    pin:SetFrameLevel(row:GetFrameLevel() + 2)
+    pin.icon = pin:CreateTexture(nil, "ARTWORK")
+    pin.icon:SetAllPoints(pin)
+    local highlight = pin:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(pin)
+    if HasAtlas(ENTRANCE_PIN_ATLAS) then
+        pin.icon:SetAtlas(ENTRANCE_PIN_ATLAS)
+        if HasAtlas(ENTRANCE_PIN_HIGHLIGHT_ATLAS) then
+            highlight:SetAtlas(ENTRANCE_PIN_HIGHLIGHT_ATLAS)
+        else
+            highlight:SetAtlas(ENTRANCE_PIN_ATLAS)
+            highlight:SetBlendMode("ADD")
+        end
+    else
+        pin.icon:SetTexture(ENTRANCE_PIN_FALLBACK)
+        pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        highlight:SetTexture(ENTRANCE_PIN_FALLBACK)
+        highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        highlight:SetBlendMode("ADD")
+    end
+
+    pin:SetScript("OnClick", function(sel)
+        local waypointSet, reason = AzerothCompendium:SetInstanceEntranceWaypoint(sel:GetParent().entry)
+        if not waypointSet and reason == "combat" then AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT")) end
+    end)
+
+    pin:SetScript("OnEnter", function(sel)
+        local inst = sel:GetParent().entry
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SETENTRANCEWAYPOINT")))
+        local zone = AzerothCompendium:GetInstanceEntranceZoneName(inst)
+        if zone then GameTooltip:AddLine(zone, 1, 1, 1) end
+        GameTooltip:Show()
+    end)
+
+    pin:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    pin:Hide()
+
+    return pin
+end
+
 local function UpdateInstanceBackground(row, inst)
     if row.loadingScreen == nil then return end
     local fileID, layout = nil, nil
@@ -410,11 +464,13 @@ local function UpdateInstanceBackground(row, inst)
         row.questCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
         row.questCount:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
         row.questCount:SetJustifyH("RIGHT")
+        row.entrancePin = CreateEntrancePin(row)
     end
 
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
+    row.entrancePin:Hide()
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
@@ -446,8 +502,14 @@ local function UpdateInstanceBackground(row, inst)
         end
 
         local textY = -INSTANCE_TYPE_ICON_OFFSET - floor((INSTANCE_TYPE_ICON_SIZE - INSTANCE_NAME_FONT_SIZE) / 2)
+        local textRight = -6
+        if AzerothCompendium:GetInstanceEntrance(inst) then
+            row.entrancePin:Show()
+            textRight = -ENTRANCE_PIN_SIZE - 8
+        end
+
         row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, textY)
-        row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, textY)
+        row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", textRight, textY)
         row.subText:ClearAllPoints()
         row.subText:SetPoint("TOPLEFT", row.text, "BOTTOMLEFT", 0, -2)
         row.subText:SetPoint("TOPRIGHT", row.text, "BOTTOMRIGHT", 0, -2)
