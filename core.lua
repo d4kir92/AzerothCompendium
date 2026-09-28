@@ -954,12 +954,97 @@ function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     local point = UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100)
     C_Map.SetUserWaypoint(point)
     if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
-    if OpenWorldMap then
-        OpenWorldMap(mapID)
-    elseif WorldMapFrame then
-        if WorldMapFrame.SetMapID then WorldMapFrame:SetMapID(mapID) end
-        if ShowUIPanel then ShowUIPanel(WorldMapFrame) else WorldMapFrame:Show() end
+
+    return true
+end
+
+local mapOpener
+
+local WORLD_MAP_CLICK_BUTTONS = {"MiniMapWorldMapButton", "QuestLogMicroButton"}
+
+local function GetWorldMapClickButton()
+    for _, name in ipairs(WORLD_MAP_CLICK_BUTTONS) do
+        local button = _G[name]
+        if type(button) == "table" and button.Click ~= nil and not (button.IsForbidden and button:IsForbidden()) then return button end
     end
+
+    return nil
+end
+
+local function IsMapOpenerLocked()
+    return InCombatLockdown ~= nil and InCombatLockdown()
+end
+
+local function ReleaseMapOpener()
+    if mapOpener == nil or IsMapOpenerLocked() then return end
+    local owner = mapOpener.owner
+    mapOpener.owner = nil
+    mapOpener.onClick = nil
+    mapOpener:Hide()
+    if owner and owner.UnlockHighlight then owner:UnlockHighlight() end
+end
+
+local function CreateMapOpener()
+    local opener = CreateFrame("Button", nil, UIParent, "SecureActionButtonTemplate")
+    opener:SetFrameStrata("FULLSCREEN_DIALOG")
+    if SecureActionButton_ShouldUseOnKeyDown then
+        opener:RegisterForClicks("LeftButtonUp", "LeftButtonDown")
+    else
+        opener:RegisterForClicks("LeftButtonUp")
+    end
+    opener:Hide()
+    opener:SetScript("PreClick", function(sel, _, down)
+        if SecureActionButton_ShouldUseOnKeyDown and (down == true) ~= (SecureActionButton_ShouldUseOnKeyDown(sel) == true) then return end
+        local opened = false
+        if sel.owner and sel.onClick then opened = sel.onClick(sel.owner) == true end
+        if WorldMapFrame and WorldMapFrame:IsShown() then opened = false end
+        sel:SetAttribute("type1", opened and "click" or nil)
+        sel:SetAttribute("clickbutton1", opened and GetWorldMapClickButton() or nil)
+    end)
+
+    opener:SetScript("OnEnter", function(sel)
+        local owner = sel.owner
+        if owner == nil then return end
+        if owner.LockHighlight then owner:LockHighlight() end
+        local onEnter = owner:GetScript("OnEnter")
+        if onEnter then onEnter(owner) end
+    end)
+
+    opener:SetScript("OnLeave", function(sel)
+        local owner = sel.owner
+        ReleaseMapOpener()
+        local onLeave = owner and owner:GetScript("OnLeave")
+        if onLeave then onLeave(owner) end
+    end)
+
+    opener:SetScript("OnUpdate", function(sel)
+        local owner = sel.owner
+        if owner == nil or not owner:IsVisible() or not owner:IsMouseOver() then
+            local onLeave = owner and owner:GetScript("OnLeave")
+            ReleaseMapOpener()
+            if onLeave then onLeave(owner) end
+        end
+    end)
+
+    opener:RegisterEvent("PLAYER_REGEN_DISABLED")
+    opener:SetScript("OnEvent", ReleaseMapOpener)
+
+    return opener
+end
+
+function AzerothCompendium:AttachMapOpener(owner, onClick)
+    if owner == nil or IsMapOpenerLocked() or GetWorldMapClickButton() == nil then return false end
+    if mapOpener == nil then mapOpener = CreateMapOpener() end
+    if mapOpener.owner == owner then return true end
+    local left, bottom, width, height = owner:GetRect()
+    if left == nil then return false end
+    local ratio = owner:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    mapOpener.owner = owner
+    mapOpener.onClick = onClick
+    mapOpener:ClearAllPoints()
+    mapOpener:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left * ratio, bottom * ratio)
+    mapOpener:SetSize(width * ratio, height * ratio)
+    mapOpener:Show()
 
     return true
 end

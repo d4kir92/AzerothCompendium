@@ -424,6 +424,9 @@ local function CreateEntrancePin(row)
     end)
 
     pin:SetScript("OnEnter", function(sel)
+        AzerothCompendium:AttachMapOpener(sel, function(owner)
+            return AzerothCompendium:SetInstanceEntranceWaypoint(owner:GetParent().entry)
+        end)
         local inst = sel:GetParent().entry
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SETENTRANCEWAYPOINT")))
