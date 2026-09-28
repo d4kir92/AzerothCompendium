@@ -393,7 +393,7 @@ local LOCATION_PIN_BADGE_FALLBACK = 134269
 local DUNGEON_ICON_CANDIDATES = {"Dungeon", "DungeonSkull", "Dungeon-Normal"}
 local DUNGEON_ICON_FALLBACK = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
 local RAID_ICON_CANDIDATES = {"Raid"}
-local MEETING_STONE_ICON = {"Interface\\AddOns\\AzerothCompendium\\media\\meetingstone", false, true}
+local MEETING_STONE_ICON = {"Interface\\AddOns\\AzerothCompendium\\media\\meetingstone", false, true, 3}
 
 local function HasAtlas(atlas)
     return C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(atlas) ~= nil
@@ -415,6 +415,11 @@ local function ResolveIcon(candidates, fallback)
 end
 
 local function ApplyIcon(texture, icon)
+    local inset = icon[4] or 0
+    local parent = texture:GetParent()
+    texture:ClearAllPoints()
+    texture:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -inset)
+    texture:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -inset, inset)
     if icon[2] then
         texture:SetTexCoord(0, 1, 0, 1)
         texture:SetAtlas(icon[1])
