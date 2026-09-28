@@ -18,6 +18,12 @@ local ICON_SIZE = 16
 local ICON_GAP = 3
 local LINE_W = 2
 local SCROLLBAR_W = 18
+local BOTTOM_H = 22
+local MINIMAL_BAR_W = 8
+local MINIMAL_STEPPER_INSET = 19
+local MINIMAL_STEPPER_W = 17
+local MINIMAL_STEPPER_H = 11
+local ZOOM_LABEL_W = 36
 local HBAR_H = 12
 local HBAR_MIN_THUMB = 30
 local DRAG_THRESHOLD = 4
@@ -25,9 +31,14 @@ local WHEEL_STEP = 60
 local QUEST_TAG_ATLAS_SIZE = 22
 local QUEST_TAG_ATLAS_INSET = 4
 local QUEST_TAG_DEFAULT_ICON = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
+local QUEST_TAG_PLAIN_ATLASES = {
+    ["questlog-questtypeicon-dungeon"] = true,
+    ["questlog-questtypeicon-raid"] = true
+}
+
 local QUEST_TAG_ATLASES = {
-    [81] = {"Dungeon", "DungeonSkull", "Dungeon-Normal"},
-    [62] = {"Raid", "Dungeon", "DungeonSkull", "Dungeon-Normal"}
+    [81] = {"questlog-questtypeicon-dungeon", "Dungeon", "DungeonSkull", "Dungeon-Normal"},
+    [62] = {"questlog-questtypeicon-raid", "questlog-questtypeicon-dungeon", "Raid", "Dungeon", "DungeonSkull", "Dungeon-Normal"}
 }
 
 local questTagIcons = {}
@@ -38,7 +49,7 @@ local function GetQuestTagIcon(tagID)
         questTagIcons[tagID] = {QUEST_TAG_DEFAULT_ICON, false}
         for _, atlas in ipairs(atlases) do
             if AzerothCompendium:AtlasExists(atlas) then
-                questTagIcons[tagID] = {atlas, true}
+                questTagIcons[tagID] = {atlas, true, QUEST_TAG_PLAIN_ATLASES[atlas] == true}
                 break
             end
         end
@@ -54,7 +65,7 @@ local SECTION_EMPTY = {"LID_QUESTTREENOSTART", "LID_NOENTRIES", "LID_QUESTTREENO
 local ZOOM_MIN = 0.4
 local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
-local ZOOM_BAR_W = 90
+local ZOOM_BAR_W = 130
 local STATUS_ICON = {
     ["complete"] = {"Interface\\RaidFrame\\ReadyCheck-Ready", false},
     ["ready"] = {"Interface\\GossipFrame\\ActiveQuestIcon", false},
@@ -407,7 +418,13 @@ local function UpdateNode(button, node, width)
     button.title:ClearAllPoints()
     if tagIcon then
         button.tagIcon:ClearAllPoints()
-        if tagIcon[2] then
+        if tagIcon[3] then
+            button.tagIcon:SetTexCoord(0, 1, 0, 1)
+            button.tagIcon:SetAtlas(tagIcon[1])
+            button.tagIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
+            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3, 0)
+        elseif tagIcon[2] then
             button.tagIcon:SetTexCoord(0, 1, 0, 1)
             button.tagIcon:SetAtlas(tagIcon[1])
             button.tagIcon:SetSize(QUEST_TAG_ATLAS_SIZE, QUEST_TAG_ATLAS_SIZE)
@@ -667,103 +684,263 @@ local function ClampScroll(scroll, horizontal, value)
     return min(max(0, range or 0), max(0, value))
 end
 
+local function HasMinimalScrollBar()
+    if ScrollUtil == nil or ScrollUtil.InitScrollFrameWithScrollBar == nil or BaseScrollBoxEvents == nil then return false end
+
+    return AzerothCompendium:CheckTemplates("MinimalScrollBar")
+end
+
+local function GetAtlasInfo(atlas)
+    if atlas == nil or C_Texture == nil or C_Texture.GetAtlasInfo == nil then return nil end
+
+    return C_Texture.GetAtlasInfo(atlas)
+end
+
+local function SetRotatedAtlas(texture, atlas)
+    local info = GetAtlasInfo(atlas)
+    if info == nil then return false end
+    texture:SetTexture(info.file or info.filename)
+    local left, right, top, bottom = info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord
+    texture:SetTexCoord(right, top, left, top, right, bottom, left, bottom)
+    texture:SetSize(info.height, info.width)
+
+    return true
+end
+
+local function LayoutHorizontalPieces(frame, beginAtlas, middleAtlas, endAtlas)
+    SetRotatedAtlas(frame.Begin, beginAtlas)
+    SetRotatedAtlas(frame.Middle, middleAtlas)
+    SetRotatedAtlas(frame.End, endAtlas)
+    frame.Begin:ClearAllPoints()
+    frame.Begin:SetPoint("LEFT", frame, "LEFT", 0, 0)
+    frame.End:ClearAllPoints()
+    frame.End:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
+    frame.Middle:ClearAllPoints()
+    frame.Middle:SetPoint("TOPLEFT", frame.Begin, "TOPRIGHT", 0, 0)
+    frame.Middle:SetPoint("BOTTOMRIGHT", frame.End, "BOTTOMLEFT", 0, 0)
+end
+
+local function CreateMinimalHBar(parent)
+    if not HasMinimalScrollBar() or GetAtlasInfo("minimal-scrollbar-track-top") == nil then return nil end
+    local ok, bar = pcall(CreateFrame, "EventFrame", nil, parent, "MinimalScrollBar")
+    if not ok or bar == nil or bar.Track == nil or bar.Track.Thumb == nil or bar.Back == nil or bar.Forward == nil then return nil end
+    if bar.SetHorizontal then
+        bar:SetHorizontal(true)
+    else
+        bar.isHorizontal = true
+    end
+
+    bar.thumbAnchor = "LEFT"
+    bar:SetHeight(MINIMAL_BAR_W)
+    local track = bar.Track
+    track:ClearAllPoints()
+    track:SetPoint("LEFT", bar, "LEFT", MINIMAL_STEPPER_INSET, 0)
+    track:SetPoint("RIGHT", bar, "RIGHT", -MINIMAL_STEPPER_INSET, 0)
+    track:SetHeight(MINIMAL_BAR_W)
+    LayoutHorizontalPieces(track, "minimal-scrollbar-track-top", "!minimal-scrollbar-track-middle", "minimal-scrollbar-track-bottom")
+    local thumb = track.Thumb
+    thumb.isHorizontal = true
+    thumb:ClearAllPoints()
+    thumb:SetHeight(MINIMAL_BAR_W)
+    thumb:SetScript("OnSizeChanged", nil)
+    thumb.OnButtonStateChanged = function(sel)
+        local middleAtlas, beginAtlas, endAtlas = sel:GetAtlas()
+        LayoutHorizontalPieces(sel, beginAtlas, middleAtlas, endAtlas)
+    end
+    thumb:OnButtonStateChanged()
+    for index, stepper in ipairs({bar.Back, bar.Forward}) do
+        local point = index == 1 and "LEFT" or "RIGHT"
+        stepper:ClearAllPoints()
+        stepper:SetPoint(point, bar, point, 0, 0)
+        stepper:SetSize(MINIMAL_STEPPER_H, MINIMAL_STEPPER_W)
+        stepper.Texture:ClearAllPoints()
+        stepper.Texture:SetPoint("CENTER", stepper, "CENTER", 0, 0)
+        stepper.OnButtonStateChanged = function(sel)
+            if not SetRotatedAtlas(sel.Texture, sel:GetAtlas()) then SetRotatedAtlas(sel.Texture, sel.normalTexture) end
+        end
+        stepper:OnButtonStateChanged()
+    end
+
+    return bar
+end
+
+local function CreateHBar(tree, scroll, anchor)
+    local bar = CreateMinimalHBar(tree)
+    local syncing = false
+    if bar then
+        bar:SetPoint("LEFT", tree, "BOTTOMLEFT", 0, BOTTOM_H / 2)
+        bar:SetPoint("RIGHT", anchor, "LEFT", -10, 0)
+        bar:RegisterCallback(BaseScrollBoxEvents.OnScroll, function(_, percentage)
+            if syncing then return end
+            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            scroll:SetHorizontalScroll(ClampScroll(scroll, true, percentage * range))
+        end, scroll)
+        bar.Sync = function(sel)
+            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            local viewW = scroll:GetWidth() or 0
+            if range <= 0 or viewW <= 0 then
+                sel:Hide()
+
+                return
+            end
+
+            syncing = true
+            sel:SetVisibleExtentPercentage(viewW / (viewW + range))
+            if sel.SetPanExtentPercentage then sel:SetPanExtentPercentage(min(1, WHEEL_STEP / range)) end
+            sel:SetScrollPercentage(min(1, scroll:GetHorizontalScroll() / range), true)
+            syncing = false
+            sel:Show()
+        end
+    else
+        bar = CreateFrame("Slider", nil, tree)
+        bar:SetOrientation("HORIZONTAL")
+        bar:SetPoint("LEFT", tree, "BOTTOMLEFT", 0, BOTTOM_H / 2)
+        bar:SetPoint("RIGHT", anchor, "LEFT", -10, 0)
+        bar:SetHeight(HBAR_H)
+        bar:SetMinMaxValues(0, 0)
+        bar:SetValueStep(1)
+        bar:SetValue(0)
+        bar.track = bar:CreateTexture(nil, "BACKGROUND")
+        bar.track:SetAllPoints(bar)
+        bar.track:SetColorTexture(0, 0, 0, 0.45)
+        bar.thumb = bar:CreateTexture(nil, "OVERLAY")
+        bar.thumb:SetColorTexture(0.75, 0.6, 0.25, 0.9)
+        bar.thumb:SetSize(HBAR_MIN_THUMB, HBAR_H)
+        bar:SetThumbTexture(bar.thumb)
+        bar:SetScript("OnValueChanged", function(_, value)
+            if not syncing then scroll:SetHorizontalScroll(ClampScroll(scroll, true, value)) end
+        end)
+
+        bar.Sync = function(sel)
+            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            local barW = sel:GetWidth() or 0
+            local viewW = scroll:GetWidth() or 0
+            syncing = true
+            sel:SetMinMaxValues(0, range)
+            sel:SetValue(min(range, scroll:GetHorizontalScroll()))
+            syncing = false
+            if range <= 0 or barW <= 0 then
+                sel:Hide()
+
+                return
+            end
+
+            sel.thumb:SetWidth(max(HBAR_MIN_THUMB, floor(barW * viewW / (viewW + range))))
+            sel:Show()
+        end
+    end
+
+    bar:EnableMouseWheel(true)
+    bar:SetScript("OnMouseWheel", function(sel, delta)
+        scroll:SetHorizontalScroll(ClampScroll(scroll, true, scroll:GetHorizontalScroll() - delta * WHEEL_STEP))
+        sel:Sync()
+    end)
+
+    return bar
+end
+
+local function FormatZoom(value)
+    return format("%d%%", floor(value + 0.5))
+end
+
+local function CreateZoomSlider(tree, onChange)
+    local ok, slider = pcall(CreateFrame, "Frame", nil, tree, "MinimalSliderWithSteppersTemplate")
+    if ok and slider ~= nil and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" and slider.Slider then
+        slider:SetPoint("RIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - ZOOM_LABEL_W, BOTTOM_H / 2)
+        slider:SetSize(ZOOM_BAR_W, BOTTOM_H)
+        local formatters = {}
+        if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then formatters[MinimalSliderWithSteppersMixin.Label.Right] = FormatZoom end
+        slider:Init(100, ZOOM_MIN * 100, ZOOM_MAX * 100, (ZOOM_MAX - ZOOM_MIN) * 100 / ZOOM_BAR_STEP, formatters)
+        slider:RegisterCallback("OnValueChanged", function(_, value) onChange(value) end, tree)
+        slider:EnableMouseWheel(true)
+        slider:SetScript("OnMouseWheel", function(sel, delta) sel.Slider:SetValue(sel.Slider:GetValue() + delta * ZOOM_BAR_STEP) end)
+
+        return slider
+    end
+
+    local zoomText = tree:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    zoomText:SetPoint("RIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H / 2)
+    zoomText:SetSize(34, HBAR_H + 2)
+    zoomText:SetJustifyH("RIGHT")
+    zoomText:SetText(FormatZoom(100))
+    slider = CreateFrame("Slider", nil, tree)
+    slider:SetOrientation("HORIZONTAL")
+    slider:SetPoint("RIGHT", zoomText, "LEFT", -4, 0)
+    slider:SetSize(ZOOM_BAR_W, HBAR_H)
+    slider:SetMinMaxValues(ZOOM_MIN * 100, ZOOM_MAX * 100)
+    slider:SetValueStep(ZOOM_BAR_STEP)
+    if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
+    slider:SetValue(100)
+    slider.track = slider:CreateTexture(nil, "BACKGROUND")
+    slider.track:SetPoint("LEFT", slider, "LEFT", 0, 0)
+    slider.track:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
+    slider.track:SetHeight(4)
+    slider.track:SetColorTexture(0, 0, 0, 0.6)
+    slider.thumb = slider:CreateTexture(nil, "OVERLAY")
+    slider.thumb:SetColorTexture(0.75, 0.6, 0.25, 1)
+    slider.thumb:SetSize(8, HBAR_H)
+    slider:SetThumbTexture(slider.thumb)
+    slider:EnableMouseWheel(true)
+    slider:SetScript("OnValueChanged", function(_, value)
+        zoomText:SetText(FormatZoom(value))
+        onChange(value)
+    end)
+
+    slider:SetScript("OnMouseWheel", function(sel, delta) sel:SetValue(sel:GetValue() + delta * ZOOM_BAR_STEP) end)
+
+    return slider
+end
+
 function AzerothCompendium:CreateQuestTree(parent)
     local tree = CreateFrame("Frame", nil, parent)
     local scroll = nil
-    if AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
+    local minimal = HasMinimalScrollBar()
+    if minimal then
+        scroll = CreateFrame("ScrollFrame", nil, tree)
+    elseif AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
         scroll = CreateFrame("ScrollFrame", nil, tree, "UIPanelScrollFrameTemplate")
     else
         scroll = CreateFrame("ScrollFrame", nil, tree)
     end
 
     scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 0, 0)
-    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, HBAR_H + 4)
+    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
     local canvas = CreateFrame("Frame", nil, scroll)
     canvas:SetSize(1, 1)
     scroll:SetScrollChild(canvas)
-    local zoomText = tree:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    zoomText:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
-    zoomText:SetSize(34, HBAR_H + 2)
-    zoomText:SetJustifyH("RIGHT")
-    zoomText:SetText("100%")
-    local zoomBar = CreateFrame("Slider", nil, tree)
-    zoomBar:SetOrientation("HORIZONTAL")
-    zoomBar:SetPoint("BOTTOMRIGHT", zoomText, "BOTTOMLEFT", -4, 1)
-    zoomBar:SetSize(ZOOM_BAR_W, HBAR_H)
-    zoomBar:SetMinMaxValues(ZOOM_MIN * 100, ZOOM_MAX * 100)
-    zoomBar:SetValueStep(ZOOM_BAR_STEP)
-    if zoomBar.SetObeyStepOnDrag then zoomBar:SetObeyStepOnDrag(true) end
-    zoomBar:SetValue(100)
-    zoomBar.track = zoomBar:CreateTexture(nil, "BACKGROUND")
-    zoomBar.track:SetPoint("LEFT", zoomBar, "LEFT", 0, 0)
-    zoomBar.track:SetPoint("RIGHT", zoomBar, "RIGHT", 0, 0)
-    zoomBar.track:SetHeight(4)
-    zoomBar.track:SetColorTexture(0, 0, 0, 0.6)
-    zoomBar.thumb = zoomBar:CreateTexture(nil, "OVERLAY")
-    zoomBar.thumb:SetColorTexture(0.75, 0.6, 0.25, 1)
-    zoomBar.thumb:SetSize(8, HBAR_H)
-    zoomBar:SetThumbTexture(zoomBar.thumb)
-    zoomBar:EnableMouseWheel(true)
+    if minimal then
+        local vbar = CreateFrame("EventFrame", nil, tree, "MinimalScrollBar")
+        vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, 0)
+        vbar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 6, 0)
+        ScrollUtil.InitScrollFrameWithScrollBar(scroll, vbar)
+        tree.vbar = vbar
+    end
+
+    tree.zoom = 1
+    local SetZoom = nil
+    local zoomSlider = CreateZoomSlider(tree, function(value)
+        if SetZoom then SetZoom(floor(value / ZOOM_BAR_STEP + 0.5) * ZOOM_BAR_STEP / 100) end
+    end)
     local zoomIcon = tree:CreateTexture(nil, "ARTWORK")
     zoomIcon:SetTexture("Interface\\Common\\UI-Searchbox-Icon")
     zoomIcon:SetSize(HBAR_H, HBAR_H)
-    zoomIcon:SetPoint("RIGHT", zoomBar, "LEFT", -4, 0)
-    tree.zoomBar = zoomBar
-    local hbar = CreateFrame("Slider", nil, tree)
-    hbar:SetOrientation("HORIZONTAL")
-    hbar:SetPoint("BOTTOMLEFT", tree, "BOTTOMLEFT", 0, 1)
-    hbar:SetPoint("BOTTOMRIGHT", zoomIcon, "BOTTOMLEFT", -8, 0)
-    hbar:SetHeight(HBAR_H)
-    hbar:SetMinMaxValues(0, 0)
-    hbar:SetValueStep(1)
-    hbar:SetValue(0)
-    hbar.track = hbar:CreateTexture(nil, "BACKGROUND")
-    hbar.track:SetAllPoints(hbar)
-    hbar.track:SetColorTexture(0, 0, 0, 0.45)
-    hbar.thumb = hbar:CreateTexture(nil, "OVERLAY")
-    hbar.thumb:SetColorTexture(0.75, 0.6, 0.25, 0.9)
-    hbar.thumb:SetSize(HBAR_MIN_THUMB, HBAR_H)
-    hbar:SetThumbTexture(hbar.thumb)
-    hbar:EnableMouseWheel(true)
+    zoomIcon:SetPoint("RIGHT", zoomSlider, "LEFT", -2, 0)
+    tree.zoomBar = zoomSlider
+    local hbar = CreateHBar(tree, scroll, zoomIcon)
     tree.hbar = hbar
-    local syncing = false
     local function SetHScroll(value)
-        value = ClampScroll(scroll, true, value)
-        scroll:SetHorizontalScroll(value)
-        syncing = true
-        hbar:SetValue(value)
-        syncing = false
+        scroll:SetHorizontalScroll(ClampScroll(scroll, true, value))
+        hbar:Sync()
     end
 
     local function UpdateHBar()
-        local range = max(0, scroll:GetHorizontalScrollRange() or 0)
-        local barW = hbar:GetWidth() or 0
-        local viewW = scroll:GetWidth() or 0
-        syncing = true
-        hbar:SetMinMaxValues(0, range)
-        hbar:SetValue(min(range, scroll:GetHorizontalScroll()))
-        syncing = false
-        if range <= 0 or barW <= 0 then
-            hbar:Hide()
-
-            return
-        end
-
-        hbar.thumb:SetWidth(max(HBAR_MIN_THUMB, floor(barW * viewW / (viewW + range))))
-        hbar:Show()
+        hbar:Sync()
     end
 
-    hbar:SetScript("OnValueChanged", function(_, value)
-        if not syncing then scroll:SetHorizontalScroll(ClampScroll(scroll, true, value)) end
-    end)
-
-    hbar:SetScript("OnSizeChanged", UpdateHBar)
+    hbar:HookScript("OnSizeChanged", UpdateHBar)
     if scroll.HookScript then scroll:HookScript("OnScrollRangeChanged", UpdateHBar) end
-    hbar:SetScript("OnMouseWheel", function(_, delta) SetHScroll(scroll:GetHorizontalScroll() - delta * WHEEL_STEP) end)
-    tree.zoom = 1
-    local function SetZoom(zoom)
+    SetZoom = function(zoom)
         zoom = min(ZOOM_MAX, max(ZOOM_MIN, zoom))
-        zoomText:SetText(floor(zoom * 100 + 0.5) .. "%")
         if math.abs(zoom - tree.zoom) < 0.001 then return end
         local cx = (scroll:GetWidth() or 0) / 2
         local cy = (scroll:GetHeight() or 0) / 2
@@ -786,8 +963,6 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
     end)
 
-    zoomBar:SetScript("OnValueChanged", function(_, value) SetZoom(floor(value / ZOOM_BAR_STEP + 0.5) * ZOOM_BAR_STEP / 100) end)
-    zoomBar:SetScript("OnMouseWheel", function(sel, delta) sel:SetValue(sel:GetValue() + delta * ZOOM_BAR_STEP) end)
 
     function tree:StartDrag(mouseButton)
         self.dragMoved = false

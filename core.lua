@@ -415,7 +415,7 @@ local function IsQuestForOpposingFaction(questID)
             for _, quest in ipairs(quests) do questSidesByID[quest[1]] = quest[3] end
         end
     end
-    local side = questSidesByID[questID]
+    local side = questSidesByID[questID] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[questID]
 
     return IsOpposingQuestSide(side)
 end
@@ -539,6 +539,12 @@ local function GetQuestFollowUps()
 
     for childID, prerequisites in pairs(AzerothCompendium.QUESTPREREQUISITES or {}) do
         for _, parentID in ipairs(prerequisites) do
+            Add(parentID, childID)
+        end
+    end
+
+    for parentID, children in pairs(AzerothCompendium.QUESTFOLLOWUPS or {}) do
+        for _, childID in ipairs(children) do
             Add(parentID, childID)
         end
     end
@@ -722,8 +728,9 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
+    local afterInstance = AzerothCompendium.QUESTAFTERINSTANCE or {}
     local function IsAfterSeed(node)
-        return IsAnchor(node) or (node.instance and startInside[node.id] == true)
+        return IsAnchor(node) or (node.instance and (startInside[node.id] == true or afterInstance[node.id] == true))
     end
 
     local function Reaches(node, key, cache, stack)
