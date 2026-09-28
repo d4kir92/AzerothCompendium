@@ -5,7 +5,8 @@ local MIN_WIDTH = 700
 local MIN_HEIGHT = 400
 local ROW_H = 22
 local INSTANCE_ROW_H = ROW_H * 3
-local BOSS_ROW_H = ROW_H * 2
+local BOSS_ROW_H = 54
+local MEDIA_PATH = "Interface\\AddOns\\AzerothCompendium\\media\\"
 local BOSS_PORTRAIT_FALLBACK = "Interface\\Icons\\INV_Misc_QuestionMark"
 local TRASH_PORTRAIT = 133639
 local ALL_PORTRAIT = 132594
@@ -14,12 +15,45 @@ local LOOT_ROW_H = 34
 local INSTANCE_TYPE_ICON_SIZE = 16
 local INSTANCE_TYPE_ATLAS_SIZE = 24
 local INSTANCE_TYPE_ATLAS_INSET = 4
+local INSTANCE_TYPE_ICON_OFFSET = 3
+local INSTANCE_NAME_FONT_SIZE = 11
 local INSTANCE_TYPE_TAGS = {
     ["dungeon"] = 81,
     ["raid"] = 62
 }
 
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
+local BOSS_PORTRAIT_SIZE = 34
+local BOSS_PORTRAIT_X = 9
+local BOSS_PORTRAIT_Y = 3
+local BOSS_TEXT_GAP = 27
+local DRAGON_SCALE = BOSS_PORTRAIT_SIZE / 64
+local LEVEL_BADGE_SIZE = 16
+local LEVEL_BADGE_FONT_SIZE = 9
+local LEVEL_SKULL_MIN = 63
+local BOSS_UNKNOWN_LEVEL = 1000
+local DEFAULT_BOSS_RANK = 1
+local LEVEL_BADGE_STYLE = {
+    [0] = {
+        ring = {0.55, 0.5, 0.4}
+    },
+    [1] = {
+        ring = {0.95, 0.75, 0.25},
+        dragon = "BossDragon-Elite"
+    },
+    [2] = {
+        ring = {0.85, 0.87, 0.95},
+        dragon = "BossDragon-Rare-Elite"
+    },
+    [3] = {
+        ring = {0.95, 0.75, 0.25},
+        dragon = "BossDragon-Elite"
+    },
+    [4] = {
+        ring = {0.85, 0.87, 0.95},
+        dragon = "BossDragon-Rare"
+    }
+}
 local LOADSCREEN_CLASSIC = {
     aspect = 4 / 3,
     uSpan = 0.96,
@@ -384,6 +418,8 @@ local function UpdateInstanceBackground(row, inst)
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
+        local fontFile, _, fontFlags = row.text:GetFont()
+        if fontFile then row.text:SetFont(fontFile, INSTANCE_NAME_FONT_SIZE, fontFlags) end
         local textX = 6
         local typeIcon = AzerothCompendium:GetQuestTagIcon(INSTANCE_TYPE_TAGS[inst.type or listKind])
         if typeIcon then
@@ -392,27 +428,26 @@ local function UpdateInstanceBackground(row, inst)
                 row.typeIcon:SetTexCoord(0, 1, 0, 1)
                 row.typeIcon:SetAtlas(typeIcon[1])
                 row.typeIcon:SetSize(INSTANCE_TYPE_ATLAS_SIZE, INSTANCE_TYPE_ATLAS_SIZE)
-                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", 3 - INSTANCE_TYPE_ATLAS_INSET, 0)
-                textX = 6 + INSTANCE_TYPE_ATLAS_SIZE + 3 - INSTANCE_TYPE_ATLAS_INSET * 2
+                row.typeIcon:SetPoint("TOPLEFT", row, "TOPLEFT", INSTANCE_TYPE_ICON_OFFSET - INSTANCE_TYPE_ATLAS_INSET, INSTANCE_TYPE_ATLAS_INSET - INSTANCE_TYPE_ICON_OFFSET)
             elseif typeIcon[2] then
                 row.typeIcon:SetTexCoord(0, 1, 0, 1)
                 row.typeIcon:SetAtlas(typeIcon[1])
                 row.typeIcon:SetSize(INSTANCE_TYPE_ICON_SIZE, INSTANCE_TYPE_ICON_SIZE)
-                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", -3, 0)
-                textX = 6 + INSTANCE_TYPE_ICON_SIZE + 3
+                row.typeIcon:SetPoint("TOPLEFT", row, "TOPLEFT", INSTANCE_TYPE_ICON_OFFSET, -INSTANCE_TYPE_ICON_OFFSET)
             else
                 row.typeIcon:SetTexture(typeIcon[1])
                 row.typeIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
                 row.typeIcon:SetSize(INSTANCE_TYPE_ICON_SIZE, INSTANCE_TYPE_ICON_SIZE)
-                row.typeIcon:SetPoint("RIGHT", row.text, "LEFT", -3, 0)
-                textX = 6 + INSTANCE_TYPE_ICON_SIZE + 3
+                row.typeIcon:SetPoint("TOPLEFT", row, "TOPLEFT", INSTANCE_TYPE_ICON_OFFSET, -INSTANCE_TYPE_ICON_OFFSET)
             end
 
+            textX = INSTANCE_TYPE_ICON_OFFSET + INSTANCE_TYPE_ICON_SIZE + 3
             row.typeIcon:Show()
         end
 
-        row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, -6)
-        row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -6)
+        local textY = -INSTANCE_TYPE_ICON_OFFSET - floor((INSTANCE_TYPE_ICON_SIZE - INSTANCE_NAME_FONT_SIZE) / 2)
+        row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, textY)
+        row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, textY)
         row.subText:ClearAllPoints()
         row.subText:SetPoint("TOPLEFT", row.text, "BOTTOMLEFT", 0, -2)
         row.subText:SetPoint("TOPRIGHT", row.text, "BOTTOMRIGHT", 0, -2)
@@ -451,21 +486,21 @@ local function UpdateInstanceRow(row, inst)
 
     if UsesLoadingScreens() then
         local quests = AzerothCompendium:GetInstanceQuests(inst)
-        if #quests > 0 then
-            local done = 0
-            for _, quest in ipairs(quests) do
-                if AzerothCompendium:IsQuestCompleted(quest[1]) then done = done + 1 end
-            end
-
-            if done == #quests then
-                row.questCount:SetTextColor(0.25, 1, 0.25)
-            else
-                row.questCount:SetTextColor(1, 1, 1)
-            end
-
-            row.questCount:SetText(format("|T%s:14:14|t %d/%d", QUEST_COUNT_ICON, done, #quests))
-            row.questCount:Show()
+        local done = 0
+        for _, quest in ipairs(quests) do
+            if AzerothCompendium:IsQuestCompleted(quest[1]) then done = done + 1 end
         end
+
+        if #quests == 0 then
+            row.questCount:SetTextColor(0.6, 0.6, 0.6)
+        elseif done == #quests then
+            row.questCount:SetTextColor(0.25, 1, 0.25)
+        else
+            row.questCount:SetTextColor(1, 1, 1)
+        end
+
+        row.questCount:SetText(format("|T%s:14:14|t %d/%d", QUEST_COUNT_ICON, done, #quests))
+        row.questCount:Show()
     end
 
     if selectedInstance == inst then
@@ -482,10 +517,10 @@ local function UsesBossPortraits()
 end
 
 local function AddBossPortrait(row)
-    local size = BOSS_ROW_H - 6
+    local size = BOSS_PORTRAIT_SIZE
     row.portraitFrame = CreateFrame("Frame", nil, row)
     row.portraitFrame:SetSize(size, size)
-    row.portraitFrame:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.portraitFrame:SetPoint("LEFT", row, "LEFT", BOSS_PORTRAIT_X, BOSS_PORTRAIT_Y)
     row.portrait = row.portraitFrame:CreateTexture(nil, "ARTWORK")
     row.portrait:SetSize(size, size)
     row.portrait:SetPoint("CENTER", row.portraitFrame, "CENTER", 0, 0)
@@ -499,7 +534,79 @@ local function AddBossPortrait(row)
         row.portrait:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask")
     end
 
+    row.bossDragon = row.portraitFrame:CreateTexture(nil, "OVERLAY")
+    row.bossDragon:SetSize(256 * DRAGON_SCALE, 128 * DRAGON_SCALE)
+    row.bossDragon:SetPoint("CENTER", row.portraitFrame, "CENTER", -54 * DRAGON_SCALE, -20 * DRAGON_SCALE)
+    row.bossDragon:Hide()
+    row.levelBadge = CreateFrame("Frame", nil, row.portraitFrame)
+    row.levelBadge:SetSize(LEVEL_BADGE_SIZE, LEVEL_BADGE_SIZE)
+    row.levelBadge:SetPoint("CENTER", row.portraitFrame, "CENTER", 19.5 * DRAGON_SCALE, -22 * DRAGON_SCALE)
+    row.levelBadge:SetFrameLevel(row.portraitFrame:GetFrameLevel() + 2)
+    row.levelRing = row.levelBadge:CreateTexture(nil, "BORDER")
+    row.levelRing:SetAllPoints(row.levelBadge)
+    row.levelFill = row.levelBadge:CreateTexture(nil, "ARTWORK")
+    row.levelFill:SetPoint("TOPLEFT", row.levelBadge, "TOPLEFT", 1.5, -1.5)
+    row.levelFill:SetPoint("BOTTOMRIGHT", row.levelBadge, "BOTTOMRIGHT", -1.5, 1.5)
+    row.levelFill:SetColorTexture(0.05, 0.04, 0.03, 0.95)
+    if row.levelBadge.CreateMaskTexture and row.levelRing.AddMaskTexture then
+        local ringMask = row.levelBadge:CreateMaskTexture()
+        ringMask:SetAllPoints(row.levelRing)
+        ringMask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        row.levelRing:AddMaskTexture(ringMask)
+        local fillMask = row.levelBadge:CreateMaskTexture()
+        fillMask:SetAllPoints(row.levelFill)
+        fillMask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        row.levelFill:AddMaskTexture(fillMask)
+    end
+
+    row.levelText = row.levelBadge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.levelText:SetPoint("CENTER", row.levelBadge, "CENTER", 0.5, 0)
+    local fontFile, _, fontFlags = row.levelText:GetFont()
+    if fontFile then row.levelText:SetFont(fontFile, LEVEL_BADGE_FONT_SIZE, fontFlags) end
+    row.levelSkull = row.levelBadge:CreateTexture(nil, "OVERLAY")
+    row.levelSkull:SetSize(LEVEL_BADGE_SIZE - 6, LEVEL_BADGE_SIZE - 6)
+    row.levelSkull:SetPoint("CENTER", row.levelBadge, "CENTER", 0, 0)
+    row.levelSkull:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Skull")
+    row.levelBadge:Hide()
     row.portraitFrame:Hide()
+end
+
+local function GetLevelColor(level)
+    if type(GetQuestDifficultyColor) ~= "function" then return 1, 0.82, 0 end
+    local ok, color = pcall(GetQuestDifficultyColor, level)
+    if not ok or type(color) ~= "table" then return 1, 0.82, 0 end
+
+    return color.r or 1, color.g or 1, color.b or 1
+end
+
+local function UpdateBossLevelBadge(row, boss)
+    if row.levelBadge == nil then return end
+    row.bossDragon:Hide()
+    row.levelBadge:Hide()
+    if boss.all or boss.trash then return end
+    local npcID = boss.npcs and boss.npcs[1]
+    local rank = boss.rank or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK
+    local style = LEVEL_BADGE_STYLE[rank] or LEVEL_BADGE_STYLE[0]
+    if style.dragon then
+        row.bossDragon:SetTexture(MEDIA_PATH .. style.dragon)
+        row.bossDragon:Show()
+    end
+
+    local isSkull = rank == 3 or (boss.level ~= nil and boss.level >= LEVEL_SKULL_MIN)
+    if boss.level == nil and not isSkull then return end
+    row.levelRing:SetColorTexture(style.ring[1], style.ring[2], style.ring[3], 1)
+
+    if isSkull then
+        row.levelText:Hide()
+        row.levelSkull:Show()
+    else
+        row.levelText:SetText(boss.level)
+        row.levelText:SetTextColor(GetLevelColor(boss.level))
+        row.levelText:Show()
+        row.levelSkull:Hide()
+    end
+
+    row.levelBadge:Show()
 end
 
 local function UpdateBossPortrait(row, boss)
@@ -524,8 +631,9 @@ local function UpdateBossPortrait(row, boss)
     end
 
     row.portrait:SetSize(size, size)
+    UpdateBossLevelBadge(row, boss)
     row.portraitFrame:Show()
-    row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", 6, 0)
+    row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", BOSS_TEXT_GAP, -BOSS_PORTRAIT_Y)
     row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
 end
 
@@ -561,8 +669,21 @@ end
 local function GetBossList()
     local list = {}
     if selectedInstance == nil then return list end
-    for _, boss in ipairs(selectedInstance.bosses or {}) do
+    local order = {}
+    for index, boss in ipairs(selectedInstance.bosses or {}) do
+        order[boss] = index
         if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) then tinsert(list, boss) end
+    end
+
+    if not selectedInstance.vendor and (listKind == "dungeon" or listKind == "raid") then
+        table.sort(list, function(a, b)
+            if (a.trash == true) ~= (b.trash == true) then return b.trash == true end
+            local levelA = a.level or BOSS_UNKNOWN_LEVEL
+            local levelB = b.level or BOSS_UNKNOWN_LEVEL
+            if levelA ~= levelB then return levelA < levelB end
+
+            return order[a] < order[b]
+        end)
     end
 
     if #list > 0 and not selectedInstance.vendor and (listKind == "dungeon" or listKind == "raid") then tinsert(list, 1, GetAllEntry(selectedInstance)) end

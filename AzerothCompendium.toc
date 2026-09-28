@@ -57,6 +57,7 @@ data\instance_entrances.lua
 data\instance_maps.lua
 data\quest_rewards.lua
 data\trash.lua
+data\boss_ranks.lua
 data\vendors.lua
 data\loadingscreens.lua
 data\instance_wings.lua

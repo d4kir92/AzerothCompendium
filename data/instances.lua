@@ -81,6 +81,13 @@ AzerothCompendium.INSTANCES = {
 				["model"] = 139455,
 				["loot"] = {{271211}, {271212}, {271218}},
 			},
+			{
+				["name"] = "Lordaeron Captain",
+				["npcs"] = {255699},
+				["model"] = 139050,
+				["rank"] = 2,
+				["loot"] = {},
+			},
 		},
 	},
 	{
