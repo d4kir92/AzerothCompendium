@@ -410,7 +410,7 @@ local function UpdateNode(button, node, width)
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
         local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
-        prefix = format("|T%s:12:12:0:0|t ", tostring(icon or 134400))
+        prefix = format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
     end
 
     if node.outside then button.outsideIcon:Show() else button.outsideIcon:Hide() end
@@ -905,9 +905,12 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 0, 0)
     scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
-    local canvas = CreateFrame("Frame", nil, scroll)
+    local holder = CreateFrame("Frame", nil, scroll)
+    holder:SetSize(1, 1)
+    scroll:SetScrollChild(holder)
+    local canvas = CreateFrame("Frame", nil, holder)
+    canvas:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, 0)
     canvas:SetSize(1, 1)
-    scroll:SetScrollChild(canvas)
     if minimal then
         local vbar = CreateFrame("EventFrame", nil, tree, "MinimalScrollBar")
         vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 6, 0)
@@ -1189,6 +1192,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         canvas:SetSize(canvasW, canvasH)
+        holder:SetSize(canvasW * self.zoom, canvasH * self.zoom)
         if canvasW > viewW + 1 then self.hint:Show() else self.hint:Hide() end
         if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
         SetHScroll(scroll:GetHorizontalScroll())
