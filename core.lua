@@ -711,30 +711,53 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         return bottom
     end
 
-    local leadsIntoInstance = {}
-    local function LeadsIntoInstance(node, stack)
-        if leadsIntoInstance[node] ~= nil then return leadsIntoInstance[node] end
+    local inside = AzerothCompendium.QUESTINSIDE or {}
+    local hasInside = false
+    for _, node in ipairs(list) do
+        if node.instance and inside[node.id] then hasInside = true end
+    end
+
+    local function IsAnchor(node)
+        return node.instance and (inside[node.id] or not hasInside)
+    end
+
+    local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
+    local function IsAfterSeed(node)
+        return IsAnchor(node) or (node.instance and startInside[node.id] == true)
+    end
+
+    local function Reaches(node, key, cache, stack)
+        if cache[node] ~= nil then return cache[node] end
         if stack[node] then return false end
         stack[node] = true
         local result = false
-        for _, child in ipairs(node.children) do
-            if child.instance or LeadsIntoInstance(child, stack) then result = true end
+        local Seed = key == "parents" and IsAfterSeed or IsAnchor
+        for _, other in ipairs(node[key]) do
+            if Seed(other) or Reaches(other, key, cache, stack) then result = true end
         end
 
         stack[node] = nil
-        leadsIntoInstance[node] = result
+        cache[node] = result
 
         return result
     end
 
+    local afterAnchor = {}
+    local beforeAnchor = {}
     for _, node in ipairs(list) do
         IsBottom(node, {})
-        if not node.bottom then
-            node.section = 1
-        elseif node.instance or LeadsIntoInstance(node, {}) then
+        local anchor = IsAnchor(node)
+        local after = IsAfterSeed(node) or Reaches(node, "parents", afterAnchor, {})
+        node.outside = nil
+        if anchor then
             node.section = 2
-        else
+        elseif after and Reaches(node, "children", beforeAnchor, {}) then
+            node.section = 2
+            node.outside = true
+        elseif after then
             node.section = 3
+        else
+            node.section = 1
         end
 
         node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)

@@ -22,11 +22,32 @@ local HBAR_H = 12
 local HBAR_MIN_THUMB = 30
 local DRAG_THRESHOLD = 4
 local WHEEL_STEP = 60
-local QUEST_TAG_LETTER = {
-    [81] = "D",
-    [62] = "R"
+local QUEST_TAG_ATLAS_SIZE = 22
+local QUEST_TAG_ATLAS_INSET = 4
+local QUEST_TAG_DEFAULT_ICON = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
+local QUEST_TAG_ATLASES = {
+    [81] = {"Dungeon", "DungeonSkull", "Dungeon-Normal"},
+    [62] = {"Raid", "Dungeon", "DungeonSkull", "Dungeon-Normal"}
 }
 
+local questTagIcons = {}
+local function GetQuestTagIcon(tagID)
+    local atlases = QUEST_TAG_ATLASES[tagID]
+    if atlases == nil then return nil end
+    if questTagIcons[tagID] == nil then
+        questTagIcons[tagID] = {QUEST_TAG_DEFAULT_ICON, false}
+        for _, atlas in ipairs(atlases) do
+            if AzerothCompendium:AtlasExists(atlas) then
+                questTagIcons[tagID] = {atlas, true}
+                break
+            end
+        end
+    end
+
+    return questTagIcons[tagID]
+end
+
+local OUTSIDE_ICON = "Interface\\Icons\\INV_Misc_Map_01"
 local SECTION_COUNT = 3
 local SECTION_TITLES = {"LID_QUESTTREESTART", "LID_QUESTTREEINSTANCE", "LID_QUESTTREEAFTER"}
 local SECTION_EMPTY = {"LID_QUESTTREENOSTART", "LID_NOENTRIES", "LID_QUESTTREENOAFTER"}
@@ -153,17 +174,32 @@ local function AddRewardsToTooltip(questID)
     end
 end
 
+local function HasQuestTooltipData(questID)
+    if C_TooltipInfo == nil or C_TooltipInfo.GetHyperlink == nil then return true end
+    local ok, data = pcall(C_TooltipInfo.GetHyperlink, "quest:" .. questID)
+
+    return ok and type(data) == "table" and type(data.lines) == "table" and #data.lines > 0
+end
+
+local function RequestQuestData(questID)
+    if C_QuestLog and C_QuestLog.RequestLoadQuestByID then pcall(C_QuestLog.RequestLoadQuestByID, questID) end
+end
+
 local function ShowNodeTooltip(button)
     local node = button.node
     if node == nil then return end
     GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    local shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. node.id)
-    if not shown then
+    local shown = false
+    if HasQuestTooltipData(node.id) then shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. node.id) end
+    if not shown or not GameTooltip:IsOwned(button) or GameTooltip:NumLines() == 0 then
+        GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
         GameTooltip:ClearLines()
-        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(node.name), 1, 0.82, 0)
+        GameTooltip:AddLine(node.name, 1, 0.82, 0)
+        RequestQuestData(node.id)
     end
 
     AddQuestStatusToTooltip(node.id, node.quest)
+    if node.outside then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTOUTSIDE")), 1, 0.82, 0) end
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
@@ -281,7 +317,15 @@ local function CreateNode(canvas, tree)
     node.statusIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
     node.statusIcon:SetPoint("TOPLEFT", node, "TOPLEFT", NODE_PAD_X - 1, -NODE_PAD_TOP)
     node.title = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    node.tagIcon = node:CreateTexture(nil, "ARTWORK")
+    node.tagIcon:Hide()
     node.title:SetPoint("LEFT", node.statusIcon, "RIGHT", 3, 0)
+    node.outsideIcon = node:CreateTexture(nil, "ARTWORK")
+    node.outsideIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    node.outsideIcon:SetPoint("TOPRIGHT", node, "TOPRIGHT", -NODE_PAD_X + 1, -NODE_PAD_TOP)
+    node.outsideIcon:SetTexture(OUTSIDE_ICON)
+    node.outsideIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    node.outsideIcon:Hide()
     node.title:SetPoint("RIGHT", node, "RIGHT", -NODE_PAD_X, 0)
     node.title:SetJustifyH("LEFT")
     node.title:SetWordWrap(false)
@@ -358,8 +402,34 @@ local function UpdateNode(button, node, width)
         prefix = format("|T%s:12:12:0:0|t ", tostring(icon or 134400))
     end
 
-    local tag = AzerothCompendium.QUESTTAGS and QUEST_TAG_LETTER[AzerothCompendium.QUESTTAGS[node.id]] or ""
-    button.title:SetText(prefix .. color .. "[" .. tag .. node.level .. "] " .. node.name .. "|r")
+    if node.outside then button.outsideIcon:Show() else button.outsideIcon:Hide() end
+    local tagIcon = AzerothCompendium.QUESTTAGS and GetQuestTagIcon(AzerothCompendium.QUESTTAGS[node.id])
+    button.title:ClearAllPoints()
+    if tagIcon then
+        button.tagIcon:ClearAllPoints()
+        if tagIcon[2] then
+            button.tagIcon:SetTexCoord(0, 1, 0, 1)
+            button.tagIcon:SetAtlas(tagIcon[1])
+            button.tagIcon:SetSize(QUEST_TAG_ATLAS_SIZE, QUEST_TAG_ATLAS_SIZE)
+            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3 - QUEST_TAG_ATLAS_INSET, 0)
+            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3 - QUEST_TAG_ATLAS_INSET, 0)
+        else
+            button.tagIcon:SetTexture(tagIcon[1])
+            button.tagIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+            button.tagIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
+            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3, 0)
+        end
+
+        button.tagIcon:Show()
+    else
+        button.tagIcon:Hide()
+        button.title:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
+    end
+
+    button.title:SetPoint("RIGHT", button, "RIGHT", node.outside and -(NODE_PAD_X + STATUS_ICON_SIZE + 3) or -NODE_PAD_X, 0)
+
+    button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
     local border = STATUS_BORDER[status]
     button.border:SetColor(border[1], border[2], border[3], border[4])
     local y = NODE_PAD_TOP + TITLE_H
