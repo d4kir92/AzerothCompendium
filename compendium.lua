@@ -27,7 +27,7 @@ local TAB_ICON_SIZE = 14
 local TAB_ICONS = {
     ["map"] = {texture = "Interface\\Icons\\INV_Misc_Map_01"},
     ["bosses"] = {texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons", texCoords = {0.75, 1, 0.25, 0.5}},
-    ["quests"] = {texture = "Interface\\GossipFrame\\AvailableQuestIcon", texCoords = {0, 1, 0, 1}},
+    ["quests"] = {texture = "Interface\\GossipFrame\\ActiveQuestIcon", texCoords = {0, 1, 0, 1}},
     ["loot"] = {texture = "Interface\\Icons\\INV_Misc_Bag_08"},
     ["spells"] = {texture = "Interface\\Icons\\Spell_Nature_Lightning"},
     ["model"] = {texture = "Interface\\Icons\\INV_Misc_Head_Dragon_01"}
