@@ -23,6 +23,15 @@ local INSTANCE_TYPE_TAGS = {
 }
 
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
+local TAB_ICON_SIZE = 14
+local TAB_ICONS = {
+    ["map"] = {texture = "Interface\\Icons\\INV_Misc_Map_01"},
+    ["bosses"] = {texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons", texCoords = {0.75, 1, 0.25, 0.5}},
+    ["quests"] = {texture = "Interface\\GossipFrame\\AvailableQuestIcon", texCoords = {0, 1, 0, 1}},
+    ["loot"] = {texture = "Interface\\Icons\\INV_Misc_Bag_08"},
+    ["spells"] = {texture = "Interface\\Icons\\Spell_Nature_Lightning"},
+    ["model"] = {texture = "Interface\\Icons\\INV_Misc_Head_Dragon_01"}
+}
 local BOSS_PORTRAIT_SIZE = 34
 local BOSS_PORTRAIT_X = 9
 local BOSS_PORTRAIT_Y = 3
@@ -1533,12 +1542,22 @@ local function CreateSpellRow(scroller)
     return row
 end
 
-local function CreateTabButton(parent, label, onClick)
+local function CreateTabButton(parent, label, iconInfo, onClick)
     local button = CreateFrame("Button", nil, parent)
     button:SetSize(100, 22)
     button.text = button:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    button.text:SetPoint("CENTER", button, "CENTER", 0, 1)
+    button.text:SetPoint("CENTER", button, "CENTER", 8, 1)
     button.text:SetText(label)
+    button.icon = button:CreateTexture(nil, "ARTWORK")
+    button.icon:SetSize(TAB_ICON_SIZE, TAB_ICON_SIZE)
+    button.icon:SetPoint("RIGHT", button.text, "LEFT", -3, 0)
+    button.icon:SetTexture(iconInfo.texture)
+    if iconInfo.texCoords then
+        button.icon:SetTexCoord(unpack(iconInfo.texCoords))
+    else
+        button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+
     button.underline = button:CreateTexture(nil, "ARTWORK")
     button.underline:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 6, 2)
     button.underline:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -6, 2)
@@ -2201,19 +2220,19 @@ local function CreateJournal()
     compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
     local tabWidth = (MIDDLE_COL_W - 4) / 3
-    local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), function()
+    local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), TAB_ICONS["map"], function()
         middleKind = "map"
         RefreshBosses()
     end)
     mapTab:SetWidth(tabWidth)
     mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
-    local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), function()
+    local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         RefreshBosses()
     end)
     bossTab:SetWidth(tabWidth)
     bossTab:SetPoint("LEFT", mapTab, "RIGHT", 2, 0)
-    local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), function()
+    local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), TAB_ICONS["quests"], function()
         middleKind = "quests"
         RefreshBosses()
     end)
@@ -2251,13 +2270,13 @@ local function CreateJournal()
     spells:Hide()
     compendium.spells = spells
     compendium.detailTabs = {}
-    local spellTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_ABILITIES"), function()
+    local spellTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_ABILITIES"), TAB_ICONS["spells"], function()
         detailKind = "spells"
         RefreshDetail()
     end)
 
     spellTab:SetWidth(78)
-    local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), function()
+    local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), TAB_ICONS["loot"], function()
         detailKind = "loot"
         RefreshDetail()
     end)
@@ -2271,7 +2290,7 @@ local function CreateJournal()
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()
         compendium.model = model
-        local modelTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MODEL"), function()
+        local modelTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MODEL"), TAB_ICONS["model"], function()
             detailKind = "model"
             RefreshDetail()
         end)
