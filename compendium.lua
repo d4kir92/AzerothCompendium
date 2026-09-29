@@ -90,13 +90,20 @@ local SCALE_STEP = 0.05
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
+local validListKinds = {dungeon = true, raid = true, pvp = true, faction = true, wishlist = true}
+local validMiddleKinds = {map = true, bosses = true, quests = true}
+local validDetailKinds = {loot = true, spells = true, model = true}
 local listKind = "dungeon"
 local middleKind = "map"
 local detailKind = "loot"
 local mapLevel = 1
+local restoreInstanceKey = nil
+local restoreBossKey = nil
 local mapInstance = nil
 local mapLevelMenu = nil
+local savedSearchText = ""
 local searchText = ""
+local navigationLoaded = false
 local refreshPending = false
 local FLAVOR_FOREVER = "forever"
 local FLAVOR_CLASSIC_ERA = "classic_era"
@@ -105,6 +112,20 @@ local function Lower(text)
     if text == nil then return "" end
 
     return strlower(text)
+end
+
+local function LoadNavigationState()
+    if navigationLoaded then return end
+    navigationLoaded = true
+    local navigation = type(ACOTABPC) == "table" and type(ACOTABPC["NAVIGATION"]) == "table" and ACOTABPC["NAVIGATION"] or {}
+    listKind = validListKinds[navigation.listKind] and navigation.listKind or "dungeon"
+    middleKind = validMiddleKinds[navigation.middleKind] and navigation.middleKind or "map"
+    detailKind = validDetailKinds[navigation.detailKind] and navigation.detailKind or "loot"
+    mapLevel = max(1, floor(tonumber(navigation.mapLevel) or 1))
+    restoreInstanceKey = type(navigation.instance) == "string" and navigation.instance or nil
+    restoreBossKey = type(navigation.boss) == "string" and navigation.boss or nil
+    savedSearchText = type(navigation.search) == "string" and navigation.search or ""
+    searchText = Lower(strtrim(savedSearchText))
 end
 
 local function Matches(text)
@@ -285,6 +306,20 @@ local function CreateScroller(parent, rowHeight, initRow)
         elseif type(self.scroll) == "table" then
             self.scroll:SetVerticalScroll(target)
         end
+    end
+
+    function scroller:ScrollToIndex(index)
+        if type(index) ~= "number" or self.data[index] == nil then return end
+        local entry = self.data[index]
+        local function Apply()
+            if self.data[index] ~= entry then return end
+            local viewport = self:GetViewport()
+            if viewport == nil or viewport:GetHeight() <= 0 then return end
+            self:Scroll(index - 0.5 - viewport:GetHeight() / self.rowHeight / 2)
+        end
+
+        Apply()
+        AzerothCompendium:After(0, Apply, "AzerothCompendium:ScrollToIndex")
     end
 
     function scroller:SetRowHeight(height)
@@ -918,12 +953,26 @@ end
 
 local function GetBossKey(boss)
     if boss == nil then return nil end
+    if boss.all then return "all" end
     if boss.trash then return "trash" end
     if boss.npcs and boss.npcs[1] then return "npc:" .. boss.npcs[1] end
     if boss.standing ~= nil then return "standing:" .. boss.standing end
     if boss.rank ~= nil then return "rank:" .. boss.rank end
 
     return "name:" .. (boss.name or "")
+end
+
+local function SaveNavigationState()
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC["NAVIGATION"] = {
+        listKind = listKind,
+        middleKind = middleKind,
+        detailKind = detailKind,
+        instance = GetInstanceKey(selectedInstance),
+        boss = GetBossKey(selectedBoss),
+        mapLevel = mapLevel,
+        search = compendium ~= nil and compendium.search ~= nil and compendium.search:GetText() or savedSearchText
+    }
 end
 
 local function BossHasItem(boss, itemID)
@@ -1125,6 +1174,7 @@ end
 local function SelectMapLevel(index)
     mapLevel = index
     UpdateMapView()
+    SaveNavigationState()
 end
 
 local function ShowMapLevelMenu(owner)
@@ -1246,6 +1296,7 @@ local function RefreshDetail()
     end
 
     UpdateTabs(compendium.detailTabs, detailKind)
+    SaveNavigationState()
 end
 
 local function RefreshBosses()
@@ -1287,6 +1338,19 @@ local function RefreshBosses()
     end
 
     compendium.bosses:SetData(list)
+    local restoredIndex = nil
+    if selectedBoss == nil and restoreBossKey ~= nil then
+        for index, boss in ipairs(list) do
+            if GetBossKey(boss) == restoreBossKey then
+                selectedBoss = boss
+                restoredIndex = index
+
+                break
+            end
+        end
+    end
+
+    restoreBossKey = nil
     local found = false
     for _, boss in ipairs(list) do
         if boss == selectedBoss then found = true end
@@ -1294,6 +1358,7 @@ local function RefreshBosses()
 
     if not found then selectedBoss = list[1] end
     compendium.bosses:Refresh()
+    if restoredIndex ~= nil then compendium.bosses:ScrollToIndex(restoredIndex) end
     if selectedInstance ~= nil then
         compendium.bossTitle:SetText(AzerothCompendium:GetInstanceName(selectedInstance))
     else
@@ -1314,6 +1379,20 @@ local function RefreshInstances()
     end
 
     compendium.instances:SetData(list)
+    local restoredIndex = nil
+    if selectedInstance == nil and restoreInstanceKey ~= nil then
+        for index, inst in ipairs(list) do
+            if GetInstanceKey(inst) == restoreInstanceKey then
+                selectedInstance = inst
+                restoredIndex = index
+                mapInstance = inst
+
+                break
+            end
+        end
+    end
+
+    restoreInstanceKey = nil
     local found = false
     for _, inst in ipairs(list) do
         if inst == selectedInstance then found = true end
@@ -1325,18 +1404,22 @@ local function RefreshInstances()
     end
 
     compendium.instances:Refresh()
+    if restoredIndex ~= nil then compendium.instances:ScrollToIndex(restoredIndex) end
     RefreshBosses()
 end
 
 local function OnInstanceClick(inst)
     selectedInstance = inst
     selectedBoss = nil
+    mapLevel = 1
+    SaveNavigationState()
     compendium.instances:Refresh()
     RefreshBosses()
 end
 
 local function OnBossClick(boss)
     selectedBoss = boss
+    SaveNavigationState()
     compendium.bosses:Refresh()
     RefreshDetail()
 end
@@ -2046,6 +2129,7 @@ NavigateToWishlistItem = function(entry)
     selectedBoss = boss
     detailKind = "loot"
     searchText = ""
+    SaveNavigationState()
     UpdateKindTabs()
     SetWishlistMode(false)
     if compendium.search:GetText() ~= "" then
@@ -2061,6 +2145,7 @@ function AzerothCompendium:RefreshWishlist()
 end
 
 local function CreateJournal()
+    LoadNavigationState()
     if compendium ~= nil then return compendium end
     local template = nil
     compendium, template = CreateTemplated(
@@ -2094,9 +2179,11 @@ local function CreateJournal()
     search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -30, -32)
     search:SetFontObject("ChatFontNormal")
     search:SetAutoFocus(false)
+    search:SetText(savedSearchText)
     search:SetScript("OnTextChanged", function(sel)
         searchText = Lower(strtrim(sel:GetText() or ""))
         RefreshCurrentView()
+        SaveNavigationState()
     end)
 
     search:SetScript("OnEscapePressed", function(sel)
@@ -2132,6 +2219,8 @@ local function CreateJournal()
             middleKind = "map"
             selectedInstance = nil
             selectedBoss = nil
+            mapLevel = 1
+            SaveNavigationState()
             UpdateKindTabs()
             RefreshCurrentView()
         end)
@@ -2222,18 +2311,21 @@ local function CreateJournal()
     local tabWidth = (MIDDLE_COL_W - 4) / 3
     local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), TAB_ICONS["map"], function()
         middleKind = "map"
+        SaveNavigationState()
         RefreshBosses()
     end)
     mapTab:SetWidth(tabWidth)
     mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
     local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), TAB_ICONS["bosses"], function()
         middleKind = "bosses"
+        SaveNavigationState()
         RefreshBosses()
     end)
     bossTab:SetWidth(tabWidth)
     bossTab:SetPoint("LEFT", mapTab, "RIGHT", 2, 0)
     local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), TAB_ICONS["quests"], function()
         middleKind = "quests"
+        SaveNavigationState()
         RefreshBosses()
     end)
     questTab:SetWidth(tabWidth)
@@ -2272,12 +2364,14 @@ local function CreateJournal()
     compendium.detailTabs = {}
     local spellTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_ABILITIES"), TAB_ICONS["spells"], function()
         detailKind = "spells"
+        SaveNavigationState()
         RefreshDetail()
     end)
 
     spellTab:SetWidth(78)
     local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), TAB_ICONS["loot"], function()
         detailKind = "loot"
+        SaveNavigationState()
         RefreshDetail()
     end)
 
@@ -2292,6 +2386,7 @@ local function CreateJournal()
         compendium.model = model
         local modelTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MODEL"), TAB_ICONS["model"], function()
             detailKind = "model"
+            SaveNavigationState()
             RefreshDetail()
         end)
 
