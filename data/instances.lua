@@ -55,6 +55,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 17,
 				["model"] = 144188,
 				["loot"] = {{271204}, {271205}, {271206}},
+				["spells"] = {17307},
 			},
 			{
 				["name"] = "Witherfang",
@@ -62,6 +63,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 17,
 				["model"] = 144189,
 				["loot"] = {{271201}, {271202}, {271203}},
+				["spells"] = {3358},
 			},
 			{
 				["name"] = "The Abandoned",
@@ -69,6 +71,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 18,
 				["model"] = 138667,
 				["loot"] = {{271207}, {271208}, {271216}},
+				["spells"] = {1220855, 1266011},
 			},
 			{
 				["name"] = "Bjork",
@@ -76,6 +79,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 19,
 				["model"] = 144170,
 				["loot"] = {{271209}, {271210}, {271217}},
+				["spells"] = {1301635},
 			},
 			{
 				["name"] = "Rath'mael",
@@ -83,6 +87,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 20,
 				["model"] = 144175,
 				["loot"] = {{271213}, {271214}, {271215}},
+				["spells"] = {1279983},
 			},
 			{
 				["name"] = "Viktor the Vile",
@@ -90,6 +95,7 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 19,
 				["model"] = 139455,
 				["loot"] = {{271211}, {271212}, {271218}},
+				["spells"] = {3358},
 			},
 			{
 				["name"] = "Lordaeron Captain",
