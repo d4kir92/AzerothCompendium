@@ -227,11 +227,13 @@ end
 
 local function AddRewardsToTooltip(questID)
     local rewards = AzerothCompendium:GetQuestRewards(questID)
-    if rewards == nil then return end
+    local xp = AzerothCompendium:GetQuestRewardXP(questID)
+    if rewards == nil and xp <= 0 then return end
+    rewards = rewards or {}
     GameTooltip:AddLine(" ")
     AddRewardItemsToTooltip(AzerothCompendium:Trans("LID_QUESTREWARDS"), rewards.items)
     AddRewardItemsToTooltip(AzerothCompendium:Trans("LID_QUESTCHOICE"), rewards.choices)
-    if rewards.xp then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTXP")), tostring(rewards.xp), 0.9, 0.9, 0.9, 0.6, 0.4, 1) end
+    if xp > 0 then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTXP")), tostring(xp), 0.9, 0.9, 0.9, 0.6, 0.4, 1) end
     if rewards.money then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.MONEY or "Money"), GetMoneyText(rewards.money), 0.9, 0.9, 0.9, 1, 1, 1) end
     for _, entry in ipairs(rewards.rep or {}) do
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(GetFactionName(entry[1])), format("+%d %s", entry[2], _G.REPUTATION or "Reputation"), 0.9, 0.9, 0.9, 0.3, 0.8, 1)
@@ -615,7 +617,7 @@ local function UpdateNode(button, node, width)
 
     PlaceLine(button.xpText, button, y, TEXT_LINE_H)
     PlaceLine(button.moneyText, button, y, TEXT_LINE_H)
-    local xp = rewards and rewards.xp or 0
+    local xp = AzerothCompendium:GetQuestRewardXP(node.id)
     local money = rewards and rewards.money or 0
     button.xpText:SetText(xp .. " " .. AzerothCompendium:Trans("LID_QUESTXPSHORT"))
     button.moneyText:SetText(GetMoneyText(money))

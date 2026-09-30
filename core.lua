@@ -511,6 +511,24 @@ function AzerothCompendium:GetQuestRewards(questID)
     return AzerothCompendium.QUESTREWARDS and AzerothCompendium.QUESTREWARDS[questID]
 end
 
+function AzerothCompendium:GetQuestRewardXP(questID)
+    local rewards = AzerothCompendium:GetQuestRewards(questID)
+    local baseXP = rewards and rewards.xp or 0
+    if AzerothCompendium:GetFlavor() ~= FLAVOR_FOREVER then return baseXP end
+
+    local tunedXP = AzerothCompendium.QUESTXPFOREVERTUNING and AzerothCompendium.QUESTXPFOREVERTUNING[questID]
+    if type(GetQuestLogRewardXP) == "function" then
+        local ok, liveXP = pcall(GetQuestLogRewardXP, questID)
+        if ok and type(liveXP) == "number" and not AzerothCompendium:IsSecret(liveXP) and liveXP > 0 then
+            if tunedXP and liveXP == baseXP then return tunedXP end
+
+            return liveXP
+        end
+    end
+
+    return tunedXP or baseXP
+end
+
 local function IsQuestHidden(questID)
     if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
 
