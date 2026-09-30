@@ -12,6 +12,8 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   View boss loot, drop chances, abilities, and 3D models.
 *   Browse PvP honor rewards and battleground faction rewards.
 *   Browse reputation rewards grouped by faction and standing.
+*   Browse world-drop quest-starting items with their quest and known source; verified sources have
+    a world-map waypoint button.
 *   Save items to an account-wide wishlist and jump back to their source.
 *   Search instances, bosses, factions, and items.
 *   Switch the compendium between the complete Forever data and the Classic Era data.
@@ -31,6 +33,7 @@ Azeroth Compendium brings a searchable, encounter and reward journal.
 *   Right-click an item to add it to or remove it from the wishlist.
 *   Open the Wishlist tab and left-click an item to jump to its category, instance, and boss.
 *   Right-click an item in the Wishlist tab to remove it.
+*   Open **World Drop Quest Items** and click a map icon to mark a verified item source.
 *   Use the **Flavor** dropdown above the left list to show either all Forever data or only Classic Era content.
 
 The **Only my class** option is shared between the compendium and the settings window. Changing it in either place updates the other checkbox immediately.
@@ -44,6 +47,8 @@ The addon ships with a static database and does not record loot while playing.
 *   Dungeon quest IDs, levels, factions, and fallback names are based on Wowhead Classic and Forever zone pages;
     Classic minimum acceptance levels are supplemented by QuestieDB.
 *   World of Warcraft: Forever additions are based on publicly available Forever data.
+*   Classic world-drop quest-item sources and coordinates are based on Wowhead Classic. Forever
+    entries without a published source are explicitly marked as undocumented and do not show a pin.
 *   Item names, icons, faction names, standing labels, and instance names are localized by the game client whenever possible.
 
 Forever content can change during development. New or changed encounters may therefore have incomplete loot or ability data until reliable information becomes available.

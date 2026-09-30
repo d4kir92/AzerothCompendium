@@ -1268,6 +1268,11 @@ function AzerothCompendium:PreloadItems()
         tinsert(queue, entry[1])
     end
 
+    for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS or {}) do
+        tinsert(queue, entry.itemID)
+        if C_QuestLog and C_QuestLog.RequestLoadQuestByID then C_QuestLog.RequestLoadQuestByID(entry.questID) end
+    end
+
     for _, rewards in pairs(AzerothCompendium.QUESTREWARDS or {}) do
         for _, list in ipairs({rewards.items or {}, rewards.choices or {}}) do
             for _, entry in ipairs(list) do

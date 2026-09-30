@@ -12,6 +12,7 @@ local TRASH_PORTRAIT = 133639
 local ALL_PORTRAIT = 132594
 local PORTRAIT_ICON_ZOOM = 0.05
 local LOOT_ROW_H = 34
+local WORLD_QUEST_ITEM_ROW_H = 42
 local INSTANCE_TYPE_ICON_SIZE = 16
 local INSTANCE_TYPE_ATLAS_SIZE = 24
 local INSTANCE_TYPE_ATLAS_INSET = 4
@@ -90,7 +91,7 @@ local SCALE_STEP = 0.05
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
-local validListKinds = {dungeon = true, raid = true, pvp = true, faction = true, wishlist = true}
+local validListKinds = {dungeon = true, raid = true, pvp = true, faction = true, worldquestitems = true, wishlist = true}
 local validMiddleKinds = {map = true, bosses = true, quests = true}
 local validDetailKinds = {loot = true, spells = true, model = true}
 local listKind = "dungeon"
@@ -1046,6 +1047,39 @@ local function GetWishlistList()
     return list
 end
 
+local function GetWorldQuestItemList()
+    local list = {}
+    for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS or {}) do
+        if not IsClassicEra() or not entry.forever then
+            local itemName = AzerothCompendium:GetItemDisplay(entry.itemID) or entry.itemName or tostring(entry.itemID)
+            local questName = AzerothCompendium:GetQuestNameByID(entry.questID)
+            local source = entry.source or AzerothCompendium:Trans("LID_WORLDDROPUNKNOWN")
+            local sourceText = source
+            if entry.zone ~= nil then sourceText = sourceText .. " - " .. entry.zone end
+            if Matches(itemName) or Matches(entry.itemName) or Matches(questName) or Matches(sourceText) or Matches(entry.description) then
+                tinsert(list, {
+                    itemID = entry.itemID,
+                    questID = entry.questID,
+                    itemName = itemName,
+                    questName = questName,
+                    sourceText = sourceText,
+                    data = entry
+                })
+            end
+        end
+    end
+
+    table.sort(list, function(a, b)
+        local aName = Lower(a.itemName or tostring(a.itemID))
+        local bName = Lower(b.itemName or tostring(b.itemID))
+        if aName == bName then return a.itemID < b.itemID end
+
+        return aName < bName
+    end)
+
+    return list
+end
+
 local function UpdateTabs(tabs, active)
     for kind, button in pairs(tabs) do
         if kind == active then
@@ -1439,6 +1473,13 @@ local function ShowItemTooltip(row)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss))), 1, 0.82, 0)
     end
 
+    if row.worldQuestItem ~= nil then
+        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_STARTSQUEST"), row.worldQuestItem.questName), 1, 0.82, 0)
+        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText), 1, 1, 1)
+        local description = row.worldQuestItem.data.description
+        if description ~= nil and description ~= "" then GameTooltip:AddLine(description, 0.7, 0.7, 0.7, true) end
+    end
+
     GameTooltip:Show()
 end
 
@@ -1590,6 +1631,118 @@ local function CreateWishlistRow(scroller)
 
         local _, _, boss = FindWishlistSource(entry.itemID, entry.source)
         self.boss = boss
+    end
+
+    return row
+end
+
+local function CreateWorldQuestItemRow(scroller)
+    local row = CreateFrame("Button", nil, scroller)
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    StyleRow(row)
+    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon:SetSize(32, 32)
+    row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.pin = CreateFrame("Button", nil, row)
+    row.pin:SetSize(28, 28)
+    row.pin:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    row.pin.icon = row.pin:CreateTexture(nil, "ARTWORK")
+    row.pin.icon:SetAllPoints(row.pin)
+    row.pin.icon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
+    row.pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.pin.badge = row.pin:CreateTexture(nil, "OVERLAY")
+    row.pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
+    row.pin.badge:SetPoint("BOTTOMRIGHT", row.pin, "BOTTOMRIGHT", 3, -2)
+    if HasAtlas(LOCATION_PIN_BADGE_ATLAS) then
+        row.pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
+    else
+        row.pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
+        row.pin.badge:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+
+    row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -2)
+    row.name:SetPoint("RIGHT", row.pin, "LEFT", -8, 0)
+    row.name:SetJustifyH("LEFT")
+    row.detail = row:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    row.detail:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 2)
+    row.detail:SetPoint("RIGHT", row.pin, "LEFT", -8, 0)
+    row.detail:SetJustifyH("LEFT")
+    row.detail:SetWordWrap(false)
+    row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
+    row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    row:SetScript("OnClick", function(sel, button)
+        if button == "RightButton" then
+            ShowWishlistMenu(sel, sel.itemID, nil)
+
+            return
+        end
+
+        if sel.link ~= nil and HandleModifiedItemClick then HandleModifiedItemClick(sel.link) end
+    end)
+
+    row.pin:SetScript("OnClick", function(sel)
+        local entry = sel:GetParent().worldQuestItem
+        if entry == nil then return end
+        local data = entry.data
+        local waypointSet, reason = AzerothCompendium:SetMapWaypoint(data.mapID, data.x, data.y)
+        if waypointSet then
+            AzerothCompendium:OpenWorldMapTo(data.mapID)
+        elseif reason == "combat" then
+            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT"))
+        end
+    end)
+
+    row.pin:SetScript("OnEnter", function(sel)
+        SetBadgeHighlight(sel, true)
+        if not AzerothCompendium:CanOpenWorldMapTo() then
+            AzerothCompendium:AttachMapOpener(sel, function(owner)
+                local entry = owner:GetParent().worldQuestItem
+                if entry == nil then return false end
+
+                return AzerothCompendium:SetMapWaypoint(entry.data.mapID, entry.data.x, entry.data.y)
+            end)
+        end
+        local entry = sel:GetParent().worldQuestItem
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SETITEMSOURCEWAYPOINT")))
+        if entry ~= nil and entry.data.zone ~= nil then GameTooltip:AddLine(entry.data.zone, 1, 1, 1) end
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_WORLDMAPWAYPOINTHINT"), 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+
+    row.pin:SetScript("OnLeave", function(sel)
+        SetBadgeHighlight(sel, false)
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    function row:Update(entry)
+        self.worldQuestItem = entry
+        self.itemID = entry.itemID
+        local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(entry.itemID)
+        self.link = link
+        self.icon:SetTexture(icon or 134400)
+        self.name:SetText(name or entry.itemName or AzerothCompendium:Trans("LID_LOADING"))
+        self.detail:SetText(format(AzerothCompendium:Trans("LID_WORLDQUESTITEMDETAIL"), entry.questName, entry.sourceText))
+        local color = nil
+        if quality ~= nil and ITEM_QUALITY_COLORS ~= nil then color = ITEM_QUALITY_COLORS[quality] end
+        if color ~= nil then
+            self.name:SetTextColor(color.r, color.g, color.b)
+        else
+            self.name:SetTextColor(0.6, 0.6, 0.6)
+        end
+
+        local data = entry.data
+        if data.mapID ~= nil and data.x ~= nil and data.y ~= nil then
+            self.pin:Show()
+            self.name:SetPoint("RIGHT", self.pin, "LEFT", -8, 0)
+            self.detail:SetPoint("RIGHT", self.pin, "LEFT", -8, 0)
+        else
+            self.pin:Hide()
+            self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
+            self.detail:SetPoint("RIGHT", self, "RIGHT", -8, 0)
+        end
     end
 
     return row
@@ -2047,8 +2200,9 @@ local function CreateScaleSlider(parent)
     parent.scaleValue = valueText
 end
 
-local function SetWishlistMode(enabled)
+local function SetSpecialMode(mode)
     if compendium == nil then return end
+    local enabled = mode ~= nil
     local regular = {
         compendium.instances,
         compendium.bossTitle,
@@ -2077,7 +2231,7 @@ local function SetWishlistMode(enabled)
     end
 
     for _, frame in ipairs({compendium.flavorControl or compendium.flavorDropdown}) do
-        if enabled then
+        if mode == "wishlist" then
             frame:Hide()
         else
             frame:Show()
@@ -2085,7 +2239,7 @@ local function SetWishlistMode(enabled)
     end
 
     if compendium.wishlist then
-        if enabled then
+        if mode == "wishlist" then
             compendium.wishlist:Show()
             compendium.wishlistTitle:Show()
             compendium.wishlistCount:Show()
@@ -2096,11 +2250,24 @@ local function SetWishlistMode(enabled)
             compendium.wishlistEmpty:Hide()
         end
     end
+
+    if compendium.worldQuestItems then
+        if mode == "worldquestitems" then
+            compendium.worldQuestItems:Show()
+            compendium.worldQuestItemsTitle:Show()
+            compendium.worldQuestItemsCount:Show()
+        else
+            compendium.worldQuestItems:Hide()
+            compendium.worldQuestItemsTitle:Hide()
+            compendium.worldQuestItemsCount:Hide()
+            compendium.worldQuestItemsEmpty:Hide()
+        end
+    end
 end
 
 local function RefreshWishlistView()
     if compendium == nil or compendium.wishlist == nil then return end
-    SetWishlistMode(true)
+    SetSpecialMode("wishlist")
     local list = GetWishlistList()
     compendium.wishlist:SetData(list)
     compendium.wishlistCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
@@ -2111,11 +2278,26 @@ local function RefreshWishlistView()
     end
 end
 
+local function RefreshWorldQuestItemsView()
+    if compendium == nil or compendium.worldQuestItems == nil then return end
+    SetSpecialMode("worldquestitems")
+    local list = GetWorldQuestItemList()
+    compendium.worldQuestItems:SetData(list)
+    compendium.worldQuestItemsCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
+    if #list == 0 then
+        compendium.worldQuestItemsEmpty:Show()
+    else
+        compendium.worldQuestItemsEmpty:Hide()
+    end
+end
+
 local function RefreshCurrentView()
     if listKind == "wishlist" then
         RefreshWishlistView()
+    elseif listKind == "worldquestitems" then
+        RefreshWorldQuestItemsView()
     else
-        SetWishlistMode(false)
+        SetSpecialMode(nil)
         RefreshInstances()
     end
 end
@@ -2131,7 +2313,7 @@ NavigateToWishlistItem = function(entry)
     searchText = ""
     SaveNavigationState()
     UpdateKindTabs()
-    SetWishlistMode(false)
+    SetSpecialMode(nil)
     if compendium.search:GetText() ~= "" then
         compendium.search:SetText("")
     else
@@ -2205,6 +2387,7 @@ local function CreateJournal()
         {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"},
         {"pvp", "LID_PVP", pvpIcon},
         {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
+        {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Map_01"},
         {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},
     }) do
         local kind = info[1]
@@ -2357,6 +2540,26 @@ local function CreateJournal()
     wishlistEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     wishlistEmpty:Hide()
     compendium.wishlistEmpty = wishlistEmpty
+    local worldQuestItems = CreateScroller(compendium, WORLD_QUEST_ITEM_ROW_H, CreateWorldQuestItemRow)
+    worldQuestItems:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
+    worldQuestItems:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    worldQuestItems:Hide()
+    compendium.worldQuestItems = worldQuestItems
+    local worldQuestItemsTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    worldQuestItemsTitle:SetPoint("BOTTOMLEFT", worldQuestItems, "TOPLEFT", 0, 6)
+    worldQuestItemsTitle:SetText(AzerothCompendium:Trans("LID_WORLDQUESTITEMS"))
+    worldQuestItemsTitle:Hide()
+    compendium.worldQuestItemsTitle = worldQuestItemsTitle
+    local worldQuestItemsCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    worldQuestItemsCount:SetPoint("BOTTOMRIGHT", worldQuestItems, "TOPRIGHT", 0, 6)
+    worldQuestItemsCount:SetJustifyH("RIGHT")
+    worldQuestItemsCount:Hide()
+    compendium.worldQuestItemsCount = worldQuestItemsCount
+    local worldQuestItemsEmpty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+    worldQuestItemsEmpty:SetPoint("CENTER", worldQuestItems, "CENTER", 0, 0)
+    worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+    worldQuestItemsEmpty:Hide()
+    compendium.worldQuestItemsEmpty = worldQuestItemsEmpty
     local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow)
     spells:SetAllPoints(loot)
     spells:Hide()
@@ -2478,6 +2681,7 @@ end
 local loader = CreateFrame("Frame")
 AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
 AzerothCompendium:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
+AzerothCompendium:RegisterEvent(loader, "QUEST_DATA_LOAD_RESULT")
 AzerothCompendium:RegisterEvent(loader, "QUEST_LOG_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
@@ -2494,6 +2698,8 @@ loader:SetScript("OnEvent", function(sel, event)
             compendium.questTree:Refresh()
         end
 
+        if compendium ~= nil and compendium:IsShown() and listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
+
         return
     end
 
@@ -2507,6 +2713,8 @@ loader:SetScript("OnEvent", function(sel, event)
             if compendium ~= nil and compendium:IsShown() then
                 if listKind == "wishlist" then
                     RefreshWishlistView()
+                elseif listKind == "worldquestitems" then
+                    RefreshWorldQuestItemsView()
                 else
                     compendium.instances:Refresh()
                     compendium.bosses:Refresh()

@@ -51,6 +51,7 @@ data\instances.lua
 data\quests.lua
 data\raid_quests.lua
 data\quest_chains.lua
+data\world_quest_items.lua
 data\quest_followups.lua
 data\instance_entrances.lua
 data\meeting_stones.lua
