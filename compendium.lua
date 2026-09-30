@@ -1474,10 +1474,8 @@ local function ShowItemTooltip(row)
     end
 
     if row.worldQuestItem ~= nil then
-        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_STARTSQUEST"), row.worldQuestItem.questName), 1, 0.82, 0)
-        GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText), 1, 1, 1)
-        local description = row.worldQuestItem.data.description
-        if description ~= nil and description ~= "" then GameTooltip:AddLine(description, 0.7, 0.7, 0.7, true) end
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_STARTSQUEST"), row.worldQuestItem.questName)), 1, 0.82, 0)
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
     end
 
     GameTooltip:Show()
