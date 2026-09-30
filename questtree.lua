@@ -316,7 +316,10 @@ local function OnNodeClick(button, mouseButton)
     end
 
     local waypointSet, reason = AzerothCompendium:SetQuestWaypoint(node.id)
-    if not waypointSet then
+    if waypointSet then
+        local mapID = AzerothCompendium:GetQuestGiverLocation(node.id)
+        AzerothCompendium:OpenWorldMapTo(mapID)
+    else
         local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
         AzerothCompendium:INFO(AzerothCompendium:Trans(message))
     end
