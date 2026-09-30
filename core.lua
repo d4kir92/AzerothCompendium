@@ -926,6 +926,51 @@ function AzerothCompendium:SetQuestWaypoint(questID)
     return AzerothCompendium:SetMapWaypoint(mapID, x, y)
 end
 
+local function GetQuestLogIndex(questID)
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, questID)
+        if ok and type(index) == "number" and index > 0 then return index end
+    end
+
+    if GetQuestLogIndexByID then
+        local ok, index = pcall(GetQuestLogIndexByID, questID)
+        if ok and type(index) == "number" and index > 0 then return index end
+    end
+
+    return nil
+end
+
+local function IsPlayerInGroup()
+    if IsInGroup then return IsInGroup() end
+    if GetNumGroupMembers then return GetNumGroupMembers() > 0 end
+
+    return false
+end
+
+function AzerothCompendium:ShareQuest(questID)
+    if QuestLogPushQuest == nil then return false, "unsupported" end
+    if not IsPlayerInGroup() then return false, "nogroup" end
+    local index = GetQuestLogIndex(questID)
+    if index == nil then return false, "notinlog" end
+    if C_QuestLog and C_QuestLog.IsPushableQuest and C_QuestLog.SetSelectedQuest then
+        if not C_QuestLog.IsPushableQuest(questID) then return false, "notshareable" end
+        C_QuestLog.SetSelectedQuest(questID)
+        QuestLogPushQuest()
+
+        return true
+    end
+
+    if SelectQuestLogEntry == nil or GetQuestLogPushable == nil then return false, "unsupported" end
+    local previous = GetQuestLogSelection and GetQuestLogSelection()
+    SelectQuestLogEntry(index)
+    local pushable = GetQuestLogPushable()
+    if pushable then QuestLogPushQuest() end
+    if previous and previous > 0 then SelectQuestLogEntry(previous) end
+    if not pushable then return false, "notshareable" end
+
+    return true
+end
+
 local function GetInstanceLocation(locations, inst)
     if inst == nil or locations == nil then return nil end
 

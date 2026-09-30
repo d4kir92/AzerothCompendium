@@ -103,6 +103,44 @@ local function GetQuestStatus(questID, node)
     return "open"
 end
 
+local function IsGroupUnitOnQuest(unit, questID)
+    if unit == "player" then return AzerothCompendium:IsQuestActive(questID) end
+    if C_QuestLog and C_QuestLog.IsUnitOnQuest then
+        local ok, onQuest = pcall(C_QuestLog.IsUnitOnQuest, unit, questID)
+        if ok then return onQuest == true end
+    end
+
+    if IsUnitOnQuest and GetQuestLogIndexByID then
+        local ok, index = pcall(GetQuestLogIndexByID, questID)
+        if ok and type(index) == "number" and index > 0 then
+            local unitOk, onQuest = pcall(IsUnitOnQuest, index, unit)
+
+            return unitOk and (onQuest == true or onQuest == 1)
+        end
+    end
+
+    return false
+end
+
+local function GetGroupQuestCount(questID)
+    if IsInGroup == nil or not IsInGroup() or GetNumGroupMembers == nil then return nil end
+    local total = GetNumGroupMembers()
+    if total <= 1 then return nil end
+    local count = 0
+    if IsInRaid and IsInRaid() then
+        for index = 1, total do
+            if IsGroupUnitOnQuest(UnitIsUnit("raid" .. index, "player") and "player" or "raid" .. index, questID) then count = count + 1 end
+        end
+    else
+        if IsGroupUnitOnQuest("player", questID) then count = count + 1 end
+        for index = 1, total - 1 do
+            if IsGroupUnitOnQuest("party" .. index, questID) then count = count + 1 end
+        end
+    end
+
+    return count, total
+end
+
 local function GetQuestDifficultyColorCode(level)
     if type(GetQuestDifficultyColor) ~= "function" then return "|cffffffff" end
     local ok, color = pcall(GetQuestDifficultyColor, level)
@@ -248,12 +286,28 @@ local function ShowNodeTooltip(button)
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans(locationText), 0.9, 0.9, 0.9, 1, 0.82, 0)
     end
 
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans("LID_SHAREQUEST"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+
     GameTooltip:Show()
 end
 
-local function OnNodeClick(button)
+local SHARE_ERRORS = {
+    nogroup = "LID_SHAREQUESTNOGROUP",
+    notinlog = "LID_SHAREQUESTNOTINLOG",
+    notshareable = "LID_SHAREQUESTNOTSHAREABLE",
+    unsupported = "LID_SHAREQUESTUNSUPPORTED",
+}
+
+local function OnNodeClick(button, mouseButton)
     local node = button.node
     if node == nil or button.tree.dragMoved then return end
+    if mouseButton == "RightButton" then
+        local shared, reason = AzerothCompendium:ShareQuest(node.id)
+        if not shared then AzerothCompendium:INFO(format(AzerothCompendium:Trans(SHARE_ERRORS[reason] or "LID_SHAREQUESTNOTSHAREABLE"), node.name)) end
+
+        return
+    end
+
     if InsertQuestLink(node.id) then return end
     if AzerothCompendium:IsQuestStartInInstance(node.id) then
         AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name))
@@ -332,7 +386,7 @@ end
 local function CreateNode(canvas, tree)
     local node = CreateFrame("Button", nil, canvas)
     node.tree = tree
-    node:RegisterForClicks("LeftButtonUp")
+    node:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     node.background = node:CreateTexture(nil, "BACKGROUND")
     node.background:SetAllPoints(node)
     node.background:SetColorTexture(0.06, 0.06, 0.08, 0.95)
@@ -353,6 +407,10 @@ local function CreateNode(canvas, tree)
     node.outsideIcon:SetTexture(OUTSIDE_ICON)
     node.outsideIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     node.outsideIcon:Hide()
+    node.groupText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.groupText:SetJustifyH("RIGHT")
+    node.groupText:SetWordWrap(false)
+    node.groupText:Hide()
     node.title:SetPoint("RIGHT", node, "RIGHT", -NODE_PAD_X, 0)
     node.title:SetJustifyH("LEFT")
     node.title:SetWordWrap(false)
@@ -460,7 +518,26 @@ local function UpdateNode(button, node, width)
         button.title:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
     end
 
-    button.title:SetPoint("RIGHT", button, "RIGHT", node.outside and -(NODE_PAD_X + STATUS_ICON_SIZE + 3) or -NODE_PAD_X, 0)
+    local rightInset = node.outside and NODE_PAD_X + STATUS_ICON_SIZE + 3 or NODE_PAD_X
+    local groupCount, groupTotal = GetGroupQuestCount(node.id)
+    if groupCount then
+        button.groupText:ClearAllPoints()
+        button.groupText:SetPoint("RIGHT", button, "TOPRIGHT", -rightInset, -(NODE_PAD_TOP + STATUS_ICON_SIZE / 2))
+        button.groupText:SetText(format("%d/%d", groupCount, groupTotal))
+        if groupCount >= groupTotal then
+            button.groupText:SetTextColor(0.4, 0.9, 0.4)
+        elseif groupCount > 0 then
+            button.groupText:SetTextColor(1, 0.82, 0)
+        else
+            button.groupText:SetTextColor(0.6, 0.6, 0.6)
+        end
+
+        button.groupText:Show()
+        button.title:SetPoint("RIGHT", button.groupText, "LEFT", -4, 0)
+    else
+        button.groupText:Hide()
+        button.title:SetPoint("RIGHT", button, "RIGHT", -rightInset, 0)
+    end
 
     button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
     local border = STATUS_BORDER[status]

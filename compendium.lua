@@ -2480,6 +2480,8 @@ AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
 AzerothCompendium:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
 AzerothCompendium:RegisterEvent(loader, "QUEST_LOG_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
+AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
+AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
 loader:SetScript("OnEvent", function(sel, event)
     if event == "PLAYER_LOGIN" then
         AzerothCompendium:PreloadItems()
@@ -2487,7 +2489,7 @@ loader:SetScript("OnEvent", function(sel, event)
         return
     end
 
-    if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" then
+    if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
         if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then
             compendium.questTree:Refresh()
         end
