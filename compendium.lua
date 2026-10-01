@@ -1226,7 +1226,7 @@ function MapPins.FindLevel(maps, artID)
 end
 
 function MapPins.Create(view)
-    local pin = CreateFrame("Button", nil, view)
+    local pin = CreateFrame("Button", nil, view.viewport)
     pin:SetSize(MapPins.size, MapPins.size)
     pin:SetFrameLevel(view:GetFrameLevel() + 2)
     pin.icon = pin:CreateTexture(nil, "ARTWORK")
@@ -1274,6 +1274,8 @@ function MapPins.Create(view)
         pin.masked = true
     end
 
+    pin:EnableMouseWheel(true)
+    pin:SetScript("OnMouseWheel", function(_, delta) MapPins.Zoom(view, delta) end)
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     pin:SetScript("OnClick", function(sel, mouse) MapPins.OnClick(sel, mouse) end)
     pin:SetScript("OnEnter", function(sel) MapPins.OnEnter(sel) end)
@@ -1330,7 +1332,7 @@ function MapPins.UpdateToggle(view, enabled)
     if button == nil then
         button = CreateFrame("Button", nil, view)
         button:SetSize(20, 20)
-        button:SetPoint("TOPRIGHT", view.art, "TOPRIGHT", -8, -8)
+        button:SetPoint("TOPRIGHT", view, "TOPRIGHT", -8, -8)
         button:SetFrameLevel(view:GetFrameLevel() + 4)
         button.icon = button:CreateTexture(nil, "ARTWORK")
         button.icon:SetAllPoints(button)
@@ -1447,8 +1449,32 @@ local function LayoutMapArt()
         width = h / ratio
     end
 
+    width = width * (view.zoom or 1)
+    height = height * (view.zoom or 1)
+    local maxX = math.max(0, (width - w) / 2)
+    local maxY = math.max(0, (height - h) / 2)
+    view.offsetX = math.max(-maxX, math.min(maxX, view.offsetX or 0))
+    view.offsetY = math.max(-maxY, math.min(maxY, view.offsetY or 0))
+    view.art:ClearAllPoints()
+    view.art:SetPoint("CENTER", view.viewport, "CENTER", view.offsetX, view.offsetY)
     view.art:SetSize(width, height)
     MapPins.Layout(view)
+end
+
+function MapPins.Zoom(view, delta)
+    if view.info == nil then return end
+    local old = view.zoom or 1
+    local zoom = math.max(1, math.min(4, old + delta * 0.25))
+    if zoom == old then return end
+    local x, y = GetCursorPosition()
+    local scale = view:GetEffectiveScale()
+    local cx, cy = view:GetCenter()
+    x, y = x / scale - cx, y / scale - cy
+    local factor = zoom / old
+    view.offsetX = x - (x - (view.offsetX or 0)) * factor
+    view.offsetY = y - (y - (view.offsetY or 0)) * factor
+    view.zoom = zoom
+    LayoutMapArt()
 end
 
 local function UpdateMapView()
@@ -1473,6 +1499,12 @@ local function UpdateMapView()
 
     if mapLevel > #maps then mapLevel = 1 end
     local info = maps[mapLevel]
+    if view.info ~= info then
+        view.zoom = 1
+        view.offsetX, view.offsetY = 0, 0
+        view.dragX, view.dragY = nil, nil
+    end
+
     view.info = info
     view.art:SetTexture(info.file)
     view.art:SetTexCoord(0, info.width / info.fileWidth, 0, info.height / info.fileHeight)
@@ -2789,7 +2821,34 @@ local function CreateJournal()
     local mapView = CreateFrame("Frame", nil, compendium)
     mapView:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     mapView:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
-    mapView.art = mapView:CreateTexture(nil, "ARTWORK")
+    mapView.viewport = CreateFrame("Frame", nil, mapView)
+    mapView.viewport:SetAllPoints(mapView)
+    mapView.viewport:SetClipsChildren(true)
+    mapView.viewport:EnableMouse(true)
+    mapView.viewport:EnableMouseWheel(true)
+    mapView.viewport:SetScript("OnMouseWheel", function(_, delta) MapPins.Zoom(mapView, delta) end)
+    mapView.viewport:SetScript("OnMouseDown", function(_, button)
+        if button ~= "LeftButton" or mapView.info == nil or (mapView.zoom or 1) <= 1 then return end
+        mapView.dragX, mapView.dragY = GetCursorPosition()
+    end)
+    mapView.viewport:SetScript("OnMouseUp", function() mapView.dragX, mapView.dragY = nil, nil end)
+    mapView.viewport:SetScript("OnHide", function() mapView.dragX, mapView.dragY = nil, nil end)
+    mapView.viewport:SetScript("OnUpdate", function()
+        if mapView.dragX == nil then return end
+        if not IsMouseButtonDown("LeftButton") then
+            mapView.dragX, mapView.dragY = nil, nil
+
+            return
+        end
+
+        local x, y = GetCursorPosition()
+        local scale = mapView:GetEffectiveScale()
+        mapView.offsetX = (mapView.offsetX or 0) + (x - mapView.dragX) / scale
+        mapView.offsetY = (mapView.offsetY or 0) + (y - mapView.dragY) / scale
+        mapView.dragX, mapView.dragY = x, y
+        LayoutMapArt()
+    end)
+    mapView.art = mapView.viewport:CreateTexture(nil, "ARTWORK")
     mapView.art:SetPoint("CENTER", mapView, "CENTER", 0, 0)
     mapView.empty = mapView:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     mapView.empty:SetPoint("CENTER", mapView, "CENTER", 0, 0)

@@ -17,6 +17,9 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.463, 0.623, 250657}, -- Rath'mael
         {"boss", 0.486, 0.299, 255699}, -- Lordaeron Captain
     },
+    [2998] = { -- Excavation Site: Wetlands
+        {"entrance", 0.080, 0.610},
+    },
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},
         {"boss", 0.564, 0.372, 11517}, -- Oggleflint
@@ -32,7 +35,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.493, 0.862, 642}, -- Sneed's Shredder / Sneed
     },
     [292] = { -- The Deadmines - Ironclad Cove
-        {"level", 0.123, 0.883, 291},
+        {"level", 0.123, 0.883, 291, true},
         {"boss", 0.121, 0.741, 1763}, -- Gilnid
         {"boss", 0.525, 0.170, 646}, -- Mr. Smite
         {"boss", 0.582, 0.357, 647}, -- Captain Greenskin
