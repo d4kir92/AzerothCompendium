@@ -2,10 +2,10 @@ local _, AzerothCompendium = ...
 AzerothCompendium.INSTANCEMAPPINS = {
     [3065] = { -- The Hall of Thanes
         {"entrance", 0.511, 0.948},
-        {"boss", 0.505, 0.659, 261306}, -- Faldrim Anvilmar
+        {"boss", 0.509, 0.666, 261306}, -- Faldrim Anvilmar
         {"boss", 0.717, 0.465, 261316}, -- Magmatus
-        {"boss", 0.507, 0.511, 261311}, -- Plunder
-        {"boss", 0.506, 0.164, 261319}, -- Durgen Dirgehammer
+        {"boss", 0.509, 0.516, 261311}, -- Plunder
+        {"boss", 0.510, 0.167, 261319}, -- Durgen Dirgehammer
     },
     [2999] = { -- Ruins of Lordaeron
         {"entrance", 0.612, 0.216},
@@ -23,7 +23,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},
         {"boss", 0.564, 0.372, 11517}, -- Oggleflint
-        {"boss", 0.406, 0.569, 11520}, -- Taragaman the Hungerer
+        {"boss", 0.406, 0.574, 11520}, -- Taragaman the Hungerer
         {"boss", 0.338, 0.840, 11518}, -- Jergosh the Invoker
         {"boss", 0.422, 0.857, 11519}, -- Bazzalan
     },
