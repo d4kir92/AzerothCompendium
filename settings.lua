@@ -57,6 +57,8 @@ local function HandleSlash(args)
     local sub = strlower(strtrim(args or ""))
     if sub == "settings" or sub == "options" or sub == "config" then
         AzerothCompendium:ToggleSettings()
+    elseif sub == "debug" then
+        AzerothCompendium:ToggleMapPinDebug()
     else
         AzerothCompendium:ToggleCompendium()
     end

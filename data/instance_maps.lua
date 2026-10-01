@@ -8,24 +8,28 @@ local function AddMaps(id, levels)
     local maps = {}
     for i, level in ipairs(levels) do
         maps[i] = {
+            ["id"] = level[4] or level[1],
             ["file"] = MEDIA_PATH .. level[1],
             ["name"] = level[2],
             ["width"] = ART_WIDTH,
             ["height"] = level[3] or ART_HEIGHT,
             ["fileWidth"] = FILE_SIZE,
             ["fileHeight"] = FILE_SIZE,
+            ["source"] = level[5],
         }
     end
 
     AzerothCompendium.INSTANCEMAPS[id] = maps
 end
 
-AddMaps(16611, {{2999}})
-AddMaps(16919, {{3065}})
+AddMaps(16544, {{2959, "City of Dalaran", 684}, {"2959_2", "Dalaran Sewers", 689, 2959002}})
+AddMaps(16732, {{2998}})
+AddMaps(16611, {{2999, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(16919, {{3065, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(389, {{213}})
 AddMaps(36, {{291, "The Deadmines"}, {292, "Ironclad Cove"}})
 AddMaps(43, {{279}})
-AddMaps(33, {{310, "The Courtyard"}, {311, "Dining Hall"}, {312, "The Vacant Den"}, {313, "Lower Observatory"}, {314, "Upper Observatory"}, {316, "The Wall Walk"}, {315, "Lord Godfrey's Chamber"}})
+AddMaps(33, {{310, "The Courtyard"}, {311, "Dining Hall"}, {316, "The Wall Walk"}, {312, "The Vacant Den"}, {313, "Lower Observatory"}, {314, "Upper Observatory"}, {315, "Lord Godfrey's Chamber"}})
 AddMaps(34, {{225, nil, 670}})
 AddMaps(48, {{221, "The Pool of Ask'Ar"}, {222, "Moonshrine Sanctum"}, {223, "The Forgotten Pool"}})
 AddMaps(90, {{226, "The Hall of Gears"}, {227, "The Dormitory"}, {228, "Launch Bay"}, {229, "Tinkers' Court"}})
