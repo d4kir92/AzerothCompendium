@@ -25,13 +25,28 @@ local INSTANCE_TYPE_TAGS = {
 
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
 local TAB_ICONS = {
-    ["map"] = {texture = "Interface\\Icons\\INV_Misc_Map_01"},
-    ["bosses"] = {texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons", texCoords = {0.75, 1, 0.25, 0.5}},
-    ["quests"] = {texture = "Interface\\GossipFrame\\ActiveQuestIcon", texCoords = {0, 1, 0, 1}},
-    ["loot"] = {texture = "Interface\\Icons\\INV_Misc_Bag_08"},
-    ["spells"] = {texture = "Interface\\Icons\\Spell_Nature_Lightning"},
-    ["model"] = {texture = "Interface\\Icons\\INV_Misc_Head_Dragon_01"}
+    ["map"] = {
+        texture = "Interface\\Icons\\INV_Misc_Map_01"
+    },
+    ["bosses"] = {
+        texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons",
+        texCoords = {0.75, 1, 0.25, 0.5}
+    },
+    ["quests"] = {
+        texture = "Interface\\GossipFrame\\ActiveQuestIcon",
+        texCoords = {0, 1, 0, 1}
+    },
+    ["loot"] = {
+        texture = "Interface\\Icons\\INV_Misc_Bag_08"
+    },
+    ["spells"] = {
+        texture = "Interface\\Icons\\Spell_Nature_Lightning"
+    },
+    ["model"] = {
+        texture = "Interface\\Icons\\INV_Misc_Head_Dragon_01"
+    }
 }
+
 local BOSS_PORTRAIT_SIZE = 34
 local BOSS_PORTRAIT_X = 9
 local BOSS_PORTRAIT_Y = 3
@@ -63,6 +78,7 @@ local LEVEL_BADGE_STYLE = {
         dragon = "BossDragon-Rare"
     }
 }
+
 local LOADSCREEN_CLASSIC = {
     aspect = 4 / 3,
     uSpan = 0.96,
@@ -76,6 +92,7 @@ local LOADSCREEN_WIDE = {
     vSpanMax = 0.66,
     vCenter = 0.5
 }
+
 local INSTANCE_COL_W = 200
 local MIDDLE_COL_W = 240
 local SCROLLBAR_W = 18
@@ -90,9 +107,27 @@ local SCALE_STEP = 0.05
 local compendium = nil
 local selectedInstance = nil
 local selectedBoss = nil
-local validListKinds = {dungeon = true, raid = true, pvp = true, faction = true, worldquestitems = true, wishlist = true}
-local validMiddleKinds = {map = true, bosses = true, quests = true}
-local validDetailKinds = {loot = true, spells = true, model = true}
+local validListKinds = {
+    dungeon = true,
+    raid = true,
+    pvp = true,
+    faction = true,
+    worldquestitems = true,
+    wishlist = true
+}
+
+local validMiddleKinds = {
+    map = true,
+    bosses = true,
+    quests = true
+}
+
+local validDetailKinds = {
+    loot = true,
+    spells = true,
+    model = true
+}
+
 local listKind = "dungeon"
 local middleKind = "map"
 local detailKind = "loot"
@@ -107,10 +142,8 @@ local navigationLoaded = false
 local refreshPending = false
 local FLAVOR_FOREVER = "forever"
 local FLAVOR_CLASSIC_ERA = "classic_era"
-
 local function Lower(text)
     if text == nil then return "" end
-
     return strlower(text)
 end
 
@@ -131,7 +164,6 @@ end
 local function Matches(text)
     if searchText == "" then return true end
     if text == nil then return false end
-
     return strfind(Lower(text), searchText, 1, true) ~= nil
 end
 
@@ -148,14 +180,16 @@ local function VisibleLootCount(boss)
     for _, entry in ipairs(boss.loot or {}) do
         if IsItemVisible(entry[1]) then count = count + 1 end
     end
-
     return count
 end
 
 local allEntries = {}
 local function GetAllEntry(inst)
-    if allEntries[inst] == nil then allEntries[inst] = {all = true} end
-
+    if allEntries[inst] == nil then
+        allEntries[inst] = {
+            all = true
+        }
+    end
     return allEntries[inst]
 end
 
@@ -168,11 +202,14 @@ local function GetAllLoot(inst)
             local itemID = entry[1]
             if not seen[itemID] and IsItemVisible(itemID) then
                 seen[itemID] = true
-                tinsert(list, {itemID, entry[2], source = boss})
+                tinsert(list, {
+                    itemID,
+                    entry[2],
+                    source = boss
+                })
             end
         end
     end
-
     return list
 end
 
@@ -183,7 +220,6 @@ local function IsInstanceVisible(inst)
     for _, boss in ipairs(inst.bosses or {}) do
         if VisibleLootCount(boss) > 0 then return true end
     end
-
     return false
 end
 
@@ -194,13 +230,11 @@ local function BossMatches(boss)
     for _, entry in ipairs(boss.loot or {}) do
         if IsItemVisible(entry[1]) and Matches(AzerothCompendium:GetItemDisplay(entry[1])) then return true end
     end
-
     return false
 end
 
 local function QuestMatches(quest)
     if searchText == "" then return true end
-
     return Matches(AzerothCompendium:GetQuestName(quest))
 end
 
@@ -211,10 +245,10 @@ local function InstanceMatches(inst)
     for _, boss in ipairs(inst.bosses or {}) do
         if BossMatches(boss) then return true end
     end
+
     for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
         if QuestMatches(quest) then return true end
     end
-
     return false
 end
 
@@ -222,7 +256,6 @@ local function HasModernScroll()
     if ScrollUtil == nil then return false end
     if ScrollUtil.InitScrollBoxWithScrollBar == nil then return false end
     if CreateScrollBoxLinearView == nil then return false end
-
     return AzerothCompendium:CheckTemplates("WowScrollBox, MinimalScrollBar")
 end
 
@@ -288,7 +321,6 @@ local function CreateScroller(parent, rowHeight, initRow)
     function scroller:GetViewport()
         if type(self.box) == "table" then return self.box end
         if type(self.scroll) == "table" then return self.scroll end
-
         return nil
     end
 
@@ -373,7 +405,6 @@ local function CreateScroller(parent, rowHeight, initRow)
     end
 
     scroller:SetScript("OnSizeChanged", function(sel) sel:Refresh() end)
-
     return scroller
 end
 
@@ -397,10 +428,7 @@ local function CreateTextRow(scroller, onClick)
     row.info:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.info:SetJustifyH("RIGHT")
     row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
-    row:SetScript("OnClick", function(sel)
-        if sel.entry ~= nil then onClick(sel.entry) end
-    end)
-
+    row:SetScript("OnClick", function(sel) if sel.entry ~= nil then onClick(sel.entry) end end)
     return row
 end
 
@@ -425,7 +453,6 @@ end
 local function GetLoadingScreen(inst)
     if AzerothCompendium.LOADINGSCREENS_WIDE and AzerothCompendium.LOADINGSCREENS_WIDE[inst.id] then return AzerothCompendium.LOADINGSCREENS_WIDE[inst.id], LOADSCREEN_WIDE end
     if AzerothCompendium.LOADINGSCREENS and AzerothCompendium.LOADINGSCREENS[inst.id] then return AzerothCompendium.LOADINGSCREENS[inst.id], LOADSCREEN_CLASSIC end
-
     return nil, nil
 end
 
@@ -451,7 +478,6 @@ local DUNGEON_ICON_CANDIDATES = {"Dungeon", "DungeonSkull", "Dungeon-Normal"}
 local DUNGEON_ICON_FALLBACK = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
 local RAID_ICON_CANDIDATES = {"Raid"}
 local MEETING_STONE_ICON = {"Interface\\AddOns\\AzerothCompendium\\media\\meetingstone", false, true, 3}
-
 local function HasAtlas(atlas)
     return C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(atlas) ~= nil
 end
@@ -467,7 +493,6 @@ local function ResolveIcon(candidates, fallback)
             end
         end
     end
-
     return resolvedIcons[candidates]
 end
 
@@ -502,7 +527,6 @@ local LOCATION_PINS = {
     entrance = {
         getIcon = function(inst)
             if inst.type == "raid" then return ResolveIcon(RAID_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK) end
-
             return ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK)
         end,
         get = function(inst) return AzerothCompendium:GetInstanceEntrance(inst) end,
@@ -555,11 +579,7 @@ local function CreateLocationPin(row, def)
 
     pin:SetScript("OnEnter", function(sel)
         SetBadgeHighlight(sel, true)
-        if not AzerothCompendium:CanOpenWorldMapTo() then
-            AzerothCompendium:AttachMapOpener(sel, function(owner)
-                return owner.def.setWaypoint(owner:GetParent().entry)
-            end)
-        end
+        if not AzerothCompendium:CanOpenWorldMapTo() then AzerothCompendium:AttachMapOpener(sel, function(owner) return owner.def.setWaypoint(owner:GetParent().entry) end) end
         local inst = sel:GetParent().entry
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(sel.def.title)))
@@ -574,8 +594,8 @@ local function CreateLocationPin(row, def)
         SetBadgeHighlight(sel, false)
         AzerothCompendium:HideGameTooltip()
     end)
-    pin:Hide()
 
+    pin:Hide()
     return pin
 end
 
@@ -593,7 +613,6 @@ local function UpdateLocationPins(row, inst)
             right = right - LOCATION_PIN_SIZE - LOCATION_PIN_SPACING
         end
     end
-
     return right
 end
 
@@ -629,7 +648,10 @@ local function UpdateInstanceBackground(row, inst)
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
-    for _, pin in ipairs(row.locationPins) do pin:Hide() end
+    for _, pin in ipairs(row.locationPins) do
+        pin:Hide()
+    end
+
     if UsesLoadingScreens() then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
@@ -662,7 +684,6 @@ local function UpdateInstanceBackground(row, inst)
 
         local textY = -INSTANCE_TYPE_ICON_OFFSET - floor((INSTANCE_TYPE_ICON_SIZE - INSTANCE_NAME_FONT_SIZE) / 2)
         local textRight = UpdateLocationPins(row, inst) - 2
-
         row.text:SetPoint("TOPLEFT", row, "TOPLEFT", textX, textY)
         row.text:SetPoint("TOPRIGHT", row, "TOPRIGHT", textRight, textY)
         row.subText:ClearAllPoints()
@@ -693,6 +714,7 @@ local function UpdateInstanceRow(row, inst)
     else
         row.text:SetText(AzerothCompendium:GetInstanceName(inst))
     end
+
     if inst.minLevel and inst.maxLevel and inst.minLevel == inst.maxLevel then
         row.info:SetText(inst.minLevel)
     elseif inst.minLevel and inst.maxLevel then
@@ -745,7 +767,6 @@ local function AddIconRing(parent, icon, size, round)
         mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
         icon:AddMaskTexture(mask)
     end
-
     return ring
 end
 
@@ -809,7 +830,6 @@ local function GetLevelColor(level)
     if type(GetQuestDifficultyColor) ~= "function" then return 1, 0.82, 0 end
     local ok, color = pcall(GetQuestDifficultyColor, level)
     if not ok or type(color) ~= "table" then return 1, 0.82, 0 end
-
     return color.r or 1, color.g or 1, color.b or 1
 end
 
@@ -829,7 +849,6 @@ local function UpdateBossLevelBadge(row, boss)
     local isSkull = rank == 3 or (boss.level ~= nil and boss.level >= LEVEL_SKULL_MIN)
     if boss.level == nil and not isSkull then return end
     row.levelRing:SetColorTexture(style.ring[1], style.ring[2], style.ring[3], 1)
-
     if isSkull then
         row.levelText:Hide()
         row.levelSkull:Show()
@@ -850,7 +869,6 @@ local function UpdateBossPortrait(row, boss)
         row.portraitFrame:Hide()
         row.text:SetPoint("LEFT", row, "LEFT", 6, 0)
         row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
-
         return
     end
 
@@ -899,7 +917,6 @@ local function GetInstanceList()
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
         if IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
     end
-
     return list
 end
 
@@ -918,13 +935,11 @@ local function GetBossList()
             local levelA = a.level or BOSS_UNKNOWN_LEVEL
             local levelB = b.level or BOSS_UNKNOWN_LEVEL
             if levelA ~= levelB then return levelA < levelB end
-
             return order[a] < order[b]
         end)
     end
 
     if #list > 0 and not selectedInstance.vendor and (listKind == "dungeon" or listKind == "raid") then tinsert(list, 1, GetAllEntry(selectedInstance)) end
-
     return list
 end
 
@@ -932,7 +947,6 @@ local function GetQuestGraph()
     if selectedInstance == nil then return {} end
     local filter = nil
     if searchText ~= "" then filter = function(node) return Matches(node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)) end end
-
     return AzerothCompendium:GetInstanceQuestGraph(selectedInstance, filter)
 end
 
@@ -941,7 +955,6 @@ local function CountInstanceQuests(graph)
     for _, node in ipairs(graph) do
         if node.instance then count = count + 1 end
     end
-
     return count
 end
 
@@ -961,7 +974,6 @@ local function GetLootList()
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok then tinsert(list, entry) end
     end
-
     return list
 end
 
@@ -971,7 +983,6 @@ local function GetSpellList()
     for _, spellID in ipairs(selectedBoss.spells or {}) do
         if AzerothCompendium:GetSpellInfo(spellID) ~= nil then tinsert(list, spellID) end
     end
-
     return list
 end
 
@@ -980,7 +991,6 @@ local function GetInstanceKey(inst)
     if inst.honor then return "honor" end
     if inst.factionID ~= nil then return "faction:" .. inst.factionID end
     if inst.id ~= nil then return "instance:" .. inst.id end
-
     return "name:" .. (inst.name or "")
 end
 
@@ -991,7 +1001,6 @@ local function GetBossKey(boss)
     if boss.npcs and boss.npcs[1] then return "npc:" .. boss.npcs[1] end
     if boss.standing ~= nil then return "standing:" .. boss.standing end
     if boss.rank ~= nil then return "rank:" .. boss.rank end
-
     return "name:" .. (boss.name or "")
 end
 
@@ -1012,7 +1021,6 @@ local function BossHasItem(boss, itemID)
     for _, loot in ipairs(boss.loot or {}) do
         if loot[1] == itemID then return true end
     end
-
     return false
 end
 
@@ -1038,14 +1046,12 @@ local function FindWishlistSource(itemID, source)
             end
         end
     end
-
     return nil, nil, nil
 end
 
 local function GetCurrentWishlistSource(boss)
     boss = boss or selectedBoss
     if selectedInstance == nil or boss == nil or boss.all then return nil end
-
     return {
         ["kind"] = listKind,
         ["instance"] = GetInstanceKey(selectedInstance),
@@ -1063,7 +1069,12 @@ local function GetWishlistList()
             local sourceText = ""
             if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
             if (not IsClassicEra() or inst ~= nil) and (Matches(name) or Matches(sourceText)) then
-                tinsert(list, {itemID = itemID, source = source, sourceText = sourceText, name = name})
+                tinsert(list, {
+                    itemID = itemID,
+                    source = source,
+                    sourceText = sourceText,
+                    name = name
+                })
             end
         end
     end
@@ -1072,10 +1083,8 @@ local function GetWishlistList()
         local aName = Lower(a.name or tostring(a.itemID))
         local bName = Lower(b.name or tostring(b.itemID))
         if aName == bName then return a.itemID < b.itemID end
-
         return aName < bName
     end)
-
     return list
 end
 
@@ -1105,10 +1114,8 @@ local function GetWorldQuestItemList()
         local aName = Lower(a.itemName or tostring(a.itemID))
         local bName = Lower(b.itemName or tostring(b.itemID))
         if aName == bName then return a.itemID < b.itemID end
-
         return aName < bName
     end)
-
     return list
 end
 
@@ -1118,6 +1125,7 @@ local function UpdateTabs(tabs, active)
         button.Icon:SetPoint("CENTER", button, "CENTER", button.questIcon and -2 or 0, button:GetIconYOffset(kind == active))
     end
 end
+
 local function UpdateModel()
     local frame = compendium.model
     if frame == nil then return false end
@@ -1132,7 +1140,6 @@ local function UpdateModel()
         frame.shownID = nil
         frame.shownNPC = nil
         frame:Hide()
-
         return false
     end
 
@@ -1148,7 +1155,6 @@ local function UpdateModel()
     if frame.SetCamDistanceScale then pcall(frame.SetCamDistanceScale, frame, frame.zoom) end
     if frame.SetRotation then pcall(frame.SetRotation, frame, frame.rotation) end
     if frame.RefreshCamera then pcall(frame.RefreshCamera, frame) end
-
     return applied
 end
 
@@ -1161,7 +1167,6 @@ end
 
 local function GetInstanceMaps()
     if selectedInstance == nil or AzerothCompendium.INSTANCEMAPS == nil then return nil end
-
     return AzerothCompendium.INSTANCEMAPS[selectedInstance.id]
 end
 
@@ -1169,7 +1174,6 @@ local function GetMapLevelLabel(maps, index)
     local info = maps[index]
     if info == nil then return "" end
     if info.name then return info.name end
-
     return selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or ""
 end
 
@@ -1189,7 +1193,6 @@ function MapPins.FindBoss(npcID)
             if id == npcID then return boss end
         end
     end
-
     return nil
 end
 
@@ -1206,7 +1209,6 @@ function MapPins.GetBossLevel(boss)
             end
         end
     end
-
     return nil
 end
 
@@ -1247,7 +1249,6 @@ function MapPins.FindLevel(maps, artID)
     for index, info in ipairs(maps or {}) do
         if info.id == artID then return index end
     end
-
     return nil
 end
 
@@ -1266,7 +1267,6 @@ function MapPins.GetQuestItems()
     end
 
     table.sort(items, function(a, b) return a[1] < b[1] end)
-
     return items
 end
 
@@ -1276,7 +1276,6 @@ function MapPins.GetItemName(itemID)
     for _, item in pairs(AzerothCompendium.QUESTSTARTITEMS or {}) do
         if item[1] == itemID then return item[2] or tostring(itemID) end
     end
-
     return tostring(itemID)
 end
 
@@ -1334,7 +1333,6 @@ function MapPins.Create(view)
     pin:SetScript("OnClick", function(sel, mouse) MapPins.OnClick(sel, mouse) end)
     pin:SetScript("OnEnter", function(sel) MapPins.OnEnter(sel) end)
     pin:SetScript("OnLeave", function(sel) MapPins.OnLeave(sel) end)
-
     return pin
 end
 
@@ -1358,7 +1356,6 @@ function MapPins.Style(pin)
         local applied = false
         if pin.boss.model ~= nil and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, pin.portrait, pin.boss.model) end
         if not applied then pin.portrait:SetTexture(BOSS_PORTRAIT_FALLBACK) end
-
         return
     end
 
@@ -1369,7 +1366,6 @@ function MapPins.Style(pin)
         pin.ring:SetVertexColor(1, 1, 1, 1)
         pin.ring:Show()
         pin.highlight:SetTexture(nil)
-
         return
     end
 
@@ -1395,19 +1391,12 @@ function MapPins.Layout(view)
     end
 end
 
-MapPins.types = {
-    {"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}},
-    {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}},
-    {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"},
-    {"level", "MAPPINS_LEVEL", "LEVELPINS"},
-}
-
+MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
 function MapPins.IsEnabled(kind)
     if MapPins.debug then return true end
     for _, def in ipairs(MapPins.types) do
         if def[1] == kind then return AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) ~= false end
     end
-
     return true
 end
 
@@ -1590,7 +1579,6 @@ local function UpdateMapView()
         view.empty:Show()
         control:Hide()
         MapPins.Update(view)
-
         return
     end
 
@@ -1638,7 +1626,6 @@ local function ShowMapLevelMenu(owner)
                 rootDescription:CreateRadio(GetMapLevelLabel(maps, i), function() return mapLevel == i end, function() SelectMapLevel(i) end)
             end
         end)
-
         return
     end
 
@@ -1646,7 +1633,11 @@ local function ShowMapLevelMenu(owner)
     if mapLevelMenu == nil then mapLevelMenu = CreateFrame("Frame", "AzerothCompendiumMapLevelMenu", UIParent, "UIDropDownMenuTemplate") end
     local entries = {}
     for i in ipairs(maps) do
-        tinsert(entries, {text = GetMapLevelLabel(maps, i), checked = mapLevel == i, func = function() SelectMapLevel(i) end})
+        tinsert(entries, {
+            text = GetMapLevelLabel(maps, i),
+            checked = mapLevel == i,
+            func = function() SelectMapLevel(i) end
+        })
     end
 
     EasyMenu(entries, mapLevelMenu, owner, 0, 0, "MENU")
@@ -1658,14 +1649,16 @@ local function RefreshDetail()
         compendium.loot:Hide()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
-        for _, button in pairs(compendium.detailTabs) do button:Hide() end
+        for _, button in pairs(compendium.detailTabs) do
+            button:Hide()
+        end
+
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
         compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
         compendium.detailCount:SetText("")
         UpdateMapView()
-
         return
     end
 
@@ -1673,13 +1666,15 @@ local function RefreshDetail()
         compendium.loot:Hide()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
-        for _, button in pairs(compendium.detailTabs) do button:Hide() end
+        for _, button in pairs(compendium.detailTabs) do
+            button:Hide()
+        end
+
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
         compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
         compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
-
         return
     end
 
@@ -1756,15 +1751,19 @@ local function RefreshBosses()
     local showMiddleTabs = listKind == "dungeon" or listKind == "raid"
     if not showMiddleTabs then middleKind = "bosses" end
     for _, tab in pairs(compendium.middleTabs) do
-        if showMiddleTabs then tab:Show() else tab:Hide() end
+        if showMiddleTabs then
+            tab:Show()
+        else
+            tab:Hide()
+        end
     end
+
     UpdateTabs(compendium.middleTabs, middleKind)
     if middleKind == "map" then
         compendium.bosses:Hide()
         compendium.bossTitle:Hide()
         compendium.questTree:Hide()
         RefreshDetail()
-
         return
     end
 
@@ -1776,7 +1775,6 @@ local function RefreshBosses()
         compendium.questTree:Show()
         compendium.questTree:SetGraph(GetQuestGraph())
         RefreshDetail()
-
         return
     end
 
@@ -1796,7 +1794,6 @@ local function RefreshBosses()
             if GetBossKey(boss) == restoreBossKey then
                 selectedBoss = boss
                 restoredIndex = index
-
                 break
             end
         end
@@ -1816,7 +1813,12 @@ local function RefreshBosses()
     else
         compendium.bossTitle:SetText("")
     end
-    if showMiddleTabs then compendium.bossTitle:Hide() else compendium.bossTitle:Show() end
+
+    if showMiddleTabs then
+        compendium.bossTitle:Hide()
+    else
+        compendium.bossTitle:Show()
+    end
 
     RefreshDetail()
 end
@@ -1838,7 +1840,6 @@ local function RefreshInstances()
                 selectedInstance = inst
                 restoredIndex = index
                 mapInstance = inst
-
                 break
             end
         end
@@ -1886,7 +1887,6 @@ function MapPins.OnClick(pin, mouse)
             MapPins.selected = pin.entry
             MapPins.Update(compendium.mapView)
         end
-
         return
     end
 
@@ -1900,11 +1900,9 @@ function MapPins.OnClick(pin, mouse)
                 SaveNavigationState()
                 RefreshBosses()
                 compendium.questTree:FocusQuest(node.id)
-
                 return
             end
         end
-
         return
     end
 
@@ -1912,7 +1910,6 @@ function MapPins.OnClick(pin, mouse)
     AzerothCompendium:HideGameTooltip()
     if pin.kind == "level" then
         SelectMapLevel(pin.level)
-
         return
     end
 
@@ -1948,10 +1945,7 @@ local function ShowItemTooltip(row)
         GameTooltip:SetHyperlink("item:" .. row.itemID)
     end
 
-    if row.boss ~= nil then
-        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss))), 1, 0.82, 0)
-    end
-
+    if row.boss ~= nil then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss))), 1, 0.82, 0) end
     if row.worldQuestItem ~= nil then
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_STARTSQUEST"), row.worldQuestItem.questName)), 1, 0.82, 0)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
@@ -1974,13 +1968,18 @@ local function ShowWishlistMenu(owner, itemID, source)
 
     if MenuUtil and MenuUtil.CreateContextMenu then
         MenuUtil.CreateContextMenu(owner, function(_, rootDescription) rootDescription:CreateButton(label, action) end)
-
         return
     end
 
     if EasyMenu == nil then return end
     if contextMenu == nil then contextMenu = CreateFrame("Frame", "AzerothCompendiumContextMenu", UIParent, "UIDropDownMenuTemplate") end
-    EasyMenu({{text = label, notCheckable = true, func = action}}, contextMenu, "cursor", 0, 0, "MENU")
+    EasyMenu({
+        {
+            text = label,
+            notCheckable = true,
+            func = action
+        }
+    }, contextMenu, "cursor", 0, 0, "MENU")
 end
 
 local function CreateLootRow(scroller)
@@ -2008,13 +2007,11 @@ local function CreateLootRow(scroller)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, sel.wishlistSource)
-
             return
         end
 
         if sel.jumpBoss ~= nil and not (IsModifiedClick and IsModifiedClick()) then
             OnBossClick(sel.jumpBoss)
-
             return
         end
 
@@ -2058,7 +2055,6 @@ local function CreateLootRow(scroller)
             self.chance:SetText("")
         end
     end
-
     return row
 end
 
@@ -2085,7 +2081,6 @@ local function CreateWishlistRow(scroller)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, nil)
-
             return
         end
 
@@ -2111,7 +2106,6 @@ local function CreateWishlistRow(scroller)
         local _, _, boss = FindWishlistSource(entry.itemID, entry.source)
         self.boss = boss
     end
-
     return row
 end
 
@@ -2155,7 +2149,6 @@ local function CreateWorldQuestItemRow(scroller)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, nil)
-
             return
         end
 
@@ -2180,10 +2173,10 @@ local function CreateWorldQuestItemRow(scroller)
             AzerothCompendium:AttachMapOpener(sel, function(owner)
                 local entry = owner:GetParent().worldQuestItem
                 if entry == nil then return false end
-
                 return AzerothCompendium:SetMapWaypoint(entry.data.mapID, entry.data.x, entry.data.y)
             end)
         end
+
         local entry = sel:GetParent().worldQuestItem
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SETITEMSOURCEWAYPOINT")))
@@ -2224,7 +2217,6 @@ local function CreateWorldQuestItemRow(scroller)
             self.detail:SetPoint("RIGHT", self, "RIGHT", -8, 0)
         end
     end
-
     return row
 end
 
@@ -2254,7 +2246,6 @@ local function CreateSpellRow(scroller)
         self.name:SetText(name or entry)
         self.name:SetTextColor(0.9, 0.9, 0.9)
     end
-
     return row
 end
 
@@ -2265,16 +2256,15 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button.isTabOnTop = true
     button:HandleRotation()
     button.squareMode = true
-    for _, texture in ipairs(button.RotatedTextures) do texture:Hide() end
+    for _, texture in ipairs(button.RotatedTextures) do
+        texture:Hide()
+    end
+
     button.chrome = CreateFrame("Frame", nil, parent)
     button.chrome:SetAllPoints(button)
     button.chrome:SetFrameLevel(parent:GetFrameLevel())
     button.chrome:EnableMouse(false)
-    for _, def in ipairs({
-        {"SquareBackground", "spellbook-Tab-Frame-C60", 1},
-        {"SquareBackgroundActive", "spellbook-Tab-Frame-Glow-C60", 1},
-        {"SquareBackgroundActiveGlow", "spellbook-Tab-Frame-glow-gradient-C60", 0},
-    }) do
+    for _, def in ipairs({{"SquareBackground", "spellbook-Tab-Frame-C60", 1}, {"SquareBackgroundActive", "spellbook-Tab-Frame-Glow-C60", 1}, {"SquareBackgroundActiveGlow", "spellbook-Tab-Frame-glow-gradient-C60", 0},}) do
         local texture = button[def[1]]
         texture:SetParent(button.chrome)
         texture:ClearAllPoints()
@@ -2304,21 +2294,19 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     button:SetScript("OnShow", function(sel) sel.chrome:Show() end)
     button:SetScript("OnHide", function(sel) sel.chrome:Hide() end)
-
     return button
 end
+
 local function CreateTemplated(kind, name, parent, templates)
     for _, template in ipairs(templates) do
         local ok, frame = pcall(CreateFrame, kind, name, parent, template)
         if ok and frame ~= nil then return frame, template end
     end
-
     return CreateFrame(kind, name, parent), nil
 end
 
 local function GetFlavorText()
     if AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA then return "Classic Era" end
-
     return "Forever"
 end
 
@@ -2333,15 +2321,22 @@ local function ShowFlavorMenu(owner)
             rootDescription:CreateRadio("Classic Era", function() return AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA end, function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
             rootDescription:CreateRadio("Forever", function() return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER end, function() SelectFlavor(FLAVOR_FOREVER) end)
         end)
-
         return
     end
 
     if EasyMenu == nil then return end
     if flavorMenu == nil then flavorMenu = CreateFrame("Frame", "AzerothCompendiumFlavorMenu", UIParent, "UIDropDownMenuTemplate") end
     EasyMenu({
-        {text = "Classic Era", checked = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA, func = function() SelectFlavor(FLAVOR_CLASSIC_ERA) end},
-        {text = "Forever", checked = AzerothCompendium:GetFlavor() == FLAVOR_FOREVER, func = function() SelectFlavor(FLAVOR_FOREVER) end}
+        {
+            text = "Classic Era",
+            checked = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA,
+            func = function() SelectFlavor(FLAVOR_CLASSIC_ERA) end
+        },
+        {
+            text = "Forever",
+            checked = AzerothCompendium:GetFlavor() == FLAVOR_FOREVER,
+            func = function() SelectFlavor(FLAVOR_FOREVER) end
+        }
     }, flavorMenu, owner, 0, 0, "MENU")
 end
 
@@ -2382,6 +2377,7 @@ local function CreateFlavorControl(parent)
             rootDescription:CreateButton("Classic Era", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
             rootDescription:CreateButton("Forever", function() SelectFlavor(FLAVOR_FOREVER) end)
         end)
+
         parent.flavorControl = control
         parent.flavorDropdown = control.Dropdown
         parent.updateFlavorSteppers = function()
@@ -2389,6 +2385,7 @@ local function CreateFlavorControl(parent)
             if previous then setEnabled[previous](previous, not classic) end
             if following then setEnabled[following](following, classic) end
         end
+
         control:HookScript("OnShow", parent.updateFlavorSteppers)
     else
         local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
@@ -2464,7 +2461,6 @@ local function MakeResizable(frame)
         local right = UIParent:GetRight()
         if left == nil or top == nil or right == nil or scale == nil or scale <= 0 then return nil, nil end
         local screenRight = right * UIParent:GetEffectiveScale() / scale
-
         return max(MIN_WIDTH, screenRight - left), max(MIN_HEIGHT, top)
     end
 
@@ -2516,7 +2512,6 @@ local function MakeResizable(frame)
         if sizing == nil then return end
         if IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then
             StopSizing(sel)
-
             return
         end
 
@@ -2563,13 +2558,10 @@ local function CreateSideTab(parent, label, icon, onClick)
     tab:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     if large then
         tab:EnableMouse(true)
-        tab:SetCustomOnMouseUpHandler(function(_, button, upInside)
-            if button == "LeftButton" and upInside then onClick() end
-        end)
+        tab:SetCustomOnMouseUpHandler(function(_, button, upInside) if button == "LeftButton" and upInside then onClick() end end)
     else
         tab:HookScript("OnClick", onClick)
     end
-
     return tab
 end
 
@@ -2609,13 +2601,11 @@ local function CreateModelFrame(parent)
         sel.zoom = min(MODEL_ZOOM_MAX, max(MODEL_ZOOM_MIN, (sel.zoom or 1) - delta * 0.15))
         if sel.SetCamDistanceScale then pcall(sel.SetCamDistanceScale, sel, sel.zoom) end
     end)
-
     return frame
 end
 
 local function NormalizeScale(value)
     value = tonumber(value) or 1
-
     return min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
 end
 
@@ -2626,29 +2616,25 @@ local function CreateScaleSlider(parent)
         parent:SetScale(scale)
         AzerothCompendium:SetConfig("COMPENDIUMSCALE", scale)
     end
+
     local ok, slider = pcall(CreateFrame, "Frame", nil, parent, "MinimalSliderWithSteppersTemplate")
     if ok and slider ~= nil and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" then
         slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 16, 1)
         slider:SetSize(150, 25)
         local formatters = {}
-        if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then
-            formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(scale)
-                return format("%d%%", floor(NormalizeScale(scale) * 100 + 0.5))
-            end
-        end
+        if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(scale) return format("%d%%", floor(NormalizeScale(scale) * 100 + 0.5)) end end
         slider:Init(value, SCALE_MIN, SCALE_MAX, (SCALE_MAX - SCALE_MIN) / SCALE_STEP, formatters)
         local pendingScale = value
         slider:RegisterCallback("OnValueChanged", function(_, scale)
             pendingScale = NormalizeScale(scale)
             if slider.InteractionFlags == nil or not slider.InteractionFlags:IsAnySet() then ApplyScale(pendingScale) end
         end, parent)
-        slider.Slider:HookScript("OnMouseUp", function()
-            ApplyScale(pendingScale)
-        end)
-        parent.scaleSlider = slider
 
+        slider.Slider:HookScript("OnMouseUp", function() ApplyScale(pendingScale) end)
+        parent.scaleSlider = slider
         return
     end
+
     local minimal
     minimal, slider = pcall(CreateFrame, "Slider", nil, parent, "MinimalSliderTemplate")
     if not minimal or slider == nil then
@@ -2663,6 +2649,7 @@ local function CreateScaleSlider(parent)
         thumb:SetSize(24, 24)
         slider:SetThumbTexture(thumb)
     end
+
     slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 20, 5)
     slider:SetSize(120, 19)
     slider:SetOrientation("HORIZONTAL")
@@ -2680,11 +2667,13 @@ local function CreateScaleSlider(parent)
         interacting = false
         ApplyScale(pendingScale)
     end)
+
     slider:SetScript("OnValueChanged", function(_, scale)
         pendingScale = NormalizeScale(scale)
         valueText:SetFormattedText("%d%%", floor(pendingScale * 100 + 0.5))
         if not interacting then ApplyScale(pendingScale) end
     end)
+
     slider:SetValue(value)
     parent.scaleSlider = slider
     parent.scaleValue = valueText
@@ -2694,25 +2683,16 @@ local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
     if compendium.instancePopup then compendium.instancePopup:Hide() end
-    local regular = {
-        compendium.instanceControl,
-        compendium.bossTitle,
-        compendium.bosses,
-        compendium.questTree,
-        compendium.mapView,
-        compendium.mapLevel,
-        compendium.loot,
-        compendium.spells,
-        compendium.detailCount,
-        compendium.detailTitle,
-        compendium.classFilter,
-        compendium.classFilterLabel,
-        compendium.empty
-    }
-
+    local regular = {compendium.instanceControl, compendium.bossTitle, compendium.bosses, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}
     if compendium.model then tinsert(regular, compendium.model) end
-    for _, tab in pairs(compendium.detailTabs or {}) do tinsert(regular, tab) end
-    for _, tab in pairs(compendium.middleTabs or {}) do tinsert(regular, tab) end
+    for _, tab in pairs(compendium.detailTabs or {}) do
+        tinsert(regular, tab)
+    end
+
+    for _, tab in pairs(compendium.middleTabs or {}) do
+        tinsert(regular, tab)
+    end
+
     for _, frame in ipairs(regular) do
         if enabled then
             frame:Hide()
@@ -2722,7 +2702,6 @@ local function SetSpecialMode(mode)
     end
 
     (compendium.flavorControl or compendium.flavorDropdown):Show()
-
     if compendium.wishlist then
         if mode == "wishlist" then
             compendium.wishlist:Show()
@@ -2815,13 +2794,7 @@ local function CreateJournal()
     LoadNavigationState()
     if compendium ~= nil then return compendium end
     local template = nil
-    compendium, template = CreateTemplated(
-        "Frame",
-        "AzerothCompendiumFrame",
-        UIParent,
-        {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"}
-    )
-
+    compendium, template = CreateTemplated("Frame", "AzerothCompendiumFrame", UIParent, {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"})
     if template == nil then AddFallbackChrome(compendium) end
     if type(compendium.Inset) == "table" and type(compendium.Inset.Bg) == "table" then compendium.Inset.Bg:SetAlpha(0.6) end
     SetFramePortrait(compendium, AzerothCompendium:GetIcon())
@@ -2871,19 +2844,11 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
     local previousTab = nil
-    for _, info in ipairs({
-        {"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Map_01"},
-        {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"},
-        {"pvp", "LID_PVP", pvpIcon},
-        {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
-        {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Map_01"},
-        {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},
-    }) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Map_01"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Map_01"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
             if listKind == kind then
                 UpdateKindTabs()
-
                 return
             end
 
@@ -2913,7 +2878,6 @@ local function CreateJournal()
         function row:Update(entry)
             UpdateInstanceRow(self, entry)
         end
-
         return row
     end)
 
@@ -2922,7 +2886,7 @@ local function CreateJournal()
     instances:SetWidth(INSTANCE_COL_W)
     compendium.instances = instances
     local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
-    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -38)
+    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -42)
     instanceControl:SetSize(INSTANCE_COL_W + 60, 22)
     local instanceDropdown = instanceControl.Dropdown
     if instanceDropdown == nil then
@@ -2947,9 +2911,7 @@ local function CreateJournal()
     instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
     instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
     instancePopup:Hide()
-    instancePopup:SetScript("OnUpdate", function(sel)
-        if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end
-    end)
+    instancePopup:SetScript("OnUpdate", function(sel) if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end end)
     instanceDropdown:SetScript("OnClick", function()
         if instancePopup:IsShown() then
             instancePopup:Hide()
@@ -2975,7 +2937,6 @@ local function CreateJournal()
         for index, inst in ipairs(instances.data) do
             if inst == selectedInstance and instances.data[index + delta] then
                 OnInstanceClick(instances.data[index + delta])
-
                 return
             end
         end
@@ -3014,7 +2975,6 @@ local function CreateJournal()
             UpdateBossRow(self, entry)
             MapPins.UpdateRowButton(self, entry)
         end
-
         return row
     end)
 
@@ -3042,13 +3002,13 @@ local function CreateJournal()
         if button ~= "LeftButton" or mapView.info == nil or (mapView.zoom or 1) <= 1 then return end
         mapView.dragX, mapView.dragY = GetCursorPosition()
     end)
+
     mapView.viewport:SetScript("OnMouseUp", function() mapView.dragX, mapView.dragY = nil, nil end)
     mapView.viewport:SetScript("OnHide", function() mapView.dragX, mapView.dragY = nil, nil end)
     mapView.viewport:SetScript("OnUpdate", function()
         if mapView.dragX == nil then return end
         if not IsMouseButtonDown("LeftButton") then
             mapView.dragX, mapView.dragY = nil, nil
-
             return
         end
 
@@ -3059,6 +3019,7 @@ local function CreateJournal()
         mapView.dragX, mapView.dragY = x, y
         LayoutMapArt()
     end)
+
     mapView.art = mapView.viewport:CreateTexture(nil, "ARTWORK")
     mapView.art:SetPoint("CENTER", mapView, "CENTER", 0, 0)
     mapView.empty = mapView:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
@@ -3095,18 +3056,21 @@ local function CreateJournal()
         SaveNavigationState()
         RefreshBosses()
     end)
+
     mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, -2)
     local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         SaveNavigationState()
         RefreshBosses()
     end)
+
     bossTab:SetPoint("LEFT", mapTab, "RIGHT", 1, 0)
     local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), TAB_ICONS["quests"], function()
         middleKind = "quests"
         SaveNavigationState()
         RefreshBosses()
     end)
+
     questTab:SetPoint("LEFT", bossTab, "RIGHT", 1, 0)
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
@@ -3212,10 +3176,7 @@ local function CreateJournal()
     local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
     classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
-    classFilter:SetScript("OnClick", function(sel)
-        AzerothCompendium:SetClassFilter(sel:GetChecked() == true)
-    end)
-
+    classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetClassFilter(sel:GetChecked() == true) end)
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
     CreateScaleSlider(compendium)
@@ -3224,7 +3185,6 @@ local function CreateJournal()
     empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     empty:Hide()
     compendium.empty = empty
-
     return compendium
 end
 
@@ -3254,7 +3214,6 @@ function MapPins.Remove(list, value)
     for index, other in ipairs(list or {}) do
         if other == value then
             tremove(list, index)
-
             return
         end
     end
@@ -3325,7 +3284,6 @@ end
 
 function MapPins.IsHidden(entry)
     if MapPins.debug then return false end
-
     return entry.deleted == true or (entry.unplaced == true or entry.parked == true) and not MapPins.IsChanged(entry)
 end
 
@@ -3347,14 +3305,12 @@ function MapPins.GetOpen()
             end
         end
     end
-
     return counts, lines
 end
 
 function MapPins.IsParked(x, y)
     local column = (x - 0.05) / 0.075
     local row = (y - 0.08) / 0.11
-
     return column > -0.01 and column < 7.01 and row > -0.01 and abs(column - floor(column + 0.5)) < 0.01 and abs(row - floor(row + 0.5)) < 0.01
 end
 
@@ -3368,7 +3324,6 @@ function MapPins.Insert(save)
     data[save.art] = data[save.art] or {}
     tinsert(data[save.art], entry)
     tinsert(MapPins.entries, entry)
-
     return entry
 end
 
@@ -3417,7 +3372,6 @@ end
 function MapPins.IsChanged(entry)
     if entry.added or entry.deleted then return true end
     if entry[4] ~= entry.orig[4] or (entry[5] == true) ~= entry.orig[5] then return true end
-
     return entry.art ~= entry.orig[1] or abs(entry[2] - entry.orig[2]) > 0.0005 or abs(entry[3] - entry.orig[3]) > 0.0005
 end
 
@@ -3465,7 +3419,6 @@ function MapPins.SetArg(entry, value)
     if not valid then
         if entry[1] ~= "entrance" then AzerothCompendium:INFO(format("%s is not a valid %s for this instance", tostring(value), entry[1] == "boss" and "NPC ID" or entry[1] == "item" and "item ID" or "map ID")) end
         MapPins.DebugRefresh()
-
         return
     end
 
@@ -3516,7 +3469,6 @@ function MapPins.ShowMenu(owner, options, current, onSelect)
                 rootDescription:CreateRadio(option[1], function() return current == option[2] end, function() onSelect(option[2]) end)
             end
         end)
-
         return
     end
 
@@ -3524,7 +3476,11 @@ function MapPins.ShowMenu(owner, options, current, onSelect)
     if MapPins.menu == nil then MapPins.menu = CreateFrame("Frame", "AzerothCompendiumMapPinMenu", UIParent, "UIDropDownMenuTemplate") end
     local entries = {}
     for _, option in ipairs(options) do
-        tinsert(entries, {text = option[1], checked = current == option[2], func = function() onSelect(option[2]) end})
+        tinsert(entries, {
+            text = option[1],
+            checked = current == option[2],
+            func = function() onSelect(option[2]) end
+        })
     end
 
     EasyMenu(entries, MapPins.menu, owner, 0, 0, "MENU")
@@ -3534,7 +3490,6 @@ function MapPins.Delete(entry)
     if not entry.added then
         entry.deleted = true
         MapPins.Edit(entry, entry.art, entry[2], entry[3])
-
         return
     end
 
@@ -3563,7 +3518,6 @@ function MapPins.Add(kind, up)
         local items = MapPins.GetQuestItems()
         if #items == 0 then
             AzerothCompendium:INFO("This instance has no quest start items")
-
             return
         end
 
@@ -3573,7 +3527,6 @@ function MapPins.Add(kind, up)
         local target = index and (maps[index + 1] or maps[index - 1])
         if target == nil then
             AzerothCompendium:INFO("This instance has only one map")
-
             return
         end
 
@@ -3606,7 +3559,6 @@ function MapPins.GetNpcName(npcID)
             end
         end
     end
-
     return MapPins.names[npcID]
 end
 
@@ -3624,7 +3576,6 @@ function MapPins.FormatEntry(entry)
     if entry.unplaced then return text .. " (new)" end
     local was = format("[%d] %.3f, %.3f", orig[1], orig[2], orig[3])
     if src[4] ~= orig[4] or src[5] ~= orig[5] then was = was .. ", " .. tostring(orig[4]) .. (orig[5] and ", true" or "") end
-
     return text .. " (was " .. was .. ")"
 end
 
@@ -3633,7 +3584,6 @@ function MapPins.GetEntryTitle(entry)
     if entry[1] == "boss" then return format("boss: %s (%d)%s", MapPins.GetNpcName(entry[4]) or "?", entry[4], suffix) end
     if entry[1] == "level" then return format("level change -> %d%s", entry[4], suffix) end
     if entry[1] == "item" then return format("item: %s (%d)%s", MapPins.GetItemName(entry[4]), entry[4], suffix) end
-
     return "entrance" .. suffix
 end
 
@@ -3661,7 +3611,6 @@ function MapPins.CreateInput(parent, label, x, y, onApply)
         sel:ClearFocus()
         MapPins.DebugRefresh()
     end)
-
     return box
 end
 
@@ -3670,7 +3619,6 @@ function MapPins.CreateButton(parent, label, width, onClick)
     button:SetSize(width, 20)
     button:SetText(label)
     button:SetScript("OnClick", onClick)
-
     return button
 end
 
@@ -3695,7 +3643,6 @@ function MapPins.CreateDebugUI()
         local w, h = view.art:GetWidth(), view.art:GetHeight()
         if view.info == nil or left == nil or top == nil or w <= 0 or h <= 0 then
             cursor.text:Hide()
-
             return
         end
 
@@ -3705,7 +3652,6 @@ function MapPins.CreateDebugUI()
         local x, y = (cx - left) / w, (top - cy) / h
         if x < 0 or x > 1 or y < 0 or y > 1 then
             cursor.text:Hide()
-
             return
         end
 
@@ -3736,10 +3682,7 @@ function MapPins.CreateDebugUI()
     editor.title:SetWordWrap(false)
     editor.x = MapPins.CreateInput(editor, "X", 8, -26, function(entry, value) MapPins.Edit(entry, entry.art, value, entry[3]) end)
     editor.y = MapPins.CreateInput(editor, "Y", 136, -26, function(entry, value) MapPins.Edit(entry, entry.art, entry[2], value) end)
-    editor.map = MapPins.CreateButton(editor, "", 266, function(sel)
-        if MapPins.selected ~= nil then MapPins.ShowMapMenu(sel, MapPins.selected) end
-    end)
-
+    editor.map = MapPins.CreateButton(editor, "", 266, function(sel) if MapPins.selected ~= nil then MapPins.ShowMapMenu(sel, MapPins.selected) end end)
     editor.map:SetPoint("TOPLEFT", editor, "TOPLEFT", 8, -50)
     for index, step in ipairs({0.1, 0.01, 0.001}) do
         local left = 8 + (index - 1) * 92
@@ -3765,15 +3708,9 @@ function MapPins.CreateDebugUI()
     end)
 
     editor.reset:SetPoint("TOPLEFT", editor, "TOPLEFT", 8, -164)
-    editor.delete = MapPins.CreateButton(editor, "Delete", 52, function()
-        if MapPins.selected ~= nil then MapPins.Delete(MapPins.selected) end
-    end)
-
+    editor.delete = MapPins.CreateButton(editor, "Delete", 52, function() if MapPins.selected ~= nil then MapPins.Delete(MapPins.selected) end end)
     editor.delete:SetPoint("TOPLEFT", editor, "TOPLEFT", 62, -164)
-    editor.arg = MapPins.CreateButton(editor, "", 266, function(sel)
-        if MapPins.selected ~= nil then MapPins.ShowArgMenu(sel, MapPins.selected) end
-    end)
-
+    editor.arg = MapPins.CreateButton(editor, "", 266, function(sel) if MapPins.selected ~= nil then MapPins.ShowArgMenu(sel, MapPins.selected) end end)
     editor.arg:SetPoint("TOPLEFT", editor, "TOPLEFT", 8, -188)
     editor.up = MapPins.CreateButton(editor, "Up", 54, function()
         local entry = MapPins.selected
@@ -3861,6 +3798,7 @@ function MapPins.CreateDebugUI()
         button:SetPoint("LEFT", last, "RIGHT", 6, 0)
         last = button
     end
+
     output.close = MapPins.CreateButton(output, "Close", 70, function() AzerothCompendium:ToggleMapPinDebug() end)
     output.close:SetPoint("BOTTOMRIGHT", output, "BOTTOMRIGHT", -8, 6)
     MapPins.output = output
@@ -3875,7 +3813,6 @@ function MapPins.DebugRefresh()
             MapPins.cursor:Hide()
             compendium.mapView.debugText:Hide()
         end
-
         return
     end
 
@@ -3902,7 +3839,6 @@ function MapPins.DebugRefresh()
     local entry = MapPins.selected
     if entry == nil then
         MapPins.editor:Hide()
-
         return
     end
 
@@ -3934,22 +3870,7 @@ function AzerothCompendium:ToggleMapPinDebug()
 end
 
 function AzerothCompendium:PrintMapPinDebugHelp()
-    for _, line in ipairs({
-        "Map pin debug help:",
-        "/ac debug - toggle the map pin editor (Map tab), /ac debug help - show this help",
-        "While enabled every pin is shown, including unplaced and deleted ones (deleted are faded)",
-        "Cursor on the map: map ID and coordinates, bottom right: map ID and unplaced pins of this map",
-        "Right-click a pin: select it and open the editor (bottom left, movable)",
-        "Editor X / Y: type a coordinate (0-1) and press Enter, Escape discards",
-        "Editor Map button: move the pin to another map level",
-        "Editor arrows: move the pin by 0.1, 0.01 or 0.001",
-        "Editor Reset: restore the shipped pin, Delete: remove the pin",
-        "Editor Up / Down: direction of a level change, Boss / Item / To button: boss, quest start item or target map of the pin",
-        "Window below: changed pins as data rows, Select all then Ctrl+C to copy",
-        "Window below: Unfinished maps lists the maps that still have unplaced pins",
-        "Window below: + Entrance / + Boss / + Quest item / + Level up / + Level down add a pin at the map center",
-        "Window below: Reset all discards every saved correction, Close leaves the debug mode",
-    }) do
+    for _, line in ipairs({"Map pin debug help:", "/ac debug - toggle the map pin editor (Map tab), /ac debug help - show this help", "While enabled every pin is shown, including unplaced and deleted ones (deleted are faded)", "Cursor on the map: map ID and coordinates, bottom right: map ID and unplaced pins of this map", "Right-click a pin: select it and open the editor (bottom left, movable)", "Editor X / Y: type a coordinate (0-1) and press Enter, Escape discards", "Editor Map button: move the pin to another map level", "Editor arrows: move the pin by 0.1, 0.01 or 0.001", "Editor Reset: restore the shipped pin, Delete: remove the pin", "Editor Up / Down: direction of a level change, Boss / Item / To button: boss, quest start item or target map of the pin", "Window below: changed pins as data rows, Select all then Ctrl+C to copy", "Window below: Unfinished maps lists the maps that still have unplaced pins", "Window below: + Entrance / + Boss / + Quest item / + Level up / + Level down add a pin at the map center", "Window below: Reset all discards every saved correction, Close leaves the debug mode",}) do
         AzerothCompendium:INFO(line)
     end
 end
@@ -3958,7 +3879,6 @@ function AzerothCompendium:ToggleCompendium()
     CreateJournal()
     if compendium:IsShown() then
         compendium:Hide()
-
         return
     end
 
@@ -3986,41 +3906,32 @@ AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
 loader:SetScript("OnEvent", function(sel, event)
     if event == "PLAYER_LOGIN" then
         AzerothCompendium:PreloadItems()
-
         return
     end
 
     if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
-        if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then
-            compendium.questTree:Refresh()
-        end
-
+        if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then compendium.questTree:Refresh() end
         if compendium ~= nil and compendium:IsShown() and listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
-
         return
     end
 
     if compendium == nil or not compendium:IsShown() then return end
     if refreshPending then return end
     refreshPending = true
-    AzerothCompendium:After(
-        0.25,
-        function()
-            refreshPending = false
-            if compendium ~= nil and compendium:IsShown() then
-                if listKind == "wishlist" then
-                    RefreshWishlistView()
-                elseif listKind == "worldquestitems" then
-                    RefreshWorldQuestItemsView()
-                else
-                    compendium.instances:Refresh()
-                    compendium.bosses:Refresh()
-                    compendium.loot:Refresh()
-                    compendium.questTree:Refresh()
-                    if compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
-                end
+    AzerothCompendium:After(0.25, function()
+        refreshPending = false
+        if compendium ~= nil and compendium:IsShown() then
+            if listKind == "wishlist" then
+                RefreshWishlistView()
+            elseif listKind == "worldquestitems" then
+                RefreshWorldQuestItemsView()
+            else
+                compendium.instances:Refresh()
+                compendium.bosses:Refresh()
+                compendium.loot:Refresh()
+                compendium.questTree:Refresh()
+                if compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
             end
-        end,
-        "AzerothCompendium:ItemInfo"
-    )
+        end
+    end, "AzerothCompendium:ItemInfo")
 end)
