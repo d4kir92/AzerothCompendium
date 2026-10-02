@@ -1416,12 +1416,8 @@ end
 function MapPins.UpdateToggle(view)
     view.pinToggles = view.pinToggles or {}
     local maps = GetInstanceMaps()
-    local anchor, point, relativePoint, anchorX, anchorY = view, "BOTTOMRIGHT", "TOPRIGHT", 0, 3
-    if compendium.mapLevel and maps ~= nil and #maps > 1 then
-        anchor, point, relativePoint, anchorX, anchorY = compendium.mapLevel, "RIGHT", "LEFT", -8, 0
-    elseif compendium.detailCount and (compendium.detailCount:GetText() or "") ~= "" then
-        anchor, point, relativePoint, anchorX, anchorY = compendium.detailCount, "RIGHT", "LEFT", -8, 0
-    end
+    local anchor, point, relativePoint, anchorX, anchorY = view, "BOTTOMRIGHT", "TOPRIGHT", 0, 5
+    if compendium.mapLevel and maps ~= nil and #maps > 1 then anchor, point, relativePoint, anchorX, anchorY = compendium.mapLevel, "RIGHT", "LEFT", -8, 2 end
 
     for index, def in ipairs(MapPins.types) do
         local button = view.pinToggles[index]
@@ -1480,6 +1476,12 @@ function MapPins.UpdateToggle(view)
         button.icon:SetAlpha(enabled and 1 or 0.5)
         button:SetShown(view.info ~= nil)
         button:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
+    end
+
+    local last = view.pinToggles[#MapPins.types]
+    if last and compendium.detailCount and view:IsShown() then
+        compendium.detailCount:ClearAllPoints()
+        compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, -2)
     end
 end
 
@@ -1683,6 +1685,8 @@ end
 
 local function RefreshDetail()
     if compendium == nil then return end
+    compendium.detailCount:ClearAllPoints()
+    compendium.detailCount:SetPoint("BOTTOMRIGHT", compendium.loot, "TOPRIGHT", 0, 6)
     if middleKind == "map" and (listKind == "dungeon" or listKind == "raid") then
         compendium.loot:Hide()
         compendium.spells:Hide()
@@ -2026,7 +2030,7 @@ local function CreateLootRow(scroller)
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(26, 26)
-    row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.icon:SetPoint("LEFT", row, "LEFT", 10, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     row.iconRing = AddIconRing(row, row.icon, 26, true)
     row.chance = row:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -2671,7 +2675,7 @@ local function CreateScaleSlider(parent)
 
     local ok, slider = pcall(CreateFrame, "Frame", nil, parent, "MinimalSliderWithSteppersTemplate")
     if ok and slider ~= nil and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" then
-        slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 16, 1)
+        slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 16, 3)
         slider:SetSize(150, 25)
         local formatters = {}
         if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(scale) return format("%d%%", floor(NormalizeScale(scale) * 100 + 0.5)) end end
@@ -2702,7 +2706,7 @@ local function CreateScaleSlider(parent)
         slider:SetThumbTexture(thumb)
     end
 
-    slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 20, 5)
+    slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 20, 7)
     slider:SetSize(120, 19)
     slider:SetOrientation("HORIZONTAL")
     slider:SetMinMaxValues(SCALE_MIN, SCALE_MAX)
@@ -2866,7 +2870,7 @@ local function CreateJournal()
     compendium:Hide()
     SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE")))
     compendium.version = compendium:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 8)
+    compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
     compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
