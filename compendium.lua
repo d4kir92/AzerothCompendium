@@ -2267,11 +2267,15 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     for _, def in ipairs({{"SquareBackground", "spellbook-Tab-Frame-C60", 1}, {"SquareBackgroundActive", "spellbook-Tab-Frame-Glow-C60", 1}, {"SquareBackgroundActiveGlow", "spellbook-Tab-Frame-glow-gradient-C60", 0},}) do
         local texture = button[def[1]]
         texture:SetParent(button.chrome)
+        texture:SetDrawLayer("ARTWORK", 1)
         texture:ClearAllPoints()
         texture:SetPoint("BOTTOM", button, "BOTTOM", 0, def[3])
         texture:SetAtlas(def[2], true)
     end
 
+    button.Icon:SetParent(button.chrome)
+    button.Icon:SetDrawLayer("ARTWORK", 0)
+    button.IconMask:SetParent(button.chrome)
     button.questIcon = iconInfo == TAB_ICONS.quests
     button.Icon:SetTexture(iconInfo.texture)
     if iconInfo.texCoords then
