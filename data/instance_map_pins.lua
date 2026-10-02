@@ -351,17 +351,17 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.050, 0.300, 1853}, -- Darkmaster Gandling
     },
     [232] = { -- Molten Core
-        {"entrance", 0.050, 0.080},
+        {"entrance", 0.264, 0.226},
         {"boss", 0.200, 0.080, 12118}, -- Lucifron
         {"boss", 0.275, 0.080, 11982}, -- Magmadar
-        {"boss", 0.350, 0.080, 12259}, -- Gehennas
+        {"boss", 0.840, 0.660, 12259}, -- Gehennas
         {"boss", 0.425, 0.080, 12057}, -- Garr
         {"boss", 0.500, 0.080, 12264}, -- Shazzrah
         {"boss", 0.575, 0.080, 12056}, -- Baron Geddon
         {"boss", 0.050, 0.190, 12098}, -- Sulfuron Harbinger
         {"boss", 0.125, 0.190, 11988}, -- Golemagg the Incinerator
         {"boss", 0.200, 0.190, 12018}, -- Majordomo Executus
-        {"boss", 0.375, 0.190, 11502}, -- Ragnaros
+        {"boss", 0.548, 0.540, 11502}, -- Ragnaros
     },
     [248] = { -- Onyxia's Lair
         {"entrance", 0.050, 0.080},
