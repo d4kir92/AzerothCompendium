@@ -2406,6 +2406,9 @@ local function CreateFlavorControl(parent)
     end
 
     control:SetFrameLevel(level)
+    control:SetScale(0.6)
+    control:ClearAllPoints()
+    control:SetPoint("LEFT", parent, "TOPLEFT", 90, -18)
     local text = GetFlavorText()
     if parent.flavorDropdown.SetDefaultText then parent.flavorDropdown:SetDefaultText(text) end
     if parent.flavorDropdown.Update then parent.flavorDropdown:Update() end
