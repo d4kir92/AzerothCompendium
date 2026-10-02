@@ -227,6 +227,11 @@ local function HasModernScroll()
 end
 
 local function AddContentBorder(frame)
+    frame.contentBackground = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+    frame.contentBackground:SetAtlas("collections-background-tile")
+    frame.contentBackground:SetHorizTile(true)
+    frame.contentBackground:SetVertTile(true)
+    frame.contentBackground:SetAllPoints(frame)
     frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
     frame.border:SetAtlas("common-insideframe")
     frame.border:SetPoint("TOPLEFT", frame, "TOPLEFT", -4, 4)
@@ -2943,7 +2948,7 @@ local function CreateJournal()
     instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
     instancePopup:Hide()
     instancePopup:SetScript("OnUpdate", function(sel)
-        if IsMouseButtonDown("LeftButton") and not MouseIsOver(sel) and not MouseIsOver(instanceControl) then sel:Hide() end
+        if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end
     end)
     instanceDropdown:SetScript("OnClick", function()
         if instancePopup:IsShown() then
