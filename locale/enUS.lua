@@ -102,3 +102,4 @@ AzerothCompendium:AddTrans("enUS", "LID_HIDELEVELPINS", "Hide level transition p
 AzerothCompendium:AddTrans("enUS", "LID_LEVELGROUP", "Level %d-%d")
 AzerothCompendium:AddTrans("enUS", "LID_GOTOSOURCE", "Go to source")
 AzerothCompendium:AddTrans("enUS", "LID_OTHER", "Other")
+AzerothCompendium:AddTrans("enUS", "LID_SHOWBOSSONMAP", "Show boss on map")

@@ -102,3 +102,4 @@ AzerothCompendium:AddTrans("deDE", "LID_HIDELEVELPINS", "Ebenenwechsel-Pins ausb
 AzerothCompendium:AddTrans("deDE", "LID_LEVELGROUP", "Level %d-%d")
 AzerothCompendium:AddTrans("deDE", "LID_GOTOSOURCE", "Zur Quelle springen")
 AzerothCompendium:AddTrans("deDE", "LID_OTHER", "Sonstiges")
+AzerothCompendium:AddTrans("deDE", "LID_SHOWBOSSONMAP", "Boss auf Karte anzeigen")

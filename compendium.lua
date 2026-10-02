@@ -2126,7 +2126,9 @@ local function ShowItemTooltip(row)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
     end
 
-    if row.isWishlist then
+    if not row.isWishlist and row.boss ~= nil and MapPins.GetBossLevel(row.boss) ~= nil then
+        GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_SHOWBOSSONMAP"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    elseif row.isWishlist then
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_GOTOSOURCE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
     end
 
@@ -2194,6 +2196,11 @@ local function CreateLootRow(scroller)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, sel.wishlistSource)
+            return
+        end
+
+        if button == "LeftButton" and sel.boss ~= nil and MapPins.GetBossLevel(sel.boss) ~= nil and not (IsModifiedClick and IsModifiedClick()) then
+            MapPins.ShowBoss(sel.boss)
             return
         end
 
