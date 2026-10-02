@@ -410,7 +410,15 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             self.rows[index]:Hide()
         end
 
+        if self.empty then self.empty:SetShown(#self.data == 0) end
         self:UpdateScroll()
+    end
+
+    function scroller:EnableEmptyText()
+        self.empty = self:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
+        self.empty:SetPoint("CENTER", self, "CENTER", 0, 0)
+        self.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+        self.empty:SetShown(#self.data == 0)
     end
 
     scroller:SetScript("OnSizeChanged", function(sel) sel:Refresh() end)
@@ -1164,9 +1172,8 @@ local function UpdateModel()
     local applied = false
     if displayID ~= nil and frame.SetDisplayInfo then applied = pcall(frame.SetDisplayInfo, frame, displayID) end
     if not applied and npcID ~= nil and frame.SetCreature then applied = pcall(frame.SetCreature, frame, npcID) end
-    if frame.SetCamDistanceScale then pcall(frame.SetCamDistanceScale, frame, frame.zoom) end
-    if frame.SetRotation then pcall(frame.SetRotation, frame, frame.rotation) end
-    if frame.RefreshCamera then pcall(frame.RefreshCamera, frame) end
+    frame:ApplyCamera()
+    AzerothCompendium:After(0, function() frame:ApplyCamera() end, "AzerothCompendium:ModelCamera")
     return applied
 end
 
@@ -1766,7 +1773,7 @@ local function RefreshDetail()
     end
 
     local title = selectedBoss ~= nil and AzerothCompendium:GetBossName(selectedBoss) or ""
-    if showCount then title = strtrim(title .. " (" .. count .. ")") end
+    if showCount then title = strtrim(title .. " (" .. AzerothCompendium:Trans(detailKind == "spells" and "LID_ABILITYCOUNT" or "LID_ITEMCOUNT", nil, count) .. ")") end
     compendium.detailTitle:SetText(title)
     if empty then
         if detailKind == "model" then
@@ -2632,6 +2639,14 @@ local function CreateModelFrame(parent)
     if frame == nil then return nil end
     frame.rotation = MODEL_START_ROTATION
     frame.zoom = 1
+    function frame:ApplyCamera()
+        if self.RefreshCamera then pcall(self.RefreshCamera, self) end
+        if self.SetCamDistanceScale then pcall(self.SetCamDistanceScale, self, self.zoom or 1) end
+        if self.SetRotation then pcall(self.SetRotation, self, self.rotation or 0) end
+    end
+
+    pcall(frame.SetScript, frame, "OnModelLoaded", function(sel) sel:ApplyCamera() end)
+    frame:SetScript("OnSizeChanged", function(sel) sel:ApplyCamera() end)
     frame:EnableMouse(true)
     frame:EnableMouseWheel(true)
     frame:SetScript("OnMouseDown", function(sel, button)
@@ -2866,7 +2881,7 @@ local function CreateJournal()
     MakeResizable(compendium)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
-    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE")))
+    SetFrameTitle(compendium, AzerothCompendium:Trans("LID_TITLE"))
     compendium.version = compendium:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
@@ -2938,6 +2953,7 @@ local function CreateJournal()
     instances:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
     instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
     instances:SetWidth(INSTANCE_COL_W)
+    instances:EnableEmptyText()
     compendium.instances = instances
     local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
     instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -42)
@@ -3035,6 +3051,7 @@ local function CreateJournal()
     bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -104)
     bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 14, 28)
     bosses:SetWidth(MIDDLE_COL_W)
+    bosses:EnableEmptyText()
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
     AddContentBorder(questTree)
@@ -3130,6 +3147,8 @@ local function CreateJournal()
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
+    loot.rowGap = 0
+    loot:SetRowHeight(LOOT_ROW_H + 6)
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
@@ -3174,6 +3193,8 @@ local function CreateJournal()
     worldQuestItemsEmpty:Hide()
     compendium.worldQuestItemsEmpty = worldQuestItemsEmpty
     local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow, 2)
+    spells.rowGap = 0
+    spells:SetRowHeight(LOOT_ROW_H)
     spells:SetAllPoints(loot)
     spells:Hide()
     compendium.spells = spells
@@ -3219,13 +3240,13 @@ local function CreateJournal()
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     detailTitle:SetPoint("BOTTOMLEFT", lastDetailTab, "BOTTOMRIGHT", 8, 8)
-    detailTitle:SetPoint("RIGHT", detailCount, "LEFT", -8, 0)
+    detailTitle:SetPoint("RIGHT", detailCount, "LEFT", 0, 0)
     detailTitle:SetWordWrap(false)
-    detailTitle:SetJustifyH("LEFT")
+    detailTitle:SetJustifyH("RIGHT")
     compendium.detailTitle = detailTitle
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
-    classFilter:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -32, 2)
+    classFilter:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 2, 19)
     classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
     local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)

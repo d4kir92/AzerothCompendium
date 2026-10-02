@@ -1001,7 +1001,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         scroll = CreateFrame("ScrollFrame", nil, tree)
     end
 
-    scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 0, 0)
+    scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
     scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
     local holder = CreateFrame("Frame", nil, scroll)
     holder:SetSize(1, 1)
@@ -1011,7 +1011,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     canvas:SetSize(1, 1)
     if minimal then
         local vbar = CreateFrame("EventFrame", nil, tree, "MinimalScrollBar")
-        vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 5, -6)
+        vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 5, 0)
         vbar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 5, 6)
         ScrollUtil.InitScrollFrameWithScrollBar(scroll, vbar)
         tree.vbar = vbar
