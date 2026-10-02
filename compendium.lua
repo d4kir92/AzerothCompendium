@@ -1116,6 +1116,7 @@ local function BossHasItem(boss, itemID)
 end
 
 local function FindWishlistSource(itemID, source)
+    if type(source) == "table" and source.kind == "worldquestitems" then return nil, nil, nil end
     if not IsItemVisible(itemID) then return nil, nil, nil end
     local kinds = {"dungeon", "raid", "pvp", "faction"}
     if type(source) == "table" and source.kind ~= nil then
@@ -1156,11 +1157,25 @@ local function GetWishlistList()
         itemID = tonumber(itemID)
         if itemID ~= nil and IsItemVisible(itemID) then
             local name = AzerothCompendium:GetItemDisplay(itemID)
-            local _, inst, boss = FindWishlistSource(itemID, source)
+            local kind, inst, boss = FindWishlistSource(itemID, source)
+            local worldItem = nil
+            if kind == nil or type(source) == "table" and source.kind == "worldquestitems" then
+                for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS or {}) do
+                    if entry.itemID == itemID and (not IsClassicEra() or not entry.forever) then
+                        worldItem = entry
+                        kind, inst, boss = "worldquestitems", nil, nil
+                        break
+                    end
+                end
+            end
             local sourceText = ""
             if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
-            if (not IsClassicEra() or inst ~= nil) and (Matches(name) or Matches(sourceText)) then
+            if worldItem then sourceText = AzerothCompendium:GetQuestNameByID(worldItem.questID) .. " - " .. (worldItem.zone or worldItem.source or "") end
+            if (not IsClassicEra() or inst ~= nil or worldItem ~= nil) and (Matches(name) or Matches(sourceText)) then
                 tinsert(list, {
+                    kind = kind or "worldquestitems",
+                    instanceKey = GetInstanceKey(inst) or worldItem and (worldItem.zone or worldItem.source),
+                    instanceName = inst and AzerothCompendium:GetInstanceName(inst) or worldItem and (worldItem.zone or worldItem.source),
                     itemID = itemID,
                     source = source,
                     sourceText = sourceText,
@@ -1179,6 +1194,29 @@ local function GetWishlistList()
     return list
 end
 
+function AzerothCompendium:GetGroupedWishlistList(list)
+    local result, instances, ordered = {}, {}, {}
+    local kind = type(ACOTABPC) == "table" and ACOTABPC.WISHLISTCATEGORY or "dungeon"
+    for _, entry in ipairs(list) do
+        if entry.kind == kind then
+            local key = entry.instanceKey or "other"
+            if instances[key] == nil then
+                instances[key] = {name = entry.instanceName or self:Trans("LID_OTHER"), key = key, items = {}}
+                tinsert(ordered, instances[key])
+            end
+            tinsert(instances[key].items, entry)
+        end
+    end
+    table.sort(ordered, function(a, b)
+        if a.name == b.name then return a.key < b.key end
+        return Lower(a.name) < Lower(b.name)
+    end)
+    for _, instance in ipairs(ordered) do
+        tinsert(result, {wishlistCategory = true, name = instance.name, count = #instance.items, rowHeight = 26})
+        for _, entry in ipairs(instance.items) do tinsert(result, entry) end
+    end
+    return result
+end
 local function GetWorldQuestItemList()
     local list = {}
     for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS or {}) do
@@ -1640,8 +1678,8 @@ local function LayoutMapArt()
     local view = compendium.mapView
     local info = view.info
     if info == nil then return end
-    local w = view:GetWidth()
-    local h = view:GetHeight()
+    local w = view.viewport:GetWidth()
+    local h = view.viewport:GetHeight()
     if w == nil or h == nil or w <= 0 or h <= 0 then return end
     local ratio = info.height / info.width
     local width = w
@@ -1670,7 +1708,7 @@ function MapPins.Zoom(view, delta)
     if zoom == old then return end
     local x, y = GetCursorPosition()
     local scale = view:GetEffectiveScale()
-    local cx, cy = view:GetCenter()
+    local cx, cy = view.viewport:GetCenter()
     x, y = x / scale - cx, y / scale - cy
     local factor = zoom / old
     view.offsetX = x - (x - (view.offsetX or 0)) * factor
@@ -2074,6 +2112,10 @@ local function ShowItemTooltip(row)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
     end
 
+    if row.isWishlist then
+        GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_GOTOSOURCE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    end
+
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans(AzerothCompendium:IsWishlisted(row.itemID) and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST"), 0.9, 0.9, 0.9, 1, 0.82, 0)
     GameTooltip:Show()
 end
@@ -2185,6 +2227,7 @@ end
 local NavigateToWishlistItem = nil
 local function CreateWishlistRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
+    row.isWishlist = true
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
@@ -2203,6 +2246,7 @@ local function CreateWishlistRow(scroller)
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button)
+        if sel.entry == nil or sel.entry.wishlistCategory then return end
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, nil)
             return
@@ -2214,6 +2258,22 @@ local function CreateWishlistRow(scroller)
     function row:Update(entry)
         self.entry = entry
         self.itemID = entry.itemID
+        self.boss = nil
+        self.link = nil
+        self.icon:SetShown(not entry.wishlistCategory)
+        self.iconRing:SetShown(not entry.wishlistCategory)
+        self.source:SetShown(not entry.wishlistCategory)
+        self.name:ClearAllPoints()
+        if entry.wishlistCategory then
+            self.selected:Hide()
+            self.name:SetPoint("LEFT", self, "LEFT", entry.subcategory and 18 or 6, 0)
+            self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
+            self.name:SetText(entry.name .. " (" .. entry.count .. ")")
+            self.name:SetTextColor(1, 0.82, 0)
+            return
+        end
+        self.name:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 8, -1)
+        self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(entry.itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)
@@ -2272,7 +2332,7 @@ local function CreateWorldQuestItemRow(scroller)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
-            ShowWishlistMenu(sel, sel.itemID, nil)
+            ShowWishlistMenu(sel, sel.itemID, {kind = "worldquestitems"})
             return
         end
 
@@ -2848,6 +2908,7 @@ local function SetSpecialMode(mode)
     end
 
     (compendium.flavorControl or compendium.flavorDropdown):Show()
+    for _, tab in pairs(compendium.wishlistTabs or {}) do tab:SetShown(mode == "wishlist") end
     if compendium.wishlist then
         if mode == "wishlist" then
             compendium.wishlist:Show()
@@ -2879,13 +2940,44 @@ local function RefreshWishlistView()
     if compendium == nil or compendium.wishlist == nil then return end
     SetSpecialMode("wishlist")
     local list = GetWishlistList()
-    compendium.wishlist:SetData(list)
-    compendium.wishlistCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
-    if #list == 0 then
+    compendium.wishlist:SetData(AzerothCompendium:GetGroupedWishlistList(list))
+    local kind = type(ACOTABPC) == "table" and ACOTABPC.WISHLISTCATEGORY or "dungeon"
+    local count = 0
+    for _, entry in ipairs(list) do
+        if entry.kind == kind then count = count + 1 end
+    end
+    UpdateTabs(compendium.wishlistTabs, kind)
+    compendium.wishlistCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
+    if count == 0 then
         compendium.wishlistEmpty:Show()
     else
         compendium.wishlistEmpty:Hide()
     end
+end
+
+function AzerothCompendium:CreateWishlistTabs()
+    ACOTABPC = ACOTABPC or {}
+    local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
+    if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
+    local categories = {{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Key_03"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
+    compendium.wishlistTabs = {}
+    local previous = nil
+    for _, info in ipairs(categories) do
+        local kind = info[1]
+        local tab = CreateTabButton(compendium, self:Trans(info[2]), {texture = info[3]}, function()
+            ACOTABPC.WISHLISTCATEGORY = kind
+            RefreshWishlistView()
+        end)
+        if previous then
+            tab:SetPoint("LEFT", previous, "RIGHT", 1, 0)
+        else
+            tab:SetPoint("BOTTOMLEFT", compendium.wishlist, "TOPLEFT", 0, -2)
+        end
+        tab:Hide()
+        compendium.wishlistTabs[kind] = tab
+        previous = tab
+    end
+    if not compendium.wishlistTabs[ACOTABPC.WISHLISTCATEGORY] then ACOTABPC.WISHLISTCATEGORY = "dungeon" end
 end
 
 local function RefreshWorldQuestItemsView()
@@ -2914,6 +3006,15 @@ end
 
 NavigateToWishlistItem = function(entry)
     if entry == nil then return end
+    if entry.kind == "worldquestitems" then
+        listKind = "worldquestitems"
+        searchText = entry.name or ""
+        compendium.search:SetText(searchText)
+        SaveNavigationState()
+        UpdateKindTabs()
+        RefreshCurrentView()
+        return
+    end
     local kind, inst, boss = FindWishlistSource(entry.itemID, entry.source)
     if kind == nil or inst == nil or boss == nil then return end
     listKind = kind
@@ -3135,7 +3236,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Map_01"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Map_01"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Key_03"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
             if listKind == kind then
@@ -3197,7 +3298,14 @@ local function CreateJournal()
     mapView:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     mapView:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     mapView.viewport = CreateFrame("Frame", nil, mapView)
-    mapView.viewport:SetAllPoints(mapView)
+    mapView.viewport:SetPoint("TOPLEFT", mapView, "TOPLEFT", 4, -4)
+    mapView.viewport:SetPoint("BOTTOMRIGHT", mapView, "BOTTOMRIGHT", -4, 4)
+    mapView.borderOverlay = CreateFrame("Frame", nil, mapView)
+    mapView.borderOverlay:SetAllPoints(mapView)
+    mapView.borderOverlay:SetFrameLevel(mapView.viewport:GetFrameLevel() + 20)
+    mapView.borderOverlay:EnableMouse(false)
+    mapView.border:SetParent(mapView.borderOverlay)
+    mapView.border:SetDrawLayer("OVERLAY")
     mapView.viewport:SetClipsChildren(true)
     mapView.viewport:EnableMouse(true)
     mapView.viewport:EnableMouseWheel(true)
@@ -3285,18 +3393,19 @@ local function CreateJournal()
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
-    local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
-    wishlist:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
+    local wishlist = CreateScroller(compendium, LOOT_ROW_H + 6, CreateWishlistRow, 0)
+    wishlist:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     wishlist:Hide()
     compendium.wishlist = wishlist
+    AzerothCompendium:CreateWishlistTabs()
     local wishlistTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    wishlistTitle:SetPoint("BOTTOMLEFT", wishlist, "TOPLEFT", 0, 6)
+    wishlistTitle:SetPoint("LEFT", compendium.wishlistTabs.worldquestitems, "RIGHT", 8, 0)
     wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
     wishlistTitle:Hide()
     compendium.wishlistTitle = wishlistTitle
     local wishlistCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    wishlistCount:SetPoint("BOTTOMRIGHT", wishlist, "TOPRIGHT", 0, 6)
+    wishlistCount:SetPoint("BOTTOMRIGHT", wishlist, "TOPRIGHT", 0, 36)
     wishlistCount:SetJustifyH("RIGHT")
     wishlistCount:Hide()
     compendium.wishlistCount = wishlistCount
