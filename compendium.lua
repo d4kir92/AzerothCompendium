@@ -2472,6 +2472,8 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button.Icon:SetParent(button.chrome)
     button.Icon:SetDrawLayer("ARTWORK", 0)
     button.IconMask:SetParent(button.chrome)
+    pcall(button.Icon.RemoveMaskTexture, button.Icon, button.IconMask)
+    button.Icon:AddMaskTexture(button.IconMask)
     button.questIcon = iconInfo == TAB_ICONS.quests
     button.Icon:SetTexture(iconInfo.texture)
     if iconInfo.texCoords then
