@@ -869,13 +869,6 @@ local function AddBossPortrait(row)
     row.portraitFrame:Hide()
 end
 
-local function GetLevelColor(level)
-    if type(GetQuestDifficultyColor) ~= "function" then return 1, 0.82, 0 end
-    local ok, color = pcall(GetQuestDifficultyColor, level)
-    if not ok or type(color) ~= "table" then return 1, 0.82, 0 end
-    return color.r or 1, color.g or 1, color.b or 1
-end
-
 local function UpdateBossLevelBadge(row, boss)
     if row.levelBadge == nil then return end
     row.bossDragon:Hide()
@@ -897,7 +890,7 @@ local function UpdateBossLevelBadge(row, boss)
         row.levelSkull:Show()
     else
         row.levelText:SetText(boss.level)
-        row.levelText:SetTextColor(GetLevelColor(boss.level))
+        row.levelText:SetTextColor(AzerothCompendium:GetLevelDifficultyColor(boss.level))
         row.levelText:Show()
         row.levelSkull:Hide()
     end

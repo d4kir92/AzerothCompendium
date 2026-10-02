@@ -142,14 +142,7 @@ local function GetGroupQuestCount(questID)
 end
 
 local function GetQuestDifficultyColorCode(level)
-    if type(GetQuestDifficultyColor) ~= "function" then return "|cffffffff" end
-    local ok, color = pcall(GetQuestDifficultyColor, level)
-    if not ok or type(color) ~= "table" then return "|cffffffff" end
-    local red = min(255, max(0, floor((color.r or 1) * 255 + 0.5)))
-    local green = min(255, max(0, floor((color.g or 1) * 255 + 0.5)))
-    local blue = min(255, max(0, floor((color.b or 1) * 255 + 0.5)))
-
-    return format("|cff%02x%02x%02x", red, green, blue)
+    return AzerothCompendium:GetColorCode(AzerothCompendium:GetLevelDifficultyColor(level, 1, 1, 1))
 end
 
 local function AddQuestStatusToTooltip(questID, quest, node)
