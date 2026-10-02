@@ -15,10 +15,24 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.406, 0.534, 250631}, -- The Abandoned
         {"boss", 0.424, 0.385, 256097}, -- Bjork
         {"boss", 0.463, 0.623, 250657}, -- Rath'mael
-        {"boss", 0.486, 0.299, 255699}, -- Lordaeron Captain
+        {"boss", 0.486, 0.719, 255699}, -- Lordaeron Captain
     },
     [2998] = { -- Excavation Site: Wetlands
         {"entrance", 0.080, 0.610},
+        {"boss", 0.340, 0.570, 260322}, -- Saltspine
+        {"boss", 0.635, 0.250, 260326}, -- Relic Guardian
+        {"boss", 0.775, 0.690, 260325}, -- Shadetooth
+        {"boss", 0.790, 0.280, 260808}, -- Highland Horror
+    },
+    [2959] = { -- City of Dalaran
+        {"level", 0.605, 0.530, 2959002},
+        {"boss", 0.536, 0.712, 245999}, -- Arcane Anomaly
+        {"boss", 0.515, 0.270, 246020}, -- Shade of the Archmage
+    },
+    [2959002] = { -- City of Dalaran - Dalaran Sewers
+        {"entrance", 0.184, 0.840},
+        {"level", 0.645, 0.640, 2959, true},
+        {"boss", 0.545, 0.510, 247126}, -- Atrexis the Grave Knight
     },
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},
@@ -91,11 +105,11 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [225] = { -- The Stockade
         {"entrance", 0.500, 0.815},
         {"boss", 0.440, 0.446, 1696}, -- Targorr the Dread
-        {"boss", 0.127, 0.060, 1666}, -- Kam Deepfury
+        {"boss", 0.691, 0.300, 1666}, -- Kam Deepfury
         {"boss", 0.780, 0.454, 1717}, -- Hamhock
-        {"boss", 0.215, 0.262, 1716}, -- Bazil Thredd
-        {"boss", 0.040, 0.058, 1663}, -- Dextren Ward
-        {"boss", 0.207, 0.062, 1720}, -- Bruegal Ironknuckle
+        {"boss", 0.745, 0.562, 1716}, -- Bazil Thredd
+        {"boss", 0.213, 0.260, 1663}, -- Dextren Ward
+        {"boss", 0.497, 0.222, 1720}, -- Bruegal Ironknuckle
     },
     [221] = { -- Blackfathom Deeps 1
         {"entrance", 0.453, 0.108},
@@ -119,23 +133,21 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [226] = { -- Gnomeregan - The Hall of Gears
         {"entrance", 0.644, 0.275},
         {"level", 0.345, 0.640, 227},
+        {"level", 0.470, 0.870, 227},
+        {"level", 0.551, 0.440, 227},
         {"boss", 0.770, 0.670, 7361}, -- Grubbis
-        {"boss", 0.350, 0.080, 6235}, -- Electrocutioner 6000
-        {"boss", 0.425, 0.080, 6229}, -- Crowd Pummeler 9-60
-        {"boss", 0.500, 0.080, 6228}, -- Dark Iron Ambassador
-        {"boss", 0.575, 0.080, 7800}, -- Mekgineer Thermaplugg
     },
     [302] = { -- Scarlet Monastery - Graveyard
         {"entrance", 0.840, 0.830},
         {"boss", 0.721, 0.593, 3983}, -- Interrogator Vishas
         {"boss", 0.250, 0.560, 4543}, -- Bloodmage Thalnos
-        {"boss", 0.350, 0.080, 6489}, -- Ironspine
-        {"boss", 0.425, 0.080, 6490}, -- Azshir the Sleepless
-        {"boss", 0.500, 0.080, 6488}, -- Fallen Champion
+        {"boss", 0.400, 0.660, 6489}, -- Ironspine
+        {"boss", 0.325, 0.660, 6490}, -- Azshir the Sleepless
+        {"boss", 0.400, 0.460, 6488}, -- Fallen Champion
     },
     [303] = { -- Scarlet Monastery - Library
-        {"entrance", 0.130, 0.250},
-        {"boss", 0.290, 0.840, 3974}, -- Houndmaster Loksey
+        {"entrance", 0.130, 0.248},
+        {"boss", 0.300, 0.850, 3974}, -- Houndmaster Loksey
         {"boss", 0.835, 0.740, 6487}, -- Arcanist Doan
     },
     [304] = { -- Scarlet Monastery - Armory
@@ -150,23 +162,23 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [301] = { -- Razorfen Kraul
         {"entrance", 0.715, 0.837},
-        {"boss", 0.200, 0.080, 6168}, -- Roogug
-        {"boss", 0.275, 0.080, 4424}, -- Aggem Thorncurse
-        {"boss", 0.350, 0.080, 4428}, -- Death Speaker Jargba
-        {"boss", 0.425, 0.080, 4420}, -- Overlord Ramtusk
+        {"boss", 0.810, 0.510, 6168}, -- Roogug
+        {"boss", 0.865, 0.410, 4424}, -- Aggem Thorncurse
+        {"boss", 0.570, 0.300, 4428}, -- Death Speaker Jargba
+        {"boss", 0.215, 0.300, 4420}, -- Overlord Ramtusk
         {"boss", 0.500, 0.080, 4422}, -- Agathelos the Raging
         {"boss", 0.575, 0.080, 4425}, -- Blind Hunter
-        {"boss", 0.050, 0.190, 4421}, -- Charlga Razorflank
+        {"boss", 0.080, 0.690, 4421}, -- Charlga Razorflank
         {"boss", 0.125, 0.190, 4842}, -- Earthcaller Halmgar
     },
     [300] = { -- Razorfen Downs
         {"entrance", 0.237, 0.190},
         {"boss", 0.200, 0.080, 7355}, -- Tuten'kash
-        {"boss", 0.275, 0.080, 7357}, -- Mordresh Fire Eye
-        {"boss", 0.350, 0.080, 8567}, -- Glutton
+        {"boss", 0.855, 0.450, 7357}, -- Mordresh Fire Eye
+        {"boss", 0.350, 0.670, 8567}, -- Glutton
         {"boss", 0.425, 0.080, 7354}, -- Ragglesnout
         {"boss", 0.500, 0.080, 7356}, -- Plaguemaw the Rotting
-        {"boss", 0.575, 0.080, 7358}, -- Amnennar the Coldbringer
+        {"boss", 0.443, 0.596, 7358}, -- Amnennar the Coldbringer
     },
     [280] = { -- Maraudon - Caverns of Maraudon
         {"entrance", 0.768, 0.657},
@@ -217,17 +229,17 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"entrance", 0.566, 0.901},
         {"boss", 0.200, 0.080, 8127}, -- Antu'sul
         {"boss", 0.275, 0.080, 7272}, -- Theka the Martyr
-        {"boss", 0.350, 0.080, 7271}, -- Witch Doctor Zum'rah
+        {"boss", 0.440, 0.160, 7271}, -- Witch Doctor Zum'rah
         {"boss", 0.425, 0.080, 10082}, -- Zerillis
         {"boss", 0.500, 0.080, 10080}, -- Sandarr Dunereaver
-        {"boss", 0.575, 0.080, 7604}, -- Sergeant Bly
+        {"boss", 0.255, 0.130, 7604}, -- Sergeant Bly
         {"boss", 0.050, 0.190, 7795}, -- Hydromancer Velratha
         {"boss", 0.305, 0.400, 7273}, -- Gahz'rilla
         {"boss", 0.200, 0.190, 10081}, -- Dustwraith
         {"boss", 0.275, 0.190, 7796}, -- Nekrum Gutchewer
-        {"boss", 0.350, 0.190, 7275}, -- Shadowpriest Sezz'ziz
-        {"boss", 0.425, 0.190, 7267}, -- Chief Ukorz Sandscalp
-        {"boss", 0.500, 0.190, 7797}, -- Ruuzlu
+        {"boss", 0.334, 0.170, 7275}, -- Shadowpriest Sezz'ziz
+        {"boss", 0.440, 0.330, 7267}, -- Chief Ukorz Sandscalp
+        {"boss", 0.420, 0.360, 7797}, -- Ruuzlu
     },
     [317] = { -- Stratholme - Crusader's Square
         {"entrance", 0.640, 0.880},
@@ -426,14 +438,24 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.490, 0.780, 313},
     },
     [227] = { -- Gnomeregan - The Dormitory
-        {"level", 0.125, 0.080, 228},
+        {"level", 0.245, 0.580, 228},
+        {"level", 0.430, 0.830, 226, true},
+        {"level", 0.640, 0.580, 226, true},
         {"boss", 0.755, 0.450, 7079}, -- Viscous Fallout
+        {"boss", 0.240, 0.680, 6235}, -- Electrocutioner 6000
     },
     [228] = { -- Gnomeregan - Launch Bay
-        {"level", 0.125, 0.080, 229},
+        {"entrance", 0.870, 0.480},
+        {"level", 0.488, 0.710, 229},
+        {"level", 0.273, 0.308, 229},
+        {"level", 0.445, 0.430, 227, true},
+        {"boss", 0.427, 0.878, 6229}, -- Crowd Pummeler 9-60
     },
     [229] = { -- Gnomeregan - Tinkers' Court
-        {"level", 0.125, 0.080, 228},
+        {"level", 0.481, 0.540, 228, true},
+        {"level", 0.710, 0.773, 228, true},
+        {"boss", 0.450, 0.680, 6228}, -- Dark Iron Ambassador
+        {"boss", 0.310, 0.294, 7800}, -- Mekgineer Thermaplugg
     },
     [231] = { -- Uldaman - Khaz'Goroth's Seat
         {"level", 0.645, 0.410, 230, true},

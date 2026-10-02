@@ -3453,8 +3453,11 @@ end
 function MapPins.CreateDebugUI()
     if MapPins.editor ~= nil then return end
     local view = compendium.mapView
-    view.debugText = view:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    view.debugText:SetPoint("BOTTOMRIGHT", view.art, "BOTTOMRIGHT", -8, 8)
+    local overlay = CreateFrame("Frame", nil, view)
+    overlay:SetAllPoints(view)
+    overlay:SetFrameLevel(view:GetFrameLevel() + 5)
+    view.debugText = overlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    view.debugText:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", -8, 8)
     local cursor = CreateFrame("Frame", nil, view)
     cursor:SetFrameStrata("TOOLTIP")
     cursor:SetSize(1, 1)
