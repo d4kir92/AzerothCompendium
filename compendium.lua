@@ -1168,9 +1168,17 @@ local function GetWishlistList()
                     end
                 end
             end
+            if worldItem == nil and type(source) == "table" and source.kind == "worldquestitems" and (not IsClassicEra() or not source.forever) then
+                worldItem = source
+                kind, inst, boss = "worldquestitems", nil, nil
+            end
+            if worldItem then name = name or worldItem.itemName end
             local sourceText = ""
             if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
-            if worldItem then sourceText = AzerothCompendium:GetQuestNameByID(worldItem.questID) .. " - " .. (worldItem.zone or worldItem.source or "") end
+            if worldItem then
+                sourceText = worldItem.sourceText or worldItem.source or ""
+                if worldItem.questID then sourceText = AzerothCompendium:GetQuestNameByID(worldItem.questID) .. " - " .. (worldItem.zone or sourceText) end
+            end
             if (not IsClassicEra() or inst ~= nil or worldItem ~= nil) and (Matches(name) or Matches(sourceText)) then
                 tinsert(list, {
                     kind = kind or "worldquestitems",
@@ -1195,6 +1203,8 @@ local function GetWishlistList()
 end
 
 function AzerothCompendium:GetGroupedWishlistList(list)
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.WISHLISTGROUPS = ACOTABPC.WISHLISTGROUPS or {}
     local result, instances, ordered = {}, {}, {}
     local kind = type(ACOTABPC) == "table" and ACOTABPC.WISHLISTCATEGORY or "dungeon"
     for _, entry in ipairs(list) do
@@ -1212,8 +1222,12 @@ function AzerothCompendium:GetGroupedWishlistList(list)
         return Lower(a.name) < Lower(b.name)
     end)
     for _, instance in ipairs(ordered) do
-        tinsert(result, {wishlistCategory = true, name = instance.name, count = #instance.items, rowHeight = 26})
-        for _, entry in ipairs(instance.items) do tinsert(result, entry) end
+        local key = kind .. ":" .. instance.key
+        local collapsed = ACOTABPC.WISHLISTGROUPS[key] == true and searchText == ""
+        tinsert(result, {wishlistCategory = true, key = key, collapsed = collapsed, name = instance.name, count = #instance.items, rowHeight = 26})
+        if not collapsed then
+            for _, entry in ipairs(instance.items) do tinsert(result, entry) end
+        end
     end
     return result
 end
@@ -2122,13 +2136,20 @@ end
 
 local contextMenu = nil
 local function ShowWishlistMenu(owner, itemID, source)
+    itemID = tonumber(itemID)
+    if itemID == nil then return end
+    if owner.worldQuestItem then
+        local entry = owner.worldQuestItem
+        local data = entry.data or {}
+        source = {kind = "worldquestitems", questID = data.questID or entry.questID, itemName = data.itemName or entry.itemName, zone = data.zone, sourceText = entry.sourceText, forever = data.forever}
+    end
     local listed = AzerothCompendium:IsWishlisted(itemID)
     local label = AzerothCompendium:Trans(listed and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST")
     local action = function()
         if listed then
             AzerothCompendium:SetWishlistItem(itemID, nil)
         else
-            AzerothCompendium:SetWishlistItem(itemID, source)
+            AzerothCompendium:SetWishlistItem(itemID, source or {})
         end
     end
 
@@ -2228,6 +2249,10 @@ local NavigateToWishlistItem = nil
 local function CreateWishlistRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
     row.isWishlist = true
+    row.collapseIcon = row:CreateTexture(nil, "OVERLAY")
+    row.collapseIcon:SetSize(16, 16)
+    row.collapseIcon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    row.collapseIcon:Hide()
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
@@ -2246,7 +2271,14 @@ local function CreateWishlistRow(scroller)
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button)
-        if sel.entry == nil or sel.entry.wishlistCategory then return end
+        if sel.entry == nil then return end
+        if sel.entry.wishlistCategory then
+            if button ~= "LeftButton" then return end
+            ACOTABPC.WISHLISTGROUPS[sel.entry.key] = not ACOTABPC.WISHLISTGROUPS[sel.entry.key]
+            compendium.wishlist.data = AzerothCompendium:GetGroupedWishlistList(compendium.wishlist.fullList or {})
+            compendium.wishlist:Refresh()
+            return
+        end
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, nil)
             return
@@ -2263,10 +2295,12 @@ local function CreateWishlistRow(scroller)
         self.icon:SetShown(not entry.wishlistCategory)
         self.iconRing:SetShown(not entry.wishlistCategory)
         self.source:SetShown(not entry.wishlistCategory)
+        self.collapseIcon:SetShown(entry.wishlistCategory == true)
         self.name:ClearAllPoints()
         if entry.wishlistCategory then
             self.selected:Hide()
-            self.name:SetPoint("LEFT", self, "LEFT", entry.subcategory and 18 or 6, 0)
+            self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+            self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
             self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
             self.name:SetText(entry.name .. " (" .. entry.count .. ")")
             self.name:SetTextColor(1, 0.82, 0)
@@ -2940,6 +2974,7 @@ local function RefreshWishlistView()
     if compendium == nil or compendium.wishlist == nil then return end
     SetSpecialMode("wishlist")
     local list = GetWishlistList()
+    compendium.wishlist.fullList = list
     compendium.wishlist:SetData(AzerothCompendium:GetGroupedWishlistList(list))
     local kind = type(ACOTABPC) == "table" and ACOTABPC.WISHLISTCATEGORY or "dungeon"
     local count = 0
@@ -3405,7 +3440,7 @@ local function CreateJournal()
     wishlistTitle:Hide()
     compendium.wishlistTitle = wishlistTitle
     local wishlistCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    wishlistCount:SetPoint("BOTTOMRIGHT", wishlist, "TOPRIGHT", 0, 36)
+    wishlistCount:SetPoint("RIGHT", compendium, "TOPRIGHT", -14, -90)
     wishlistCount:SetJustifyH("RIGHT")
     wishlistCount:Hide()
     compendium.wishlistCount = wishlistCount
