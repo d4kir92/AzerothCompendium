@@ -1080,12 +1080,8 @@ end
 function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     if mapID == nil then return false end
     if InCombatLockdown and InCombatLockdown() then return false, "combat" end
-    if C_Map == nil or C_Map.SetUserWaypoint == nil or UiMapPoint == nil or UiMapPoint.CreateFromCoordinates == nil then return false end
-    local point = UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100)
-    C_Map.SetUserWaypoint(point)
-    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
 
-    return true
+    return AzerothCompendium:SetTrackedWaypoint(mapID, x / 100, y / 100)
 end
 
 function AzerothCompendium:CanOpenWorldMapTo()
