@@ -2399,6 +2399,13 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = button
     end
 
+    local control = parent.flavorControl or parent.flavorDropdown
+    local level = parent:GetFrameLevel() + 5
+    for _, chrome in ipairs({parent.TitleContainer, parent.NineSlice}) do
+        if chrome.GetFrameLevel then level = max(level, chrome:GetFrameLevel() + 2) end
+    end
+
+    control:SetFrameLevel(level)
     local text = GetFlavorText()
     if parent.flavorDropdown.SetDefaultText then parent.flavorDropdown:SetDefaultText(text) end
     if parent.flavorDropdown.Update then parent.flavorDropdown:Update() end
