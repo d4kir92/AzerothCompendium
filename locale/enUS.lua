@@ -1,6 +1,6 @@
 -- enUS English
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("enUS", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("enUS", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("enUS", "LID_DUNGEONS", "Dungeons")
 AzerothCompendium:AddTrans("enUS", "LID_RAIDS", "Raids")
 AzerothCompendium:AddTrans("enUS", "LID_LOOT", "Loot")
@@ -43,7 +43,7 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTS", "Quests")
 AzerothCompendium:AddTrans("enUS", "LID_MAP", "Map")
 AzerothCompendium:AddTrans("enUS", "LID_NOMAP", "No map available")
 AzerothCompendium:AddTrans("enUS", "LID_MAPSOURCE", "Map: %s")
-AzerothCompendium:AddTrans("enUS", "LID_MAPPINBOSSHINT","Click: show boss")
+AzerothCompendium:AddTrans("enUS", "LID_MAPPINBOSSHINT", "Click: show boss")
 AzerothCompendium:AddTrans("enUS", "LID_SHOWONMAP", "Show on map")
 AzerothCompendium:AddTrans("enUS", "LID_SHOWMAPPINS", "Show map pins")
 AzerothCompendium:AddTrans("enUS", "LID_HIDEMAPPINS", "Hide map pins")

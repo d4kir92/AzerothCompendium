@@ -1,6 +1,6 @@
 -- koKR Korean
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("koKR", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("koKR", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("koKR", "LID_DUNGEONS", "던전")
 AzerothCompendium:AddTrans("koKR", "LID_RAIDS", "공격대")
 AzerothCompendium:AddTrans("koKR", "LID_LOOT", "전리품")

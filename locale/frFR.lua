@@ -1,6 +1,6 @@
 -- frFR French Francais
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("frFR", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("frFR", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONS", "Donjons")
 AzerothCompendium:AddTrans("frFR", "LID_RAIDS", "Raids")
 AzerothCompendium:AddTrans("frFR", "LID_LOOT", "Butin")

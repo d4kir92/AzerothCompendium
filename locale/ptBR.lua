@@ -1,6 +1,6 @@
 -- ptBR Portuguese Brasil
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("ptBR", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("ptBR", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("ptBR", "LID_DUNGEONS", "Masmorras")
 AzerothCompendium:AddTrans("ptBR", "LID_RAIDS", "Raides")
 AzerothCompendium:AddTrans("ptBR", "LID_LOOT", "Saque")

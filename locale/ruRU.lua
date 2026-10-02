@@ -1,6 +1,6 @@
 -- ruRU Russian
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("ruRU", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("ruRU", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONS", "Подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_RAIDS", "Рейды")
 AzerothCompendium:AddTrans("ruRU", "LID_LOOT", "Добыча")

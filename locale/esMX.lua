@@ -1,6 +1,6 @@
 -- esMX Spanish Mexico
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("esMX", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("esMX", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("esMX", "LID_DUNGEONS", "Calabozos")
 AzerothCompendium:AddTrans("esMX", "LID_RAIDS", "Bandas")
 AzerothCompendium:AddTrans("esMX", "LID_LOOT", "Botín")

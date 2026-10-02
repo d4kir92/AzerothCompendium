@@ -84,7 +84,7 @@ function AzerothCompendium:InitSetting()
         end,
         ["getCollapsed"] = function(key) return GetCollapsed(key) end,
         ["setCollapsed"] = function(key, collapsed) SetCollapsed(key, collapsed) end,
-        ["title"] = format("|T%d:16:16:0:0|t Azeroth Compendium v%s", ICON, AzerothCompendium:GetAddonVersion())
+        ["title"] = format("|T%d:16:16:0:0|t AzerothCompendium v%s", ICON, AzerothCompendium:GetAddonVersion())
     })
 
     acoset:SuspendLayout()
@@ -106,7 +106,7 @@ function AzerothCompendium:InitSetting()
         ["icon"] = ICON,
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
-        ["vTT"] = {{AzerothCompendium:GetCompendiumTooltipLabel("Azeroth Compendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}, {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}, {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}},
+        ["vTT"] = {{AzerothCompendium:GetCompendiumTooltipLabel("AzerothCompendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}, {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}, {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}},
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
         ["funcR"] = function() AzerothCompendium:ToggleSettings() end,
         ["dbkey"] = "MMBTN"

@@ -1,6 +1,6 @@
 -- zhTW Chinese traditional
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("zhTW", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("zhTW", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("zhTW", "LID_DUNGEONS", "地城")
 AzerothCompendium:AddTrans("zhTW", "LID_RAIDS", "團隊副本")
 AzerothCompendium:AddTrans("zhTW", "LID_LOOT", "戰利品")

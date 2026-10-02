@@ -1,6 +1,6 @@
-# Azeroth Compendium
+# AzerothCompendium
 
-Azeroth Compendium brings a searchable, encounter and reward journal.
+AzerothCompendium brings a searchable, encounter and reward journal.
 
 ## Features
 

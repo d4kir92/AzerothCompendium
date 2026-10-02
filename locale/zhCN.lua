@@ -1,6 +1,6 @@
 -- zhCN Chinese simplified
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("zhCN", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("zhCN", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONS", "地下城")
 AzerothCompendium:AddTrans("zhCN", "LID_RAIDS", "团队副本")
 AzerothCompendium:AddTrans("zhCN", "LID_LOOT", "战利品")

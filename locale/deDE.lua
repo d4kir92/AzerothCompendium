@@ -1,6 +1,6 @@
 -- deDE German Deutsch
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("deDE", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("deDE", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("deDE", "LID_DUNGEONS", "Dungeons")
 AzerothCompendium:AddTrans("deDE", "LID_RAIDS", "Schlachtzüge")
 AzerothCompendium:AddTrans("deDE", "LID_LOOT", "Beute")
@@ -43,7 +43,7 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTS", "Quests")
 AzerothCompendium:AddTrans("deDE", "LID_MAP", "Karte")
 AzerothCompendium:AddTrans("deDE", "LID_NOMAP", "Keine Karte vorhanden")
 AzerothCompendium:AddTrans("deDE", "LID_MAPSOURCE", "Karte: %s")
-AzerothCompendium:AddTrans("deDE", "LID_MAPPINBOSSHINT","Klick: Boss anzeigen")
+AzerothCompendium:AddTrans("deDE", "LID_MAPPINBOSSHINT", "Klick: Boss anzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_SHOWONMAP", "Auf Karte anzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_SHOWMAPPINS", "Karten-Pins einblenden")
 AzerothCompendium:AddTrans("deDE", "LID_HIDEMAPPINS", "Karten-Pins ausblenden")

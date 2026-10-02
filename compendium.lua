@@ -24,7 +24,6 @@ local INSTANCE_TYPE_TAGS = {
 }
 
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
-local TAB_ICON_SIZE = 14
 local TAB_ICONS = {
     ["map"] = {texture = "Interface\\Icons\\INV_Misc_Map_01"},
     ["bosses"] = {texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons", texCoords = {0.75, 1, 0.25, 0.5}},
@@ -227,8 +226,16 @@ local function HasModernScroll()
     return AzerothCompendium:CheckTemplates("WowScrollBox, MinimalScrollBar")
 end
 
+local function AddContentBorder(frame)
+    frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
+    frame.border:SetAtlas("common-insideframe")
+    frame.border:SetPoint("TOPLEFT", frame, "TOPLEFT", -4, 4)
+    frame.border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 4, -4)
+end
+
 local function CreateScroller(parent, rowHeight, initRow)
     local scroller = CreateFrame("Frame", nil, parent)
+    AddContentBorder(scroller)
     scroller.rowHeight = rowHeight
     scroller.initRow = initRow
     scroller.rows = {}
@@ -842,6 +849,9 @@ local function UpdateBossPortrait(row, boss)
         return
     end
 
+    local offsetY = (boss.all or boss.trash) and 0 or BOSS_PORTRAIT_Y
+    row.portraitFrame:ClearAllPoints()
+    row.portraitFrame:SetPoint("LEFT", row, "LEFT", BOSS_PORTRAIT_X, offsetY)
     local size = row.portraitFrame:GetWidth()
     if boss.all or boss.trash then
         row.portrait:SetTexture(boss.all and ALL_PORTRAIT or TRASH_PORTRAIT)
@@ -855,7 +865,7 @@ local function UpdateBossPortrait(row, boss)
     row.portrait:SetSize(size, size)
     UpdateBossLevelBadge(row, boss)
     row.portraitFrame:Show()
-    row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", BOSS_TEXT_GAP, -BOSS_PORTRAIT_Y)
+    row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", BOSS_TEXT_GAP, -offsetY)
     row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
 end
 
@@ -1099,16 +1109,10 @@ end
 
 local function UpdateTabs(tabs, active)
     for kind, button in pairs(tabs) do
-        if kind == active then
-            button.text:SetTextColor(1, 0.82, 0)
-            button.underline:Show()
-        else
-            button.text:SetTextColor(0.7, 0.7, 0.7)
-            button.underline:Hide()
-        end
+        button:SetTabSelected(kind == active)
+        button.Icon:SetPoint("CENTER", button, "CENTER", button.questIcon and -2 or 0, button:GetIconYOffset(kind == active))
     end
 end
-
 local function UpdateModel()
     local frame = compendium.model
     if frame == nil then return false end
@@ -2247,35 +2251,54 @@ local function CreateSpellRow(scroller)
 end
 
 local function CreateTabButton(parent, label, iconInfo, onClick)
-    local button = CreateFrame("Button", nil, parent)
-    button:SetSize(100, 22)
-    button.text = button:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    button.text:SetPoint("CENTER", button, "CENTER", 8, 1)
-    button.text:SetText(label)
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(TAB_ICON_SIZE, TAB_ICON_SIZE)
-    button.icon:SetPoint("RIGHT", button.text, "LEFT", -3, 0)
-    button.icon:SetTexture(iconInfo.texture)
-    if iconInfo.texCoords then
-        button.icon:SetTexCoord(unpack(iconInfo.texCoords))
-    else
-        button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    local button = CreateFrame("Button", nil, parent, "TabSystemButtonArtTemplate")
+    button:SetSize(button.Icon:GetWidth() + 8, 32)
+    button:SetFrameLevel(parent:GetFrameLevel() + 4)
+    button.isTabOnTop = true
+    button:HandleRotation()
+    button.squareMode = true
+    for _, texture in ipairs(button.RotatedTextures) do texture:Hide() end
+    button.chrome = CreateFrame("Frame", nil, parent)
+    button.chrome:SetAllPoints(button)
+    button.chrome:SetFrameLevel(parent:GetFrameLevel())
+    button.chrome:EnableMouse(false)
+    for _, def in ipairs({
+        {"SquareBackground", "spellbook-Tab-Frame-C60", 1},
+        {"SquareBackgroundActive", "spellbook-Tab-Frame-Glow-C60", 1},
+        {"SquareBackgroundActiveGlow", "spellbook-Tab-Frame-glow-gradient-C60", 0},
+    }) do
+        local texture = button[def[1]]
+        texture:SetParent(button.chrome)
+        texture:ClearAllPoints()
+        texture:SetPoint("BOTTOM", button, "BOTTOM", 0, def[3])
+        texture:SetAtlas(def[2], true)
     end
 
-    button.underline = button:CreateTexture(nil, "ARTWORK")
-    button.underline:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 6, 2)
-    button.underline:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -6, 2)
-    button.underline:SetHeight(2)
-    button.underline:SetColorTexture(1, 0.82, 0, 0.9)
-    button.underline:Hide()
-    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetAllPoints(button)
-    highlight:SetColorTexture(1, 1, 1, 0.1)
+    button.questIcon = iconInfo == TAB_ICONS.quests
+    button.Icon:SetTexture(iconInfo.texture)
+    if iconInfo.texCoords then
+        button.Icon:SetTexCoord(unpack(iconInfo.texCoords))
+    else
+        button.Icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+
+    button.Icon:Show()
+    button.IconMask:Show()
+    button.Text:Hide()
+    button:SetTabSelected(false)
     button:SetScript("OnClick", onClick)
+    button:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(label)
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    button:SetScript("OnShow", function(sel) sel.chrome:Show() end)
+    button:SetScript("OnHide", function(sel) sel.chrome:Hide() end)
 
     return button
 end
-
 local function CreateTemplated(kind, name, parent, templates)
     for _, template in ipairs(templates) do
         local ok, frame = pcall(CreateFrame, kind, name, parent, template)
@@ -2317,7 +2340,7 @@ end
 local function CreateFlavorControl(parent)
     if AzerothCompendium:CheckTemplates("SettingsDropdownWithButtonsTemplate") then
         local control = CreateFrame("Frame", "AzerothCompendiumFlavorControl", parent, "SettingsDropdownWithButtonsTemplate")
-        control:SetPoint("LEFT", parent, "TOPLEFT", 14, -73)
+        control:SetPoint("LEFT", parent, "TOPLEFT", 59, -38)
         control:SetWidth(190)
         control.Dropdown:SetWidth(120)
         local steppers = {}
@@ -2362,7 +2385,7 @@ local function CreateFlavorControl(parent)
     else
         local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
         button:SetSize(190, 22)
-        button:SetPoint("LEFT", parent, "TOPLEFT", 14, -73)
+        button:SetPoint("LEFT", parent, "TOPLEFT", 59, -38)
         button:SetScript("OnClick", function(sel) ShowFlavorMenu(sel) end)
         local arrow = button:CreateTexture(nil, "ARTWORK")
         arrow:SetSize(16, 16)
@@ -2379,33 +2402,24 @@ local function CreateFlavorControl(parent)
 end
 
 local function SetFrameTitle(frame, text)
-    if type(frame.SetTitle) == "function" then
-        local ok = pcall(frame.SetTitle, frame, text)
-        if ok then return end
-    end
-
-    if type(frame.TitleContainer) == "table" and frame.TitleContainer.TitleText ~= nil then
-        frame.TitleContainer.TitleText:SetText(text)
-
-        return
-    end
-
-    if frame.TitleText ~= nil then
-        frame.TitleText:SetText(text)
-
-        return
-    end
-
+    if type(frame.SetTitle) == "function" then pcall(frame.SetTitle, frame, text) end
     local name = frame:GetName()
-    if name ~= nil and _G[name .. "TitleText"] ~= nil then
-        _G[name .. "TitleText"]:SetText(text)
-
-        return
+    local title = type(frame.TitleContainer) == "table" and frame.TitleContainer.TitleText or frame.TitleText or name and _G[name .. "TitleText"]
+    if title == nil then
+        title = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        title:SetPoint("TOP", frame, "TOP", 0, -6)
     end
 
-    local title = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    title:SetPoint("TOP", frame, "TOP", 0, -6)
     title:SetText(text)
+    local points = {}
+    for index = 1, title:GetNumPoints() do
+        points[index] = {title:GetPoint(index)}
+    end
+
+    title:ClearAllPoints()
+    for _, point in ipairs(points) do
+        title:SetPoint(point[1], point[2], point[3], point[4], point[5] + 1)
+    end
 end
 
 local function SetFramePortrait(frame, icon)
@@ -2698,13 +2712,7 @@ local function SetSpecialMode(mode)
         end
     end
 
-    for _, frame in ipairs({compendium.flavorControl or compendium.flavorDropdown}) do
-        if mode == "wishlist" then
-            frame:Hide()
-        else
-            frame:Show()
-        end
-    end
+    (compendium.flavorControl or compendium.flavorDropdown):Show()
 
     if compendium.wishlist then
         if mode == "wishlist" then
@@ -2822,7 +2830,11 @@ local function CreateJournal()
     MakeResizable(compendium)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
-    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s v%s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:GetAddonVersion()))
+    SetFrameTitle(compendium, format("|T%d:16:16:0:0|t %s", AzerothCompendium:GetIcon(), AzerothCompendium:Trans("LID_TITLE")))
+    compendium.version = compendium:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 8)
+    compendium.version:SetTextColor(0.5, 0.5, 0.5)
+    compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
     search:SetSize(180, 20)
@@ -2923,11 +2935,13 @@ local function CreateJournal()
     bosses:SetWidth(MIDDLE_COL_W)
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
+    AddContentBorder(questTree)
     questTree:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     questTree:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     questTree:Hide()
     compendium.questTree = questTree
     local mapView = CreateFrame("Frame", nil, compendium)
+    AddContentBorder(mapView)
     mapView:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     mapView:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     mapView.viewport = CreateFrame("Frame", nil, mapView)
@@ -2988,33 +3002,29 @@ local function CreateJournal()
     mapLevelControl:Hide()
     compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
-    local tabWidth = (MIDDLE_COL_W - 4) / 3
     local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), TAB_ICONS["map"], function()
         middleKind = "map"
         SaveNavigationState()
         RefreshBosses()
     end)
-    mapTab:SetWidth(tabWidth)
-    mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, 1)
+    mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, -2)
     local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         SaveNavigationState()
         RefreshBosses()
     end)
-    bossTab:SetWidth(tabWidth)
-    bossTab:SetPoint("LEFT", mapTab, "RIGHT", 2, 0)
+    bossTab:SetPoint("LEFT", mapTab, "RIGHT", 1, 0)
     local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), TAB_ICONS["quests"], function()
         middleKind = "quests"
         SaveNavigationState()
         RefreshBosses()
     end)
-    questTab:SetWidth(tabWidth)
-    questTab:SetPoint("LEFT", bossTab, "RIGHT", 2, 0)
+    questTab:SetPoint("LEFT", bossTab, "RIGHT", 1, 0)
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
-    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, -ROW_H)
+    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, -ROW_H - 10)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
     local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
@@ -3068,18 +3078,17 @@ local function CreateJournal()
         RefreshDetail()
     end)
 
-    spellTab:SetWidth(78)
     local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), TAB_ICONS["loot"], function()
         detailKind = "loot"
         SaveNavigationState()
         RefreshDetail()
     end)
 
-    lootTab:SetWidth(78)
     compendium.detailTabs["loot"] = lootTab
     compendium.detailTabs["spells"] = spellTab
     local model = CreateModelFrame(compendium)
     if model ~= nil then
+        AddContentBorder(model)
         model:SetPoint("TOPLEFT", loot, "TOPLEFT", 0, 0)
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()
@@ -3090,17 +3099,16 @@ local function CreateJournal()
             RefreshDetail()
         end)
 
-        modelTab:SetWidth(78)
-        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62 - ROW_H)
+        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -65 - ROW_H)
         compendium.detailTabs["model"] = modelTab
-        spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -2, 0)
+        spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -1, 0)
     else
-        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -62 - ROW_H)
+        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -65 - ROW_H)
     end
 
-    lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -2, 0)
+    lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -1, 0)
     local detailCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    detailCount:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, ROW_H + 6)
+    detailCount:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, ROW_H + 16)
     detailCount:SetJustifyH("RIGHT")
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")

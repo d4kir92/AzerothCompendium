@@ -1,6 +1,6 @@
 -- itIT Italian Italiano
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("itIT", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("itIT", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("itIT", "LID_DUNGEONS", "Dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_RAIDS", "Incursioni")
 AzerothCompendium:AddTrans("itIT", "LID_LOOT", "Bottino")

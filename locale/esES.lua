@@ -1,6 +1,6 @@
 -- esES Spanish Espanol
 local _, AzerothCompendium = ...
-AzerothCompendium:AddTrans("esES", "LID_TITLE", "Azeroth Compendium")
+AzerothCompendium:AddTrans("esES", "LID_TITLE", "AzerothCompendium")
 AzerothCompendium:AddTrans("esES", "LID_DUNGEONS", "Mazmorras")
 AzerothCompendium:AddTrans("esES", "LID_RAIDS", "Bandas")
 AzerothCompendium:AddTrans("esES", "LID_LOOT", "Botín")
