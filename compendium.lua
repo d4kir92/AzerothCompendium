@@ -659,12 +659,42 @@ local function UpdateInstanceBackground(row, inst)
         row.questCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
         row.questCount:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
         row.questCount:SetJustifyH("RIGHT")
+        row.questCountHover = CreateFrame("Frame", nil, row)
+        row.questCountHover:SetAllPoints(row.questCount)
+        row.questCountHover:SetFrameLevel(row:GetFrameLevel() + 2)
+        row.questCountHover:EnableMouse(true)
+        if row.questCountHover.SetMouseClickEnabled then
+            row.questCountHover:SetMouseClickEnabled(false)
+        else
+            row.questCountHover:SetScript("OnMouseUp", function(sel)
+                local parent = sel:GetParent()
+                if parent.Click then parent:Click() end
+            end)
+        end
+
+        row.questCountHover:SetScript("OnEnter", function(sel)
+            local parent = sel:GetParent()
+            if parent.LockHighlight then parent:LockHighlight() end
+            GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+            GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTS")))
+            GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_QUESTSCOMPLETED"), parent.questsDone or 0, parent.questsTotal or 0), 1, 1, 1)
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_QUESTSCOMPLETEDHINT"), 0.6, 0.6, 0.6, true)
+            GameTooltip:Show()
+        end)
+
+        row.questCountHover:SetScript("OnLeave", function(sel)
+            local parent = sel:GetParent()
+            if parent.UnlockHighlight then parent:UnlockHighlight() end
+            AzerothCompendium:HideGameTooltip()
+        end)
+
         row.locationPins = {CreateLocationPin(row, LOCATION_PINS.entrance), CreateLocationPin(row, LOCATION_PINS.meetingStone)}
     end
 
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
+    row.questCountHover:Hide()
     for _, pin in ipairs(row.locationPins) do
         pin:Hide()
     end
@@ -757,6 +787,9 @@ local function UpdateInstanceRow(row, inst)
 
         row.questCount:SetText(format("|T%s:14:14|t %d/%d", QUEST_COUNT_ICON, done, #quests))
         row.questCount:Show()
+        row.questsDone = done
+        row.questsTotal = #quests
+        row.questCountHover:Show()
     end
 
     if selectedInstance == inst then
@@ -1998,6 +2031,7 @@ local function ShowItemTooltip(row)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
     end
 
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans(AzerothCompendium:IsWishlisted(row.itemID) and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST"), 0.9, 0.9, 0.9, 1, 0.82, 0)
     GameTooltip:Show()
 end
 
