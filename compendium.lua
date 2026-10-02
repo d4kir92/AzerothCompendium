@@ -2941,9 +2941,11 @@ local function SetSpecialMode(mode)
             compendium.wishlist:Show()
             compendium.wishlistTitle:Show()
             compendium.wishlistCount:Show()
+            compendium.wishlistHelp:Show()
         else
             compendium.wishlist:Hide()
             compendium.wishlistTitle:Hide()
+            compendium.wishlistHelp:Hide()
             compendium.wishlistCount:Hide()
             compendium.wishlistEmpty:Hide()
         end
@@ -3006,6 +3008,35 @@ function AzerothCompendium:CreateWishlistTabs()
         previous = tab
     end
     if not compendium.wishlistTabs[ACOTABPC.WISHLISTCATEGORY] then ACOTABPC.WISHLISTCATEGORY = "dungeon" end
+end
+
+function AzerothCompendium:CreateWishlistHelp()
+    local button = CreateFrame("Button", nil, compendium)
+    button:SetSize(20, 20)
+    button:SetPoint("LEFT", compendium.wishlistTitle, "RIGHT", 6, 0)
+    button.I = button:CreateTexture(nil, "BACKGROUND")
+    button.I:SetTexture("Interface\\common\\help-i")
+    button.I:SetSize(24, 24)
+    button.I:SetPoint("CENTER", button, "CENTER", 0, 0)
+    button.Ring = button:CreateTexture(nil, "BORDER")
+    button.Ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    button.Ring:SetSize(34, 34)
+    button.Ring:SetPoint("CENTER", button, "CENTER", 6, -7)
+    button:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
+        for index = 1, 4 do
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_WISHLISTHELP" .. index), 1, 1, 1, true)
+        end
+
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    button:SetScript("OnMouseDown", function(sel) sel.I:SetPoint("CENTER", sel, "CENTER", 1, -1) end)
+    button:SetScript("OnMouseUp", function(sel) sel.I:SetPoint("CENTER", sel, "CENTER", 0, 0) end)
+    button:Hide()
+    compendium.wishlistHelp = button
 end
 
 local function RefreshWorldQuestItemsView()
@@ -3461,6 +3492,7 @@ local function CreateJournal()
     wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
     wishlistTitle:Hide()
     compendium.wishlistTitle = wishlistTitle
+    AzerothCompendium:CreateWishlistHelp()
     local wishlistCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     wishlistCount:SetPoint("RIGHT", compendium, "TOPRIGHT", -14, -90)
     wishlistCount:SetJustifyH("RIGHT")
