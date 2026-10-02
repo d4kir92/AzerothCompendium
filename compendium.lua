@@ -12,7 +12,7 @@ local TRASH_PORTRAIT = 133639
 local ALL_PORTRAIT = 132594
 local PORTRAIT_ICON_ZOOM = 0.05
 local LOOT_ROW_H = 34
-local WORLD_QUEST_ITEM_ROW_H = 42
+local WORLD_QUEST_ITEM_ROW_H = LOOT_ROW_H + 6
 local INSTANCE_TYPE_ICON_SIZE = 16
 local INSTANCE_TYPE_ATLAS_SIZE = 24
 local INSTANCE_TYPE_ATLAS_INSET = 4
@@ -2256,10 +2256,10 @@ local function CreateWishlistRow(scroller)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
-    row.icon:SetSize(28, 28)
-    row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.icon:SetSize(26, 26)
+    row.icon:SetPoint("LEFT", row, "LEFT", 5, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    row.iconRing = AddIconRing(row, row.icon, 28, true)
+    row.iconRing = AddIconRing(row, row.icon, 26, true)
     row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)
     row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
@@ -2332,10 +2332,10 @@ local function CreateWorldQuestItemRow(scroller)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
-    row.icon:SetSize(32, 32)
-    row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.icon:SetSize(26, 26)
+    row.icon:SetPoint("LEFT", row, "LEFT", 5, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    row.iconRing = AddIconRing(row, row.icon, 32, true)
+    row.iconRing = AddIconRing(row, row.icon, 26, true)
     row.pin = CreateFrame("Button", nil, row)
     row.pin:SetSize(28, 28)
     row.pin:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -2354,11 +2354,11 @@ local function CreateWorldQuestItemRow(scroller)
     end
 
     row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -2)
+    row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)
     row.name:SetPoint("RIGHT", row.pin, "LEFT", -8, 0)
     row.name:SetJustifyH("LEFT")
     row.detail = row:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    row.detail:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 2)
+    row.detail:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 1)
     row.detail:SetPoint("RIGHT", row.pin, "LEFT", -8, 0)
     row.detail:SetJustifyH("LEFT")
     row.detail:SetWordWrap(false)
@@ -2482,6 +2482,7 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button.chrome:SetAllPoints(button)
     button.chrome:SetFrameLevel(parent:GetFrameLevel())
     button.chrome:EnableMouse(false)
+    button.chrome:Hide()
     for _, def in ipairs({{"SquareBackground", "spellbook-Tab-Frame-C60", 1}, {"SquareBackgroundActive", "spellbook-Tab-Frame-Glow-C60", 1}, {"SquareBackgroundActiveGlow", "spellbook-Tab-Frame-glow-gradient-C60", 0},}) do
         local texture = button[def[1]]
         texture:SetParent(button.chrome)
@@ -2994,7 +2995,7 @@ function AzerothCompendium:CreateWishlistTabs()
     ACOTABPC = ACOTABPC or {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
-    local categories = {{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Key_03"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
+    local categories = {{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
     compendium.wishlistTabs = {}
     local previous = nil
     for _, info in ipairs(categories) do
@@ -3271,7 +3272,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_01"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_02" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\Icons\\INV_Misc_Key_03"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
             if listKind == kind then
@@ -3428,7 +3429,9 @@ local function CreateJournal()
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
-    local wishlist = CreateScroller(compendium, LOOT_ROW_H + 6, CreateWishlistRow, 0)
+    local wishlist = CreateScroller(compendium, LOOT_ROW_H + 6, CreateWishlistRow, 2)
+    wishlist.rowGap = 0
+    wishlist:SetRowHeight(LOOT_ROW_H + 6)
     wishlist:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
     wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     wishlist:Hide()
@@ -3449,7 +3452,9 @@ local function CreateJournal()
     wishlistEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     wishlistEmpty:Hide()
     compendium.wishlistEmpty = wishlistEmpty
-    local worldQuestItems = CreateScroller(compendium, WORLD_QUEST_ITEM_ROW_H, CreateWorldQuestItemRow)
+    local worldQuestItems = CreateScroller(compendium, WORLD_QUEST_ITEM_ROW_H, CreateWorldQuestItemRow, 2)
+    worldQuestItems.rowGap = 0
+    worldQuestItems:SetRowHeight(WORLD_QUEST_ITEM_ROW_H)
     worldQuestItems:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
     worldQuestItems:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     worldQuestItems:Hide()
