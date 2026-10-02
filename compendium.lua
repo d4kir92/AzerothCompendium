@@ -1851,6 +1851,7 @@ local function RefreshInstances()
     end
 
     compendium.instances:Refresh()
+    if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
     if restoredIndex ~= nil then compendium.instances:ScrollToIndex(restoredIndex) end
     RefreshBosses()
 end
@@ -1861,6 +1862,8 @@ local function OnInstanceClick(inst)
     mapLevel = 1
     SaveNavigationState()
     compendium.instances:Refresh()
+    if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
+    if compendium.instancePopup then compendium.instancePopup:Hide() end
     RefreshBosses()
 end
 
@@ -2340,7 +2343,7 @@ end
 local function CreateFlavorControl(parent)
     if AzerothCompendium:CheckTemplates("SettingsDropdownWithButtonsTemplate") then
         local control = CreateFrame("Frame", "AzerothCompendiumFlavorControl", parent, "SettingsDropdownWithButtonsTemplate")
-        control:SetPoint("LEFT", parent, "TOPLEFT", 59, -38)
+        control:SetPoint("LEFT", parent, "TOPLEFT", 59, -14)
         control:SetWidth(190)
         control.Dropdown:SetWidth(120)
         local steppers = {}
@@ -2385,7 +2388,7 @@ local function CreateFlavorControl(parent)
     else
         local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
         button:SetSize(190, 22)
-        button:SetPoint("LEFT", parent, "TOPLEFT", 59, -38)
+        button:SetPoint("LEFT", parent, "TOPLEFT", 59, -14)
         button:SetScript("OnClick", function(sel) ShowFlavorMenu(sel) end)
         local arrow = button:CreateTexture(nil, "ARTWORK")
         arrow:SetSize(16, 16)
@@ -2685,8 +2688,9 @@ end
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
+    if compendium.instancePopup then compendium.instancePopup:Hide() end
     local regular = {
-        compendium.instances,
+        compendium.instanceControl,
         compendium.bossTitle,
         compendium.bosses,
         compendium.questTree,
@@ -2912,8 +2916,87 @@ local function CreateJournal()
     instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
     instances:SetWidth(INSTANCE_COL_W)
     compendium.instances = instances
+    local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
+    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -38)
+    instanceControl:SetSize(INSTANCE_COL_W + 60, 22)
+    local instanceDropdown = instanceControl.Dropdown
+    if instanceDropdown == nil then
+        instanceDropdown = CreateTemplated("Button", nil, instanceControl, {"UIPanelButtonTemplate"})
+        instanceDropdown:SetSize(INSTANCE_COL_W, 22)
+        instanceDropdown:SetPoint("LEFT", instanceControl, "LEFT", 30, 0)
+    else
+        instanceDropdown:SetWidth(INSTANCE_COL_W)
+    end
+
+    local instancePopup = CreateFrame("Frame", nil, compendium)
+    instancePopup:SetFrameStrata("DIALOG")
+    instancePopup:SetPoint("TOPLEFT", instanceDropdown, "BOTTOMLEFT", 0, -4)
+    instancePopup:SetSize(INSTANCE_COL_W + 10, 360)
+    instancePopup:SetClampedToScreen(true)
+    instancePopup:EnableMouse(true)
+    instancePopup.background = instancePopup:CreateTexture(nil, "BACKGROUND")
+    instancePopup.background:SetAllPoints(instancePopup)
+    instancePopup.background:SetColorTexture(0.04, 0.04, 0.05, 1)
+    instances:SetParent(instancePopup)
+    instances:ClearAllPoints()
+    instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
+    instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
+    instancePopup:Hide()
+    instancePopup:SetScript("OnUpdate", function(sel)
+        if IsMouseButtonDown("LeftButton") and not MouseIsOver(sel) and not MouseIsOver(instanceControl) then sel:Hide() end
+    end)
+    instanceDropdown:SetScript("OnClick", function()
+        if instancePopup:IsShown() then
+            instancePopup:Hide()
+        else
+            instancePopup:SetHeight(min(360, max(ROW_H, #instances.data * instances.rowHeight) + 10))
+            instancePopup:Show()
+            instances:Refresh()
+            for index, inst in ipairs(instances.data) do
+                if inst == selectedInstance then instances:ScrollToIndex(index) end
+            end
+        end
+    end)
+
+    local instanceSteppers = {}
+    for _, child in ipairs({instanceControl:GetChildren()}) do
+        if child ~= instanceDropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(instanceSteppers, child) end
+    end
+
+    table.sort(instanceSteppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
+    local instancePrevious = instanceControl.DecrementButton or instanceSteppers[1]
+    local instanceNext = instanceControl.IncrementButton or instanceSteppers[2]
+    local function StepInstance(delta)
+        for index, inst in ipairs(instances.data) do
+            if inst == selectedInstance and instances.data[index + delta] then
+                OnInstanceClick(instances.data[index + delta])
+
+                return
+            end
+        end
+    end
+
+    if instancePrevious then instancePrevious:SetScript("OnClick", function() StepInstance(-1) end) end
+    if instanceNext then instanceNext:SetScript("OnClick", function() StepInstance(1) end) end
+    compendium.instanceControl = instanceControl
+    compendium.instancePopup = instancePopup
+    compendium.updateInstanceSelection = function()
+        local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
+        if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
+        if instanceDropdown.SetText then instanceDropdown:SetText(text) end
+        local selectedIndex = 0
+        for index, inst in ipairs(instances.data) do
+            if inst == selectedInstance then selectedIndex = index end
+        end
+
+        if instancePrevious then instancePrevious:SetEnabled(selectedIndex > 1) end
+        if instanceNext then instanceNext:SetEnabled(selectedIndex > 0 and selectedIndex < #instances.data) end
+    end
+
+    instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
+    compendium:HookScript("OnHide", function() instancePopup:Hide() end)
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("BOTTOMLEFT", instances, "TOPLEFT", INSTANCE_COL_W + 12, 6)
+    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -110)
     bossTitle:SetWidth(MIDDLE_COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
@@ -2930,8 +3013,8 @@ local function CreateJournal()
         return row
     end)
 
-    bosses:SetPoint("TOPLEFT", instances, "TOPRIGHT", 12, 0)
-    bosses:SetPoint("BOTTOMLEFT", instances, "BOTTOMRIGHT", 12, 0)
+    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -130)
+    bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 14, 28)
     bosses:SetWidth(MIDDLE_COL_W)
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
@@ -3099,11 +3182,11 @@ local function CreateJournal()
             RefreshDetail()
         end)
 
-        modelTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -65 - ROW_H)
+        modelTab:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, 3)
         compendium.detailTabs["model"] = modelTab
         spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -1, 0)
     else
-        spellTab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -14, -65 - ROW_H)
+        spellTab:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, 3)
     end
 
     lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -1, 0)
