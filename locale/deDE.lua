@@ -99,3 +99,4 @@ AzerothCompendium:AddTrans("deDE", "LID_SHOWENTRANCEPINS", "Eingangs-Pins einble
 AzerothCompendium:AddTrans("deDE", "LID_HIDEENTRANCEPINS", "Eingangs-Pins ausblenden")
 AzerothCompendium:AddTrans("deDE", "LID_SHOWLEVELPINS", "Ebenenwechsel-Pins einblenden")
 AzerothCompendium:AddTrans("deDE", "LID_HIDELEVELPINS", "Ebenenwechsel-Pins ausblenden")
+AzerothCompendium:AddTrans("deDE", "LID_LEVELGROUP", "Level %d-%d")

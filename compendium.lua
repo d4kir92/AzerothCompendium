@@ -327,9 +327,12 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
     end
 
     function scroller:UpdateScroll()
-        local height = max(1, #self.data * (self.rowHeight + self.rowGap) - self.rowGap)
+        local height = max(1, (self.contentHeight or #self.data * (self.rowHeight + self.rowGap)) - self.rowGap)
         self.content:SetHeight(height)
-        if type(self.scroll) == "table" then self.scroll.djHeight = height end
+        if type(self.scroll) == "table" then
+            self.scroll.djHeight = height
+            self.scroll:SetVerticalScroll(min(self.scroll:GetVerticalScroll(), max(0, height - self.scroll:GetHeight())))
+        end
         if type(self.box) == "table" and self.box.FullUpdate and ScrollBoxConstants then self.box:FullUpdate(ScrollBoxConstants.UpdateImmediately) end
     end
 
@@ -345,7 +348,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         local viewport = self:GetViewport()
         if viewport == nil then return end
         local step = self.rowHeight + self.rowGap
-        local range = max(0, #self.data * step - self.rowGap - viewport:GetHeight())
+        local range = max(0, (self.contentHeight or #self.data * step) - self.rowGap - viewport:GetHeight())
         local target = min(range, max(0, offset * step))
         if type(self.box) == "table" and self.box.SetScrollPercentage then
             local percentage = 0
@@ -363,7 +366,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             if self.data[index] ~= entry then return end
             local viewport = self:GetViewport()
             if viewport == nil or viewport:GetHeight() <= 0 then return end
-            self:Scroll(index - 0.5 - viewport:GetHeight() / (self.rowHeight + self.rowGap) / 2)
+            self:Scroll(((self.rowOffsets and self.rowOffsets[index] or (index - 1) * (self.rowHeight + self.rowGap)) + (type(entry) == "table" and entry.rowHeight or self.rowHeight) / 2 - viewport:GetHeight() / 2) / (self.rowHeight + self.rowGap))
         end
 
         Apply()
@@ -385,6 +388,8 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         local viewport = self:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
         if width > 0 then self.content:SetWidth(width) end
+        local offset = 0
+        self.rowOffsets = {}
         for index, entry in ipairs(self.data) do
             local row = self.rows[index]
             if row == nil then
@@ -398,10 +403,12 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             end
 
             if row.stripe then row.stripe:SetColorTexture(1, 1, 1, index % 2 == 1 and 0.03 or 0.06) end
-            row:SetHeight(self.rowHeight)
+            self.rowOffsets[index] = offset
+            row:SetHeight(type(entry) == "table" and entry.rowHeight or self.rowHeight)
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(index - 1) * (self.rowHeight + self.rowGap))
-            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -(index - 1) * (self.rowHeight + self.rowGap))
+            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -offset)
+            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -offset)
+            offset = offset + (type(entry) == "table" and entry.rowHeight or self.rowHeight) + self.rowGap
             row:Update(entry)
             row:Show()
         end
@@ -410,6 +417,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             self.rows[index]:Hide()
         end
 
+        self.contentHeight = offset
         if self.empty then self.empty:SetShown(#self.data == 0) end
         self:UpdateScroll()
     end
@@ -636,7 +644,7 @@ end
 local function UpdateInstanceBackground(row, inst)
     if row.loadingScreen == nil then return end
     local fileID, layout = nil, nil
-    if UsesLoadingScreens() then fileID, layout = GetLoadingScreen(inst) end
+    if UsesLoadingScreens() and not inst.levelGroup then fileID, layout = GetLoadingScreen(inst) end
     if fileID ~= nil then
         row.loadingLayout = layout
         row.loadingScreen:SetTexture(fileID)
@@ -699,7 +707,7 @@ local function UpdateInstanceBackground(row, inst)
         pin:Hide()
     end
 
-    if UsesLoadingScreens() then
+    if UsesLoadingScreens() and not inst.levelGroup then
         row.loadingShade:Show()
         row.text:SetFontObject("GameFontNormal")
         local fontFile, _, fontFlags = row.text:GetFont()
@@ -968,9 +976,39 @@ end
 local function GetInstanceList()
     local list = {}
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
-        if IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
+        local relevant = true
+        if listKind == "dungeon" and type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true then
+            local level = UnitLevel("player")
+            relevant = inst.minLevel ~= nil and inst.maxLevel ~= nil and level >= inst.minLevel and level <= inst.maxLevel
+        end
+        if relevant and IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
     end
     return list
+end
+
+function AzerothCompendium:GetGroupedInstanceList(list)
+    if listKind ~= "dungeon" and listKind ~= "raid" then return list end
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
+    local groups, levels, result = {}, {}, {}
+    for _, inst in ipairs(list) do
+        local level = floor((inst.minLevel or 0) / 10) * 10
+        if groups[level] == nil then
+            groups[level] = {}
+            tinsert(levels, level)
+        end
+        tinsert(groups[level], inst)
+    end
+    table.sort(levels)
+    for _, level in ipairs(levels) do
+        local key = listKind .. ":" .. level
+        local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
+        tinsert(result, {levelGroup = true, key = key, level = level, count = #groups[level], collapsed = collapsed, rowHeight = 26})
+        if not collapsed then
+            for _, inst in ipairs(groups[level]) do tinsert(result, inst) end
+        end
+    end
+    return result
 end
 
 local function GetBossList()
@@ -1912,7 +1950,8 @@ local function RefreshInstances()
         compendium.instances:SetRowHeight(ROW_H)
     end
 
-    compendium.instances:SetData(list)
+    compendium.instances.fullList = list
+    compendium.instances:SetData(AzerothCompendium:GetGroupedInstanceList(list))
     local restoredIndex = nil
     if selectedInstance == nil and restoreInstanceKey ~= nil then
         for index, inst in ipairs(list) do
@@ -1938,7 +1977,11 @@ local function RefreshInstances()
 
     compendium.instances:Refresh()
     if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
-    if restoredIndex ~= nil then compendium.instances:ScrollToIndex(restoredIndex) end
+    if restoredIndex ~= nil then
+        for index, inst in ipairs(compendium.instances.data) do
+            if inst == selectedInstance then compendium.instances:ScrollToIndex(index) end
+        end
+    end
     RefreshBosses()
 end
 
@@ -2893,6 +2936,151 @@ function AzerothCompendium:RefreshWishlist()
     RefreshWishlistView()
 end
 
+function AzerothCompendium:CreateInstanceControls()
+    local instances = CreateScroller(compendium, ROW_H, function(scroller)
+        local row = CreateTextRow(scroller, function(entry)
+            if entry.levelGroup then
+                ACOTABPC.INSTANCEGROUPS[entry.key] = not ACOTABPC.INSTANCEGROUPS[entry.key]
+                local listScroller = compendium.instances
+                listScroller.data = AzerothCompendium:GetGroupedInstanceList(listScroller.fullList)
+                listScroller:Refresh()
+                compendium.instancePopup:SetHeight(min(360, listScroller.contentHeight + 10))
+            else
+                OnInstanceClick(entry)
+            end
+        end)
+        AddLoadingScreen(row)
+        row.collapseIcon = row:CreateTexture(nil, "OVERLAY")
+        row.collapseIcon:SetSize(16, 16)
+        row.collapseIcon:SetPoint("LEFT", row, "LEFT", 6, 0)
+        row.collapseIcon:Hide()
+        function row:Update(entry)
+            if entry.levelGroup then
+                UpdateInstanceBackground(self, entry)
+                self.entry = entry
+                self.loadingScreen:Hide()
+                self.loadingShade:Hide()
+                self.typeIcon:Hide()
+                self.subText:Hide()
+                self.selected:Hide()
+                self.text:ClearAllPoints()
+                self.info:ClearAllPoints()
+                self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+                self.collapseIcon:Show()
+                self.text:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
+                self.text:SetPoint("RIGHT", self, "RIGHT", -30, 0)
+                self.info:SetPoint("RIGHT", self, "RIGHT", -6, 0)
+                self.text:SetText(AzerothCompendium:Trans("LID_LEVELGROUP", nil, entry.level, entry.level + 9))
+                self.text:SetTextColor(1, 0.82, 0)
+                self.info:SetJustifyH("RIGHT")
+                self.info:SetTextColor(0.7, 0.7, 0.7)
+                self.info:SetText(entry.count)
+            else
+                self.collapseIcon:Hide()
+                UpdateInstanceRow(self, entry)
+            end
+        end
+        return row
+    end)
+
+    instances:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
+    instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
+    instances:SetWidth(INSTANCE_COL_W)
+    instances:EnableEmptyText()
+    compendium.instances = instances
+    local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
+    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -42)
+    instanceControl:SetSize(INSTANCE_COL_W + 60, 22)
+    local instanceDropdown = instanceControl.Dropdown
+    if instanceDropdown == nil then
+        instanceDropdown = CreateTemplated("Button", nil, instanceControl, {"UIPanelButtonTemplate"})
+        instanceDropdown:SetSize(INSTANCE_COL_W, 22)
+        instanceDropdown:SetPoint("LEFT", instanceControl, "LEFT", 30, 0)
+    else
+        instanceDropdown:SetWidth(INSTANCE_COL_W)
+    end
+
+    local instancePopup = CreateFrame("Frame", nil, compendium)
+    instancePopup:SetFrameStrata("DIALOG")
+    instancePopup:SetPoint("TOPLEFT", instanceDropdown, "BOTTOMLEFT", 0, -4)
+    instancePopup:SetSize(INSTANCE_COL_W + 10, 360)
+    instancePopup:SetClampedToScreen(true)
+    instancePopup:EnableMouse(true)
+    instancePopup.background = instancePopup:CreateTexture(nil, "BACKGROUND")
+    instancePopup.background:SetAllPoints(instancePopup)
+    instancePopup.background:SetColorTexture(0.04, 0.04, 0.05, 1)
+    instances:SetParent(instancePopup)
+    instances:ClearAllPoints()
+    instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
+    instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
+    instancePopup:Hide()
+    instancePopup:SetScript("OnUpdate", function(sel) if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end end)
+    instanceDropdown:SetScript("OnClick", function()
+        if instancePopup:IsShown() then
+            instancePopup:Hide()
+        else
+            instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10))
+            instancePopup:Show()
+            instances:Refresh()
+            for index, inst in ipairs(instances.data) do
+                if inst == selectedInstance then instances:ScrollToIndex(index) end
+            end
+        end
+    end)
+
+    local instanceSteppers = {}
+    for _, child in ipairs({instanceControl:GetChildren()}) do
+        if child ~= instanceDropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(instanceSteppers, child) end
+    end
+
+    table.sort(instanceSteppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
+    local instancePrevious = instanceControl.DecrementButton or instanceSteppers[1]
+    local instanceNext = instanceControl.IncrementButton or instanceSteppers[2]
+    local function StepInstance(delta)
+        for index, inst in ipairs(instances.fullList or {}) do
+            if inst == selectedInstance and instances.fullList[index + delta] then
+                OnInstanceClick(instances.fullList[index + delta])
+                return
+            end
+        end
+    end
+
+    if instancePrevious then instancePrevious:SetScript("OnClick", function() StepInstance(-1) end) end
+    if instanceNext then instanceNext:SetScript("OnClick", function() StepInstance(1) end) end
+    local relevantFilter = CreateTemplated("CheckButton", "AzerothCompendiumRelevantFilter", instanceControl, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
+    relevantFilter:SetSize(24, 24)
+    relevantFilter:SetPoint("LEFT", instanceControl, "RIGHT", 8, 0)
+    relevantFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true)
+    local relevantLabel = relevantFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    relevantLabel:SetPoint("LEFT", relevantFilter, "RIGHT", 2, 0)
+    relevantLabel:SetText("Only Relevant")
+    relevantFilter:SetScript("OnClick", function(sel)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.ONLYRELEVANT = sel:GetChecked() == true
+        RefreshInstances()
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10)) end
+    end)
+    compendium.relevantFilter = relevantFilter
+    compendium.instanceControl = instanceControl
+    compendium.instancePopup = instancePopup
+    compendium.updateInstanceSelection = function()
+        relevantFilter:SetShown(listKind == "dungeon")
+        local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
+        if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
+        if instanceDropdown.SetText then instanceDropdown:SetText(text) end
+        local selectedIndex = 0
+        for index, inst in ipairs(instances.fullList or {}) do
+            if inst == selectedInstance then selectedIndex = index end
+        end
+
+        if instancePrevious then instancePrevious:SetEnabled(selectedIndex > 1) end
+        if instanceNext then instanceNext:SetEnabled(selectedIndex > 0 and selectedIndex < #(instances.fullList or {})) end
+    end
+
+    instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
+    compendium:HookScript("OnHide", function() instancePopup:Hide() end)
+end
+
 local function CreateJournal()
     LoadNavigationState()
     if compendium ~= nil then return compendium end
@@ -2975,96 +3163,7 @@ local function CreateJournal()
         previousTab = tab
     end
 
-    local instances = CreateScroller(compendium, ROW_H, function(scroller)
-        local row = CreateTextRow(scroller, OnInstanceClick)
-        AddLoadingScreen(row)
-        function row:Update(entry)
-            UpdateInstanceRow(self, entry)
-        end
-        return row
-    end)
-
-    instances:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
-    instances:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 12, 28)
-    instances:SetWidth(INSTANCE_COL_W)
-    instances:EnableEmptyText()
-    compendium.instances = instances
-    local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
-    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -42)
-    instanceControl:SetSize(INSTANCE_COL_W + 60, 22)
-    local instanceDropdown = instanceControl.Dropdown
-    if instanceDropdown == nil then
-        instanceDropdown = CreateTemplated("Button", nil, instanceControl, {"UIPanelButtonTemplate"})
-        instanceDropdown:SetSize(INSTANCE_COL_W, 22)
-        instanceDropdown:SetPoint("LEFT", instanceControl, "LEFT", 30, 0)
-    else
-        instanceDropdown:SetWidth(INSTANCE_COL_W)
-    end
-
-    local instancePopup = CreateFrame("Frame", nil, compendium)
-    instancePopup:SetFrameStrata("DIALOG")
-    instancePopup:SetPoint("TOPLEFT", instanceDropdown, "BOTTOMLEFT", 0, -4)
-    instancePopup:SetSize(INSTANCE_COL_W + 10, 360)
-    instancePopup:SetClampedToScreen(true)
-    instancePopup:EnableMouse(true)
-    instancePopup.background = instancePopup:CreateTexture(nil, "BACKGROUND")
-    instancePopup.background:SetAllPoints(instancePopup)
-    instancePopup.background:SetColorTexture(0.04, 0.04, 0.05, 1)
-    instances:SetParent(instancePopup)
-    instances:ClearAllPoints()
-    instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
-    instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
-    instancePopup:Hide()
-    instancePopup:SetScript("OnUpdate", function(sel) if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end end)
-    instanceDropdown:SetScript("OnClick", function()
-        if instancePopup:IsShown() then
-            instancePopup:Hide()
-        else
-            instancePopup:SetHeight(min(360, max(ROW_H, #instances.data * instances.rowHeight) + 10))
-            instancePopup:Show()
-            instances:Refresh()
-            for index, inst in ipairs(instances.data) do
-                if inst == selectedInstance then instances:ScrollToIndex(index) end
-            end
-        end
-    end)
-
-    local instanceSteppers = {}
-    for _, child in ipairs({instanceControl:GetChildren()}) do
-        if child ~= instanceDropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(instanceSteppers, child) end
-    end
-
-    table.sort(instanceSteppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
-    local instancePrevious = instanceControl.DecrementButton or instanceSteppers[1]
-    local instanceNext = instanceControl.IncrementButton or instanceSteppers[2]
-    local function StepInstance(delta)
-        for index, inst in ipairs(instances.data) do
-            if inst == selectedInstance and instances.data[index + delta] then
-                OnInstanceClick(instances.data[index + delta])
-                return
-            end
-        end
-    end
-
-    if instancePrevious then instancePrevious:SetScript("OnClick", function() StepInstance(-1) end) end
-    if instanceNext then instanceNext:SetScript("OnClick", function() StepInstance(1) end) end
-    compendium.instanceControl = instanceControl
-    compendium.instancePopup = instancePopup
-    compendium.updateInstanceSelection = function()
-        local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
-        if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
-        if instanceDropdown.SetText then instanceDropdown:SetText(text) end
-        local selectedIndex = 0
-        for index, inst in ipairs(instances.data) do
-            if inst == selectedInstance then selectedIndex = index end
-        end
-
-        if instancePrevious then instancePrevious:SetEnabled(selectedIndex > 1) end
-        if instanceNext then instanceNext:SetEnabled(selectedIndex > 0 and selectedIndex < #instances.data) end
-    end
-
-    instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
-    compendium:HookScript("OnHide", function() instancePopup:Hide() end)
+    AzerothCompendium:CreateInstanceControls()
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -84)
     bossTitle:SetWidth(MIDDLE_COL_W)
@@ -4006,6 +4105,7 @@ end
 
 local loader = CreateFrame("Frame")
 AzerothCompendium:RegisterEvent(loader, "PLAYER_LOGIN")
+AzerothCompendium:RegisterEvent(loader, "PLAYER_LEVEL_UP")
 AzerothCompendium:RegisterEvent(loader, "GET_ITEM_INFO_RECEIVED")
 AzerothCompendium:RegisterEvent(loader, "QUEST_DATA_LOAD_RESULT")
 AzerothCompendium:RegisterEvent(loader, "QUEST_LOG_UPDATE")
@@ -4013,6 +4113,11 @@ AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
 loader:SetScript("OnEvent", function(sel, event)
+    if event == "PLAYER_LEVEL_UP" then
+        AzerothCompendium:After(0, function() if compendium ~= nil and listKind == "dungeon" then RefreshInstances() end end, "AzerothCompendium:RelevantLevel")
+        return
+    end
+
     if event == "PLAYER_LOGIN" then
         AzerothCompendium:PreloadItems()
         return
