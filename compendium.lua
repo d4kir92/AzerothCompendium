@@ -286,8 +286,8 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         box:SetPoint("TOPLEFT", scroller, "TOPLEFT", padding, -padding)
         box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, padding)
         local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
-        bar:SetPoint("TOPLEFT", box, "TOPRIGHT", 6, 0)
-        bar:SetPoint("BOTTOMLEFT", box, "BOTTOMRIGHT", 6, 0)
+        bar:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", -5, -6)
+        bar:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -5, 6)
         content = CreateFrame("Frame", nil, box)
         content.scrollable = true
         content:SetSize(1, 1)
@@ -884,7 +884,6 @@ local function UpdateBossPortrait(row, boss)
     end
 
     row.info:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 5)
-
     local offsetY = (boss.all or boss.trash) and 0 or BOSS_PORTRAIT_Y
     row.portraitFrame:ClearAllPoints()
     row.portraitFrame:SetPoint("LEFT", row, "LEFT", BOSS_PORTRAIT_X, offsetY)
@@ -1418,7 +1417,6 @@ function MapPins.UpdateToggle(view)
     local maps = GetInstanceMaps()
     local anchor, point, relativePoint, anchorX, anchorY = view, "BOTTOMRIGHT", "TOPRIGHT", 0, 5
     if compendium.mapLevel and maps ~= nil and #maps > 1 then anchor, point, relativePoint, anchorX, anchorY = compendium.mapLevel, "RIGHT", "LEFT", -8, 2 end
-
     for index, def in ipairs(MapPins.types) do
         local button = view.pinToggles[index]
         if button == nil then
@@ -2030,7 +2028,7 @@ local function CreateLootRow(scroller)
     StyleRow(row)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(26, 26)
-    row.icon:SetPoint("LEFT", row, "LEFT", 10, 0)
+    row.icon:SetPoint("LEFT", row, "LEFT", 5, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     row.iconRing = AddIconRing(row, row.icon, 26, true)
     row.chance = row:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -3131,7 +3129,7 @@ local function CreateJournal()
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
-    local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow, 2)
+    local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
