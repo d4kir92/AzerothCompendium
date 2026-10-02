@@ -567,6 +567,7 @@ local function UpdateNode(button, node, width)
 
     local entries, rewards = GetRewardEntries(node.id)
     local shown = 0
+    button.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
     button.rewardLabel:ClearAllPoints()
     button.rewardLabel:SetPoint("LEFT", button, "TOPLEFT", NODE_PAD_X, -(y + REWARD_LINE_H / 2))
     button.rewardLabel:Show()
@@ -1124,8 +1125,16 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.empty:Hide()
     tree.hint = tree:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     tree.hint:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMRIGHT", -4, 4)
-    tree.hint:SetText(AzerothCompendium:Trans("LID_QUESTTREESCROLL"))
     tree.hint:Hide()
+    AzerothCompendium:OnLanguage(function()
+        for section = 1, SECTION_COUNT do
+            tree.boxes[section].title:SetText(AzerothCompendium:Trans(SECTION_TITLES[section]))
+            tree.boxes[section].empty:SetText(AzerothCompendium:Trans(SECTION_EMPTY[section]))
+        end
+
+        tree.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+        tree.hint:SetText(AzerothCompendium:Trans("LID_QUESTTREESCROLL"))
+    end)
     local lineCount = 0
     local function AddLine(x, y, width, height, r, g, b, a)
         lineCount = lineCount + 1

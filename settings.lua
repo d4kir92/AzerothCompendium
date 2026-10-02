@@ -27,17 +27,21 @@ local function SetCollapsed(key, collapsed)
     end
 end
 
+local labels = {}
+local minimapTooltip = {}
 local function AddCategory(key, level)
-    acoset:AddCategory({
+    local header = acoset:AddCategory({
         ["label"] = "LID_" .. key,
         ["key"] = key,
         ["search"] = key,
         ["level"] = level
     })
+
+    tinsert(labels, {header.Label, header.element, "LID_" .. key})
 end
 
 local function AddCheckbox(key, default, func, label)
-    return acoset:AddCheckbox({
+    local checkbox = acoset:AddCheckbox({
         ["label"] = label or ("LID_" .. key),
         ["search"] = key,
         ["value"] = AzerothCompendium:GetConfig(key, default),
@@ -46,6 +50,22 @@ local function AddCheckbox(key, default, func, label)
             if func then func(value) end
         end
     })
+
+    tinsert(labels, {checkbox.Label, checkbox.uiElement, label or ("LID_" .. key)})
+    return checkbox
+end
+
+function AzerothCompendium:RefreshSettingsLanguage()
+    minimapTooltip[1] = {AzerothCompendium:GetCompendiumTooltipLabel("AzerothCompendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}
+    minimapTooltip[2] = {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}
+    minimapTooltip[3] = {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
+    for _, info in ipairs(labels) do
+        local text = AzerothCompendium:Trans(info[3])
+        info[1]:SetText(text)
+        AzerothCompendium.UI:SetLabel(info[2], text)
+    end
+
+    if acoset and acoset.search and acoset.search.Hint then acoset.search.Hint:SetText(AzerothCompendium:Trans("LID_SEARCH")) end
 end
 
 function AzerothCompendium:SyncSettingsClassFilter()
@@ -101,12 +121,13 @@ function AzerothCompendium:InitSetting()
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     acoset:ResumeLayout()
+    AzerothCompendium:OnLanguage(function() AzerothCompendium:RefreshSettingsLanguage() end)
     AzerothCompendium:CreateMinimapButton({
         ["name"] = "AzerothCompendium",
         ["icon"] = ICON,
         ["noalpha"] = true,
         ["dbtab"] = ACOTAB,
-        ["vTT"] = {{AzerothCompendium:GetCompendiumTooltipLabel("AzerothCompendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}, {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}, {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}},
+        ["vTT"] = minimapTooltip,
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
         ["funcR"] = function() AzerothCompendium:ToggleSettings() end,
         ["dbkey"] = "MMBTN"

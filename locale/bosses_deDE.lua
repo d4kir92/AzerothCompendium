@@ -1,7 +1,5 @@
 local _, AzerothCompendium = ...
 
-if GetLocale() ~= "deDE" then return end
-
 AzerothCompendium.BOSSNAMES = {
 	[11517] = "Flintauge",
 	[11520] = "Taragaman der Hungerleider",

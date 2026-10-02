@@ -418,7 +418,11 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         end
 
         self.contentHeight = offset
-        if self.empty then self.empty:SetShown(#self.data == 0) end
+        if self.empty then
+            self.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+            self.empty:SetShown(#self.data == 0)
+        end
+
         self:UpdateScroll()
     end
 
@@ -2517,7 +2521,7 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button:SetScript("OnClick", onClick)
     button:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        GameTooltip:SetText(label)
+        GameTooltip:SetText(AzerothCompendium:Trans(label))
         GameTooltip:Show()
     end)
 
@@ -2629,16 +2633,6 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = button
     end
 
-    local control = parent.flavorControl or parent.flavorDropdown
-    local level = parent:GetFrameLevel() + 5
-    for _, chrome in ipairs({parent.TitleContainer, parent.NineSlice}) do
-        if chrome.GetFrameLevel then level = max(level, chrome:GetFrameLevel() + 2) end
-    end
-
-    control:SetFrameLevel(level)
-    control:SetScale(0.6)
-    control:ClearAllPoints()
-    control:SetPoint("LEFT", parent, "TOPLEFT", 90, -18)
     local text = GetFlavorText()
     if parent.flavorDropdown.SetDefaultText then parent.flavorDropdown:SetDefaultText(text) end
     if parent.flavorDropdown.Update then parent.flavorDropdown:Update() end
@@ -2787,8 +2781,11 @@ local function CreateSideTab(parent, label, icon, onClick)
 
     tab.Icon:SetTexture(icon)
     if large and type(tab.SetFillToInterior) == "function" then tab:SetFillToInterior(true) end
-    tab.tooltip = label
-    tab.tooltipText = label
+    AzerothCompendium:OnLanguage(function()
+        tab.tooltip = AzerothCompendium:Trans(label)
+        tab.tooltipText = tab.tooltip
+    end)
+
     tab:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
         GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(sel.tooltip))
@@ -2857,11 +2854,11 @@ local function NormalizeScale(value)
     return min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
 end
 
-local function CreateScaleSlider(parent)
+local function CreateScaleSlider(parent, target)
     local value = NormalizeScale(AzerothCompendium:GetConfig("COMPENDIUMSCALE", 1))
     local function ApplyScale(scale)
         scale = NormalizeScale(scale)
-        parent:SetScale(scale)
+        target:SetScale(scale)
         AzerothCompendium:SetConfig("COMPENDIUMSCALE", scale)
     end
 
@@ -2927,6 +2924,64 @@ local function CreateScaleSlider(parent)
     parent.scaleValue = valueText
 end
 
+local function CreateSettingsPanel()
+    local panel = CreateFrame("Frame", nil, compendium)
+    AddContentBorder(panel)
+    panel:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -70)
+    panel:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    panel:Hide()
+    compendium.settingsPanel = panel
+    local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -16)
+    local labels = {}
+    for index = 1, 3 do
+        labels[index] = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        labels[index]:SetPoint("LEFT", panel, "TOPLEFT", 16, -24 - index * 38)
+    end
+
+    local function GetLanguageTitle()
+        local text = AzerothCompendium:Trans("LID_LANGUAGE")
+        if text ~= "Language" then text = text .. " / Language" end
+        return text
+    end
+
+    local dropdown = nil
+    local templated = AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate")
+    if templated then
+        dropdown = CreateTemplated("DropdownButton", nil, panel, {"WowStyle1DropdownTemplate"})
+        dropdown:SetupMenu(function(_, rootDescription)
+            rootDescription:CreateTitle(GetLanguageTitle())
+            for _, info in ipairs(AzerothCompendium.LANGUAGES) do
+                rootDescription:CreateRadio(info[1], function() return AzerothCompendium:GetLanguage() == info[2] end, function() AzerothCompendium:SetLanguage(info[2]) end)
+            end
+        end)
+    else
+        dropdown = CreateTemplated("Button", nil, panel, {"UIPanelButtonTemplate"})
+        dropdown:SetScript("OnClick", function(sel) MapPins.ShowMenu(sel, AzerothCompendium.LANGUAGES, AzerothCompendium:GetLanguage(), function(lang) AzerothCompendium:SetLanguage(lang) end) end)
+        local arrow = dropdown:CreateTexture(nil, "ARTWORK")
+        arrow:SetSize(16, 16)
+        arrow:SetPoint("RIGHT", dropdown, "RIGHT", -3, 0)
+        arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    end
+
+    dropdown:SetSize(190, 22)
+    dropdown:SetPoint("LEFT", labels[1], "LEFT", 190, 0)
+    local flavor = compendium.flavorControl or compendium.flavorDropdown
+    flavor:SetParent(panel)
+    flavor:ClearAllPoints()
+    flavor:SetPoint("LEFT", labels[2], "LEFT", 190, 0)
+    CreateScaleSlider(panel, compendium)
+    panel.scaleSlider:ClearAllPoints()
+    panel.scaleSlider:SetPoint("LEFT", labels[3], "LEFT", 190, 0)
+    AzerothCompendium:OnLanguage(function()
+        title:SetText(AzerothCompendium:Trans("LID_SETTINGS"))
+        labels[1]:SetText(GetLanguageTitle() .. ":")
+        labels[2]:SetText(AzerothCompendium:Trans("LID_FLAVOR") .. ":")
+        labels[3]:SetText(AzerothCompendium:Trans("LID_SCALE") .. ":")
+        if not templated and dropdown.SetText then dropdown:SetText(AzerothCompendium:GetLanguageName()) end
+    end)
+end
+
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
@@ -2949,7 +3004,7 @@ local function SetSpecialMode(mode)
         end
     end
 
-    (compendium.flavorControl or compendium.flavorDropdown):Show()
+    if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
     for _, tab in pairs(compendium.wishlistTabs or {}) do tab:SetShown(mode == "wishlist") end
     if compendium.wishlist then
         if mode == "wishlist" then
@@ -3007,7 +3062,7 @@ function AzerothCompendium:CreateWishlistTabs()
     local previous = nil
     for _, info in ipairs(categories) do
         local kind = info[1]
-        local tab = CreateTabButton(compendium, self:Trans(info[2]), {texture = info[3]}, function()
+        local tab = CreateTabButton(compendium, info[2], {texture = info[3]}, function()
             ACOTABPC.WISHLISTCATEGORY = kind
             RefreshWishlistView()
         end)
@@ -3058,6 +3113,8 @@ local function RefreshCurrentView()
         RefreshWishlistView()
     elseif listKind == "worldquestitems" then
         RefreshWorldQuestItemsView()
+    elseif listKind == "settings" then
+        SetSpecialMode("settings")
     else
         SetSpecialMode(nil)
         RefreshInstances()
@@ -3214,7 +3271,7 @@ function AzerothCompendium:CreateInstanceControls()
     relevantFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true)
     local relevantLabel = relevantFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     relevantLabel:SetPoint("LEFT", relevantFilter, "RIGHT", 2, 0)
-    relevantLabel:SetText("Only Relevant")
+    relevantLabel:SetText(AzerothCompendium:Trans("LID_ONLYRELEVANT"))
     relevantFilter:SetScript("OnClick", function(sel)
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.ONLYRELEVANT = sel:GetChecked() == true
@@ -3222,6 +3279,7 @@ function AzerothCompendium:CreateInstanceControls()
         if instancePopup:IsShown() then instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10)) end
     end)
     compendium.relevantFilter = relevantFilter
+    compendium.relevantLabel = relevantLabel
     compendium.instanceControl = instanceControl
     compendium.instancePopup = instancePopup
     compendium.updateInstanceSelection = function()
@@ -3296,9 +3354,9 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
-        local tab = CreateSideTab(compendium, AzerothCompendium:Trans(info[2]), info[3], function()
+        local tab = CreateSideTab(compendium, info[2], info[3], function()
             if listKind == kind then
                 UpdateKindTabs()
                 return
@@ -3423,21 +3481,21 @@ local function CreateJournal()
     mapLevelControl:Hide()
     compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
-    local mapTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MAP"), TAB_ICONS["map"], function()
+    local mapTab = CreateTabButton(compendium, "LID_MAP",TAB_ICONS["map"], function()
         middleKind = "map"
         SaveNavigationState()
         RefreshBosses()
     end)
 
     mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, -2)
-    local bossTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_BOSSES"), TAB_ICONS["bosses"], function()
+    local bossTab = CreateTabButton(compendium, "LID_BOSSES",TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         SaveNavigationState()
         RefreshBosses()
     end)
 
     bossTab:SetPoint("LEFT", mapTab, "RIGHT", 1, 0)
-    local questTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_QUESTS"), TAB_ICONS["quests"], function()
+    local questTab = CreateTabButton(compendium, "LID_QUESTS",TAB_ICONS["quests"], function()
         middleKind = "quests"
         SaveNavigationState()
         RefreshBosses()
@@ -3505,13 +3563,13 @@ local function CreateJournal()
     spells:Hide()
     compendium.spells = spells
     compendium.detailTabs = {}
-    local spellTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_ABILITIES"), TAB_ICONS["spells"], function()
+    local spellTab = CreateTabButton(compendium, "LID_ABILITIES",TAB_ICONS["spells"], function()
         detailKind = "spells"
         SaveNavigationState()
         RefreshDetail()
     end)
 
-    local lootTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_LOOT"), TAB_ICONS["loot"], function()
+    local lootTab = CreateTabButton(compendium, "LID_LOOT",TAB_ICONS["loot"], function()
         detailKind = "loot"
         SaveNavigationState()
         RefreshDetail()
@@ -3529,7 +3587,7 @@ local function CreateJournal()
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()
         compendium.model = model
-        local modelTab = CreateTabButton(compendium, AzerothCompendium:Trans("LID_MODEL"), TAB_ICONS["model"], function()
+        local modelTab = CreateTabButton(compendium, "LID_MODEL",TAB_ICONS["model"], function()
             detailKind = "model"
             SaveNavigationState()
             RefreshDetail()
@@ -3560,7 +3618,17 @@ local function CreateJournal()
     classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetClassFilter(sel:GetChecked() == true) end)
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
-    CreateScaleSlider(compendium)
+    CreateSettingsPanel()
+    AzerothCompendium:OnLanguage(function()
+        searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
+        compendium.relevantLabel:SetText(AzerothCompendium:Trans("LID_ONLYRELEVANT"))
+        mapView.empty:SetText(AzerothCompendium:Trans("LID_NOMAP"))
+        wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
+        wishlistEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+        worldQuestItemsTitle:SetText(AzerothCompendium:Trans("LID_WORLDQUESTITEMS"))
+        worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
+        classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
+    end)
     local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     empty:SetPoint("CENTER", loot, "CENTER", 0, 0)
     empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))

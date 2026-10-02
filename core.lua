@@ -209,6 +209,52 @@ function AzerothCompendium:SetConfig(key, value)
     AzerothCompendium:SV(ACOTAB, key, value)
 end
 
+AzerothCompendium.LANGUAGES = {{"English", "enUS"}, {"Deutsch", "deDE"}, {"Español (España)", "esES"}, {"Español (México)", "esMX"}, {"Français", "frFR"}, {"Italiano", "itIT"}, {"한국어", "koKR"}, {"Português (Brasil)", "ptBR"}, {"Русский", "ruRU"}, {"简体中文", "zhCN"}, {"繁體中文", "zhTW"}}
+local LANGUAGE_NAMES = {}
+for _, info in ipairs(AzerothCompendium.LANGUAGES) do
+    LANGUAGE_NAMES[info[2]] = info[1]
+end
+
+function AzerothCompendium:GetLanguage()
+    local lang = type(ACOTAB) == "table" and ACOTAB["LANGUAGE"] or nil
+    if lang ~= nil and LANGUAGE_NAMES[lang] ~= nil then return lang end
+
+    return GetLocale()
+end
+
+function AzerothCompendium:GetLanguageName()
+    local lang = AzerothCompendium:GetLanguage()
+
+    return LANGUAGE_NAMES[lang] or lang
+end
+
+local languageCallbacks = {}
+function AzerothCompendium:OnLanguage(callback)
+    tinsert(languageCallbacks, callback)
+    callback()
+end
+
+function AzerothCompendium:SetLanguage(lang)
+    if LANGUAGE_NAMES[lang] == nil or lang == AzerothCompendium:GetLanguage() then return end
+    ACOTAB = ACOTAB or {}
+    if lang == GetLocale() then
+        ACOTAB["LANGUAGE"] = nil
+    else
+        ACOTAB["LANGUAGE"] = lang
+    end
+
+    for _, callback in ipairs(languageCallbacks) do
+        callback()
+    end
+
+    if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+local LibTrans = AzerothCompendium.Trans
+function AzerothCompendium:Trans(key, lang, ...)
+    return LibTrans(self, key, lang or AzerothCompendium:GetLanguage(), ...)
+end
+
 function AzerothCompendium:SetClassFilter(value)
     AzerothCompendium:SetConfig("CLASSFILTER", value == true)
     if AzerothCompendium.SyncCompendiumClassFilter then AzerothCompendium:SyncCompendiumClassFilter() end
@@ -306,7 +352,7 @@ function AzerothCompendium:GetBossName(boss)
     end
 
     if boss.rank ~= nil then return AzerothCompendium:Trans("LID_RANK", nil, boss.rank) end
-    local names = AzerothCompendium.BOSSNAMES
+    local names = AzerothCompendium:GetLanguage() == "deDE" and AzerothCompendium.BOSSNAMES or nil
     if names and boss.npcs and boss.npcs[1] then
         local localized = names[boss.npcs[1]]
         if localized then return localized end
