@@ -506,20 +506,11 @@ local DUNGEON_ICON_CANDIDATES = {"Dungeon", "DungeonSkull", "Dungeon-Normal"}
 local DUNGEON_ICON_FALLBACK = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
 local RAID_ICON_CANDIDATES = {"Raid"}
 local MEETING_STONE_ICON = {"Interface\\AddOns\\AzerothCompendium\\media\\meetingstone", false, true, 3}
-local function HasAtlas(atlas)
-    return C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(atlas) ~= nil
-end
-
 local resolvedIcons = {}
 local function ResolveIcon(candidates, fallback)
     if resolvedIcons[candidates] == nil then
-        resolvedIcons[candidates] = {fallback, false}
-        for _, atlas in ipairs(candidates) do
-            if HasAtlas(atlas) then
-                resolvedIcons[candidates] = {atlas, true}
-                break
-            end
-        end
+        local atlas = AzerothCompendium:FindAtlas(candidates)
+        resolvedIcons[candidates] = atlas and {atlas, true} or {fallback, false}
     end
     return resolvedIcons[candidates]
 end
@@ -530,21 +521,12 @@ local function ApplyIcon(texture, icon)
     texture:ClearAllPoints()
     texture:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -inset)
     texture:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -inset, inset)
-    if icon[2] then
-        texture:SetTexCoord(0, 1, 0, 1)
-        texture:SetAtlas(icon[1])
-    elseif icon[3] then
-        texture:SetTexture(icon[1])
-        texture:SetTexCoord(0, 1, 0, 1)
-    else
-        texture:SetTexture(icon[1])
-        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    end
+    AzerothCompendium:SetIconTexture(texture, icon[1], icon[3])
 end
 
 local function SetBadgeHighlight(pin, highlighted)
-    if not HasAtlas(LOCATION_PIN_BADGE_ATLAS) then return end
-    if highlighted and HasAtlas(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS) then
+    if not AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then return end
+    if highlighted and AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS) then
         pin.badge:SetAtlas(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS)
     else
         pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
@@ -587,7 +569,7 @@ local function CreateLocationPin(row, def)
     pin.badge = pin:CreateTexture(nil, "OVERLAY")
     pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
     pin.badge:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 3, -2)
-    if HasAtlas(LOCATION_PIN_BADGE_ATLAS) then
+    if AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then
         pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
     else
         pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
@@ -2348,7 +2330,7 @@ local function CreateWorldQuestItemRow(scroller)
     row.pin.badge = row.pin:CreateTexture(nil, "OVERLAY")
     row.pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
     row.pin.badge:SetPoint("BOTTOMRIGHT", row.pin, "BOTTOMRIGHT", 3, -2)
-    if HasAtlas(LOCATION_PIN_BADGE_ATLAS) then
+    if AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then
         row.pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
     else
         row.pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
