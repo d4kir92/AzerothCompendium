@@ -271,18 +271,20 @@ local function AddContentBorder(frame)
     frame.border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 4, -4)
 end
 
-local function CreateScroller(parent, rowHeight, initRow)
+local function CreateScroller(parent, rowHeight, initRow, padding)
+    padding = padding or 0
     local scroller = CreateFrame("Frame", nil, parent)
     AddContentBorder(scroller)
     scroller.rowHeight = rowHeight
+    scroller.rowGap = padding
     scroller.initRow = initRow
     scroller.rows = {}
     scroller.data = {}
     local content = nil
     if HasModernScroll() then
         local box = CreateFrame("Frame", nil, scroller, "WowScrollBox")
-        box:SetPoint("TOPLEFT", scroller, "TOPLEFT", 0, 0)
-        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+        box:SetPoint("TOPLEFT", scroller, "TOPLEFT", padding, -padding)
+        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, padding)
         local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
         bar:SetPoint("TOPLEFT", box, "TOPRIGHT", 6, 0)
         bar:SetPoint("BOTTOMLEFT", box, "BOTTOMRIGHT", 6, 0)
@@ -290,7 +292,7 @@ local function CreateScroller(parent, rowHeight, initRow)
         content.scrollable = true
         content:SetSize(1, 1)
         local view = CreateScrollBoxLinearView()
-        view:SetPanExtent(rowHeight)
+        view:SetPanExtent(rowHeight + padding)
         ScrollUtil.InitScrollBoxWithScrollBar(box, bar, view)
         scroller.box = box
         scroller.bar = bar
@@ -303,12 +305,12 @@ local function CreateScroller(parent, rowHeight, initRow)
             scroll = CreateFrame("ScrollFrame", nil, scroller)
         end
 
-        scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", 0, 0)
-        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, 0)
+        scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", padding, -padding)
+        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, padding)
         scroll:EnableMouseWheel(true)
         scroll:SetScript("OnMouseWheel", function(sel, delta)
             local range = max(0, (sel.djHeight or 0) - sel:GetHeight())
-            sel:SetVerticalScroll(min(range, max(0, sel:GetVerticalScroll() - delta * scroller.rowHeight * 3)))
+            sel:SetVerticalScroll(min(range, max(0, sel:GetVerticalScroll() - delta * (scroller.rowHeight + scroller.rowGap) * 3)))
         end)
 
         content = CreateFrame("Frame", nil, scroll)
@@ -325,7 +327,7 @@ local function CreateScroller(parent, rowHeight, initRow)
     end
 
     function scroller:UpdateScroll()
-        local height = max(1, #self.data * self.rowHeight)
+        local height = max(1, #self.data * (self.rowHeight + self.rowGap) - self.rowGap)
         self.content:SetHeight(height)
         if type(self.scroll) == "table" then self.scroll.djHeight = height end
         if type(self.box) == "table" and self.box.FullUpdate and ScrollBoxConstants then self.box:FullUpdate(ScrollBoxConstants.UpdateImmediately) end
@@ -342,8 +344,9 @@ local function CreateScroller(parent, rowHeight, initRow)
     function scroller:Scroll(offset)
         local viewport = self:GetViewport()
         if viewport == nil then return end
-        local range = max(0, #self.data * self.rowHeight - viewport:GetHeight())
-        local target = min(range, max(0, offset * self.rowHeight))
+        local step = self.rowHeight + self.rowGap
+        local range = max(0, #self.data * step - self.rowGap - viewport:GetHeight())
+        local target = min(range, max(0, offset * step))
         if type(self.box) == "table" and self.box.SetScrollPercentage then
             local percentage = 0
             if range > 0 then percentage = target / range end
@@ -360,7 +363,7 @@ local function CreateScroller(parent, rowHeight, initRow)
             if self.data[index] ~= entry then return end
             local viewport = self:GetViewport()
             if viewport == nil or viewport:GetHeight() <= 0 then return end
-            self:Scroll(index - 0.5 - viewport:GetHeight() / self.rowHeight / 2)
+            self:Scroll(index - 0.5 - viewport:GetHeight() / (self.rowHeight + self.rowGap) / 2)
         end
 
         Apply()
@@ -369,7 +372,7 @@ local function CreateScroller(parent, rowHeight, initRow)
 
     function scroller:SetRowHeight(height)
         self.rowHeight = height
-        if type(self.view) == "table" and self.view.SetPanExtent then self.view:SetPanExtent(height) end
+        if type(self.view) == "table" and self.view.SetPanExtent then self.view:SetPanExtent(height + self.rowGap) end
     end
 
     function scroller:SetData(data)
@@ -389,10 +392,16 @@ local function CreateScroller(parent, rowHeight, initRow)
                 self.rows[index] = row
             end
 
+            if row.stripe == nil and row.loadingScreen == nil then
+                row.stripe = row:CreateTexture(nil, "BACKGROUND", nil, -8)
+                row.stripe:SetAllPoints(row)
+            end
+
+            if row.stripe then row.stripe:SetColorTexture(1, 1, 1, index % 2 == 1 and 0.03 or 0.06) end
             row:SetHeight(self.rowHeight)
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(index - 1) * self.rowHeight)
-            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -(index - 1) * self.rowHeight)
+            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(index - 1) * (self.rowHeight + self.rowGap))
+            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -(index - 1) * (self.rowHeight + self.rowGap))
             row:Update(entry)
             row:Show()
         end
@@ -865,12 +874,16 @@ end
 local function UpdateBossPortrait(row, boss)
     if row.portrait == nil then return end
     row.text:ClearAllPoints()
+    row.info:ClearAllPoints()
     if not UsesBossPortraits() then
         row.portraitFrame:Hide()
+        row.info:SetPoint("RIGHT", row, "RIGHT", -6, 0)
         row.text:SetPoint("LEFT", row, "LEFT", 6, 0)
         row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
         return
     end
+
+    row.info:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 5)
 
     local offsetY = (boss.all or boss.trash) and 0 or BOSS_PORTRAIT_Y
     row.portraitFrame:ClearAllPoints()
@@ -889,7 +902,7 @@ local function UpdateBossPortrait(row, boss)
     UpdateBossLevelBadge(row, boss)
     row.portraitFrame:Show()
     row.text:SetPoint("LEFT", row.portraitFrame, "RIGHT", BOSS_TEXT_GAP, -offsetY)
-    row.text:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+    row.text:SetPoint("RIGHT", row, "RIGHT", -6, 0)
 end
 
 local function UpdateBossRow(row, boss)
@@ -898,7 +911,7 @@ local function UpdateBossRow(row, boss)
     row.text:SetText(AzerothCompendium:GetBossName(boss))
     local count = boss.all and #GetAllLoot(selectedInstance) or VisibleLootCount(boss)
     if count > 0 then
-        row.info:SetText(count)
+        row.info:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
     else
         row.info:SetText("")
     end
@@ -1402,12 +1415,19 @@ end
 
 function MapPins.UpdateToggle(view)
     view.pinToggles = view.pinToggles or {}
+    local maps = GetInstanceMaps()
+    local anchor, point, relativePoint, anchorX, anchorY = view, "BOTTOMRIGHT", "TOPRIGHT", 0, 3
+    if compendium.mapLevel and maps ~= nil and #maps > 1 then
+        anchor, point, relativePoint, anchorX, anchorY = compendium.mapLevel, "RIGHT", "LEFT", -8, 0
+    elseif compendium.detailCount and (compendium.detailCount:GetText() or "") ~= "" then
+        anchor, point, relativePoint, anchorX, anchorY = compendium.detailCount, "RIGHT", "LEFT", -8, 0
+    end
+
     for index, def in ipairs(MapPins.types) do
         local button = view.pinToggles[index]
         if button == nil then
             button = CreateFrame("Button", nil, view)
             button:SetSize(20, 20)
-            button:SetPoint("TOPRIGHT", view, "TOPRIGHT", -8 - (index - 1) * 24, -8)
             button.icon = button:CreateTexture(nil, "ARTWORK")
             button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
             local icon = def[3] == "ENTRANCEPINS" and ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK) or def[3] == "LEVELPINS" and ResolveIcon(MapPins.upIcons, MapPins.levelFallback) or def[4]
@@ -1420,6 +1440,16 @@ function MapPins.UpdateToggle(view)
 
             button.highlight:SetBlendMode("ADD")
             button.highlight:SetAlpha(0.4)
+            button.ring = AddIconRing(button, button, 20)
+            button.ring:SetDesaturated(true)
+            if button.CreateMaskTexture and button.icon.AddMaskTexture then
+                local mask = button:CreateMaskTexture()
+                mask:SetAllPoints(button)
+                mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                button.icon:AddMaskTexture(mask)
+                button.highlight:AddMaskTexture(mask)
+            end
+
             button:SetScript("OnClick", function(sel)
                 AzerothCompendium:SetConfig(def[2], AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) == false)
                 MapPins.Update(view)
@@ -1437,7 +1467,15 @@ function MapPins.UpdateToggle(view)
             view.pinToggles[index] = button
         end
 
+        button:ClearAllPoints()
+        button:SetPoint(point, anchor, relativePoint, anchorX - 4 - (index - 1) * 30, anchorY)
         local enabled = MapPins.IsEnabled(def[1])
+        if enabled then
+            button.ring:SetVertexColor(0.2, 1, 0.2)
+        else
+            button.ring:SetVertexColor(1, 0.2, 0.2)
+        end
+
         button.icon:SetDesaturated(not enabled)
         button.icon:SetAlpha(enabled and 1 or 0.5)
         button:SetShown(view.info ~= nil)
@@ -1656,7 +1694,7 @@ local function RefreshDetail()
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
-        compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
+        compendium.detailTitle:SetText("")
         compendium.detailCount:SetText("")
         UpdateMapView()
         return
@@ -1673,7 +1711,7 @@ local function RefreshDetail()
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
-        compendium.detailTitle:SetText(selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "")
+        compendium.detailTitle:SetText("")
         compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
         return
     end
@@ -1682,6 +1720,7 @@ local function RefreshDetail()
     compendium.detailTitle:Show()
     compendium.detailCount:Show()
     local count = 0
+    local showCount = false
     local empty = false
     local lootOnly = selectedInstance ~= nil and (selectedInstance.vendor == true or selectedBoss ~= nil and (selectedBoss.trash == true or selectedBoss.all == true))
     if lootOnly and detailKind ~= "loot" then detailKind = "loot" end
@@ -1699,7 +1738,8 @@ local function RefreshDetail()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
         count = #compendium.loot.data
-        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
+        showCount = true
+        compendium.detailCount:SetText("")
         compendium.classFilter:Show()
         compendium.classFilterLabel:Show()
         empty = count == 0
@@ -1709,7 +1749,8 @@ local function RefreshDetail()
         compendium.loot:Hide()
         if compendium.model then compendium.model:Hide() end
         count = #compendium.spells.data
-        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_ABILITYCOUNT", nil, count))
+        showCount = true
+        compendium.detailCount:SetText("")
         compendium.classFilter:Hide()
         compendium.classFilterLabel:Hide()
         empty = count == 0
@@ -1722,12 +1763,9 @@ local function RefreshDetail()
         empty = not UpdateModel()
     end
 
-    if selectedBoss ~= nil then
-        compendium.detailTitle:SetText(AzerothCompendium:GetBossName(selectedBoss))
-    else
-        compendium.detailTitle:SetText("")
-    end
-
+    local title = selectedBoss ~= nil and AzerothCompendium:GetBossName(selectedBoss) or ""
+    if showCount then title = strtrim(title .. " (" .. count .. ")") end
+    compendium.detailTitle:SetText(title)
     if empty then
         if detailKind == "model" then
             compendium.empty:SetText(AzerothCompendium:Trans("LID_NOMODEL"))
@@ -3089,8 +3127,8 @@ local function CreateJournal()
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
-    local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow)
-    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, -ROW_H - 10)
+    local loot = CreateScroller(compendium, LOOT_ROW_H, CreateLootRow, 2)
+    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
     loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
     compendium.loot = loot
     local wishlist = CreateScroller(compendium, LOOT_ROW_H, CreateWishlistRow)
@@ -3133,7 +3171,7 @@ local function CreateJournal()
     worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     worldQuestItemsEmpty:Hide()
     compendium.worldQuestItemsEmpty = worldQuestItemsEmpty
-    local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow)
+    local spells = CreateScroller(compendium, LOOT_ROW_H, CreateSpellRow, 2)
     spells:SetAllPoints(loot)
     spells:Hide()
     compendium.spells = spells
@@ -3152,6 +3190,9 @@ local function CreateJournal()
 
     compendium.detailTabs["loot"] = lootTab
     compendium.detailTabs["spells"] = spellTab
+    lootTab:SetPoint("BOTTOMLEFT", loot, "TOPLEFT", 0, -2)
+    spellTab:SetPoint("LEFT", lootTab, "RIGHT", 1, 0)
+    local lastDetailTab = spellTab
     local model = CreateModelFrame(compendium)
     if model ~= nil then
         AddContentBorder(model)
@@ -3165,20 +3206,17 @@ local function CreateJournal()
             RefreshDetail()
         end)
 
-        modelTab:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, 3)
+        modelTab:SetPoint("LEFT", spellTab, "RIGHT", 1, 0)
         compendium.detailTabs["model"] = modelTab
-        spellTab:SetPoint("TOPRIGHT", modelTab, "TOPLEFT", -1, 0)
-    else
-        spellTab:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, 3)
+        lastDetailTab = modelTab
     end
 
-    lootTab:SetPoint("TOPRIGHT", spellTab, "TOPLEFT", -1, 0)
     local detailCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    detailCount:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, ROW_H + 16)
+    detailCount:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 0, 6)
     detailCount:SetJustifyH("RIGHT")
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    detailTitle:SetPoint("BOTTOMLEFT", bosses, "TOPRIGHT", 14, 6)
+    detailTitle:SetPoint("BOTTOMLEFT", lastDetailTab, "BOTTOMRIGHT", 8, 8)
     detailTitle:SetPoint("RIGHT", detailCount, "LEFT", -8, 0)
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("LEFT")
