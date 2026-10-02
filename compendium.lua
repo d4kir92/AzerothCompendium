@@ -721,6 +721,22 @@ local function UsesBossPortraits()
     return selectedInstance ~= nil and selectedInstance.vendor ~= true
 end
 
+local function AddIconRing(parent, icon, size, round)
+    local ring = parent:CreateTexture(nil, "OVERLAY", nil, 1)
+    ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    ring:SetTexCoord(0, 0.6, 0, 0.6)
+    ring:SetSize(size * 1.55, size * 1.55)
+    ring:SetPoint("CENTER", icon, "CENTER", 0, 0)
+    if round and parent.CreateMaskTexture and icon.AddMaskTexture then
+        local mask = parent:CreateMaskTexture()
+        mask:SetAllPoints(icon)
+        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        icon:AddMaskTexture(mask)
+    end
+
+    return ring
+end
+
 local function AddBossPortrait(row)
     local size = BOSS_PORTRAIT_SIZE
     row.portraitFrame = CreateFrame("Frame", nil, row)
@@ -739,7 +755,8 @@ local function AddBossPortrait(row)
         row.portrait:SetMask("Interface\\CharacterFrame\\TempPortraitAlphaMask")
     end
 
-    row.bossDragon = row.portraitFrame:CreateTexture(nil, "OVERLAY")
+    row.portraitRing = AddIconRing(row.portraitFrame, row.portrait, size)
+    row.bossDragon = row.portraitFrame:CreateTexture(nil, "OVERLAY", nil, 2)
     row.bossDragon:SetSize(256 * DRAGON_SCALE, 128 * DRAGON_SCALE)
     row.bossDragon:SetPoint("CENTER", row.portraitFrame, "CENTER", -54 * DRAGON_SCALE, -20 * DRAGON_SCALE)
     row.bossDragon:Hide()
@@ -1225,6 +1242,35 @@ function MapPins.FindLevel(maps, artID)
     return nil
 end
 
+function MapPins.GetQuestItems()
+    local items = {}
+    local seen = {}
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(selectedInstance)) do
+        for _, step in ipairs(AzerothCompendium:GetQuestChain(quest[1])) do
+            local item = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[step[1]]
+            if item ~= nil and not seen[item[1]] then
+                seen[item[1]] = true
+                local name = AzerothCompendium:GetItemDisplay(item[1]) or item[2] or tostring(item[1])
+                tinsert(items, {format("%s (%d) - %s", name, item[1], step[2]), item[1]})
+            end
+        end
+    end
+
+    table.sort(items, function(a, b) return a[1] < b[1] end)
+
+    return items
+end
+
+function MapPins.GetItemName(itemID)
+    local name = AzerothCompendium:GetItemDisplay(itemID)
+    if name ~= nil then return name end
+    for _, item in pairs(AzerothCompendium.QUESTSTARTITEMS or {}) do
+        if item[1] == itemID then return item[2] or tostring(itemID) end
+    end
+
+    return tostring(itemID)
+end
+
 function MapPins.Create(view)
     local pin = CreateFrame("Button", nil, view.viewport)
     pin:SetSize(MapPins.size, MapPins.size)
@@ -1233,14 +1279,13 @@ function MapPins.Create(view)
     pin.highlight = pin:CreateTexture(nil, "HIGHLIGHT")
     pin.highlight:SetBlendMode("ADD")
     pin.highlight:SetAlpha(0.5)
-    pin.ring = pin:CreateTexture(nil, "BORDER")
-    pin.ring:SetAllPoints(pin)
     pin.portrait = pin:CreateTexture(nil, "ARTWORK")
     pin.portrait:SetPoint("TOPLEFT", pin, "TOPLEFT", 2, -2)
     pin.portrait:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -2, 2)
+    pin.ring = AddIconRing(pin, pin.portrait, MapPins.bossSize - 4)
     local scale = (MapPins.bossSize - 4) / 64
     local badgeSize = LEVEL_BADGE_SIZE * (MapPins.bossSize - 4) / BOSS_PORTRAIT_SIZE
-    pin.bossDragon = pin:CreateTexture(nil, "OVERLAY")
+    pin.bossDragon = pin:CreateTexture(nil, "OVERLAY", nil, 2)
     pin.bossDragon:SetSize(256 * scale, 128 * scale)
     pin.bossDragon:SetPoint("CENTER", pin, "CENTER", -54 * scale, -20 * scale)
     pin.bossDragon:Hide()
@@ -1264,7 +1309,7 @@ function MapPins.Create(view)
     pin.levelSkull:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Skull")
     pin.levelBadge:Hide()
     if pin.CreateMaskTexture and pin.portrait.AddMaskTexture then
-        for _, texture in ipairs({pin.ring, pin.portrait, pin.levelRing, pin.levelFill}) do
+        for _, texture in ipairs({pin.portrait, pin.levelRing, pin.levelFill}) do
             local mask = pin:CreateMaskTexture()
             mask:SetAllPoints(texture)
             mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
@@ -1288,19 +1333,33 @@ function MapPins.Style(pin)
     local isBoss = pin.kind == "boss"
     local size = isBoss and MapPins.bossSize or MapPins.size
     pin:SetSize(size, size)
-    pin.portrait:SetShown(isBoss)
-    pin.icon:SetShown(not isBoss)
+    local isItem = pin.kind == "item"
+    pin.portrait:SetShown(isBoss or isItem)
+    pin.icon:SetShown(not isBoss and not isItem)
+    pin.portrait:SetTexCoord(0, 1, 0, 1)
+    pin.ring:SetSize((size - 4) * 1.55, (size - 4) * 1.55)
     pin.bossDragon:Hide()
     pin.levelBadge:Hide()
     pin.ring:Hide()
     if isBoss then
         UpdateBossLevelBadge(pin, pin.boss)
-        pin.ring:SetShown(pin.masked == true and not pin.bossDragon:IsShown())
-        pin.ring:SetColorTexture(1, 0.82, 0, 1)
+        pin.ring:Show()
+        pin.ring:SetVertexColor(1, 1, 1, 1)
         pin.highlight:SetTexture(nil)
         local applied = false
         if pin.boss.model ~= nil and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, pin.portrait, pin.boss.model) end
         if not applied then pin.portrait:SetTexture(BOSS_PORTRAIT_FALLBACK) end
+
+        return
+    end
+
+    if isItem then
+        local _, _, _, _, texture = AzerothCompendium:GetItemDisplay(pin.entry[4])
+        pin.portrait:SetTexture(texture or 134400)
+        pin.portrait:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        pin.ring:SetVertexColor(1, 1, 1, 1)
+        pin.ring:Show()
+        pin.highlight:SetTexture(nil)
 
         return
     end
@@ -1327,50 +1386,71 @@ function MapPins.Layout(view)
     end
 end
 
-function MapPins.UpdateToggle(view, enabled)
-    local button = view.pinToggle
-    if button == nil then
-        button = CreateFrame("Button", nil, view)
-        button:SetSize(20, 20)
-        button:SetPoint("TOPRIGHT", view, "TOPRIGHT", -8, -8)
-        button:SetFrameLevel(view:GetFrameLevel() + 4)
-        button.icon = button:CreateTexture(nil, "ARTWORK")
-        button.icon:SetAllPoints(button)
-        button.icon:SetTexture(TAB_ICONS["bosses"].texture)
-        button.icon:SetTexCoord(unpack(TAB_ICONS["bosses"].texCoords))
-        button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
-        button.highlight:SetAllPoints(button)
-        button.highlight:SetTexture(TAB_ICONS["bosses"].texture)
-        button.highlight:SetTexCoord(unpack(TAB_ICONS["bosses"].texCoords))
-        button.highlight:SetBlendMode("ADD")
-        button.highlight:SetAlpha(0.4)
-        button:SetScript("OnClick", function(sel)
-            AzerothCompendium:SetConfig("MAPPINS", AzerothCompendium:GetConfig("MAPPINS", true) == false)
-            MapPins.Update(sel:GetParent())
-            if GameTooltip:IsOwned(sel) then sel:GetScript("OnEnter")(sel) end
-        end)
+MapPins.types = {
+    {"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}},
+    {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}},
+    {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"},
+    {"level", "MAPPINS_LEVEL", "LEVELPINS"},
+}
 
-        button:SetScript("OnEnter", function(sel)
-            GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-            GameTooltip:SetText(AzerothCompendium:Trans(AzerothCompendium:GetConfig("MAPPINS", true) == false and "LID_SHOWMAPPINS" or "LID_HIDEMAPPINS"))
-            GameTooltip:Show()
-        end)
-
-        button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-        view.pinToggle = button
+function MapPins.IsEnabled(kind)
+    if MapPins.debug then return true end
+    for _, def in ipairs(MapPins.types) do
+        if def[1] == kind then return AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) ~= false end
     end
 
-    button.icon:SetDesaturated(not enabled)
-    button.icon:SetAlpha(enabled and 1 or 0.5)
-    button:SetShown(view.info ~= nil)
+    return true
+end
+
+function MapPins.UpdateToggle(view)
+    view.pinToggles = view.pinToggles or {}
+    for index, def in ipairs(MapPins.types) do
+        local button = view.pinToggles[index]
+        if button == nil then
+            button = CreateFrame("Button", nil, view)
+            button:SetSize(20, 20)
+            button:SetPoint("TOPRIGHT", view, "TOPRIGHT", -8 - (index - 1) * 24, -8)
+            button.icon = button:CreateTexture(nil, "ARTWORK")
+            button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
+            local icon = def[3] == "ENTRANCEPINS" and ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK) or def[3] == "LEVELPINS" and ResolveIcon(MapPins.upIcons, MapPins.levelFallback) or def[4]
+            ApplyIcon(button.icon, icon)
+            ApplyIcon(button.highlight, icon)
+            if def[5] then
+                button.icon:SetTexCoord(unpack(def[5]))
+                button.highlight:SetTexCoord(unpack(def[5]))
+            end
+
+            button.highlight:SetBlendMode("ADD")
+            button.highlight:SetAlpha(0.4)
+            button:SetScript("OnClick", function(sel)
+                AzerothCompendium:SetConfig(def[2], AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) == false)
+                MapPins.Update(view)
+                if GameTooltip:IsOwned(sel) then sel:GetScript("OnEnter")(sel) end
+            end)
+
+            button:SetScript("OnEnter", function(sel)
+                GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                local hidden = AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) == false
+                GameTooltip:SetText(AzerothCompendium:Trans((hidden and "LID_SHOW" or "LID_HIDE") .. def[3]))
+                GameTooltip:Show()
+            end)
+
+            button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+            view.pinToggles[index] = button
+        end
+
+        local enabled = MapPins.IsEnabled(def[1])
+        button.icon:SetDesaturated(not enabled)
+        button.icon:SetAlpha(enabled and 1 or 0.5)
+        button:SetShown(view.info ~= nil)
+        button:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
+    end
 end
 
 function MapPins.Update(view)
     MapPins.Init()
     local info = view.info
-    local enabled = MapPins.debug == true or AzerothCompendium:GetConfig("MAPPINS", true) ~= false
-    local data = enabled and info and AzerothCompendium.INSTANCEMAPPINS and AzerothCompendium.INSTANCEMAPPINS[info.id] or nil
-    MapPins.UpdateToggle(view, enabled)
+    local data = info and AzerothCompendium.INSTANCEMAPPINS and AzerothCompendium.INSTANCEMAPPINS[info.id] or nil
     local maps = GetInstanceMaps()
     local count = 0
     for _, entry in ipairs(data or {}) do
@@ -1383,7 +1463,7 @@ function MapPins.Update(view)
             level = MapPins.FindLevel(maps, entry[4])
         end
 
-        if not MapPins.IsHidden(entry) and (kind == "entrance" or boss ~= nil or level ~= nil) then
+        if MapPins.IsEnabled(kind) and not MapPins.IsHidden(entry) and (kind == "entrance" or kind == "item" and type(entry[4]) == "number" or boss ~= nil or level ~= nil) then
             count = count + 1
             local pin = MapPins.pool[count]
             if pin == nil then
@@ -1391,6 +1471,10 @@ function MapPins.Update(view)
                 MapPins.pool[count] = pin
             end
 
+            local pinFrameLevel = view.viewport:GetFrameLevel() + 2 + count * 3
+            if kind == "boss" then pinFrameLevel = pinFrameLevel + #data * 3 end
+            pin:SetFrameLevel(pinFrameLevel)
+            pin.levelBadge:SetFrameLevel(pinFrameLevel + 2)
             pin.kind = kind
             pin.x = entry[2]
             pin.y = entry[3]
@@ -1408,6 +1492,8 @@ function MapPins.Update(view)
         MapPins.pool[i]:Hide()
     end
 
+    view.pinTopLevel = view.viewport:GetFrameLevel() + 4 + #(data or {}) * 6
+    MapPins.UpdateToggle(view)
     MapPins.Layout(view)
     MapPins.DebugRefresh()
 end
@@ -1415,10 +1501,12 @@ end
 function MapPins.OnEnter(pin)
     GameTooltip:SetOwner(pin, "ANCHOR_RIGHT")
     if pin.kind == "boss" then
-        pin.ring:SetColorTexture(1, 1, 1, 1)
+        pin.ring:SetVertexColor(1, 1, 1, 1)
         GameTooltip:SetText(AzerothCompendium:GetBossName(pin.boss))
         if pin.boss.level ~= nil and UNIT_LEVEL_TEMPLATE then GameTooltip:AddLine(format(UNIT_LEVEL_TEMPLATE, pin.boss.level), 1, 1, 1) end
         GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINBOSSHINT"), 0.6, 0.6, 0.6)
+    elseif pin.kind == "item" then
+        GameTooltip:SetItemByID(pin.entry[4])
     elseif pin.kind == "level" then
         GameTooltip:SetText(GetMapLevelLabel(GetInstanceMaps() or {}, pin.level))
         GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINLEVELHINT"), 0.6, 0.6, 0.6)
@@ -1430,7 +1518,7 @@ function MapPins.OnEnter(pin)
 end
 
 function MapPins.OnLeave(pin)
-    if pin.kind == "boss" then pin.ring:SetColorTexture(1, 0.82, 0, 1) end
+    if pin.kind == "boss" then pin.ring:SetVertexColor(1, 1, 1, 1) end
     AzerothCompendium:HideGameTooltip()
 end
 
@@ -1790,6 +1878,24 @@ function MapPins.OnClick(pin, mouse)
         return
     end
 
+    if pin.kind == "item" then
+        for _, node in ipairs(AzerothCompendium:GetInstanceQuestGraph(selectedInstance)) do
+            local item = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+            if item ~= nil and item[1] == pin.entry[4] then
+                AzerothCompendium:HideGameTooltip()
+                middleKind = "quests"
+                if searchText ~= "" then compendium.search:SetText("") end
+                SaveNavigationState()
+                RefreshBosses()
+                compendium.questTree:FocusQuest(node.id)
+
+                return
+            end
+        end
+
+        return
+    end
+
     if pin.kind == "entrance" then return end
     AzerothCompendium:HideGameTooltip()
     if pin.kind == "level" then
@@ -1873,6 +1979,7 @@ local function CreateLootRow(scroller)
     row.icon:SetSize(26, 26)
     row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.iconRing = AddIconRing(row, row.icon, 26, true)
     row.chance = row:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     row.chance:SetPoint("RIGHT", row, "RIGHT", -8, 0)
     row.chance:SetJustifyH("RIGHT")
@@ -1952,6 +2059,7 @@ local function CreateWishlistRow(scroller)
     row.icon:SetSize(28, 28)
     row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.iconRing = AddIconRing(row, row.icon, 28, true)
     row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)
     row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
@@ -2003,6 +2111,7 @@ local function CreateWorldQuestItemRow(scroller)
     row.icon:SetSize(32, 32)
     row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
     row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    row.iconRing = AddIconRing(row, row.icon, 32, true)
     row.pin = CreateFrame("Button", nil, row)
     row.pin:SetSize(28, 28)
     row.pin:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -3251,8 +3360,14 @@ end
 
 function MapPins.SetArg(entry, value)
     local valid = entry[1] == "boss" and MapPins.FindBoss(value) ~= nil or entry[1] == "level" and MapPins.FindLevel(GetInstanceMaps(), value) ~= nil
+    if entry[1] == "item" then
+        for _, item in ipairs(MapPins.GetQuestItems()) do
+            if item[2] == value then valid = true end
+        end
+    end
+
     if not valid then
-        if entry[1] ~= "entrance" then AzerothCompendium:INFO(format("%s is not a valid %s for this instance", tostring(value), entry[1] == "boss" and "NPC ID" or "map ID")) end
+        if entry[1] ~= "entrance" then AzerothCompendium:INFO(format("%s is not a valid %s for this instance", tostring(value), entry[1] == "boss" and "NPC ID" or entry[1] == "item" and "item ID" or "map ID")) end
         MapPins.DebugRefresh()
 
         return
@@ -3272,6 +3387,8 @@ function MapPins.ShowArgMenu(owner, entry)
                 tinsert(options, {format("%s (%d)", boss.name or "?", id), id})
             end
         end
+    elseif entry[1] == "item" then
+        options = MapPins.GetQuestItems()
     elseif entry[1] == "level" then
         local maps = GetInstanceMaps() or {}
         for index, info in ipairs(maps) do
@@ -3346,6 +3463,15 @@ function MapPins.Add(kind, up)
         end
 
         if arg == nil then return end
+    elseif kind == "item" then
+        local items = MapPins.GetQuestItems()
+        if #items == 0 then
+            AzerothCompendium:INFO("This instance has no quest start items")
+
+            return
+        end
+
+        arg = items[1][2]
     elseif kind == "level" then
         local index = MapPins.FindLevel(maps, view.info.id)
         local target = index and (maps[index + 1] or maps[index - 1])
@@ -3370,6 +3496,7 @@ function MapPins.Add(kind, up)
     tinsert(ACOTAB["MAPPINADDS"], save)
     MapPins.selected = MapPins.Insert(save)
     MapPins.Update(view)
+    if kind == "item" then MapPins.ShowArgMenu(MapPins.editor.arg, MapPins.selected) end
 end
 
 function MapPins.GetNpcName(npcID)
@@ -3394,7 +3521,7 @@ function MapPins.FormatEntry(entry)
     if src[4] ~= nil then text = text .. ", " .. src[4] end
     if src[5] == true then text = text .. ", true" end
     text = text .. "},"
-    local name = entry[1] == "boss" and MapPins.GetNpcName(src[4]) or nil
+    local name = entry[1] == "boss" and MapPins.GetNpcName(src[4]) or entry[1] == "item" and MapPins.GetItemName(src[4]) or nil
     if name then text = text .. " -- " .. name end
     if entry.deleted then return text .. " (delete)" end
     if entry.added then return text .. " (add)" end
@@ -3409,6 +3536,7 @@ function MapPins.GetEntryTitle(entry)
     local suffix = entry.deleted and " (deleted)" or entry.added and " (added)" or ""
     if entry[1] == "boss" then return format("boss: %s (%d)%s", MapPins.GetNpcName(entry[4]) or "?", entry[4], suffix) end
     if entry[1] == "level" then return format("level change -> %d%s", entry[4], suffix) end
+    if entry[1] == "item" then return format("item: %s (%d)%s", MapPins.GetItemName(entry[4]), entry[4], suffix) end
 
     return "entrance" .. suffix
 end
@@ -3632,7 +3760,7 @@ function MapPins.CreateDebugUI()
 
     output.reset:SetPoint("LEFT", output.select, "RIGHT", 6, 0)
     local last = output.reset
-    for _, def in ipairs({{"+ Entrance", 84, "entrance"}, {"+ Boss", 64, "boss"}, {"+ Level up", 84, "level", true}, {"+ Level down", 96, "level"}}) do
+    for _, def in ipairs({{"+ Entrance", 84, "entrance"}, {"+ Boss", 64, "boss"}, {"+ Quest item", 96, "item"}, {"+ Level up", 84, "level", true}, {"+ Level down", 96, "level"}}) do
         local button = MapPins.CreateButton(output, def[1], def[2], function() MapPins.Add(def[3], def[4]) end)
         button:SetPoint("LEFT", last, "RIGHT", 6, 0)
         last = button
@@ -3657,6 +3785,8 @@ function MapPins.DebugRefresh()
 
     MapPins.CreateDebugUI()
     local view = compendium.mapView
+    MapPins.editor:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 3)
+    view.debugText:GetParent():SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 2)
     local counts, open = MapPins.GetOpen()
     view.debugText:SetText(view.info and format("Map ID: %d (%d unplaced)", view.info.id, counts[view.info.id] or 0) or "")
     view.debugText:Show()
@@ -3688,6 +3818,8 @@ function MapPins.DebugRefresh()
     MapPins.editor.arg:SetShown(entry[1] ~= "entrance")
     if entry[1] == "boss" then
         MapPins.editor.arg:SetText(format("Boss: %s (%d)", MapPins.GetNpcName(entry[4]) or "?", entry[4]))
+    elseif entry[1] == "item" then
+        MapPins.editor.arg:SetText(format("Item: %s (%d)", MapPins.GetItemName(entry[4]), entry[4]))
     elseif entry[1] == "level" then
         MapPins.editor.arg:SetText(format("To: %s (%d)", GetMapLevelLabel(maps, MapPins.FindLevel(maps, entry[4])), entry[4]))
     end
@@ -3716,10 +3848,10 @@ function AzerothCompendium:PrintMapPinDebugHelp()
         "Editor Map button: move the pin to another map level",
         "Editor arrows: move the pin by 0.1, 0.01 or 0.001",
         "Editor Reset: restore the shipped pin, Delete: remove the pin",
-        "Editor Up / Down: direction of a level change, Boss / To button: boss or target map of the pin",
+        "Editor Up / Down: direction of a level change, Boss / Item / To button: boss, quest start item or target map of the pin",
         "Window below: changed pins as data rows, Select all then Ctrl+C to copy",
         "Window below: Unfinished maps lists the maps that still have unplaced pins",
-        "Window below: + Entrance / + Boss / + Level up / + Level down add a pin at the map center",
+        "Window below: + Entrance / + Boss / + Quest item / + Level up / + Level down add a pin at the map center",
         "Window below: Reset all discards every saved correction, Close leaves the debug mode",
     }) do
         AzerothCompendium:INFO(line)
@@ -3789,6 +3921,7 @@ loader:SetScript("OnEvent", function(sel, event)
                     compendium.bosses:Refresh()
                     compendium.loot:Refresh()
                     compendium.questTree:Refresh()
+                    if compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
                 end
             end
         end,

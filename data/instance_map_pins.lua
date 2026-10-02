@@ -16,6 +16,12 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.424, 0.385, 256097}, -- Bjork
         {"boss", 0.463, 0.623, 250657}, -- Rath'mael
         {"boss", 0.486, 0.719, 255699}, -- Lordaeron Captain
+        {"item", 0.347, 0.207, 275521}, -- Crest of Lordaeron
+        {"item", 0.376, 0.493, 275521}, -- Crest of Lordaeron
+        {"item", 0.433, 0.290, 275521}, -- Crest of Lordaeron
+        {"item", 0.566, 0.596, 275521}, -- Crest of Lordaeron
+        {"item", 0.591, 0.680, 280438}, -- Abominable Head
+        {"item", 0.671, 0.493, 275521}, -- Crest of Lordaeron
     },
     [2998] = { -- Excavation Site: Wetlands
         {"entrance", 0.080, 0.610},

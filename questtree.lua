@@ -335,16 +335,16 @@ local function CreateBorder(frame, layer, sublevel)
 
     edges[1]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     edges[1]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
-    edges[1]:SetHeight(1)
+    edges[1]:SetHeight(2)
     edges[2]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
     edges[2]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[2]:SetHeight(1)
+    edges[2]:SetHeight(2)
     edges[3]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     edges[3]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
-    edges[3]:SetWidth(1)
+    edges[3]:SetWidth(2)
     edges[4]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
     edges[4]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[4]:SetWidth(1)
+    edges[4]:SetWidth(2)
     function edges:SetColor(r, g, b, a)
         for _, edge in ipairs(self) do
             edge:SetColorTexture(r, g, b, a)
@@ -1296,6 +1296,20 @@ function AzerothCompendium:CreateQuestTree(parent)
         SetHScroll(scroll:GetHorizontalScroll())
         scroll:SetVerticalScroll(ClampScroll(scroll, false, scroll:GetVerticalScroll()))
         UpdateHBar()
+    end
+
+    function tree:FocusQuest(questID)
+        for index, node in ipairs(self.graph) do
+            if node.id == questID then
+                local button = self.nodes[index]
+                SetHScroll((node.x + button:GetWidth() / 2) * self.zoom - scroll:GetWidth() / 2)
+                scroll:SetVerticalScroll(ClampScroll(scroll, false, (node.y + node.h / 2) * self.zoom - scroll:GetHeight() / 2))
+
+                return true
+            end
+        end
+
+        return false
     end
 
     function tree:Refresh()
