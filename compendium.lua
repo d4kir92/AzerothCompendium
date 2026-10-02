@@ -135,7 +135,6 @@ local mapLevel = 1
 local restoreInstanceKey = nil
 local restoreBossKey = nil
 local mapInstance = nil
-local mapLevelMenu = nil
 local savedSearchText = ""
 local searchText = ""
 local navigationLoaded = false
@@ -1332,9 +1331,10 @@ local MapPins = {
     levelFallback = "Interface\\Icons\\INV_Misc_Map_01",
 }
 
-function MapPins.FindBoss(npcID)
-    if selectedInstance == nil then return nil end
-    for _, boss in ipairs(selectedInstance.bosses or {}) do
+function MapPins.FindBoss(npcID, inst)
+    inst = inst or selectedInstance
+    if inst == nil then return nil end
+    for _, boss in ipairs(inst.bosses or {}) do
         for _, id in ipairs(boss.npcs or {}) do
             if id == npcID then return boss end
         end
@@ -1682,6 +1682,7 @@ function MapPins.OnEnter(pin)
         GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINLEVELHINT"), 0.6, 0.6, 0.6)
     else
         GameTooltip:SetText(AzerothCompendium:Trans("LID_ENTRANCE"))
+        if AzerothCompendium:GetInstanceEntrance(selectedInstance) then GameTooltip:AddLine(AzerothCompendium:Trans("LID_WORLDMAPWAYPOINTHINT"), 0.6, 0.6, 0.6) end
     end
 
     GameTooltip:Show()
@@ -1792,27 +1793,16 @@ end
 local function ShowMapLevelMenu(owner)
     local maps = GetInstanceMaps()
     if maps == nil then return end
-    if MenuUtil and MenuUtil.CreateContextMenu then
-        MenuUtil.CreateContextMenu(owner, function(_, rootDescription)
-            for i in ipairs(maps) do
-                rootDescription:CreateRadio(GetMapLevelLabel(maps, i), function() return mapLevel == i end, function() SelectMapLevel(i) end)
-            end
-        end)
-        return
-    end
-
-    if EasyMenu == nil then return end
-    if mapLevelMenu == nil then mapLevelMenu = CreateFrame("Frame", "AzerothCompendiumMapLevelMenu", UIParent, "UIDropDownMenuTemplate") end
     local entries = {}
     for i in ipairs(maps) do
         tinsert(entries, {
             text = GetMapLevelLabel(maps, i),
-            checked = mapLevel == i,
+            checked = function() return mapLevel == i end,
             func = function() SelectMapLevel(i) end
         })
     end
 
-    EasyMenu(entries, mapLevelMenu, owner, 0, 0, "MENU")
+    AzerothCompendium:ShowContextMenu(owner, entries)
 end
 
 local function RefreshDetail()
@@ -2085,7 +2075,17 @@ function MapPins.OnClick(pin, mouse)
         return
     end
 
-    if pin.kind == "entrance" then return end
+    if pin.kind == "entrance" then
+        local waypointSet, reason = AzerothCompendium:SetInstanceEntranceWaypoint(selectedInstance)
+        if waypointSet then
+            local location = AzerothCompendium:GetInstanceEntrance(selectedInstance)
+            if location then AzerothCompendium:OpenWorldMapTo(location[1]) end
+        elseif reason == "combat" then
+            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT"))
+        end
+        return
+    end
+
     AzerothCompendium:HideGameTooltip()
     if pin.kind == "level" then
         SelectMapLevel(pin.level)
@@ -2140,7 +2140,6 @@ local function ShowItemTooltip(row)
     GameTooltip:Show()
 end
 
-local contextMenu = nil
 local function ShowWishlistMenu(owner, itemID, source)
     itemID = tonumber(itemID)
     if itemID == nil then return end
@@ -2159,20 +2158,12 @@ local function ShowWishlistMenu(owner, itemID, source)
         end
     end
 
-    if MenuUtil and MenuUtil.CreateContextMenu then
-        MenuUtil.CreateContextMenu(owner, function(_, rootDescription) rootDescription:CreateButton(label, action) end)
-        return
-    end
-
-    if EasyMenu == nil then return end
-    if contextMenu == nil then contextMenu = CreateFrame("Frame", "AzerothCompendiumContextMenu", UIParent, "UIDropDownMenuTemplate") end
-    EasyMenu({
+    AzerothCompendium:ShowContextMenu(owner, {
         {
             text = label,
-            notCheckable = true,
             func = action
         }
-    }, contextMenu, "cursor", 0, 0, "MENU")
+    }, "cursor")
 end
 
 local function CreateLootRow(scroller)
@@ -2544,34 +2535,19 @@ local function GetFlavorText()
     return "Forever"
 end
 
-local flavorMenu = nil
 local function ShowFlavorMenu(owner)
-    local function SelectFlavor(value)
-        AzerothCompendium:SetFlavor(value)
-    end
-
-    if MenuUtil and MenuUtil.CreateContextMenu then
-        MenuUtil.CreateContextMenu(owner, function(_, rootDescription)
-            rootDescription:CreateRadio("Classic Era", function() return AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA end, function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
-            rootDescription:CreateRadio("Forever", function() return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER end, function() SelectFlavor(FLAVOR_FOREVER) end)
-        end)
-        return
-    end
-
-    if EasyMenu == nil then return end
-    if flavorMenu == nil then flavorMenu = CreateFrame("Frame", "AzerothCompendiumFlavorMenu", UIParent, "UIDropDownMenuTemplate") end
-    EasyMenu({
+    AzerothCompendium:ShowContextMenu(owner, {
         {
             text = "Classic Era",
-            checked = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA,
-            func = function() SelectFlavor(FLAVOR_CLASSIC_ERA) end
+            checked = function() return AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA end,
+            func = function() AzerothCompendium:SetFlavor(FLAVOR_CLASSIC_ERA) end
         },
         {
             text = "Forever",
-            checked = AzerothCompendium:GetFlavor() == FLAVOR_FOREVER,
-            func = function() SelectFlavor(FLAVOR_FOREVER) end
+            checked = function() return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER end,
+            func = function() AzerothCompendium:SetFlavor(FLAVOR_FOREVER) end
         }
-    }, flavorMenu, owner, 0, 0, "MENU")
+    })
 end
 
 local function CreateFlavorControl(parent)
@@ -2580,32 +2556,11 @@ local function CreateFlavorControl(parent)
         control:SetPoint("LEFT", parent, "TOPLEFT", 59, -14)
         control:SetWidth(190)
         control.Dropdown:SetWidth(120)
-        local steppers = {}
-        for _, child in ipairs({control:GetChildren()}) do
-            if child ~= control.Dropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(steppers, child) end
-        end
-
-        table.sort(steppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
-        local previous = control.DecrementButton or steppers[1]
-        local following = control.IncrementButton or steppers[2]
-        local setEnabled = {}
-        local function LockStepper(button)
-            if button == nil then return end
-            setEnabled[button] = button.SetEnabled
-            local nop = function() end
-            button.SetEnabled = nop
-            button.Enable = nop
-            button.Disable = nop
-        end
-
-        LockStepper(previous)
-        LockStepper(following)
         local function SelectFlavor(value)
             AzerothCompendium:SetFlavor(value)
         end
 
-        if previous then previous:SetScript("OnClick", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end) end
-        if following then following:SetScript("OnClick", function() SelectFlavor(FLAVOR_FOREVER) end) end
+        local steppers = AzerothCompendium:SetupDropdownSteppers(control, function() SelectFlavor(FLAVOR_CLASSIC_ERA) end, function() SelectFlavor(FLAVOR_FOREVER) end, true)
         control.Dropdown:SetupMenu(function(_, rootDescription)
             rootDescription:CreateTitle(AzerothCompendium:Trans("LID_FLAVOR"))
             rootDescription:CreateButton("Classic Era", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
@@ -2616,8 +2571,7 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = control.Dropdown
         parent.updateFlavorSteppers = function()
             local classic = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
-            if previous then setEnabled[previous](previous, not classic) end
-            if following then setEnabled[following](following, classic) end
+            steppers:SetEnabled(not classic, classic)
         end
 
         control:HookScript("OnShow", parent.updateFlavorSteppers)
@@ -2633,10 +2587,7 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = button
     end
 
-    local text = GetFlavorText()
-    if parent.flavorDropdown.SetDefaultText then parent.flavorDropdown:SetDefaultText(text) end
-    if parent.flavorDropdown.Update then parent.flavorDropdown:Update() end
-    if parent.flavorDropdown.SetText then parent.flavorDropdown:SetText(text) end
+    AzerothCompendium:SetDropdownText(parent.flavorDropdown, GetFlavorText())
     if parent.updateFlavorSteppers then parent.updateFlavorSteppers() end
 end
 
@@ -3248,14 +3199,6 @@ function AzerothCompendium:CreateInstanceControls()
         end
     end)
 
-    local instanceSteppers = {}
-    for _, child in ipairs({instanceControl:GetChildren()}) do
-        if child ~= instanceDropdown and child.SetEnabled and child.GetObjectType and child:GetObjectType() == "Button" then tinsert(instanceSteppers, child) end
-    end
-
-    table.sort(instanceSteppers, function(a, b) return (a:GetLeft() or 0) < (b:GetLeft() or 0) end)
-    local instancePrevious = instanceControl.DecrementButton or instanceSteppers[1]
-    local instanceNext = instanceControl.IncrementButton or instanceSteppers[2]
     local function StepInstance(delta)
         for index, inst in ipairs(instances.fullList or {}) do
             if inst == selectedInstance and instances.fullList[index + delta] then
@@ -3265,8 +3208,7 @@ function AzerothCompendium:CreateInstanceControls()
         end
     end
 
-    if instancePrevious then instancePrevious:SetScript("OnClick", function() StepInstance(-1) end) end
-    if instanceNext then instanceNext:SetScript("OnClick", function() StepInstance(1) end) end
+    local instanceSteppers = AzerothCompendium:SetupDropdownSteppers(instanceControl, function() StepInstance(-1) end, function() StepInstance(1) end, false, instanceDropdown)
     local relevantFilter = CreateTemplated("CheckButton", "AzerothCompendiumRelevantFilter", instanceControl, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     relevantFilter:SetSize(24, 24)
     relevantFilter:SetPoint("LEFT", instanceControl, "RIGHT", 8, 0)
@@ -3294,8 +3236,7 @@ function AzerothCompendium:CreateInstanceControls()
             if inst == selectedInstance then selectedIndex = index end
         end
 
-        if instancePrevious then instancePrevious:SetEnabled(selectedIndex > 1) end
-        if instanceNext then instanceNext:SetEnabled(selectedIndex > 0 and selectedIndex < #(instances.fullList or {})) end
+        instanceSteppers:SetEnabled(selectedIndex > 1, selectedIndex > 0 and selectedIndex < #(instances.fullList or {}))
     end
 
     instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
@@ -3663,11 +3604,7 @@ end
 
 function AzerothCompendium:SyncCompendiumFlavor()
     if compendium == nil or compendium.flavorDropdown == nil then return end
-    local dropdown = compendium.flavorDropdown
-    local text = GetFlavorText()
-    if dropdown.SetDefaultText then dropdown:SetDefaultText(text) end
-    if dropdown.Update then dropdown:Update() end
-    if dropdown.SetText then dropdown:SetText(text) end
+    AzerothCompendium:SetDropdownText(compendium.flavorDropdown, GetFlavorText())
     if compendium.updateFlavorSteppers then compendium.updateFlavorSteppers() end
 end
 
@@ -3930,18 +3867,6 @@ function MapPins.ShowMapMenu(owner, entry)
 end
 
 function MapPins.ShowMenu(owner, options, current, onSelect)
-    if #options == 0 then return end
-    if MenuUtil and MenuUtil.CreateContextMenu then
-        MenuUtil.CreateContextMenu(owner, function(_, rootDescription)
-            for _, option in ipairs(options) do
-                rootDescription:CreateRadio(option[1], function() return current == option[2] end, function() onSelect(option[2]) end)
-            end
-        end)
-        return
-    end
-
-    if EasyMenu == nil then return end
-    if MapPins.menu == nil then MapPins.menu = CreateFrame("Frame", "AzerothCompendiumMapPinMenu", UIParent, "UIDropDownMenuTemplate") end
     local entries = {}
     for _, option in ipairs(options) do
         tinsert(entries, {
@@ -3951,7 +3876,7 @@ function MapPins.ShowMenu(owner, options, current, onSelect)
         })
     end
 
-    EasyMenu(entries, MapPins.menu, owner, 0, 0, "MENU")
+    AzerothCompendium:ShowContextMenu(owner, entries)
 end
 
 function MapPins.Delete(entry)
@@ -4350,6 +4275,7 @@ function AzerothCompendium:ToggleCompendium()
         return
     end
 
+    compendium:SetFrameStrata("HIGH")
     compendium:Show()
     UpdateKindTabs()
     RefreshCurrentView()
@@ -4358,9 +4284,66 @@ end
 function AzerothCompendium:OpenCompendium()
     CreateJournal()
     if compendium:IsShown() then return end
+    compendium:SetFrameStrata("HIGH")
     compendium:Show()
     UpdateKindTabs()
     RefreshCurrentView()
+end
+
+function MapPins.GetArt(key)
+    if MapPins.artKeys == nil then
+        MapPins.artKeys = {}
+        for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+            for _, info in ipairs(AzerothCompendium.INSTANCEMAPS and AzerothCompendium.INSTANCEMAPS[inst.id] or {}) do
+                local name = strmatch(info.file, "([^\\]+)$")
+                if name ~= nil and MapPins.artKeys[name] == nil then MapPins.artKeys[name] = {inst, info} end
+            end
+        end
+    end
+
+    local found = MapPins.artKeys[tostring(key)]
+    if found == nil then return nil, nil end
+    return found[1], found[2]
+end
+
+AzerothCompendiumAPI = AzerothCompendiumAPI or {}
+function AzerothCompendiumAPI.ShowBossLoot(key, npcID)
+    local inst = MapPins.GetArt(key)
+    local boss = inst ~= nil and IsInstanceVisible(inst) and MapPins.FindBoss(npcID, inst) or nil
+    if boss == nil then return false end
+    AzerothCompendium:OpenCompendium()
+    if inst.type == "dungeon" and type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true then
+        local level = UnitLevel("player")
+        if inst.minLevel == nil or inst.maxLevel == nil or level < inst.minLevel or level > inst.maxLevel then
+            ACOTABPC.ONLYRELEVANT = false
+            compendium.relevantFilter:SetChecked(false)
+        end
+    end
+
+    listKind = inst.type
+    middleKind = "bosses"
+    detailKind = "loot"
+    selectedInstance = inst
+    selectedBoss = boss
+    mapInstance = inst
+    mapLevel = MapPins.GetBossLevel(boss) or 1
+    searchText = ""
+    SaveNavigationState()
+    UpdateKindTabs()
+    SetSpecialMode(nil)
+    if compendium.search:GetText() ~= "" then
+        compendium.search:SetText("")
+    else
+        RefreshInstances()
+    end
+
+    for index, entry in ipairs(GetBossList()) do
+        if entry == selectedBoss then compendium.bosses:ScrollToIndex(index) end
+    end
+
+    compendium:SetFrameStrata("HIGH")
+    compendium:Raise()
+    return true
 end
 
 local loader = CreateFrame("Frame")
@@ -4372,7 +4355,20 @@ AzerothCompendium:RegisterEvent(loader, "QUEST_LOG_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
+AzerothCompendium:RegisterEvent(loader, "GLOBAL_MOUSE_DOWN")
 loader:SetScript("OnEvent", function(sel, event)
+    if event == "GLOBAL_MOUSE_DOWN" then
+        if compendium == nil or not compendium:IsShown() then return end
+        local overMap = WorldMapFrame ~= nil and WorldMapFrame:IsShown() and WorldMapFrame:IsMouseOver()
+        local overCompendium = compendium:IsMouseOver()
+        if compendium:GetFrameStrata() == "LOW" then
+            if overCompendium and not overMap then compendium:SetFrameStrata("HIGH") end
+        elseif overMap and not overCompendium then
+            compendium:SetFrameStrata("LOW")
+        end
+        return
+    end
+
     if event == "PLAYER_LEVEL_UP" then
         AzerothCompendium:After(0, function() if compendium ~= nil and listKind == "dungeon" then RefreshInstances() end end, "AzerothCompendium:RelevantLevel")
         return
