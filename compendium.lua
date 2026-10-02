@@ -2976,7 +2976,7 @@ local function CreateJournal()
     instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
     compendium:HookScript("OnHide", function() instancePopup:Hide() end)
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -110)
+    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -84)
     bossTitle:SetWidth(MIDDLE_COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
@@ -2992,7 +2992,7 @@ local function CreateJournal()
         return row
     end)
 
-    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -130)
+    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -104)
     bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 14, 28)
     bosses:SetWidth(MIDDLE_COL_W)
     compendium.bosses = bosses
