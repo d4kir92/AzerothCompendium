@@ -3701,8 +3701,29 @@ end
 function AzerothCompendium:ToggleMapPinDebug()
     MapPins.debug = not MapPins.debug
     MapPins.selected = nil
-    AzerothCompendium:INFO(MapPins.debug and "Map pin debug enabled" or "Map pin debug disabled")
+    AzerothCompendium:INFO(MapPins.debug and "Map pin debug enabled (/ac debug help)" or "Map pin debug disabled")
     if compendium ~= nil then MapPins.Update(compendium.mapView) end
+end
+
+function AzerothCompendium:PrintMapPinDebugHelp()
+    for _, line in ipairs({
+        "Map pin debug help:",
+        "/ac debug - toggle the map pin editor (Map tab), /ac debug help - show this help",
+        "While enabled every pin is shown, including unplaced and deleted ones (deleted are faded)",
+        "Cursor on the map: map ID and coordinates, bottom right: map ID and unplaced pins of this map",
+        "Right-click a pin: select it and open the editor (bottom left, movable)",
+        "Editor X / Y: type a coordinate (0-1) and press Enter, Escape discards",
+        "Editor Map button: move the pin to another map level",
+        "Editor arrows: move the pin by 0.1, 0.01 or 0.001",
+        "Editor Reset: restore the shipped pin, Delete: remove the pin",
+        "Editor Up / Down: direction of a level change, Boss / To button: boss or target map of the pin",
+        "Window below: changed pins as data rows, Select all then Ctrl+C to copy",
+        "Window below: Unfinished maps lists the maps that still have unplaced pins",
+        "Window below: + Entrance / + Boss / + Level up / + Level down add a pin at the map center",
+        "Window below: Reset all discards every saved correction, Close leaves the debug mode",
+    }) do
+        AzerothCompendium:INFO(line)
+    end
 end
 
 function AzerothCompendium:ToggleCompendium()

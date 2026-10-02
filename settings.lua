@@ -54,9 +54,11 @@ function AzerothCompendium:SyncSettingsClassFilter()
 end
 
 local function HandleSlash(args)
-    local sub = strlower(strtrim(args or ""))
+    local sub = strlower(strtrim(args or "")):gsub("%s+", " ")
     if sub == "settings" or sub == "options" or sub == "config" then
         AzerothCompendium:ToggleSettings()
+    elseif sub == "debug help" then
+        AzerothCompendium:PrintMapPinDebugHelp()
     elseif sub == "debug" then
         AzerothCompendium:ToggleMapPinDebug()
     else
