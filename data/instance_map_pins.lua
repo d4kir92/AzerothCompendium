@@ -67,7 +67,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.303, 0.423, 3671}, -- Lady Anacondra
         {"boss", 0.385, 0.340, 3653}, -- Kresh
         {"boss", 0.162, 0.563, 3669}, -- Lord Cobrahn
-        {"boss", 0.187, 0.379, 3670}, -- Lord Pythas
+        {"boss", 0.547, 0.899, 3670}, -- Lord Pythas
         {"boss", 0.604, 0.742, 3674}, -- Skum
         {"boss", 0.480, 0.410, 5912}, -- Deviate Faerie Dragon
         {"boss", 0.613, 0.537, 3673}, -- Lord Serpentis

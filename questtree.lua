@@ -551,7 +551,7 @@ local function UpdateNode(button, node, width)
     local requiredLevel = GetNodeRequiredLevel(node)
     if requiredLevel then
         PlaceLine(button.levelText, button, y, TEXT_LINE_H)
-        button.levelText:SetText(format(_G.ITEM_MIN_LEVEL or "Requires Level %d", requiredLevel))
+        button.levelText:SetText(AzerothCompendium:Trans("LID_REQUIRESLEVEL", nil, requiredLevel))
         local playerLevel = UnitLevel and UnitLevel("player") or requiredLevel
         if playerLevel < requiredLevel then
             button.levelText:SetTextColor(1, 0.25, 0.25)

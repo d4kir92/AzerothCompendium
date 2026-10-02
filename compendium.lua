@@ -1673,7 +1673,7 @@ function MapPins.OnEnter(pin)
     if pin.kind == "boss" then
         pin.ring:SetVertexColor(1, 1, 1, 1)
         GameTooltip:SetText(AzerothCompendium:GetBossName(pin.boss))
-        if pin.boss.level ~= nil and UNIT_LEVEL_TEMPLATE then GameTooltip:AddLine(format(UNIT_LEVEL_TEMPLATE, pin.boss.level), 1, 1, 1) end
+        if pin.boss.level ~= nil then GameTooltip:AddLine(AzerothCompendium:Trans("LID_LEVEL", nil, pin.boss.level), 1, 1, 1) end
         GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINBOSSHINT"), 0.6, 0.6, 0.6)
     elseif pin.kind == "item" then
         GameTooltip:SetItemByID(pin.entry[4])
@@ -2737,6 +2737,7 @@ local function MakeResizable(frame)
         sel.sizing = nil
         AzerothCompendium:SetConfig("COMPENDIUMWIDTH", floor(frame:GetWidth() + 0.5))
         AzerothCompendium:SetConfig("COMPENDIUMHEIGHT", floor(frame:GetHeight() + 0.5))
+        if frame.SavePosition then frame:SavePosition() end
     end
 
     grip:SetScript("OnMouseUp", StopSizing)
@@ -2859,6 +2860,7 @@ local function CreateScaleSlider(parent, target)
     local function ApplyScale(scale)
         scale = NormalizeScale(scale)
         target:SetScale(scale)
+        if target.SavePosition then target:SavePosition() end
         AzerothCompendium:SetConfig("COMPENDIUMSCALE", scale)
     end
 
@@ -3312,13 +3314,30 @@ local function CreateJournal()
     local height = tonumber(AzerothCompendium:GetConfig("COMPENDIUMHEIGHT", HEIGHT)) or HEIGHT
     compendium:SetScale(NormalizeScale(AzerothCompendium:GetConfig("COMPENDIUMSCALE", 1)))
     compendium:SetSize(max(MIN_WIDTH, width), max(MIN_HEIGHT, height))
-    compendium:SetPoint("TOPLEFT", UIParent, "CENTER", -compendium:GetWidth() / 2, compendium:GetHeight() / 2)
+    local savedX = tonumber(AzerothCompendium:GetConfig("COMPENDIUMX"))
+    local savedY = tonumber(AzerothCompendium:GetConfig("COMPENDIUMY"))
+    if savedX and savedY then
+        compendium:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", savedX / compendium:GetScale(), savedY / compendium:GetScale())
+    else
+        compendium:SetPoint("TOPLEFT", UIParent, "CENTER", -compendium:GetWidth() / 2, compendium:GetHeight() / 2)
+    end
+
+    function compendium:SavePosition()
+        local left, top = self:GetLeft(), self:GetTop()
+        if left == nil or top == nil then return end
+        AzerothCompendium:SetConfig("COMPENDIUMX", left * self:GetScale())
+        AzerothCompendium:SetConfig("COMPENDIUMY", top * self:GetScale())
+    end
+
     compendium:SetFrameStrata("HIGH")
     compendium:SetMovable(true)
     compendium:EnableMouse(true)
     compendium:RegisterForDrag("LeftButton")
     compendium:SetScript("OnDragStart", function(sel) sel:StartMoving() end)
-    compendium:SetScript("OnDragStop", function(sel) sel:StopMovingOrSizing() end)
+    compendium:SetScript("OnDragStop", function(sel)
+        sel:StopMovingOrSizing()
+        sel:SavePosition()
+    end)
     MakeResizable(compendium)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
