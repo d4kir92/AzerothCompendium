@@ -3027,7 +3027,24 @@ local function RefreshWorldQuestItemsView()
     if compendium == nil or compendium.worldQuestItems == nil then return end
     SetSpecialMode("worldquestitems")
     local list = GetWorldQuestItemList()
-    compendium.worldQuestItems:SetData(list)
+    local scroller = compendium.worldQuestItems
+    local sameEntries = #list == #scroller.data
+    if sameEntries then
+        for index, entry in ipairs(list) do
+            local previous = scroller.data[index]
+            if entry.itemID ~= previous.itemID or entry.questID ~= previous.questID then
+                sameEntries = false
+                break
+            end
+        end
+    end
+
+    if sameEntries then
+        scroller.data = list
+        scroller:Refresh()
+    else
+        scroller:SetData(list)
+    end
     compendium.worldQuestItemsCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
     if #list == 0 then
         compendium.worldQuestItemsEmpty:Show()
