@@ -2575,7 +2575,7 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button:SetScript("OnClick", onClick)
     button:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        GameTooltip:SetText(AzerothCompendium:TryTrans(label))
+        GameTooltip:SetText(type(label) == "string" and label:find("LID_", 1, true) == 1 and AzerothCompendium:Trans(label) or label)
         GameTooltip:Show()
     end)
 
