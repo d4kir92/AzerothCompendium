@@ -3279,7 +3279,8 @@ local function CreateJournal()
         AzerothCompendium:SetConfig("COMPENDIUMY", top * self:GetScale())
     end
 
-    compendium:SetFrameStrata("HIGH")
+    compendium:SetFrameStrata("MEDIUM")
+    compendium:SetToplevel(true)
     compendium:SetMovable(true)
     compendium:EnableMouse(true)
     compendium:RegisterForDrag("LeftButton")
@@ -4278,6 +4279,19 @@ function AzerothCompendium:PrintMapPinDebugHelp()
     end
 end
 
+function AzerothCompendium:BringCompendiumToFront()
+    local map = WorldMapFrame
+    if map ~= nil and not compendium.mapHooked then
+        compendium.mapHooked = true
+        map:HookScript("OnHide", function()
+            if compendium:GetFrameStrata() == "HIGH" then compendium:SetFrameStrata("MEDIUM") end
+        end)
+    end
+
+    compendium:SetFrameStrata(map ~= nil and map:IsShown() and "HIGH" or "MEDIUM")
+    compendium:Raise()
+end
+
 function AzerothCompendium:ToggleCompendium()
     CreateJournal()
     if compendium:IsShown() then
@@ -4285,7 +4299,7 @@ function AzerothCompendium:ToggleCompendium()
         return
     end
 
-    compendium:SetFrameStrata("HIGH")
+    AzerothCompendium:BringCompendiumToFront()
     compendium:Show()
     UpdateKindTabs()
     RefreshCurrentView()
@@ -4294,7 +4308,7 @@ end
 function AzerothCompendium:OpenCompendium()
     CreateJournal()
     if compendium:IsShown() then return end
-    compendium:SetFrameStrata("HIGH")
+    AzerothCompendium:BringCompendiumToFront()
     compendium:Show()
     UpdateKindTabs()
     RefreshCurrentView()
@@ -4351,8 +4365,7 @@ function AzerothCompendiumAPI.ShowBossLoot(key, npcID)
         if entry == selectedBoss then compendium.bosses:ScrollToIndex(index) end
     end
 
-    compendium:SetFrameStrata("HIGH")
-    compendium:Raise()
+    AzerothCompendium:BringCompendiumToFront()
     return true
 end
 
@@ -4369,19 +4382,17 @@ AzerothCompendium:RegisterEvent(loader, "GLOBAL_MOUSE_DOWN")
 loader:SetScript("OnEvent", function(sel, event)
     if event == "GLOBAL_MOUSE_DOWN" then
         if compendium == nil or not compendium:IsShown() then return end
-        local overMap = WorldMapFrame ~= nil and WorldMapFrame:IsShown() and WorldMapFrame:IsMouseOver()
-        local overCompendium = compendium:IsMouseOver()
-        local focus = AzerothCompendium:GetMouseFocus()
+        local clicked = AzerothCompendium:GetMouseFocus()
+        local focus = clicked
         while focus ~= nil and focus ~= compendium and focus.GetParent ~= nil and not (focus.IsForbidden and focus:IsForbidden()) do
             focus = focus:GetParent()
         end
 
         if focus == compendium then
-            compendium:SetFrameStrata("HIGH")
-        elseif compendium:GetFrameStrata() == "LOW" then
-            if overCompendium and not overMap then compendium:SetFrameStrata("HIGH") end
-        elseif overMap and not overCompendium then
-            compendium:SetFrameStrata("LOW")
+            AzerothCompendium:BringCompendiumToFront()
+        elseif clicked ~= nil and clicked ~= WorldFrame and compendium:GetFrameStrata() ~= "MEDIUM" and clicked.GetFrameStrata ~= nil then
+            local strata = clicked:GetFrameStrata()
+            if strata == "BACKGROUND" or strata == "LOW" or strata == "MEDIUM" or strata == "HIGH" then compendium:SetFrameStrata("MEDIUM") end
         end
         return
     end
