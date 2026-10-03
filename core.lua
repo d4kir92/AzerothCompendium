@@ -342,7 +342,23 @@ end
 
 local creatureNames = {cache = {}, tries = {}, waiting = {}, scheduled = false}
 
+function AzerothCompendium:GetSavedCreatureNames()
+    ACOTAB = ACOTAB or {}
+    if type(ACOTAB["CREATURENAMES"]) ~= "table" then ACOTAB["CREATURENAMES"] = {} end
+    local key = AzerothCompendium:GetFlavor() .. ":" .. GetLocale()
+    if creatureNames.cacheKey ~= key then
+        creatureNames.cacheKey = key
+        creatureNames.cache = {}
+        creatureNames.tries = {}
+    end
+
+    if type(ACOTAB["CREATURENAMES"][key]) ~= "table" then ACOTAB["CREATURENAMES"][key] = {} end
+
+    return ACOTAB["CREATURENAMES"][key]
+end
+
 function AzerothCompendium:ReadCreatureName(npcID)
+    if IsInInstance() then return nil end
     local link = "unit:Creature-0-0-0-0-" .. npcID .. "-0000000000"
     local text = nil
     if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
@@ -351,6 +367,7 @@ function AzerothCompendium:ReadCreatureName(npcID)
         text = line and line.leftText
     end
 
+    if issecretvalue and issecretvalue(text) then return nil end
     if type(text) ~= "string" or text == "" then
         local tooltip = creatureNames.tooltip
         if tooltip == nil then
@@ -386,11 +403,14 @@ end
 
 function AzerothCompendium:GetCreatureName(npcID)
     if type(npcID) ~= "number" then return nil end
+    local saved = AzerothCompendium:GetSavedCreatureNames()
     local cached = creatureNames.cache[npcID]
     if cached then return cached end
+    if IsInInstance() then return saved[npcID] end
     local name = AzerothCompendium:ReadCreatureName(npcID)
     if name then
         creatureNames.cache[npcID] = name
+        saved[npcID] = name
 
         return name
     end
@@ -405,8 +425,35 @@ function AzerothCompendium:GetCreatureName(npcID)
         end
     end
 
-    return nil
+    return saved[npcID]
 end
+
+function AzerothCompendium:PreloadCreatureNames()
+    if IsInInstance() then return end
+    creatureNames.preloadPending = false
+    creatureNames.cache = {}
+    creatureNames.tries = {}
+    local seen = {}
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        for _, boss in ipairs(inst.bosses or {}) do
+            for _, npcID in ipairs(boss.npcs or {}) do
+                if not seen[npcID] then
+                    seen[npcID] = true
+                    AzerothCompendium:GetCreatureName(npcID)
+                end
+            end
+        end
+    end
+
+    if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+creatureNames.preloadPending = true
+creatureNames.frame = CreateFrame("Frame")
+creatureNames.frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+creatureNames.frame:SetScript("OnEvent", function()
+    if creatureNames.preloadPending then AzerothCompendium:PreloadCreatureNames() end
+end)
 
 function AzerothCompendium:GetBossCreatureName(boss)
     if type(boss.name) ~= "string" or not boss.name:find(" / ", 1, true) then return AzerothCompendium:GetCreatureName(boss.npcs[1]) end
