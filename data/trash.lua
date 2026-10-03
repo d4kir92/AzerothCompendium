@@ -1,6 +1,8 @@
 local _, AzerothCompendium = ...
 
 local lootByInstance = {
+    ["Ruins of Lordaeron"] = {{286980}},
+    ["City of Dalaran"] = {{273045}},
     ["Wailing Caverns"] = {{10413}},
     ["The Deadmines"] = {{8492}},
     ["Shadowfang Keep"] = {{2292}, {1489}, {1974}, {2807}, {1482}, {1935}, {1483}, {1318}, {3194}, {2205}, {1484}},
