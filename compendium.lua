@@ -105,6 +105,38 @@ local SCALE_MIN = 0.5
 local SCALE_MAX = 1.5
 local SCALE_STEP = 0.05
 local compendium = nil
+AzerothCompendium.ContentLayout = {
+    left = 16,
+    right = 16,
+    top = 106,
+    bottom = 36,
+    columnGap = 14,
+    tabHeight = 32,
+    tabIconPadding = 8,
+    tabGap = 1,
+    tabOffset = -2,
+    searchTop = 32,
+    searchRight = 30,
+    searchHeight = 20
+}
+function AzerothCompendium:AnchorContent(frame, leftAnchor)
+    local layout = self.ContentLayout
+    frame:ClearAllPoints()
+    if leftAnchor then
+        frame:SetPoint("TOPLEFT", leftAnchor, "TOPRIGHT", layout.columnGap, 0)
+    else
+        frame:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top)
+    end
+    frame:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
+end
+function AzerothCompendium:AnchorContentTab(tab, content, previous)
+    tab:ClearAllPoints()
+    if previous then
+        tab:SetPoint("LEFT", previous, "RIGHT", self.ContentLayout.tabGap, 0)
+    else
+        tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", 0, self.ContentLayout.tabOffset)
+    end
+end
 local selectedInstance = nil
 local selectedBoss = nil
 local validListKinds = {
@@ -2447,7 +2479,7 @@ end
 
 local function CreateTabButton(parent, label, iconInfo, onClick)
     local button = CreateFrame("Button", nil, parent, "TabSystemButtonArtTemplate")
-    button:SetSize(button.Icon:GetWidth() + 8, 32)
+    button:SetSize(button.Icon:GetWidth() + AzerothCompendium.ContentLayout.tabIconPadding, AzerothCompendium.ContentLayout.tabHeight)
     button:SetFrameLevel(parent:GetFrameLevel() + 4)
     button.isTabOnTop = true
     button:HandleRotation()
@@ -2624,7 +2656,7 @@ local function MakeResizable(frame)
         local right = UIParent:GetRight()
         if left == nil or top == nil or right == nil or scale == nil or scale <= 0 then return nil, nil end
         local screenRight = right * UIParent:GetEffectiveScale() / scale
-        return max(MIN_WIDTH, screenRight - left), max(MIN_HEIGHT, top)
+        return max(MIN_WIDTH, screenRight - left), max(frame.minimumHeight or MIN_HEIGHT, top)
     end
 
     local function ApplySize(width, height)
@@ -2635,7 +2667,7 @@ local function MakeResizable(frame)
         end
 
         width = floor(max(MIN_WIDTH, width) + 0.5)
-        height = floor(max(MIN_HEIGHT, height) + 0.5)
+        height = floor(max(frame.minimumHeight or MIN_HEIGHT, height) + 0.5)
         if width ~= floor(frame:GetWidth() + 0.5) or height ~= floor(frame:GetHeight() + 0.5) then frame:SetSize(width, height) end
     end
 
@@ -2734,6 +2766,48 @@ end
 
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
 AzerothCompendium.ModuleTabs = {}
+function AzerothCompendiumAPI.CreateContentTab(parent, label, icon, onClick)
+    return CreateTabButton(parent, label, {texture = icon}, onClick)
+end
+function AzerothCompendiumAPI.PositionContentTab(tab, content, previous)
+    AzerothCompendium:AnchorContentTab(tab, content, previous)
+end
+function AzerothCompendiumAPI.PositionHeaderSlider(slider)
+    local scale = slider:GetScale()
+    slider:ClearAllPoints()
+    local layout = AzerothCompendium.ContentLayout
+    slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.left / scale, -(layout.searchTop + layout.searchHeight / 2) / scale)
+    slider:SetWidth(168 / scale)
+end
+function AzerothCompendium:UpdateMinimumHeight()
+    if not compendium or not compendium.kindTabs then return end
+    local firstHeight, firstCount, secondHeight, secondCount = 0, 0, 0, 0
+    for _, tab in pairs(compendium.kindTabs) do
+        firstHeight = firstHeight + tab:GetHeight()
+        firstCount = firstCount + 1
+    end
+    for _, entry in ipairs(self.ModuleTabs) do
+        local tab = compendium.moduleTabs and compendium.moduleTabs[entry.id]
+        if tab then
+            if entry.insertBefore == "wishlist" then
+                firstHeight = firstHeight + tab:GetHeight()
+                firstCount = firstCount + 1
+            else
+                secondHeight = secondHeight + tab:GetHeight()
+                secondCount = secondCount + 1
+            end
+        end
+    end
+    firstHeight = firstHeight + max(0, firstCount - 1) * SIDE_TAB_GAP
+    secondHeight = secondHeight + max(0, secondCount - 1) * SIDE_TAB_GAP
+    compendium.minimumHeight = max(MIN_HEIGHT, SIDE_TAB_TOP + max(firstHeight, secondHeight) + self.ContentLayout.bottom)
+    if compendium.SetResizeBounds then
+        compendium:SetResizeBounds(MIN_WIDTH, compendium.minimumHeight, 0, 0)
+    elseif compendium.SetMinResize then
+        compendium:SetMinResize(MIN_WIDTH, compendium.minimumHeight)
+    end
+    if compendium:GetHeight() < compendium.minimumHeight then compendium:SetHeight(compendium.minimumHeight) end
+end
 function AzerothCompendium:RefreshModuleTabs()
     if compendium == nil or compendium.kindTabs == nil then return end
     compendium.moduleTabs = compendium.moduleTabs or {}
@@ -2775,6 +2849,7 @@ function AzerothCompendium:RefreshModuleTabs()
     end
     compendium.kindTabs.wishlist:ClearAllPoints()
     compendium.kindTabs.wishlist:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+    self:UpdateMinimumHeight()
 end
 
 function AzerothCompendiumAPI.RegisterTab(id, definition)
@@ -2922,8 +2997,7 @@ end
 local function CreateSettingsPanel()
     local panel = CreateFrame("Frame", nil, compendium)
     AddContentBorder(panel)
-    panel:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -70)
-    panel:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    AzerothCompendium:AnchorContent(panel)
     panel:Hide()
     compendium.settingsPanel = panel
     local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -3001,6 +3075,10 @@ local function SetSpecialMode(mode)
 
     for id, panel in pairs(compendium.modulePanels or {}) do panel:SetShown(mode == id) end
     for id, tab in pairs(compendium.moduleTabs or {}) do tab:SetChecked(mode == id) end
+    for kind, tab in pairs(compendium.specialTabs or {}) do
+        tab:SetShown(mode == kind)
+        tab:SetTabSelected(mode == kind)
+    end
     if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
     for _, tab in pairs(compendium.wishlistTabs or {}) do tab:SetShown(mode == "wishlist") end
     if compendium.wishlist then
@@ -3039,8 +3117,7 @@ function AzerothCompendium:RefreshModuleView()
             compendium.modulePanels = compendium.modulePanels or {}
             if not compendium.modulePanels[entry.id] then
                 local host = CreateFrame("Frame", nil, compendium)
-                host:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -70)
-                host:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+                AzerothCompendium:AnchorContent(host)
                 host:Hide()
                 compendium.modulePanels[entry.id] = host
                 entry.createPanel(host)
@@ -3088,11 +3165,7 @@ function AzerothCompendium:CreateWishlistTabs()
             ACOTABPC.WISHLISTCATEGORY = kind
             RefreshWishlistView()
         end)
-        if previous then
-            tab:SetPoint("LEFT", previous, "RIGHT", 1, 0)
-        else
-            tab:SetPoint("BOTTOMLEFT", compendium.wishlist, "TOPLEFT", 0, -2)
-        end
+        AzerothCompendium:AnchorContentTab(tab, compendium.wishlist, previous)
         tab:Hide()
         compendium.wishlistTabs[kind] = tab
         previous = tab
@@ -3389,8 +3462,8 @@ local function CreateJournal()
     compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
-    search:SetSize(180, 20)
-    search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -30, -32)
+    search:SetSize(180, AzerothCompendium.ContentLayout.searchHeight)
+    search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -AzerothCompendium.ContentLayout.searchRight, -AzerothCompendium.ContentLayout.searchTop)
     search:SetFontObject("ChatFontNormal")
     search:SetAutoFocus(false)
     search:SetText(savedSearchText)
@@ -3445,7 +3518,7 @@ local function CreateJournal()
     AzerothCompendium:RefreshModuleTabs()
     AzerothCompendium:CreateInstanceControls()
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 16, -86)
+    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", AzerothCompendium.ContentLayout.left, -AzerothCompendium.ContentLayout.top + 20)
     bossTitle:SetWidth(MIDDLE_COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
@@ -3461,21 +3534,19 @@ local function CreateJournal()
         return row
     end)
 
-    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", 16, -106)
-    bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", 16, 36)
+    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", AzerothCompendium.ContentLayout.left, -AzerothCompendium.ContentLayout.top)
+    bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", AzerothCompendium.ContentLayout.left, AzerothCompendium.ContentLayout.bottom)
     bosses:SetWidth(MIDDLE_COL_W)
     bosses:EnableEmptyText()
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
     AddContentBorder(questTree)
-    questTree:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
-    questTree:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -16, 36)
+    AzerothCompendium:AnchorContent(questTree)
     questTree:Hide()
     compendium.questTree = questTree
     local mapView = CreateFrame("Frame", nil, compendium)
     AddContentBorder(mapView)
-    mapView:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
-    mapView:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -16, 36)
+    AzerothCompendium:AnchorContent(mapView)
     mapView.viewport = CreateFrame("Frame", nil, mapView)
     mapView.viewport:SetPoint("TOPLEFT", mapView, "TOPLEFT", 4, -4)
     mapView.viewport:SetPoint("BOTTOMRIGHT", mapView, "BOTTOMRIGHT", -4, 4)
@@ -3548,35 +3619,33 @@ local function CreateJournal()
         RefreshBosses()
     end)
 
-    mapTab:SetPoint("BOTTOMLEFT", bosses, "TOPLEFT", 0, -2)
+    AzerothCompendium:AnchorContentTab(mapTab, bosses)
     local bossTab = CreateTabButton(compendium, "LID_BOSSES",TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         SaveNavigationState()
         RefreshBosses()
     end)
 
-    bossTab:SetPoint("LEFT", mapTab, "RIGHT", 1, 0)
+    AzerothCompendium:AnchorContentTab(bossTab, bosses, mapTab)
     local questTab = CreateTabButton(compendium, "LID_QUESTS",TAB_ICONS["quests"], function()
         middleKind = "quests"
         SaveNavigationState()
         RefreshBosses()
     end)
 
-    questTab:SetPoint("LEFT", bossTab, "RIGHT", 1, 0)
+    AzerothCompendium:AnchorContentTab(questTab, bosses, bossTab)
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot.rowGap = 0
     loot:SetRowHeight(LOOT_ROW_H + 6)
-    loot:SetPoint("TOPLEFT", bosses, "TOPRIGHT", 14, 0)
-    loot:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -16, 36)
+    AzerothCompendium:AnchorContent(loot, bosses)
     compendium.loot = loot
     local wishlist = CreateScroller(compendium, LOOT_ROW_H + 6, CreateWishlistRow, 2)
     wishlist.rowGap = 0
     wishlist:SetRowHeight(LOOT_ROW_H + 6)
-    wishlist:SetPoint("TOPLEFT", bosses, "TOPLEFT", 0, 0)
-    wishlist:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -16, 36)
+    AzerothCompendium:AnchorContent(wishlist)
     wishlist:Hide()
     compendium.wishlist = wishlist
     AzerothCompendium:CreateWishlistTabs()
@@ -3599,8 +3668,7 @@ local function CreateJournal()
     local worldQuestItems = CreateScroller(compendium, WORLD_QUEST_ITEM_ROW_H, CreateWorldQuestItemRow, 2)
     worldQuestItems.rowGap = 0
     worldQuestItems:SetRowHeight(WORLD_QUEST_ITEM_ROW_H)
-    worldQuestItems:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -90)
-    worldQuestItems:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+    AzerothCompendium:AnchorContent(worldQuestItems)
     worldQuestItems:Hide()
     compendium.worldQuestItems = worldQuestItems
     local worldQuestItemsTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -3639,8 +3707,8 @@ local function CreateJournal()
 
     compendium.detailTabs["loot"] = lootTab
     compendium.detailTabs["spells"] = spellTab
-    lootTab:SetPoint("BOTTOMLEFT", loot, "TOPLEFT", 0, -2)
-    spellTab:SetPoint("LEFT", lootTab, "RIGHT", 1, 0)
+    AzerothCompendium:AnchorContentTab(lootTab, loot)
+    AzerothCompendium:AnchorContentTab(spellTab, loot, lootTab)
     local lastDetailTab = spellTab
     local model = CreateModelFrame(compendium)
     if model ~= nil then
@@ -3655,7 +3723,7 @@ local function CreateJournal()
             RefreshDetail()
         end)
 
-        modelTab:SetPoint("LEFT", spellTab, "RIGHT", 1, 0)
+        AzerothCompendium:AnchorContentTab(modelTab, loot, spellTab)
         compendium.detailTabs["model"] = modelTab
         lastDetailTab = modelTab
     end
@@ -3681,6 +3749,16 @@ local function CreateJournal()
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
     CreateSettingsPanel()
+    compendium.specialTabs = {}
+    for _, info in ipairs({{"settings", "LID_SETTINGS", compendium.settingsPanel}, {"worldquestitems", "LID_WORLDQUESTITEMS", worldQuestItems}}) do
+        local kind = info[1]
+        local tab = CreateTabButton(compendium, info[2], {texture = compendium.kindTabs[kind].Icon:GetTexture()}, function() RefreshCurrentView() end)
+        AzerothCompendium:AnchorContentTab(tab, info[3])
+        tab:Hide()
+        compendium.specialTabs[kind] = tab
+    end
+    worldQuestItemsTitle:ClearAllPoints()
+    worldQuestItemsTitle:SetPoint("LEFT", compendium.specialTabs.worldquestitems, "RIGHT", 8, 0)
     AzerothCompendium:OnLanguage(function()
         searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
         compendium.relevantLabel:SetText(AzerothCompendium:Trans("LID_ONLYRELEVANT"))
