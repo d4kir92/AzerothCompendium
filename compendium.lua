@@ -4371,7 +4371,14 @@ loader:SetScript("OnEvent", function(sel, event)
         if compendium == nil or not compendium:IsShown() then return end
         local overMap = WorldMapFrame ~= nil and WorldMapFrame:IsShown() and WorldMapFrame:IsMouseOver()
         local overCompendium = compendium:IsMouseOver()
-        if compendium:GetFrameStrata() == "LOW" then
+        local focus = AzerothCompendium:GetMouseFocus()
+        while focus ~= nil and focus ~= compendium and focus.GetParent ~= nil and not (focus.IsForbidden and focus:IsForbidden()) do
+            focus = focus:GetParent()
+        end
+
+        if focus == compendium then
+            compendium:SetFrameStrata("HIGH")
+        elseif compendium:GetFrameStrata() == "LOW" then
             if overCompendium and not overMap then compendium:SetFrameStrata("HIGH") end
         elseif overMap and not overCompendium then
             compendium:SetFrameStrata("LOW")
