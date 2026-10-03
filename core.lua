@@ -340,6 +340,89 @@ function AzerothCompendium:GetInstanceBaseName(inst)
     return inst.name
 end
 
+local creatureNames = {cache = {}, tries = {}, waiting = {}, scheduled = false}
+
+function AzerothCompendium:ReadCreatureName(npcID)
+    local link = "unit:Creature-0-0-0-0-" .. npcID .. "-0000000000"
+    local text = nil
+    if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
+        local ok, data = pcall(C_TooltipInfo.GetHyperlink, link)
+        local line = ok and type(data) == "table" and data.lines and data.lines[1] or nil
+        text = line and line.leftText
+    end
+
+    if type(text) ~= "string" or text == "" then
+        local tooltip = creatureNames.tooltip
+        if tooltip == nil then
+            tooltip = CreateFrame("GameTooltip", "AzerothCompendiumScanTooltip", UIParent, "GameTooltipTemplate")
+            creatureNames.tooltip = tooltip
+        end
+
+        tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        tooltip:ClearLines()
+        pcall(tooltip.SetHyperlink, tooltip, link)
+        local region = _G["AzerothCompendiumScanTooltipTextLeft1"]
+        text = region and region:GetText()
+        tooltip:Hide()
+    end
+
+    if issecretvalue and issecretvalue(text) then return nil end
+    if type(text) ~= "string" or text == "" or text == RETRIEVING_DATA or text == RETRIEVING_ITEM_INFO then return nil end
+
+    return text
+end
+
+function AzerothCompendium:RetryCreatureNames()
+    creatureNames.scheduled = false
+    local waiting = creatureNames.waiting
+    creatureNames.waiting = {}
+    local found = false
+    for npcID in pairs(waiting) do
+        if AzerothCompendium:GetCreatureName(npcID) then found = true end
+    end
+
+    if found and AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+function AzerothCompendium:GetCreatureName(npcID)
+    if type(npcID) ~= "number" then return nil end
+    local cached = creatureNames.cache[npcID]
+    if cached then return cached end
+    local name = AzerothCompendium:ReadCreatureName(npcID)
+    if name then
+        creatureNames.cache[npcID] = name
+
+        return name
+    end
+
+    local tries = creatureNames.tries[npcID] or 0
+    if tries < 5 then
+        creatureNames.tries[npcID] = tries + 1
+        creatureNames.waiting[npcID] = true
+        if not creatureNames.scheduled then
+            creatureNames.scheduled = true
+            AzerothCompendium:After(1, function() AzerothCompendium:RetryCreatureNames() end, "AzerothCompendium:CreatureNames")
+        end
+    end
+
+    return nil
+end
+
+function AzerothCompendium:GetBossCreatureName(boss)
+    if type(boss.name) ~= "string" or not boss.name:find(" / ", 1, true) then return AzerothCompendium:GetCreatureName(boss.npcs[1]) end
+    local names, seen = {}, {}
+    for _, npcID in ipairs(boss.npcs) do
+        local name = AzerothCompendium:GetCreatureName(npcID)
+        if name == nil then return nil end
+        if not seen[name] then
+            seen[name] = true
+            tinsert(names, name)
+        end
+    end
+
+    return table.concat(names, " / ")
+end
+
 function AzerothCompendium:GetBossName(boss)
     if boss == nil then return "" end
     if boss.all then return AzerothCompendium:Trans("LID_ALLLOOT") end
@@ -352,6 +435,11 @@ function AzerothCompendium:GetBossName(boss)
     end
 
     if boss.rank ~= nil then return AzerothCompendium:Trans("LID_RANK", nil, boss.rank) end
+    if boss.npcs and boss.npcs[1] and AzerothCompendium:GetLanguage() == GetLocale() then
+        local live = AzerothCompendium:GetBossCreatureName(boss)
+        if live then return live end
+    end
+
     local names = AzerothCompendium:GetLanguage() == "deDE" and AzerothCompendium.BOSSNAMES or nil
     if names and boss.npcs and boss.npcs[1] then
         local localized = names[boss.npcs[1]]
