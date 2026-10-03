@@ -361,13 +361,17 @@ function AzerothCompendium:GetBossName(boss)
     return boss.name
 end
 
+function AzerothCompendium:IsQuestForFlavor(questID)
+    return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER or not (AzerothCompendium.QUESTFOREVER and AzerothCompendium.QUESTFOREVER[questID])
+end
+
 function AzerothCompendium:GetInstanceQuests(inst)
     if inst == nil or inst.id == nil then return {} end
 
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and not IsOpposingQuestSide(quest[3]) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and not IsOpposingQuestSide(quest[3]) then
             tinsert(available, quest)
         end
     end
@@ -522,6 +526,7 @@ function AzerothCompendium:GetQuestChain(questID)
     local quests = {}
     local seen = {}
     local function AddQuest(id, depth, prerequisiteChain)
+        if not AzerothCompendium:IsQuestForFlavor(id) then return end
         if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[id] then return end
         if seen[id] then return end
         local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
@@ -576,6 +581,7 @@ function AzerothCompendium:GetQuestRewardXP(questID)
 end
 
 local function IsQuestHidden(questID)
+    if not AzerothCompendium:IsQuestForFlavor(questID) then return true end
     if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
 
     return IsQuestForOpposingFaction(questID)
