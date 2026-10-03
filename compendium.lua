@@ -2742,8 +2742,14 @@ function AzerothCompendium:RefreshModuleTabs()
         local tab = compendium.moduleTabs[entry.id]
         if tab == nil then
             tab = CreateSideTab(compendium, entry.id, entry.icon, function()
-                entry.onClick()
-                compendium.moduleTabs[entry.id]:SetChecked(false)
+                if entry.createPanel then
+                    listKind = entry.id
+                    UpdateKindTabs()
+                    AzerothCompendium:RefreshModuleView()
+                else
+                    entry.onClick()
+                    compendium.moduleTabs[entry.id]:SetChecked(false)
+                end
             end)
             tab:SetScript("OnEnter", function(sel)
                 GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -2765,18 +2771,19 @@ end
 
 function AzerothCompendiumAPI.RegisterTab(id, definition)
     if type(id) ~= "string" or id == "" or type(definition) ~= "table" then return false end
-    if type(definition.onClick) ~= "function" or definition.icon == nil then return false end
+    if (type(definition.onClick) ~= "function" and type(definition.createPanel) ~= "function") or definition.icon == nil then return false end
     if type(definition.label) ~= "string" and type(definition.label) ~= "function" then return false end
     for _, entry in ipairs(AzerothCompendium.ModuleTabs) do
         if entry.id == id then
             entry.label = definition.label
             entry.icon = definition.icon
             entry.onClick = definition.onClick
+            entry.createPanel = definition.createPanel
             AzerothCompendium:RefreshModuleTabs()
             return true
         end
     end
-    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick})
+    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick, createPanel = definition.createPanel})
     AzerothCompendium:RefreshModuleTabs()
     return true
 end
@@ -2983,6 +2990,8 @@ local function SetSpecialMode(mode)
         end
     end
 
+    for id, panel in pairs(compendium.modulePanels or {}) do panel:SetShown(mode == id) end
+    for id, tab in pairs(compendium.moduleTabs or {}) do tab:SetChecked(mode == id) end
     if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
     for _, tab in pairs(compendium.wishlistTabs or {}) do tab:SetShown(mode == "wishlist") end
     if compendium.wishlist then
@@ -3012,6 +3021,26 @@ local function SetSpecialMode(mode)
             compendium.worldQuestItemsEmpty:Hide()
         end
     end
+end
+
+function AzerothCompendium:RefreshModuleView()
+    if not compendium then return false end
+    for _, entry in ipairs(self.ModuleTabs) do
+        if entry.id == listKind and entry.createPanel then
+            compendium.modulePanels = compendium.modulePanels or {}
+            if not compendium.modulePanels[entry.id] then
+                local host = CreateFrame("Frame", nil, compendium)
+                host:SetPoint("TOPLEFT", compendium, "TOPLEFT", 14, -70)
+                host:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -14, 28)
+                host:Hide()
+                compendium.modulePanels[entry.id] = host
+                entry.createPanel(host)
+            end
+            SetSpecialMode(entry.id)
+            return true
+        end
+    end
+    return false
 end
 
 local function RefreshWishlistView()
@@ -3119,6 +3148,7 @@ local function RefreshWorldQuestItemsView()
 end
 
 local function RefreshCurrentView()
+    if AzerothCompendium:RefreshModuleView() then return end
     if listKind == "wishlist" then
         RefreshWishlistView()
     elseif listKind == "worldquestitems" then
