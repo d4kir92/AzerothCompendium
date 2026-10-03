@@ -2920,6 +2920,7 @@ function AzerothCompendium:RefreshModuleTabs()
 end
 
 function AzerothCompendiumAPI.RegisterTab(id, definition)
+    if id == "MapUtils" then return false end
     if type(id) ~= "string" or id == "" or type(definition) ~= "table" then return false end
     if (type(definition.onClick) ~= "function" and type(definition.createPanel) ~= "function") or definition.icon == nil then return false end
     if type(definition.label) ~= "string" and type(definition.label) ~= "function" then return false end
@@ -3382,7 +3383,7 @@ function AzerothCompendium:CreateInstanceControls()
                 local listScroller = compendium.instances
                 listScroller.data = AzerothCompendium:GetGroupedInstanceList(listScroller.fullList)
                 listScroller:Refresh()
-                compendium.instancePopup:SetHeight(min(360, listScroller.contentHeight + 10))
+                compendium.instancePopup:SetHeight(min(720, listScroller.contentHeight + 10))
             else
                 OnInstanceClick(entry)
             end
@@ -3441,14 +3442,17 @@ function AzerothCompendium:CreateInstanceControls()
 
     local instancePopup = CreateFrame("Frame", nil, compendium)
     instancePopup:SetFrameStrata("DIALOG")
+    instancePopup:SetFrameLevel(compendium:GetFrameLevel() + 50)
     instancePopup:SetPoint("TOPLEFT", instanceDropdown, "BOTTOMLEFT", 0, -4)
-    instancePopup:SetSize(INSTANCE_COL_W + 10, 360)
+    instancePopup:SetSize(INSTANCE_COL_W + 10, 720)
     instancePopup:SetClampedToScreen(true)
     instancePopup:EnableMouse(true)
     instancePopup.background = instancePopup:CreateTexture(nil, "BACKGROUND")
     instancePopup.background:SetAllPoints(instancePopup)
     instancePopup.background:SetColorTexture(0.04, 0.04, 0.05, 1)
     instances:SetParent(instancePopup)
+    instances:SetFrameStrata("DIALOG")
+    instances:SetFrameLevel(instancePopup:GetFrameLevel() + 1)
     instances:ClearAllPoints()
     instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
     instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
@@ -3458,7 +3462,7 @@ function AzerothCompendium:CreateInstanceControls()
         if instancePopup:IsShown() then
             instancePopup:Hide()
         else
-            instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10))
+            instancePopup:SetHeight(min(720, max(ROW_H, instances.contentHeight or 0) + 10))
             instancePopup:Show()
             instances:Refresh()
             for index, inst in ipairs(instances.data) do
@@ -3488,7 +3492,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.ONLYRELEVANT = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10)) end
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(720, max(ROW_H, instances.contentHeight or 0) + 10)) end
     end)
 
     compendium.relevantFilter = relevantFilter
