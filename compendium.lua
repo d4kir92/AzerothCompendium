@@ -115,10 +115,11 @@ AzerothCompendium.ContentLayout = {
     tabIconPadding = 8,
     tabGap = 1,
     tabOffset = -2,
-    searchTop = 32,
-    searchRight = 30,
+    searchTop = 33,
+    searchRight = 16,
     searchHeight = 20
 }
+
 function AzerothCompendium:AnchorContent(frame, leftAnchor)
     local layout = self.ContentLayout
     frame:ClearAllPoints()
@@ -127,8 +128,10 @@ function AzerothCompendium:AnchorContent(frame, leftAnchor)
     else
         frame:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top)
     end
+
     frame:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
 end
+
 function AzerothCompendium:AnchorContentTab(tab, content, previous)
     tab:ClearAllPoints()
     if previous then
@@ -137,6 +140,7 @@ function AzerothCompendium:AnchorContentTab(tab, content, previous)
         tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", 0, self.ContentLayout.tabOffset)
     end
 end
+
 local selectedInstance = nil
 local selectedBoss = nil
 local validListKinds = {
@@ -364,6 +368,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             self.scroll.djHeight = height
             self.scroll:SetVerticalScroll(min(self.scroll:GetVerticalScroll(), max(0, height - self.scroll:GetHeight())))
         end
+
         if type(self.box) == "table" and self.box.FullUpdate and ScrollBoxConstants then self.box:FullUpdate(ScrollBoxConstants.UpdateImmediately) end
     end
 
@@ -991,6 +996,7 @@ local function GetInstanceList()
             local level = UnitLevel("player")
             relevant = inst.minLevel ~= nil and inst.maxLevel ~= nil and level >= inst.minLevel and level <= inst.maxLevel
         end
+
         if relevant and IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
     end
     return list
@@ -1007,15 +1013,27 @@ function AzerothCompendium:GetGroupedInstanceList(list)
             groups[level] = {}
             tinsert(levels, level)
         end
+
         tinsert(groups[level], inst)
     end
+
     table.sort(levels)
     for _, level in ipairs(levels) do
         local key = listKind .. ":" .. level
         local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
-        tinsert(result, {levelGroup = true, key = key, level = level, count = #groups[level], collapsed = collapsed, rowHeight = 26})
+        tinsert(result, {
+            levelGroup = true,
+            key = key,
+            level = level,
+            count = #groups[level],
+            collapsed = collapsed,
+            rowHeight = 26
+        })
+
         if not collapsed then
-            for _, inst in ipairs(groups[level]) do tinsert(result, inst) end
+            for _, inst in ipairs(groups[level]) do
+                tinsert(result, inst)
+            end
         end
     end
     return result
@@ -1178,10 +1196,12 @@ local function GetWishlistList()
                     end
                 end
             end
+
             if worldItem == nil and type(source) == "table" and source.kind == "worldquestitems" and (not IsClassicEra() or not source.forever) then
                 worldItem = source
                 kind, inst, boss = "worldquestitems", nil, nil
             end
+
             if worldItem then name = name or worldItem.itemName end
             local sourceText = ""
             if inst ~= nil and boss ~= nil then sourceText = AzerothCompendium:GetInstanceName(inst) .. " - " .. AzerothCompendium:GetBossName(boss) end
@@ -1189,6 +1209,7 @@ local function GetWishlistList()
                 sourceText = worldItem.sourceText or worldItem.source or ""
                 if worldItem.questID then sourceText = AzerothCompendium:GetQuestNameByID(worldItem.questID) .. " - " .. (worldItem.zone or sourceText) end
             end
+
             if (not IsClassicEra() or inst ~= nil or worldItem ~= nil) and (Matches(name) or Matches(sourceText)) then
                 tinsert(list, {
                     kind = kind or "worldquestitems",
@@ -1221,26 +1242,45 @@ function AzerothCompendium:GetGroupedWishlistList(list)
         if entry.kind == kind then
             local key = entry.instanceKey or "other"
             if instances[key] == nil then
-                instances[key] = {name = entry.instanceName or self:Trans("LID_OTHER"), key = key, items = {}}
+                instances[key] = {
+                    name = entry.instanceName or self:Trans("LID_OTHER"),
+                    key = key,
+                    items = {}
+                }
+
                 tinsert(ordered, instances[key])
             end
+
             tinsert(instances[key].items, entry)
         end
     end
+
     table.sort(ordered, function(a, b)
         if a.name == b.name then return a.key < b.key end
         return Lower(a.name) < Lower(b.name)
     end)
+
     for _, instance in ipairs(ordered) do
         local key = kind .. ":" .. instance.key
         local collapsed = ACOTABPC.WISHLISTGROUPS[key] == true and searchText == ""
-        tinsert(result, {wishlistCategory = true, key = key, collapsed = collapsed, name = instance.name, count = #instance.items, rowHeight = 26})
+        tinsert(result, {
+            wishlistCategory = true,
+            key = key,
+            collapsed = collapsed,
+            name = instance.name,
+            count = #instance.items,
+            rowHeight = 26
+        })
+
         if not collapsed then
-            for _, entry in ipairs(instance.items) do tinsert(result, entry) end
+            for _, entry in ipairs(instance.items) do
+                tinsert(result, entry)
+            end
         end
     end
     return result
 end
+
 local function GetWorldQuestItemList()
     local list = {}
     for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS or {}) do
@@ -2036,6 +2076,7 @@ local function RefreshInstances()
             if inst == selectedInstance then compendium.instances:ScrollToIndex(index) end
         end
     end
+
     RefreshBosses()
 end
 
@@ -2154,8 +2195,16 @@ local function ShowWishlistMenu(owner, itemID, source)
     if owner.worldQuestItem then
         local entry = owner.worldQuestItem
         local data = entry.data or {}
-        source = {kind = "worldquestitems", questID = data.questID or entry.questID, itemName = data.itemName or entry.itemName, zone = data.zone, sourceText = entry.sourceText, forever = data.forever}
+        source = {
+            kind = "worldquestitems",
+            questID = data.questID or entry.questID,
+            itemName = data.itemName or entry.itemName,
+            zone = data.zone,
+            sourceText = entry.sourceText,
+            forever = data.forever
+        }
     end
+
     local listed = AzerothCompendium:IsWishlisted(itemID)
     local label = AzerothCompendium:Trans(listed and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST")
     local action = function()
@@ -2289,6 +2338,7 @@ local function CreateWishlistRow(scroller)
             compendium.wishlist:Refresh()
             return
         end
+
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, nil)
             return
@@ -2316,6 +2366,7 @@ local function CreateWishlistRow(scroller)
             self.name:SetTextColor(1, 0.82, 0)
             return
         end
+
         self.name:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 8, -1)
         self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(entry.itemID)
@@ -2376,7 +2427,9 @@ local function CreateWorldQuestItemRow(scroller)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button)
         if button == "RightButton" then
-            ShowWishlistMenu(sel, sel.itemID, {kind = "worldquestitems"})
+            ShowWishlistMenu(sel, sel.itemID, {
+                kind = "worldquestitems"
+            })
             return
         end
 
@@ -2522,7 +2575,7 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     button:SetScript("OnClick", onClick)
     button:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
-        GameTooltip:SetText(AzerothCompendium:Trans(label))
+        GameTooltip:SetText(AzerothCompendium:TryTrans(label))
         GameTooltip:Show()
     end)
 
@@ -2767,18 +2820,23 @@ end
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
 AzerothCompendium.ModuleTabs = {}
 function AzerothCompendiumAPI.CreateContentTab(parent, label, icon, onClick)
-    return CreateTabButton(parent, label, {texture = icon}, onClick)
+    return CreateTabButton(parent, label, {
+        texture = icon
+    }, onClick)
 end
+
 function AzerothCompendiumAPI.PositionContentTab(tab, content, previous)
     AzerothCompendium:AnchorContentTab(tab, content, previous)
 end
+
 function AzerothCompendiumAPI.PositionHeaderSlider(slider)
     local scale = slider:GetScale()
     slider:ClearAllPoints()
     local layout = AzerothCompendium.ContentLayout
-    slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.left / scale, -(layout.searchTop + layout.searchHeight / 2) / scale)
+    slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.left / scale + 50, -(layout.searchTop + layout.searchHeight / 2) / scale)
     slider:SetWidth(168 / scale)
 end
+
 function AzerothCompendium:UpdateMinimumHeight()
     if not compendium or not compendium.kindTabs then return end
     local firstHeight, firstCount, secondHeight, secondCount = 0, 0, 0, 0
@@ -2786,6 +2844,7 @@ function AzerothCompendium:UpdateMinimumHeight()
         firstHeight = firstHeight + tab:GetHeight()
         firstCount = firstCount + 1
     end
+
     for _, entry in ipairs(self.ModuleTabs) do
         local tab = compendium.moduleTabs and compendium.moduleTabs[entry.id]
         if tab then
@@ -2798,6 +2857,7 @@ function AzerothCompendium:UpdateMinimumHeight()
             end
         end
     end
+
     firstHeight = firstHeight + max(0, firstCount - 1) * SIDE_TAB_GAP
     secondHeight = secondHeight + max(0, secondCount - 1) * SIDE_TAB_GAP
     compendium.minimumHeight = max(MIN_HEIGHT, SIDE_TAB_TOP + max(firstHeight, secondHeight) + self.ContentLayout.bottom)
@@ -2806,8 +2866,10 @@ function AzerothCompendium:UpdateMinimumHeight()
     elseif compendium.SetMinResize then
         compendium:SetMinResize(MIN_WIDTH, compendium.minimumHeight)
     end
+
     if compendium:GetHeight() < compendium.minimumHeight then compendium:SetHeight(compendium.minimumHeight) end
 end
+
 function AzerothCompendium:RefreshModuleTabs()
     if compendium == nil or compendium.kindTabs == nil then return end
     compendium.moduleTabs = compendium.moduleTabs or {}
@@ -2826,13 +2888,16 @@ function AzerothCompendium:RefreshModuleTabs()
                     compendium.moduleTabs[entry.id]:SetChecked(false)
                 end
             end)
+
             tab:SetScript("OnEnter", function(sel)
                 GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
                 GameTooltip:SetText(type(entry.label) == "function" and entry.label() or entry.label)
                 GameTooltip:Show()
             end)
+
             compendium.moduleTabs[entry.id] = tab
         end
+
         tab.Icon:SetTexture(entry.icon)
         tab:ClearAllPoints()
         if entry.insertBefore == "wishlist" then
@@ -2844,9 +2909,11 @@ function AzerothCompendium:RefreshModuleTabs()
             else
                 tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
             end
+
             previous = tab
         end
     end
+
     compendium.kindTabs.wishlist:ClearAllPoints()
     compendium.kindTabs.wishlist:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     self:UpdateMinimumHeight()
@@ -2867,10 +2934,20 @@ function AzerothCompendiumAPI.RegisterTab(id, definition)
             return true
         end
     end
-    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick, createPanel = definition.createPanel, insertBefore = definition.insertBefore})
+
+    table.insert(AzerothCompendium.ModuleTabs, {
+        id = id,
+        label = definition.label,
+        icon = definition.icon,
+        onClick = definition.onClick,
+        createPanel = definition.createPanel,
+        insertBefore = definition.insertBefore
+    })
+
     AzerothCompendium:RefreshModuleTabs()
     return true
 end
+
 local function CreateModelFrame(parent)
     local frame = nil
     for _, kind in ipairs({"PlayerModel", "DressUpModel", "CinematicModel", "Model"}) do
@@ -3073,14 +3150,24 @@ local function SetSpecialMode(mode)
         end
     end
 
-    for id, panel in pairs(compendium.modulePanels or {}) do panel:SetShown(mode == id) end
-    for id, tab in pairs(compendium.moduleTabs or {}) do tab:SetChecked(mode == id) end
+    for id, panel in pairs(compendium.modulePanels or {}) do
+        panel:SetShown(mode == id)
+    end
+
+    for id, tab in pairs(compendium.moduleTabs or {}) do
+        tab:SetChecked(mode == id)
+    end
+
     for kind, tab in pairs(compendium.specialTabs or {}) do
         tab:SetShown(mode == kind)
         tab:SetTabSelected(mode == kind)
     end
+
     if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
-    for _, tab in pairs(compendium.wishlistTabs or {}) do tab:SetShown(mode == "wishlist") end
+    for _, tab in pairs(compendium.wishlistTabs or {}) do
+        tab:SetShown(mode == "wishlist")
+    end
+
     if compendium.wishlist then
         if mode == "wishlist" then
             compendium.wishlist:Show()
@@ -3122,6 +3209,7 @@ function AzerothCompendium:RefreshModuleView()
                 compendium.modulePanels[entry.id] = host
                 entry.createPanel(host)
             end
+
             local host = compendium.modulePanels[entry.id]
             host.searchText = searchText
             SetSpecialMode(entry.id)
@@ -3143,6 +3231,7 @@ local function RefreshWishlistView()
     for _, entry in ipairs(list) do
         if entry.kind == kind then count = count + 1 end
     end
+
     UpdateTabs(compendium.wishlistTabs, kind)
     compendium.wishlistCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
     if count == 0 then
@@ -3161,15 +3250,19 @@ function AzerothCompendium:CreateWishlistTabs()
     local previous = nil
     for _, info in ipairs(categories) do
         local kind = info[1]
-        local tab = CreateTabButton(compendium, info[2], {texture = info[3]}, function()
+        local tab = CreateTabButton(compendium, info[2], {
+            texture = info[3]
+        }, function()
             ACOTABPC.WISHLISTCATEGORY = kind
             RefreshWishlistView()
         end)
+
         AzerothCompendium:AnchorContentTab(tab, compendium.wishlist, previous)
         tab:Hide()
         compendium.wishlistTabs[kind] = tab
         previous = tab
     end
+
     if not compendium.wishlistTabs[ACOTABPC.WISHLISTCATEGORY] then ACOTABPC.WISHLISTCATEGORY = "dungeon" end
 end
 
@@ -3224,6 +3317,7 @@ local function RefreshWorldQuestItemsView()
     else
         scroller:SetData(list)
     end
+
     compendium.worldQuestItemsCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
     if #list == 0 then
         compendium.worldQuestItemsEmpty:Show()
@@ -3257,6 +3351,7 @@ NavigateToWishlistItem = function(entry)
         RefreshCurrentView()
         return
     end
+
     local kind, inst, boss = FindWishlistSource(entry.itemID, entry.source)
     if kind == nil or inst == nil or boss == nil then return end
     listKind = kind
@@ -3292,6 +3387,7 @@ function AzerothCompendium:CreateInstanceControls()
                 OnInstanceClick(entry)
             end
         end)
+
         AddLoadingScreen(row)
         row.collapseIcon = row:CreateTexture(nil, "OVERLAY")
         row.collapseIcon:SetSize(16, 16)
@@ -3394,6 +3490,7 @@ function AzerothCompendium:CreateInstanceControls()
         RefreshInstances()
         if instancePopup:IsShown() then instancePopup:SetHeight(min(360, max(ROW_H, instances.contentHeight or 0) + 10)) end
     end)
+
     compendium.relevantFilter = relevantFilter
     compendium.relevantLabel = relevantLabel
     compendium.instanceControl = instanceControl
@@ -3452,6 +3549,7 @@ local function CreateJournal()
         sel:StopMovingOrSizing()
         sel:SavePosition()
     end)
+
     MakeResizable(compendium)
     AzerothCompendium:SetClampedToScreen(compendium, true, "AzerothCompendium")
     compendium:Hide()
@@ -3613,21 +3711,21 @@ local function CreateJournal()
     mapLevelControl:Hide()
     compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
-    local mapTab = CreateTabButton(compendium, "LID_MAP",TAB_ICONS["map"], function()
+    local mapTab = CreateTabButton(compendium, "LID_MAP", TAB_ICONS["map"], function()
         middleKind = "map"
         SaveNavigationState()
         RefreshBosses()
     end)
 
     AzerothCompendium:AnchorContentTab(mapTab, bosses)
-    local bossTab = CreateTabButton(compendium, "LID_BOSSES",TAB_ICONS["bosses"], function()
+    local bossTab = CreateTabButton(compendium, "LID_BOSSES", TAB_ICONS["bosses"], function()
         middleKind = "bosses"
         SaveNavigationState()
         RefreshBosses()
     end)
 
     AzerothCompendium:AnchorContentTab(bossTab, bosses, mapTab)
-    local questTab = CreateTabButton(compendium, "LID_QUESTS",TAB_ICONS["quests"], function()
+    local questTab = CreateTabButton(compendium, "LID_QUESTS", TAB_ICONS["quests"], function()
         middleKind = "quests"
         SaveNavigationState()
         RefreshBosses()
@@ -3693,13 +3791,13 @@ local function CreateJournal()
     spells:Hide()
     compendium.spells = spells
     compendium.detailTabs = {}
-    local spellTab = CreateTabButton(compendium, "LID_ABILITIES",TAB_ICONS["spells"], function()
+    local spellTab = CreateTabButton(compendium, "LID_ABILITIES", TAB_ICONS["spells"], function()
         detailKind = "spells"
         SaveNavigationState()
         RefreshDetail()
     end)
 
-    local lootTab = CreateTabButton(compendium, "LID_LOOT",TAB_ICONS["loot"], function()
+    local lootTab = CreateTabButton(compendium, "LID_LOOT", TAB_ICONS["loot"], function()
         detailKind = "loot"
         SaveNavigationState()
         RefreshDetail()
@@ -3717,7 +3815,7 @@ local function CreateJournal()
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()
         compendium.model = model
-        local modelTab = CreateTabButton(compendium, "LID_MODEL",TAB_ICONS["model"], function()
+        local modelTab = CreateTabButton(compendium, "LID_MODEL", TAB_ICONS["model"], function()
             detailKind = "model"
             SaveNavigationState()
             RefreshDetail()
@@ -3752,11 +3850,15 @@ local function CreateJournal()
     compendium.specialTabs = {}
     for _, info in ipairs({{"settings", "LID_SETTINGS", compendium.settingsPanel}, {"worldquestitems", "LID_WORLDQUESTITEMS", worldQuestItems}}) do
         local kind = info[1]
-        local tab = CreateTabButton(compendium, info[2], {texture = compendium.kindTabs[kind].Icon:GetTexture()}, function() RefreshCurrentView() end)
+        local tab = CreateTabButton(compendium, info[2], {
+            texture = compendium.kindTabs[kind].Icon:GetTexture()
+        }, function() RefreshCurrentView() end)
+
         AzerothCompendium:AnchorContentTab(tab, info[3])
         tab:Hide()
         compendium.specialTabs[kind] = tab
     end
+
     worldQuestItemsTitle:ClearAllPoints()
     worldQuestItemsTitle:SetPoint("LEFT", compendium.specialTabs.worldquestitems, "RIGHT", 8, 0)
     AzerothCompendium:OnLanguage(function()
@@ -3769,6 +3871,7 @@ local function CreateJournal()
         worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
         classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
     end)
+
     local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     empty:SetPoint("CENTER", loot, "CENTER", 0, 0)
     empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
@@ -4452,9 +4555,7 @@ function AzerothCompendium:BringCompendiumToFront()
     local map = WorldMapFrame
     if map ~= nil and not compendium.mapHooked then
         compendium.mapHooked = true
-        map:HookScript("OnHide", function()
-            if compendium:GetFrameStrata() == "HIGH" then compendium:SetFrameStrata("MEDIUM") end
-        end)
+        map:HookScript("OnHide", function() if compendium:GetFrameStrata() == "HIGH" then compendium:SetFrameStrata("MEDIUM") end end)
     end
 
     compendium:SetFrameStrata(map ~= nil and map:IsShown() and "HIGH" or "MEDIUM")
