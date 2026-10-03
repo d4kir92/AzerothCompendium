@@ -2712,7 +2712,7 @@ local function CreateSideTab(parent, label, icon, onClick)
     tab.Icon:SetTexture(icon)
     if large and type(tab.SetFillToInterior) == "function" then tab:SetFillToInterior(true) end
     AzerothCompendium:OnLanguage(function()
-        tab.tooltip = AzerothCompendium:Trans(label)
+        tab.tooltip = AzerothCompendium:TryTrans(label)
         tab.tooltipText = tab.tooltip
     end)
 
