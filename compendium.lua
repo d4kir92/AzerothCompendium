@@ -1492,7 +1492,8 @@ function MapPins.Style(pin)
 
     local icon = nil
     if pin.kind == "entrance" then
-        icon = ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK)
+        local raid = selectedInstance ~= nil and selectedInstance.type == "raid"
+        icon = ResolveIcon(raid and RAID_ICON_CANDIDATES or DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK)
     else
         icon = ResolveIcon(pin.up and MapPins.upIcons or MapPins.downIcons, MapPins.levelFallback)
     end

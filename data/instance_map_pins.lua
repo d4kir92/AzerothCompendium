@@ -370,12 +370,13 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.548, 0.540, 11502}, -- Ragnaros
     },
     [248] = { -- Onyxia's Lair
-        {"entrance", 0.050, 0.080},
-        {"boss", 0.200, 0.080, 10184}, -- Onyxia
+        {"entrance", 0.341, 0.205},
+        {"boss", 0.670, 0.310, 10184}, -- Onyxia
     },
     [287] = { -- Blackwing Lair - Dragonmaw Garrison
-        {"entrance", 0.050, 0.080},
-        {"level", 0.125, 0.080, 288},
+        {"entrance", 0.527, 0.836},
+        {"level", 0.435, 0.300, 288, true},
+        {"level", 0.360, 0.130, 288, true},
         {"boss", 0.200, 0.080, 12435}, -- Razorgore the Untamed
         {"boss", 0.275, 0.080, 13020}, -- Vaelastrasz the Corrupt
         {"boss", 0.350, 0.080, 12017}, -- Broodlord Lashlayer
@@ -386,17 +387,17 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.125, 0.190, 11583}, -- Nefarian
     },
     [233] = { -- Zul'Gurub
-        {"entrance", 0.050, 0.080},
-        {"boss", 0.200, 0.080, 14517}, -- High Priestess Jeklik
-        {"boss", 0.275, 0.080, 14507}, -- High Priest Venoxis
-        {"boss", 0.350, 0.080, 14510}, -- High Priestess Mar'li
-        {"boss", 0.425, 0.080, 11382}, -- Bloodlord Mandokir
-        {"boss", 0.500, 0.080, 15082}, -- Gri'lek / Hazza'rah / Renataki / Wushoolay
-        {"boss", 0.575, 0.080, 15114}, -- Gahz'ranka
-        {"boss", 0.050, 0.190, 14509}, -- High Priest Thekal
-        {"boss", 0.125, 0.190, 14515}, -- High Priestess Arlokk
-        {"boss", 0.200, 0.190, 11380}, -- Jin'do the Hexxer
-        {"boss", 0.275, 0.190, 14834}, -- Hakkar
+        {"entrance", 0.290, 0.490},
+        {"boss", 0.390, 0.730, 14517}, -- High Priestess Jeklik
+        {"boss", 0.515, 0.540, 14507}, -- High Priest Venoxis
+        {"boss", 0.470, 0.770, 14510}, -- High Priestess Mar'li
+        {"boss", 0.625, 0.680, 11382}, -- Bloodlord Mandokir
+        {"boss", 0.600, 0.462, 15082}, -- Gri'lek / Hazza'rah / Renataki / Wushoolay
+        {"boss", 0.535, 0.320, 15114}, -- Gahz'ranka
+        {"boss", 0.620, 0.340, 14509}, -- High Priest Thekal
+        {"boss", 0.475, 0.190, 14515}, -- High Priestess Arlokk
+        {"boss", 0.310, 0.240, 11380}, -- Jin'do the Hexxer
+        {"boss", 0.505, 0.390, 14834}, -- Hakkar
     },
     [247] = { -- Ruins of Ahn'Qiraj
         {"entrance", 0.050, 0.080},
@@ -491,7 +492,8 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.125, 0.080, 254},
     },
     [288] = { -- Blackwing Lair - Halls of Strife
-        {"level", 0.125, 0.080, 289},
+        {"level", 0.525, 0.320, 287},
+        {"level", 0.463, 0.198, 287},
     },
     [289] = { -- Blackwing Lair - Crimson Laboratories
         {"level", 0.125, 0.080, 290},
