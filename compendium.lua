@@ -2732,6 +2732,54 @@ local function CreateSideTab(parent, label, icon, onClick)
     return tab
 end
 
+AzerothCompendiumAPI = AzerothCompendiumAPI or {}
+AzerothCompendium.ModuleTabs = {}
+function AzerothCompendium:RefreshModuleTabs()
+    if compendium == nil or compendium.kindTabs == nil then return end
+    compendium.moduleTabs = compendium.moduleTabs or {}
+    local previous = nil
+    for _, entry in ipairs(self.ModuleTabs) do
+        local tab = compendium.moduleTabs[entry.id]
+        if tab == nil then
+            tab = CreateSideTab(compendium, entry.id, entry.icon, function()
+                entry.onClick()
+                compendium.moduleTabs[entry.id]:SetChecked(false)
+            end)
+            tab:SetScript("OnEnter", function(sel)
+                GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                GameTooltip:SetText(type(entry.label) == "function" and entry.label() or entry.label)
+                GameTooltip:Show()
+            end)
+            compendium.moduleTabs[entry.id] = tab
+        end
+        tab.Icon:SetTexture(entry.icon)
+        tab:ClearAllPoints()
+        if previous == nil then
+            tab:SetPoint("TOPLEFT", compendium.kindTabs.dungeon, "TOPRIGHT", 4, 0)
+        else
+            tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+        end
+        previous = tab
+    end
+end
+
+function AzerothCompendiumAPI.RegisterTab(id, definition)
+    if type(id) ~= "string" or id == "" or type(definition) ~= "table" then return false end
+    if type(definition.onClick) ~= "function" or definition.icon == nil then return false end
+    if type(definition.label) ~= "string" and type(definition.label) ~= "function" then return false end
+    for _, entry in ipairs(AzerothCompendium.ModuleTabs) do
+        if entry.id == id then
+            entry.label = definition.label
+            entry.icon = definition.icon
+            entry.onClick = definition.onClick
+            AzerothCompendium:RefreshModuleTabs()
+            return true
+        end
+    end
+    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick})
+    AzerothCompendium:RefreshModuleTabs()
+    return true
+end
 local function CreateModelFrame(parent)
     local frame = nil
     for _, kind in ipairs({"PlayerModel", "DressUpModel", "CinematicModel", "Model"}) do
@@ -3352,6 +3400,7 @@ local function CreateJournal()
         previousTab = tab
     end
 
+    AzerothCompendium:RefreshModuleTabs()
     AzerothCompendium:CreateInstanceControls()
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", 16, -86)
