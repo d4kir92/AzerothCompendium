@@ -423,6 +423,79 @@ function AzerothCompendium:GetBossCreatureName(boss)
     return table.concat(names, " / ")
 end
 
+local learnedBossLevels = {bosses = nil}
+
+function AzerothCompendium:GetUnlevelledBosses()
+    if learnedBossLevels.bosses then return learnedBossLevels.bosses end
+    local bosses = {}
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        for _, boss in ipairs(inst.bosses or {}) do
+            if boss.level == nil or boss.learnedLevel then
+                for _, npcID in ipairs(boss.npcs or {}) do
+                    bosses[npcID] = bosses[npcID] or {}
+                    tinsert(bosses[npcID], boss)
+                end
+            end
+        end
+    end
+
+    learnedBossLevels.bosses = bosses
+
+    return bosses
+end
+
+function AzerothCompendium:ApplyLearnedBossLevels()
+    ACOTAB = ACOTAB or {}
+    if type(ACOTAB["BOSSLEVELS"]) ~= "table" then ACOTAB["BOSSLEVELS"] = {} end
+    local bosses = AzerothCompendium:GetUnlevelledBosses()
+    for npcID, level in pairs(ACOTAB["BOSSLEVELS"]) do
+        for _, boss in ipairs(bosses[npcID] or {}) do
+            if boss.npcs[1] == npcID then
+                boss.level = level
+                boss.learnedLevel = true
+            end
+        end
+    end
+end
+
+function AzerothCompendium:LearnBossLevel(unit)
+    if not UnitExists(unit) or UnitIsPlayer(unit) then return end
+    local guid = UnitGUID(unit)
+    if issecretvalue and issecretvalue(guid) then return end
+    if type(guid) ~= "string" then return end
+    local unitType, _, _, _, _, npcID = strsplit("-", guid)
+    if unitType ~= "Creature" then return end
+    npcID = tonumber(npcID)
+    local bosses = npcID and AzerothCompendium:GetUnlevelledBosses()[npcID]
+    if bosses == nil then return end
+    local level = UnitLevel(unit)
+    if issecretvalue and issecretvalue(level) then return end
+    if type(level) ~= "number" or level <= 0 then return end
+    ACOTAB = ACOTAB or {}
+    if type(ACOTAB["BOSSLEVELS"]) ~= "table" then ACOTAB["BOSSLEVELS"] = {} end
+    if ACOTAB["BOSSLEVELS"][npcID] == level then return end
+    ACOTAB["BOSSLEVELS"][npcID] = level
+    AzerothCompendium:ApplyLearnedBossLevels()
+    if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+end
+
+learnedBossLevels.frame = CreateFrame("Frame")
+learnedBossLevels.frame:RegisterEvent("PLAYER_LOGIN")
+learnedBossLevels.frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+learnedBossLevels.frame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+learnedBossLevels.frame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+learnedBossLevels.frame:SetScript("OnEvent", function(_, event, unit)
+    if event == "PLAYER_LOGIN" then
+        AzerothCompendium:ApplyLearnedBossLevels()
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        AzerothCompendium:LearnBossLevel("target")
+    elseif event == "UPDATE_MOUSEOVER_UNIT" then
+        AzerothCompendium:LearnBossLevel("mouseover")
+    elseif unit then
+        AzerothCompendium:LearnBossLevel(unit)
+    end
+end)
+
 function AzerothCompendium:GetBossName(boss)
     if boss == nil then return "" end
     if boss.all then return AzerothCompendium:Trans("LID_ALLLOOT") end
