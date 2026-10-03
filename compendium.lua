@@ -2738,6 +2738,7 @@ function AzerothCompendium:RefreshModuleTabs()
     if compendium == nil or compendium.kindTabs == nil then return end
     compendium.moduleTabs = compendium.moduleTabs or {}
     local previous = nil
+    local beforeWishlist = compendium.kindTabs.worldquestitems
     for _, entry in ipairs(self.ModuleTabs) do
         local tab = compendium.moduleTabs[entry.id]
         if tab == nil then
@@ -2760,13 +2761,20 @@ function AzerothCompendium:RefreshModuleTabs()
         end
         tab.Icon:SetTexture(entry.icon)
         tab:ClearAllPoints()
-        if previous == nil then
-            tab:SetPoint("TOPLEFT", compendium.kindTabs.dungeon, "TOPRIGHT", 4, 0)
+        if entry.insertBefore == "wishlist" then
+            tab:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+            beforeWishlist = tab
         else
-            tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+            if previous == nil then
+                tab:SetPoint("TOPLEFT", compendium.kindTabs.dungeon, "TOPRIGHT", 4, 0)
+            else
+                tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+            end
+            previous = tab
         end
-        previous = tab
     end
+    compendium.kindTabs.wishlist:ClearAllPoints()
+    compendium.kindTabs.wishlist:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
 end
 
 function AzerothCompendiumAPI.RegisterTab(id, definition)
@@ -2779,11 +2787,12 @@ function AzerothCompendiumAPI.RegisterTab(id, definition)
             entry.icon = definition.icon
             entry.onClick = definition.onClick
             entry.createPanel = definition.createPanel
+            entry.insertBefore = definition.insertBefore
             AzerothCompendium:RefreshModuleTabs()
             return true
         end
     end
-    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick, createPanel = definition.createPanel})
+    table.insert(AzerothCompendium.ModuleTabs, {id = id, label = definition.label, icon = definition.icon, onClick = definition.onClick, createPanel = definition.createPanel, insertBefore = definition.insertBefore})
     AzerothCompendium:RefreshModuleTabs()
     return true
 end
@@ -3036,7 +3045,10 @@ function AzerothCompendium:RefreshModuleView()
                 compendium.modulePanels[entry.id] = host
                 entry.createPanel(host)
             end
+            local host = compendium.modulePanels[entry.id]
+            host.searchText = searchText
             SetSpecialMode(entry.id)
+            if host.OnSearchChanged then host:OnSearchChanged(searchText) end
             return true
         end
     end
