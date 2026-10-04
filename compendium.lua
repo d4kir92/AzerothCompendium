@@ -2988,18 +2988,26 @@ function AzerothCompendiumAPI.RegisterTab(id, definition)
     if type(definition.label) ~= "string" and type(definition.label) ~= "function" then return false end
     for _, entry in ipairs(AzerothCompendium.ModuleTabs) do
         if entry.id == id then
+            if entry.placeholder and compendium and compendium.modulePanels and compendium.modulePanels[id] then
+                compendium.modulePanels[id]:Hide()
+                compendium.modulePanels[id] = nil
+            end
+
+            entry.placeholder = definition.placeholder
             entry.label = definition.label
             entry.icon = definition.icon
             entry.onClick = definition.onClick
             entry.createPanel = definition.createPanel
             entry.insertBefore = definition.insertBefore
             AzerothCompendium:RefreshModuleTabs()
+            if listKind == id then AzerothCompendium:RefreshModuleView() end
             return true
         end
     end
 
     table.insert(AzerothCompendium.ModuleTabs, {
         id = id,
+        placeholder = definition.placeholder,
         label = definition.label,
         icon = definition.icon,
         onClick = definition.onClick,
@@ -3284,6 +3292,60 @@ function AzerothCompendium:RefreshModuleView()
     end
     return false
 end
+
+function AzerothCompendium:CreateTrainerSpellsPlaceholder(host, label, description)
+    AddContentBorder(host)
+    local widget = CreateFrame("Frame", nil, host)
+    widget:SetPoint("TOPLEFT", host, "TOPLEFT", 24, -32)
+    widget:SetPoint("TOPRIGHT", host, "TOPRIGHT", -24, -32)
+    widget:SetHeight(220)
+    local title = widget:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT")
+    title:SetPoint("TOPRIGHT")
+    title:SetJustifyH("LEFT")
+    title:SetText(self:Trans(label))
+    local text = widget:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16)
+    text:SetPoint("RIGHT", widget, "RIGHT")
+    text:SetJustifyH("LEFT")
+    text:SetText(self:Trans(description))
+    local hint = widget:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    hint:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -24)
+    hint:SetPoint("RIGHT", widget, "RIGHT")
+    hint:SetJustifyH("LEFT")
+    hint:SetText(self:Trans("LID_TRAINERSPELLS_DOWNLOAD"))
+    local link = CreateTemplated("EditBox", nil, widget, {"InputBoxTemplate"})
+    link:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 6, -12)
+    link:SetPoint("RIGHT", widget, "RIGHT", -6, 0)
+    link:SetHeight(24)
+    link:SetAutoFocus(false)
+    if link:GetFontObject() == nil then link:SetFontObject(ChatFontNormal) end
+    link:SetText("https://www.curseforge.com/wow/addons/trainerspells")
+    link:SetScript("OnEditFocusGained", function(sel) sel:HighlightText() end)
+    link:SetScript("OnMouseUp", function(sel) sel:HighlightText() end)
+    link:SetScript("OnEnterPressed", function(sel) sel:ClearFocus() end)
+    link:SetScript("OnEscapePressed", function(sel) sel:ClearFocus() end)
+    link:SetScript("OnTextChanged", function(sel)
+        local url = "https://www.curseforge.com/wow/addons/trainerspells"
+        if sel:GetText() ~= url then sel:SetText(url) end
+    end)
+    host:SetScript("OnHide", function() link:ClearFocus() end)
+end
+
+AzerothCompendiumAPI.RegisterTab("TrainerSpells:professions", {
+    label = function() return AzerothCompendium:Trans("LID_PROFESSIONS") end,
+    icon = 134708,
+    insertBefore = "wishlist",
+    placeholder = true,
+    createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_PROFESSIONS", "LID_TRAINERSPELLS_PROFESSIONS") end
+})
+AzerothCompendiumAPI.RegisterTab("TrainerSpells:class", {
+    label = function() return AzerothCompendium:Trans("LID_CLASSES") end,
+    icon = 133743,
+    insertBefore = "wishlist",
+    placeholder = true,
+    createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_CLASSES", "LID_TRAINERSPELLS_CLASSES") end
+})
 
 local function RefreshWishlistView()
     if compendium == nil or compendium.wishlist == nil then return end
