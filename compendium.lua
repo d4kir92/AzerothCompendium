@@ -1489,6 +1489,7 @@ local MapPins = {
     upIcons = {"CaveUnderground-Up", "CaveUnderground-Down"},
     levelFallback = "Interface\\Icons\\INV_Misc_Map_01",
 }
+AzerothCompendium.MapPins = MapPins
 
 function MapPins.FindBoss(npcID, inst)
     inst = inst or selectedInstance
@@ -1739,7 +1740,8 @@ function MapPins.UpdateToggle(view)
             end
 
             button:SetScript("OnClick", function(sel)
-                AzerothCompendium:SetConfig(def[2], AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) == false)
+                local key = "INSTANCEPINS_" .. strupper(def[1])
+                AzerothCompendium:SetSharedOption(key, not AzerothCompendium:GetSharedOption(key))
                 MapPins.Update(view)
                 if GameTooltip:IsOwned(sel) then sel:GetScript("OnEnter")(sel) end
             end)
@@ -1826,6 +1828,10 @@ function MapPins.Update(view)
     MapPins.UpdateToggle(view)
     MapPins.Layout(view)
     MapPins.DebugRefresh()
+end
+
+function AzerothCompendium:RefreshMapPins()
+    if compendium ~= nil and compendium.mapView ~= nil and compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
 end
 
 function MapPins.OnEnter(pin)

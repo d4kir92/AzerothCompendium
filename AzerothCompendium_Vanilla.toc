@@ -69,4 +69,5 @@ core.lua
 questtree.lua
 itembrowser.lua
 compendium.lua
+worldmap.lua
 settings.lua

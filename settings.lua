@@ -55,6 +55,18 @@ local function AddCheckbox(key, default, func, label)
     return checkbox
 end
 
+local function AddSharedCheckbox(key, label)
+    local checkbox = acoset:AddCheckbox({
+        ["label"] = label,
+        ["search"] = key,
+        ["value"] = AzerothCompendium:GetSharedOption(key),
+        ["func"] = function(value) AzerothCompendium:SetSharedOption(key, value) end
+    })
+
+    tinsert(labels, {checkbox.Label, checkbox.uiElement, label})
+    AzerothCompendium.WorldMap.checkboxes[key] = checkbox
+end
+
 function AzerothCompendium:RefreshSettingsLanguage()
     minimapTooltip[1] = {AzerothCompendium:GetCompendiumTooltipLabel("AzerothCompendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}
     minimapTooltip[2] = {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}
@@ -120,6 +132,16 @@ function AzerothCompendium:InitSetting()
 
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
+    AddCategory("MAPICONS")
+    AddCategory("INSTANCEENTRANCES", 2)
+    AddSharedCheckbox("DUNGEONWORLDMAPPINS", "LID_WORLDMAPPINS")
+    AddCategory("MEETINGSTONES", 2)
+    AddSharedCheckbox("MEETINGSTONEWORLDMAPPINS", "LID_WORLDMAPPINS")
+    AddCategory("INSTANCEMAPS", 2)
+    AddSharedCheckbox("INSTANCEPINS_BOSS", "LID_SHOWBOSSPINS")
+    AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTPINS")
+    AddSharedCheckbox("INSTANCEPINS_ENTRANCE", "LID_SHOWENTRANCEPINS")
+    AddSharedCheckbox("INSTANCEPINS_LEVEL", "LID_SHOWLEVELPINS")
     acoset:ResumeLayout()
     AzerothCompendium:OnLanguage(function() AzerothCompendium:RefreshSettingsLanguage() end)
     AzerothCompendium:CreateMinimapButton({
