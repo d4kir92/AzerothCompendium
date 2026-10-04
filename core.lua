@@ -1411,7 +1411,43 @@ function AzerothCompendium:IsForeverItem(itemID)
     return type(itemID) == "number" and itemID >= FOREVER_ITEM_MIN
 end
 
+function AzerothCompendium:UpdateInstanceLevelRanges()
+    self.instanceLevelRanges = self.instanceLevelRanges or {defaults = {}}
+    local state = self.instanceLevelRanges
+    if state.activities == nil and self:GetFlavor() == FLAVOR_FOREVER and C_LFGList and C_LFGList.GetActivityInfoTable then
+        local activities = {}
+        for id = 1, 2000 do
+            local info = C_LFGList.GetActivityInfoTable(id)
+            if info and (info.categoryID == 2 or info.categoryID == 3) and type(info.mapID) == "number" and info.mapID > 0 and type(info.minLevelSuggestion) == "number" and type(info.maxLevelSuggestion) == "number" and info.minLevelSuggestion > 0 and info.maxLevelSuggestion >= info.minLevelSuggestion then
+                local previous = activities[info.mapID]
+                if previous == nil then
+                    activities[info.mapID] = {minLevel = info.minLevelSuggestion, maxLevel = info.maxLevelSuggestion}
+                elseif previous.minLevel ~= info.minLevelSuggestion or previous.maxLevel ~= info.maxLevelSuggestion then
+                    previous.ambiguous = true
+                end
+            end
+        end
+        if next(activities) then state.activities = activities end
+    end
+
+    local changed = false
+    for _, inst in ipairs(self.INSTANCES or {}) do
+        if state.defaults[inst] == nil then
+            state.defaults[inst] = {minLevel = inst.minLevel, maxLevel = inst.maxLevel}
+        end
+        local range = self:GetFlavor() == FLAVOR_FOREVER and state.activities and not inst.parentID and state.activities[inst.id]
+        if not range or range.ambiguous then range = state.defaults[inst] end
+        if inst.minLevel ~= range.minLevel or inst.maxLevel ~= range.maxLevel then
+            inst.minLevel = range.minLevel
+            inst.maxLevel = range.maxLevel
+            changed = true
+        end
+    end
+    if changed then byType = nil end
+end
+
 function AzerothCompendium:GetInstances(kind)
+    self:UpdateInstanceLevelRanges()
     if byType == nil then
         byType = {
             ["dungeon"] = {},
