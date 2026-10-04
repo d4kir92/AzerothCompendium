@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("enUS", "LID_HIDENEWFOREVER", "Hide new Forever dunge
 AzerothCompendium:AddTrans("enUS", "LID_HIDENEWFOREVERHINT", "Hides dungeons newly added in WoW Forever from the dropdown. Original dungeons and their Forever loot remain visible. Saved for this character.")
 AzerothCompendium:AddTrans("enUS", "LID_ONLYRELEVANTHINT", "Shows only dungeons whose displayed level range includes your current character level. Updates when you level up. Saved for this character.")
 AzerothCompendium:AddTrans("enUS", "LID_OVERVIEW", "Overview")
+AzerothCompendium:AddTrans("enUS", "LID_FILTER", "Filters")
+AzerothCompendium:AddTrans("enUS", "LID_FILTERACTIVE", "Filters active")
+AzerothCompendium:AddTrans("enUS", "LID_FILTERACTIVEHINT", "Active filters hide dungeons. Open this menu and uncheck the filters to show all dungeons again.")
+AzerothCompendium:AddTrans("enUS", "LID_HIDECOMPLETED", "Hide completed")
+AzerothCompendium:AddTrans("enUS", "LID_HIDECOMPLETEDHINT", "Hides dungeons where this character has completed every displayed quest, such as 6/6. Dungeons without quests remain visible. Uncheck to show completed dungeons again. Saved for this character.")

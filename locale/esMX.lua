@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("esMX", "LID_HIDENEWFOREVER", "Ocultar nuevos calaboz
 AzerothCompendium:AddTrans("esMX", "LID_HIDENEWFOREVERHINT", "Oculta los calabozos añadidos en WoW Forever en el menú. Los calabozos originales y su botín Forever siguen visibles. Se guarda para este personaje.")
 AzerothCompendium:AddTrans("esMX", "LID_ONLYRELEVANTHINT", "Muestra solo calabozos cuyo intervalo de niveles incluye el nivel actual de tu personaje. Se actualiza al subir de nivel. Se guarda para este personaje.")
 AzerothCompendium:AddTrans("esMX", "LID_OVERVIEW", "Vista general")
+AzerothCompendium:AddTrans("esMX", "LID_FILTER", "Filtros")
+AzerothCompendium:AddTrans("esMX", "LID_FILTERACTIVE", "Filtros activos")
+AzerothCompendium:AddTrans("esMX", "LID_FILTERACTIVEHINT", "Los filtros activos ocultan calabozos. Abre este menú y desmarca los filtros para volver a mostrar todos los calabozos.")
+AzerothCompendium:AddTrans("esMX", "LID_HIDECOMPLETED", "Ocultar completados")
+AzerothCompendium:AddTrans("esMX", "LID_HIDECOMPLETEDHINT", "Oculta calabozos si este personaje ha completado todas las misiones mostradas, por ejemplo 6/6. Los calabozos sin misiones siguen visibles. Desmarca para volver a mostrarlos. Se guarda para este personaje.")

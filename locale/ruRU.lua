@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_HIDENEWFOREVER", "Скрыть новы�
 AzerothCompendium:AddTrans("ruRU", "LID_HIDENEWFOREVERHINT", "Скрывает в меню подземелья, добавленные в WoW Forever. Исходные подземелья и их добыча Forever остаются видимыми. Сохраняется для этого персонажа.")
 AzerothCompendium:AddTrans("ruRU", "LID_ONLYRELEVANTHINT", "Показывает только подземелья, диапазон уровней которых включает текущий уровень персонажа. Обновляется при повышении уровня. Сохраняется для этого персонажа.")
 AzerothCompendium:AddTrans("ruRU", "LID_OVERVIEW", "Обзор")
+AzerothCompendium:AddTrans("ruRU", "LID_FILTER", "Фильтры")
+AzerothCompendium:AddTrans("ruRU", "LID_FILTERACTIVE", "Фильтры активны")
+AzerothCompendium:AddTrans("ruRU", "LID_FILTERACTIVEHINT", "Активные фильтры скрывают подземелья. Откройте это меню и снимите флажки, чтобы снова показать все подземелья.")
+AzerothCompendium:AddTrans("ruRU", "LID_HIDECOMPLETED", "Скрыть завершённые")
+AzerothCompendium:AddTrans("ruRU", "LID_HIDECOMPLETEDHINT", "Скрывает подземелья, где этот персонаж выполнил все показанные задания, например 6/6. Подземелья без заданий остаются видимыми. Снимите флажок, чтобы снова показать завершённые подземелья. Сохраняется для этого персонажа.")

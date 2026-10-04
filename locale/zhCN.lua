@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("zhCN", "LID_HIDENEWFOREVER", "隐藏新增 Forever �
 AzerothCompendium:AddTrans("zhCN", "LID_HIDENEWFOREVERHINT", "在下拉菜单中隐藏 WoW Forever 新增的地下城。原有地下城及其 Forever 掉落仍然显示。为当前角色保存。")
 AzerothCompendium:AddTrans("zhCN", "LID_ONLYRELEVANTHINT", "仅显示等级范围包含当前角色等级的地下城。升级时会更新筛选。为当前角色保存。")
 AzerothCompendium:AddTrans("zhCN", "LID_OVERVIEW", "概览")
+AzerothCompendium:AddTrans("zhCN", "LID_FILTER", "筛选")
+AzerothCompendium:AddTrans("zhCN", "LID_FILTERACTIVE", "筛选已启用")
+AzerothCompendium:AddTrans("zhCN", "LID_FILTERACTIVEHINT", "启用的筛选会隐藏部分地下城。打开此菜单并取消勾选，即可重新显示所有地下城。")
+AzerothCompendium:AddTrans("zhCN", "LID_HIDECOMPLETED", "隐藏已完成")
+AzerothCompendium:AddTrans("zhCN", "LID_HIDECOMPLETEDHINT", "隐藏此角色已完成所有显示任务的地下城，例如6/6。没有任务的地下城仍会显示。取消勾选可重新显示已完成的地下城。按角色保存。")

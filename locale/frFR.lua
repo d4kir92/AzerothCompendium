@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("frFR", "LID_HIDENEWFOREVER", "Masquer les nouveaux d
 AzerothCompendium:AddTrans("frFR", "LID_HIDENEWFOREVERHINT", "Masque les donjons ajoutés dans WoW Forever dans le menu. Les donjons originaux et leur butin Forever restent visibles. Enregistré pour ce personnage.")
 AzerothCompendium:AddTrans("frFR", "LID_ONLYRELEVANTHINT", "Affiche uniquement les donjons dont la plage de niveaux inclut le niveau actuel du personnage. Le filtre se met à jour lors des gains de niveau. Enregistré pour ce personnage.")
 AzerothCompendium:AddTrans("frFR", "LID_OVERVIEW", "Vue générale")
+AzerothCompendium:AddTrans("frFR", "LID_FILTER", "Filtres")
+AzerothCompendium:AddTrans("frFR", "LID_FILTERACTIVE", "Filtres actifs")
+AzerothCompendium:AddTrans("frFR", "LID_FILTERACTIVEHINT", "Les filtres actifs masquent des donjons. Ouvrez ce menu et décochez les filtres pour afficher à nouveau tous les donjons.")
+AzerothCompendium:AddTrans("frFR", "LID_HIDECOMPLETED", "Masquer les donjons terminés")
+AzerothCompendium:AddTrans("frFR", "LID_HIDECOMPLETEDHINT", "Masque les donjons dont ce personnage a terminé toutes les quêtes affichées, par exemple 6/6. Les donjons sans quêtes restent visibles. Décochez pour les afficher à nouveau. Enregistré pour ce personnage.")

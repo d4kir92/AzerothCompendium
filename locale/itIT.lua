@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("itIT", "LID_HIDENEWFOREVER", "Nascondi i nuovi dunge
 AzerothCompendium:AddTrans("itIT", "LID_HIDENEWFOREVERHINT", "Nasconde nel menu i dungeon aggiunti in WoW Forever. I dungeon originali e il loro bottino Forever restano visibili. Salvato per questo personaggio.")
 AzerothCompendium:AddTrans("itIT", "LID_ONLYRELEVANTHINT", "Mostra solo i dungeon il cui intervallo di livelli include il livello attuale del personaggio. Si aggiorna quando sali di livello. Salvato per questo personaggio.")
 AzerothCompendium:AddTrans("itIT", "LID_OVERVIEW", "Panoramica")
+AzerothCompendium:AddTrans("itIT", "LID_FILTER", "Filtri")
+AzerothCompendium:AddTrans("itIT", "LID_FILTERACTIVE", "Filtri attivi")
+AzerothCompendium:AddTrans("itIT", "LID_FILTERACTIVEHINT", "I filtri attivi nascondono alcuni dungeon. Apri questo menu e deseleziona i filtri per mostrare di nuovo tutti i dungeon.")
+AzerothCompendium:AddTrans("itIT", "LID_HIDECOMPLETED", "Nascondi completati")
+AzerothCompendium:AddTrans("itIT", "LID_HIDECOMPLETEDHINT", "Nasconde i dungeon in cui questo personaggio ha completato tutte le missioni mostrate, ad esempio 6/6. I dungeon senza missioni restano visibili. Deseleziona per mostrarli di nuovo. Salvato per questo personaggio.")

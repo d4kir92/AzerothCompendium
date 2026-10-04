@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("esES", "LID_HIDENEWFOREVER", "Ocultar nuevas mazmorr
 AzerothCompendium:AddTrans("esES", "LID_HIDENEWFOREVERHINT", "Oculta las mazmorras añadidas en WoW Forever en el menú. Las mazmorras originales y su botín Forever siguen visibles. Se guarda para este personaje.")
 AzerothCompendium:AddTrans("esES", "LID_ONLYRELEVANTHINT", "Muestra solo mazmorras cuyo intervalo de niveles incluye el nivel actual de tu personaje. Se actualiza al subir de nivel. Se guarda para este personaje.")
 AzerothCompendium:AddTrans("esES", "LID_OVERVIEW", "Vista general")
+AzerothCompendium:AddTrans("esES", "LID_FILTER", "Filtros")
+AzerothCompendium:AddTrans("esES", "LID_FILTERACTIVE", "Filtros activos")
+AzerothCompendium:AddTrans("esES", "LID_FILTERACTIVEHINT", "Los filtros activos ocultan mazmorras. Abre este menú y desmarca los filtros para volver a mostrar todas las mazmorras.")
+AzerothCompendium:AddTrans("esES", "LID_HIDECOMPLETED", "Ocultar completadas")
+AzerothCompendium:AddTrans("esES", "LID_HIDECOMPLETEDHINT", "Oculta mazmorras si este personaje ha completado todas las misiones mostradas, por ejemplo 6/6. Las mazmorras sin misiones siguen visibles. Desmarca para volver a mostrarlas. Se guarda para este personaje.")

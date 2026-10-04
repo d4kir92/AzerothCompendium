@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("zhTW", "LID_HIDENEWFOREVER", "隱藏新增 Forever �
 AzerothCompendium:AddTrans("zhTW", "LID_HIDENEWFOREVERHINT", "在下拉選單中隱藏 WoW Forever 新增的地城。原有地城及其 Forever 掉落仍然顯示。為目前角色儲存。")
 AzerothCompendium:AddTrans("zhTW", "LID_ONLYRELEVANTHINT", "僅顯示等級範圍包含目前角色等級的地城。升級時會更新篩選。為目前角色儲存。")
 AzerothCompendium:AddTrans("zhTW", "LID_OVERVIEW", "總覽")
+AzerothCompendium:AddTrans("zhTW", "LID_FILTER", "篩選")
+AzerothCompendium:AddTrans("zhTW", "LID_FILTERACTIVE", "篩選已啟用")
+AzerothCompendium:AddTrans("zhTW", "LID_FILTERACTIVEHINT", "啟用的篩選會隱藏部分地城。開啟此選單並取消勾選，即可重新顯示所有地城。")
+AzerothCompendium:AddTrans("zhTW", "LID_HIDECOMPLETED", "隱藏已完成")
+AzerothCompendium:AddTrans("zhTW", "LID_HIDECOMPLETEDHINT", "隱藏此角色已完成所有顯示任務的地城，例如6/6。沒有任務的地城仍會顯示。取消勾選可重新顯示已完成的地城。按角色儲存。")

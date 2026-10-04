@@ -117,3 +117,8 @@ AzerothCompendium:AddTrans("koKR", "LID_HIDENEWFOREVER", "새 Forever 던전 숨
 AzerothCompendium:AddTrans("koKR", "LID_HIDENEWFOREVERHINT", "WoW Forever에서 새로 추가된 던전을 드롭다운에서 숨깁니다. 기존 던전과 Forever 전리품은 계속 표시됩니다. 이 캐릭터에 저장됩니다.")
 AzerothCompendium:AddTrans("koKR", "LID_ONLYRELEVANTHINT", "표시된 레벨 범위에 캐릭터의 현재 레벨이 포함되는 던전만 표시합니다. 레벨이 오르면 갱신됩니다. 이 캐릭터에 저장됩니다.")
 AzerothCompendium:AddTrans("koKR", "LID_OVERVIEW", "개요")
+AzerothCompendium:AddTrans("koKR", "LID_FILTER", "필터")
+AzerothCompendium:AddTrans("koKR", "LID_FILTERACTIVE", "필터 활성")
+AzerothCompendium:AddTrans("koKR", "LID_FILTERACTIVEHINT", "활성 필터는 일부 던전을 숨깁니다. 이 메뉴에서 필터를 해제하면 모든 던전이 다시 표시됩니다.")
+AzerothCompendium:AddTrans("koKR", "LID_HIDECOMPLETED", "완료한 던전 숨기기")
+AzerothCompendium:AddTrans("koKR", "LID_HIDECOMPLETEDHINT", "이 캐릭터가 표시된 모든 퀘스트를 완료한 던전(예: 6/6)을 숨깁니다. 퀘스트가 없는 던전은 계속 표시됩니다. 체크를 해제하면 다시 표시됩니다. 이 캐릭터에 저장됩니다.")
