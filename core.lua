@@ -1002,16 +1002,15 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local inside = AzerothCompendium.QUESTINSIDE or {}
+    local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
     local hasInside = false
     for _, node in ipairs(list) do
-        if node.instance and inside[node.id] then hasInside = true end
+        if node.instance and (inside[node.id] or startInside[node.id]) then hasInside = true end
     end
 
     local function IsAnchor(node)
-        return node.instance and (inside[node.id] or not hasInside)
+        return node.instance and (inside[node.id] or startInside[node.id] or not hasInside)
     end
-
-    local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
     local afterInstance = AzerothCompendium.QUESTAFTERINSTANCE or {}
     local function IsAfterSeed(node)
         return IsAnchor(node) or (node.instance and (startInside[node.id] == true or afterInstance[node.id] == true))
