@@ -42,37 +42,37 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},
-        {"boss", 0.564, 0.372, 11517}, -- Oggleflint
-        {"boss", 0.406, 0.574, 11520}, -- Taragaman the Hungerer
-        {"boss", 0.338, 0.840, 11518}, -- Jergosh the Invoker
-        {"boss", 0.422, 0.857, 11519}, -- Bazzalan
+        {"boss", 0.561, 0.380, 11517},
+        {"boss", 0.410, 0.577, 11520},
+        {"boss", 0.330, 0.845, 11518},
+        {"boss", 0.415, 0.862, 11519},
     },
     [291] = { -- The Deadmines
         {"entrance", 0.297, 0.133},
         {"level", 0.655, 0.667, 292},
-        {"boss", 0.374, 0.610, 644}, -- Rhahk'Zor
-        {"boss", 0.523, 0.510, 3586}, -- Miner Johnson
-        {"boss", 0.493, 0.862, 642}, -- Sneed's Shredder / Sneed
+        {"boss", 0.386, 0.609, 644},
+        {"boss", 0.527, 0.505, 3586},
+        {"boss", 0.485, 0.924, 642},
+        {"boss", 0.607, 0.572, 1763},
     },
     [292] = { -- The Deadmines - Ironclad Cove
         {"level", 0.123, 0.883, 291, true},
-        {"boss", 0.121, 0.741, 1763}, -- Gilnid
-        {"boss", 0.525, 0.170, 646}, -- Mr. Smite
-        {"boss", 0.582, 0.357, 647}, -- Captain Greenskin
-        {"boss", 0.603, 0.455, 639}, -- Edwin VanCleef
-        {"boss", 0.668, 0.398, 645}, -- Cookie
+        {"boss", 0.561, 0.265, 646},
+        {"boss", 0.632, 0.389, 647},
+        {"boss", 0.606, 0.459, 639},
+        {"boss", 0.667, 0.405, 645},
     },
     [279] = { -- Wailing Caverns
         {"entrance", 0.463, 0.590},
-        {"boss", 0.303, 0.423, 3671}, -- Lady Anacondra
-        {"boss", 0.385, 0.340, 3653}, -- Kresh
-        {"boss", 0.162, 0.563, 3669}, -- Lord Cobrahn
-        {"boss", 0.547, 0.899, 3670}, -- Lord Pythas
-        {"boss", 0.604, 0.742, 3674}, -- Skum
-        {"boss", 0.480, 0.410, 5912}, -- Deviate Faerie Dragon
-        {"boss", 0.613, 0.537, 3673}, -- Lord Serpentis
-        {"boss", 0.555, 0.475, 5775}, -- Verdan the Everliving
-        {"boss", 0.338, 0.133, 3654}, -- Mutanus the Devourer
+        {"boss", 0.305, 0.432, 3671},
+        {"boss", 0.156, 0.585, 3669},
+        {"boss", 0.258, 0.446, 3653},
+        {"boss", 0.856, 0.284, 3670},
+        {"boss", 0.931, 0.797, 3674},
+        {"boss", 0.625, 0.533, 3673},
+        {"boss", 0.564, 0.474, 5775},
+        {"boss", 0.651, 0.337, 5912},
+        {"boss", 0.342, 0.158, 3654},
     },
     [310] = { -- Shadowfang Keep 1
         {"entrance", 0.705, 0.606},
@@ -99,8 +99,8 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [315] = { -- Shadowfang Keep 6
         {"level", 0.420, 0.842, 314},
-        {"boss", 0.630, 0.185, 4275}, -- Archmage Arugal
         {"boss", 0.553, 0.627, 3927}, -- Wolf Master Nandos
+        {"boss", 0.639, 0.200, 4275},
     },
     [316] = { -- Shadowfang Keep 7
         {"level", 0.239, 0.745, 310},
@@ -110,205 +110,168 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [225] = { -- The Stockade
         {"entrance", 0.500, 0.815},
-        {"boss", 0.440, 0.446, 1696}, -- Targorr the Dread
-        {"boss", 0.691, 0.300, 1666}, -- Kam Deepfury
-        {"boss", 0.780, 0.454, 1717}, -- Hamhock
-        {"boss", 0.745, 0.562, 1716}, -- Bazil Thredd
-        {"boss", 0.213, 0.260, 1663}, -- Dextren Ward
-        {"boss", 0.497, 0.222, 1720}, -- Bruegal Ironknuckle
+        {"boss", 0.499, 0.242, 1696},
+        {"boss", 0.692, 0.309, 1666},
+        {"boss", 0.782, 0.457, 1717},
+        {"boss", 0.857, 0.510, 1716},
+        {"boss", 0.146, 0.214, 1663},
+        {"boss", 0.381, 0.240, 1720},
     },
     [221] = { -- Blackfathom Deeps 1
         {"entrance", 0.453, 0.108},
         {"level", 0.621, 0.741, 222},
-        {"boss", 0.325, 0.595, 4887}, -- Ghamoo-ra
-        {"boss", 0.117, 0.378, 4831}, -- Lady Sarevess
-        {"boss", 0.536, 0.568, 6243}, -- Gelihast
+        {"boss", 0.329, 0.602, 4887},
+        {"boss", 0.101, 0.360, 4831},
+        {"boss", 0.523, 0.551, 6243},
+        {"boss", 0.614, 0.625, 12902},
     },
     [222] = { -- Blackfathom Deeps 2
         {"level", 0.477, 0.707, 223},
-        {"boss", 0.325, 0.710, 12902}, -- Lorgus Jett
-        {"boss", 0.413, 0.727, 12876}, -- Baron Aquanis
-        {"boss", 0.515, 0.810, 4832}, -- Twilight Lord Kelris
-        {"boss", 0.848, 0.853, 4829}, -- Aku'mai
         {"level", 0.350, 0.290, 221},
+        {"boss", 0.519, 0.816, 4832},
+        {"boss", 0.856, 0.866, 4829},
     },
     [223] = { -- Blackfathom Deeps 3
-        {"boss", 0.585, 0.280, 4830}, -- Old Serra'kis
         {"level", 0.300, 0.612, 222, true},
+        {"boss", 0.606, 0.312, 4830},
+        {"boss", 0.234, 0.498, 12876},
     },
     [226] = { -- Gnomeregan - The Hall of Gears
         {"entrance", 0.644, 0.275},
         {"level", 0.345, 0.640, 227},
         {"level", 0.470, 0.870, 227},
         {"level", 0.551, 0.440, 227},
-        {"boss", 0.770, 0.670, 7361}, -- Grubbis
+        {"boss", 0.576, 0.566, 7079},
+        {"boss", 0.819, 0.651, 7361},
     },
     [302] = { -- Scarlet Monastery - Graveyard
         {"entrance", 0.840, 0.830},
-        {"boss", 0.721, 0.593, 3983}, -- Interrogator Vishas
-        {"boss", 0.250, 0.560, 4543}, -- Bloodmage Thalnos
-        {"boss", 0.400, 0.660, 6489}, -- Ironspine
-        {"boss", 0.325, 0.660, 6490}, -- Azshir the Sleepless
-        {"boss", 0.400, 0.460, 6488}, -- Fallen Champion
+        {"boss", 0.715, 0.589, 3983},
+        {"boss", 0.244, 0.508, 4543},
+        {"boss", 0.416, 0.679, 6490},
+        {"boss", 0.416, 0.679, 6488},
+        {"boss", 0.416, 0.679, 6489},
     },
     [303] = { -- Scarlet Monastery - Library
         {"entrance", 0.130, 0.248},
-        {"boss", 0.300, 0.850, 3974}, -- Houndmaster Loksey
-        {"boss", 0.835, 0.740, 6487}, -- Arcanist Doan
+        {"boss", 0.308, 0.878, 3974},
+        {"boss", 0.832, 0.745, 6487},
     },
     [304] = { -- Scarlet Monastery - Armory
         {"entrance", 0.610, 0.955},
-        {"boss", 0.785, 0.103, 3975}, -- Herod
+        {"boss", 0.786, 0.108, 3975},
     },
     [305] = { -- Scarlet Monastery - Cathedral
         {"entrance", 0.623, 0.920},
-        {"boss", 0.559, 0.243, 4542}, -- High Inquisitor Fairbanks
-        {"boss", 0.487, 0.280, 3976}, -- Scarlet Commander Mograine
-        {"boss", 0.493, 0.160, 3977}, -- High Inquisitor Whitemane
+        {"boss", 0.491, 0.272, 3976},
+        {"boss", 0.490, 0.169, 3977},
+        {"boss", 0.554, 0.261, 4542},
     },
     [301] = { -- Razorfen Kraul
         {"entrance", 0.715, 0.837},
-        {"boss", 0.810, 0.510, 6168}, -- Roogug
-        {"boss", 0.865, 0.410, 4424}, -- Aggem Thorncurse
-        {"boss", 0.570, 0.300, 4428}, -- Death Speaker Jargba
-        {"boss", 0.215, 0.300, 4420}, -- Overlord Ramtusk
-        {"boss", 0.500, 0.080, 4422}, -- Agathelos the Raging
-        {"boss", 0.575, 0.080, 4425}, -- Blind Hunter
-        {"boss", 0.080, 0.690, 4421}, -- Charlga Razorflank
-        {"boss", 0.125, 0.190, 4842}, -- Earthcaller Halmgar
+        {"boss", 0.648, 0.421, 6168},
+        {"boss", 0.808, 0.545, 4424},
+        {"boss", 0.879, 0.414, 4428},
+        {"boss", 0.569, 0.298, 4420},
+        {"boss", 0.112, 0.724, 4422},
+        {"boss", 0.110, 0.303, 4425},
+        {"boss", 0.264, 0.324, 4421},
+        {"boss", 0.494, 0.471, 4842},
     },
     [300] = { -- Razorfen Downs
         {"entrance", 0.237, 0.190},
-        {"boss", 0.200, 0.080, 7355}, -- Tuten'kash
-        {"boss", 0.855, 0.450, 7357}, -- Mordresh Fire Eye
-        {"boss", 0.350, 0.670, 8567}, -- Glutton
-        {"boss", 0.425, 0.080, 7354}, -- Ragglesnout
         {"boss", 0.500, 0.080, 7356}, -- Plaguemaw the Rotting
-        {"boss", 0.443, 0.596, 7358}, -- Amnennar the Coldbringer
+        {"boss", 0.858, 0.457, 7357},
+        {"boss", 0.385, 0.452, 8567},
+        {"boss", 0.529, 0.672, 7354},
+        {"boss", 0.450, 0.591, 7358},
+        {"boss", 0.597, 0.275, 7355},
     },
     [280] = { -- Maraudon - Caverns of Maraudon
         {"entrance", 0.768, 0.657},
         {"level", 0.145, 0.570, 281},
-        {"boss", 0.200, 0.080, 13282}, -- Noxxion
-        {"boss", 0.275, 0.080, 12258}, -- Razorlash
-        {"boss", 0.350, 0.080, 12236}, -- Lord Vyletongue
-        {"boss", 0.425, 0.080, 12237}, -- Meshlok the Harvester
-        {"boss", 0.500, 0.080, 12225}, -- Celebras the Cursed
-        {"boss", 0.575, 0.080, 12203}, -- Landslide
-        {"boss", 0.050, 0.190, 13601}, -- Tinkerer Gizlock
         {"entrance", 0.622, 0.281},
+        {"boss", 0.348, 0.107, 13282},
+        {"boss", 0.162, 0.340, 12258},
+        {"boss", 0.377, 0.694, 12236},
+        {"boss", 0.246, 0.874, 12237},
     },
     [230] = { -- Uldaman - Hall of the Keepers
         {"entrance", 0.285, 0.692},
         {"level", 0.485, 0.210, 231},
-        {"boss", 0.200, 0.080, 6910}, -- Revelosh
-        {"boss", 0.585, 0.910, 6906}, -- Baelog / Eric \"The Swift\" / Olaf
-        {"boss", 0.360, 0.730, 7228}, -- Ironaya
-        {"boss", 0.425, 0.080, 7206}, -- Ancient Stone Keeper
-        {"boss", 0.500, 0.080, 7291}, -- Galgann Firehammer
-        {"boss", 0.575, 0.080, 4854}, -- Grimlok
         {"entrance", 0.680, 0.725},
+        {"boss", 0.541, 0.722, 6910},
+        {"boss", 0.591, 0.935, 6906},
+        {"boss", 0.474, 0.407, 7206},
+        {"boss", 0.258, 0.360, 7291},
+        {"boss", 0.212, 0.248, 4854},
+        {"boss", 0.392, 0.737, 7228},
     },
     [234] = { -- Dire Maul - Dire Maul
         {"entrance", 0.718, 0.926},
         {"level", 0.125, 0.080, 235},
-        {"boss", 0.200, 0.080, 14354}, -- Pusillin
-        {"boss", 0.275, 0.080, 11490}, -- Zevrim Thornhoof
-        {"boss", 0.350, 0.080, 13280}, -- Hydrospawn
-        {"boss", 0.425, 0.080, 14327}, -- Lethtendris
-        {"boss", 0.500, 0.080, 11492}, -- Alzzin the Wildshaper
-        {"boss", 0.575, 0.080, 11489}, -- Tendris Warpwood
-        {"boss", 0.050, 0.190, 11488}, -- Illyanna Ravenoak
-        {"boss", 0.125, 0.190, 11487}, -- Magister Kalendris
-        {"boss", 0.200, 0.190, 11496}, -- Immol'thar
-        {"boss", 0.275, 0.190, 11486}, -- Prince Tortheldrin
-        {"boss", 0.350, 0.190, 11467}, -- Tsu'zee
-        {"boss", 0.425, 0.190, 14326}, -- Guard Mol'dar
-        {"boss", 0.500, 0.190, 14322}, -- Stomper Kreeg
-        {"boss", 0.575, 0.190, 14321}, -- Guard Fengus
-        {"boss", 0.050, 0.300, 14323}, -- Guard Slip'kik
-        {"boss", 0.125, 0.300, 14325}, -- Captain Kromcrush
-        {"boss", 0.200, 0.300, 14324}, -- Cho'Rush the Observer
-        {"boss", 0.275, 0.300, 11501}, -- King Gordok
     },
     [219] = { -- Zul'Farrak
         {"entrance", 0.566, 0.901},
-        {"boss", 0.200, 0.080, 8127}, -- Antu'sul
-        {"boss", 0.275, 0.080, 7272}, -- Theka the Martyr
-        {"boss", 0.440, 0.160, 7271}, -- Witch Doctor Zum'rah
-        {"boss", 0.425, 0.080, 10082}, -- Zerillis
-        {"boss", 0.500, 0.080, 10080}, -- Sandarr Dunereaver
-        {"boss", 0.255, 0.130, 7604}, -- Sergeant Bly
-        {"boss", 0.050, 0.190, 7795}, -- Hydromancer Velratha
-        {"boss", 0.305, 0.400, 7273}, -- Gahz'rilla
-        {"boss", 0.200, 0.190, 10081}, -- Dustwraith
-        {"boss", 0.275, 0.190, 7796}, -- Nekrum Gutchewer
-        {"boss", 0.334, 0.170, 7275}, -- Shadowpriest Sezz'ziz
-        {"boss", 0.440, 0.330, 7267}, -- Chief Ukorz Sandscalp
-        {"boss", 0.420, 0.360, 7797}, -- Ruuzlu
+        {"boss", 0.690, 0.256, 8127},
+        {"boss", 0.554, 0.296, 7272},
+        {"boss", 0.440, 0.152, 7271},
+        {"boss", 0.235, 0.183, 7604},
+        {"boss", 0.289, 0.403, 7795},
+        {"boss", 0.441, 0.349, 7797},
+        {"boss", 0.439, 0.353, 7267},
+        {"boss", 0.538, 0.373, 10082},
+        {"boss", 0.463, 0.578, 10080},
+        {"boss", 0.317, 0.460, 10081},
+        {"boss", 0.235, 0.183, 7796},
+        {"boss", 0.235, 0.183, 7275},
+        {"boss", 0.328, 0.435, 7273},
     },
     [317] = { -- Stratholme - Crusader's Square
         {"entrance", 0.640, 0.880},
-        {"boss", 0.200, 0.080, 10393}, -- Skul
-        {"boss", 0.275, 0.080, 10558}, -- Hearthsinger Forresten
-        {"boss", 0.350, 0.080, 10516}, -- The Unforgiven
         {"boss", 0.425, 0.080, 10808}, -- Timmy the Cruel
-        {"boss", 0.500, 0.080, 11032}, -- Malor the Zealous
-        {"boss", 0.575, 0.080, 10997}, -- Cannon Master Willey
-        {"boss", 0.050, 0.190, 10811}, -- Archivist Galford
-        {"boss", 0.125, 0.190, 10813}, -- Balnazzar
-        {"boss", 0.200, 0.190, 10809}, -- Stonespine
-        {"boss", 0.275, 0.190, 10435}, -- Magistrate Barthilas
-        {"boss", 0.350, 0.190, 10436}, -- Baroness Anastari
-        {"boss", 0.425, 0.190, 10437}, -- Nerub'enkan
-        {"boss", 0.500, 0.190, 10438}, -- Maleki the Pallid
         {"boss", 0.575, 0.190, 10439}, -- Ramstein the Gorger
-        {"boss", 0.050, 0.300, 10440}, -- Baron Rivendare
         {"entrance", 0.686, 0.880},
         {"level", 0.900, 0.330, 318, true},
+        {"boss", 0.815, 0.438, 10393},
+        {"boss", 0.847, 0.454, 10558},
+        {"boss", 0.729, 0.193, 10516},
+        {"boss", 0.304, 0.400, 11032},
+        {"boss", 0.036, 0.501, 10997},
+        {"boss", 0.271, 0.751, 10811},
+        {"boss", 0.188, 0.837, 10813},
     },
     [220] = { -- The Temple of Atal'Hakkar
         {"entrance", 0.500, 0.110},
-        {"boss", 0.200, 0.080, 8580}, -- Atal'alarion
-        {"boss", 0.275, 0.080, 5713}, -- Gasher
-        {"boss", 0.350, 0.080, 5714}, -- Loro
-        {"boss", 0.425, 0.080, 5715}, -- Hukku
-        {"boss", 0.500, 0.080, 5712}, -- Zolo
-        {"boss", 0.575, 0.080, 5717}, -- Mijan
-        {"boss", 0.050, 0.190, 5716}, -- Zul'Lor
         {"boss", 0.125, 0.190, 5721}, -- Dreamscythe
         {"boss", 0.200, 0.190, 5720}, -- Weaver
-        {"boss", 0.275, 0.190, 5710}, -- Jammal'an the Prophet
-        {"boss", 0.350, 0.190, 5711}, -- Ogom the Wretched
-        {"boss", 0.425, 0.190, 5719}, -- Morphaz
-        {"boss", 0.500, 0.190, 5722}, -- Hazzas
-        {"boss", 0.575, 0.190, 8443}, -- Avatar of Hakkar
-        {"boss", 0.050, 0.300, 5709}, -- Shade of Eranikus
+        {"boss", 0.451, 0.585, 5713},
+        {"boss", 0.451, 0.585, 5714},
+        {"boss", 0.451, 0.585, 5715},
+        {"boss", 0.451, 0.585, 5712},
+        {"boss", 0.451, 0.585, 5717},
+        {"boss", 0.451, 0.585, 5716},
+        {"boss", 0.760, 0.370, 5710},
+        {"boss", 0.767, 0.361, 5711},
+        {"boss", 0.461, 0.845, 5719},
+        {"boss", 0.448, 0.851, 5722},
+        {"boss", 0.686, 0.874, 5709},
+        {"boss", 0.501, 0.358, 8580},
+        {"boss", 0.240, 0.457, 8443},
     },
     [242] = { -- Blackrock Depths - Detention Block
         {"entrance", 0.333, 0.791},
         {"level", 0.125, 0.080, 243},
-        {"boss", 0.200, 0.080, 9025}, -- Lord Roccor
-        {"boss", 0.275, 0.080, 9016}, -- Bael'Gar
-        {"boss", 0.350, 0.080, 9319}, -- Houndmaster Grebmar
-        {"boss", 0.425, 0.080, 9018}, -- High Interrogator Gerstahn
-        {"boss", 0.500, 0.080, 9031}, -- Anub'shiah / Eviscerator / Gorosh the Dervish / Grizzle / Hedrum the Creeper / Ok'thor the Breaker
-        {"boss", 0.575, 0.080, 9024}, -- Pyromancer Loregrain
-        {"boss", 0.050, 0.190, 9041}, -- Warder Stilgiss / Verek
-        {"boss", 0.125, 0.190, 9056}, -- Fineous Darkvire
-        {"boss", 0.200, 0.190, 9017}, -- Lord Incendius
-        {"boss", 0.275, 0.190, 8983}, -- Golem Lord Argelmach
-        {"boss", 0.350, 0.190, 9543}, -- Ribbly Screwspigot
-        {"boss", 0.425, 0.190, 9537}, -- Hurley Blackbreath
-        {"boss", 0.500, 0.190, 9502}, -- Phalanx
-        {"boss", 0.575, 0.190, 9499}, -- Plugger Spazzring
-        {"boss", 0.050, 0.300, 9156}, -- Ambassador Flamelash
-        {"boss", 0.125, 0.300, 8923}, -- Panzor the Invincible
-        {"boss", 0.200, 0.300, 9039}, -- Doom'rel / Dope'rel / Hate'rel / Seeth'rel / Vile'rel / Gloom'rel / Anger'rel
-        {"boss", 0.275, 0.300, 9938}, -- Magmus
-        {"boss", 0.350, 0.300, 9033}, -- General Angerforge
-        {"boss", 0.425, 0.300, 8929}, -- Princess Moira Bronzebeard
-        {"boss", 0.500, 0.300, 9019}, -- Emperor Dagran Thaurissan
+        {"boss", 0.494, 0.567, 9025},
+        {"boss", 0.475, 0.934, 9018},
+        {"boss", 0.495, 0.617, 9319},
+        {"boss", 0.240, 0.516, 9016},
+        {"boss", 0.561, 0.312, 9017},
+        {"boss", 0.613, 0.242, 9056},
+        {"boss", 0.545, 0.700, 9024},
+        {"boss", 0.505, 0.014, 8923},
+        {"boss", 0.356, 0.570, 9033},
+        {"boss", 0.500, 0.635, 9031},
     },
     [250] = { -- Blackrock Spire - Tazz'Alor
         {"entrance", 0.050, 0.080},
@@ -347,7 +310,6 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.500, 0.080, 14516}, -- Death Knight Darkreaver
         {"boss", 0.575, 0.080, 10433}, -- Marduk Blackpool
         {"boss", 0.050, 0.190, 10432}, -- Vectus
-        {"boss", 0.125, 0.190, 10508}, -- Ras Frostwhisper
         {"boss", 0.200, 0.190, 10505}, -- Instructor Malicia
         {"boss", 0.275, 0.190, 11261}, -- Doctor Theolen Krastinov
         {"boss", 0.350, 0.190, 10901}, -- Lorekeeper Polkelt
@@ -448,33 +410,46 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.245, 0.580, 228},
         {"level", 0.430, 0.830, 226, true},
         {"level", 0.640, 0.580, 226, true},
-        {"boss", 0.755, 0.450, 7079}, -- Viscous Fallout
-        {"boss", 0.240, 0.680, 6235}, -- Electrocutioner 6000
     },
     [228] = { -- Gnomeregan - Launch Bay
         {"entrance", 0.870, 0.480},
         {"level", 0.488, 0.710, 229},
         {"level", 0.273, 0.308, 229},
         {"level", 0.445, 0.430, 227, true},
-        {"boss", 0.427, 0.878, 6229}, -- Crowd Pummeler 9-60
+        {"boss", 0.438, 0.865, 6229},
     },
     [229] = { -- Gnomeregan - Tinkers' Court
         {"level", 0.481, 0.540, 228, true},
         {"level", 0.710, 0.773, 228, true},
-        {"boss", 0.450, 0.680, 6228}, -- Dark Iron Ambassador
-        {"boss", 0.310, 0.294, 7800}, -- Mekgineer Thermaplugg
+        {"boss", 0.508, 0.331, 6235},
+        {"boss", 0.295, 0.540, 6228},
+        {"boss", 0.313, 0.300, 7800},
     },
     [231] = { -- Uldaman - Khaz'Goroth's Seat
         {"level", 0.645, 0.410, 230, true},
-        {"boss", 0.551, 0.506, 2748}, -- Archaedas
+        {"boss", 0.554, 0.506, 2748},
     },
     [281] = { -- Maraudon - Zaetar's Grave
         {"level", 0.295, 0.040, 280, true},
-        {"boss", 0.255, 0.780, 12201}, -- Princess Theradras
-        {"boss", 0.405, 0.810, 13596}, -- Rotgrip
+        {"boss", 0.245, 0.144, 12225},
+        {"boss", 0.406, 0.482, 12203},
+        {"boss", 0.484, 0.686, 13601},
+        {"boss", 0.333, 0.771, 13596},
+        {"boss", 0.242, 0.784, 12201},
     },
     [243] = { -- Blackrock Depths - Shadowforge City
         {"level", 0.125, 0.080, 242},
+        {"boss", 0.607, 0.673, 9041},
+        {"boss", 0.369, 0.650, 8983},
+        {"boss", 0.532, 0.649, 9502},
+        {"boss", 0.491, 0.619, 9543},
+        {"boss", 0.498, 0.609, 9499},
+        {"boss", 0.538, 0.488, 9156},
+        {"boss", 0.817, 0.119, 9938},
+        {"boss", 0.567, 0.218, 9039},
+        {"boss", 0.932, 0.119, 9019},
+        {"boss", 0.931, 0.115, 8929},
+        {"boss", 0.480, 0.580, 9537},
     },
     [251] = { -- Blackrock Spire - Skitterweb Tunnels
         {"level", 0.125, 0.080, 252},
@@ -503,21 +478,39 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [235] = { -- Dire Maul - Gordok Commons
         {"level", 0.125, 0.080, 236},
+        {"boss", 0.699, 0.752, 14326},
+        {"boss", 0.620, 0.657, 14322},
+        {"boss", 0.493, 0.816, 14321},
+        {"boss", 0.277, 0.588, 14323},
+        {"boss", 0.318, 0.497, 14325},
+        {"boss", 0.312, 0.254, 14324},
+        {"boss", 0.319, 0.259, 11501},
     },
     [236] = { -- Dire Maul - Capital Gardens
         {"level", 0.125, 0.080, 237},
+        {"boss", 0.332, 0.530, 11489},
+        {"boss", 0.202, 0.812, 11488},
     },
     [237] = { -- Dire Maul - Court of the Highborne
         {"level", 0.125, 0.080, 238},
+        {"boss", 0.294, 0.436, 11487},
+        {"boss", 0.322, 0.143, 11467},
+        {"boss", 0.190, 0.130, 11486},
     },
     [238] = { -- Dire Maul - Prison of Immol'Thar
         {"level", 0.125, 0.080, 239},
+        {"boss", 0.350, 0.576, 11496},
     },
     [239] = { -- Dire Maul - Warpwood Quarter
         {"level", 0.125, 0.080, 240},
+        {"boss", 0.122, 0.310, 14354},
+        {"boss", 0.435, 0.537, 11490},
+        {"boss", 0.423, 0.463, 13280},
+        {"boss", 0.426, 0.482, 14327},
     },
     [240] = { -- Dire Maul - The Shrine of Eldretharr
         {"level", 0.125, 0.080, 239},
+        {"boss", 0.554, 0.269, 11492},
     },
     [307] = { -- Scholomance - Chamber of Summoning
         {"level", 0.125, 0.080, 308},
@@ -527,10 +520,17 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [309] = { -- Scholomance - Headmaster's Study
         {"level", 0.125, 0.080, 308},
+        {"boss", 0.406, 0.884, 10508},
     },
     [318] = { -- Stratholme - The Gauntlet
         {"level", 0.355, 0.390, 317},
         {"level", 0.570, 0.770, 317},
+        {"boss", 0.649, 0.489, 10809},
+        {"boss", 0.750, 0.468, 10436},
+        {"boss", 0.564, 0.469, 10437},
+        {"boss", 0.682, 0.199, 10438},
+        {"boss", 0.653, 0.755, 10435},
+        {"boss", 0.372, 0.199, 10440},
     },
     [320] = { -- Temple of Ahn'Qiraj - The Temple Gates
         {"level", 0.125, 0.080, 321},
