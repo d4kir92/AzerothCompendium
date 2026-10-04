@@ -179,7 +179,7 @@ local function ShowQuestWowheadLink(questID)
         AzerothCompendium.questWowheadPopup = popup
     end
 
-    local flavor = AzerothCompendium:GetFlavor() == "forever" and "classic/forever" or "classic"
+    local flavor = AzerothCompendium:GetFlavor() == "forever" and "forever" or "classic"
     popup.link:SetText("https://www.wowhead.com/" .. flavor .. "/quest=" .. questID)
     popup:Show()
     popup.link:SetFocus()
