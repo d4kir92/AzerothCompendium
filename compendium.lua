@@ -665,6 +665,7 @@ end
 
 local function UpdateInstanceBackground(row, inst)
     if row.loadingScreen == nil then return end
+    for _, edge in ipairs(row.selectionBorder or {}) do edge:Hide() end
     local fileID, layout = nil, nil
     if UsesLoadingScreens() and not inst.levelGroup then fileID, layout = GetLoadingScreen(inst) end
     if fileID ~= nil then
@@ -815,13 +816,35 @@ local function UpdateInstanceRow(row, inst)
             row.questCount:SetTextColor(1, 1, 1)
         end
 
-        row.questCount:SetText(format("|T%s:14:14|t %d/%d", QUEST_COUNT_ICON, done, #quests))
+        local questIcon = #quests > 0 and done == #quests and "Interface\\RaidFrame\\ReadyCheck-Ready" or QUEST_COUNT_ICON
+        row.questCount:SetText(format("|T%s:14:14|t %d/%d", questIcon, done, #quests))
         row.questCount:Show()
         row.questsDone = done
         row.questsTotal = #quests
         row.questCountHover:Show()
     end
 
+    if row.selectionBorder == nil then
+        row.selectionBorder = {}
+        for index = 1, 4 do
+            local edge = row:CreateTexture(nil, "OVERLAY")
+            edge:SetColorTexture(1, 0.82, 0, 1)
+            row.selectionBorder[index] = edge
+        end
+        row.selectionBorder[1]:SetPoint("TOPLEFT")
+        row.selectionBorder[1]:SetPoint("TOPRIGHT")
+        row.selectionBorder[1]:SetHeight(2)
+        row.selectionBorder[2]:SetPoint("BOTTOMLEFT")
+        row.selectionBorder[2]:SetPoint("BOTTOMRIGHT")
+        row.selectionBorder[2]:SetHeight(2)
+        row.selectionBorder[3]:SetPoint("TOPLEFT")
+        row.selectionBorder[3]:SetPoint("BOTTOMLEFT")
+        row.selectionBorder[3]:SetWidth(2)
+        row.selectionBorder[4]:SetPoint("TOPRIGHT")
+        row.selectionBorder[4]:SetPoint("BOTTOMRIGHT")
+        row.selectionBorder[4]:SetWidth(2)
+    end
+    for _, edge in ipairs(row.selectionBorder) do edge:SetShown(selectedInstance == inst) end
     if selectedInstance == inst then
         row.text:SetTextColor(1, 0.82, 0)
         row.selected:Show()
@@ -997,6 +1020,8 @@ local function GetInstanceList()
             relevant = inst.minLevel ~= nil and inst.maxLevel ~= nil and level >= inst.minLevel and level <= inst.maxLevel
         end
 
+        if listKind == "dungeon" and inst.forever and type(ACOTABPC) == "table" and ACOTABPC.HIDENEWFOREVER == true then relevant = false end
+
         if relevant and IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
     end
     return list
@@ -1127,6 +1152,7 @@ local function SaveNavigationState()
     ACOTABPC = ACOTABPC or {}
     ACOTABPC["NAVIGATION"] = {
         listKind = listKind,
+        overview = compendium ~= nil and compendium.overviewActive == true,
         middleKind = middleKind,
         detailKind = detailKind,
         instance = GetInstanceKey(selectedInstance),
@@ -1960,6 +1986,16 @@ end
 
 local function RefreshBosses()
     if compendium == nil then return end
+    if compendium.overviewActive and (listKind == "dungeon" or listKind == "raid") then
+        for _, frame in ipairs({compendium.bosses, compendium.bossTitle, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}) do frame:Hide() end
+        if compendium.model then compendium.model:Hide() end
+        for _, tab in pairs(compendium.middleTabs) do tab:Hide() end
+        for _, tab in pairs(compendium.detailTabs) do tab:Hide() end
+        compendium:RefreshOverview()
+        compendium.overview:Show()
+        return
+    end
+    if compendium.overview then compendium.overview:Hide() end
     local showMiddleTabs = listKind == "dungeon" or listKind == "raid"
     if not showMiddleTabs then middleKind = "bosses" end
     for _, tab in pairs(compendium.middleTabs) do
@@ -2081,6 +2117,7 @@ local function RefreshInstances()
 end
 
 local function OnInstanceClick(inst)
+    compendium.overviewActive = false
     selectedInstance = inst
     selectedBoss = nil
     mapLevel = 1
@@ -2634,7 +2671,8 @@ local function CreateFlavorControl(parent)
         parent.flavorDropdown = control.Dropdown
         parent.updateFlavorSteppers = function()
             local classic = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
-            steppers:SetEnabled(not classic, classic)
+            local locked = AzerothCompendium:IsClassicEraClient()
+            steppers:SetEnabled(not classic and not locked, classic and not locked)
         end
 
         control:HookScript("OnShow", parent.updateFlavorSteppers)
@@ -3132,6 +3170,8 @@ end
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
+    if compendium.overview then compendium.overview:Hide() end
+    if enabled then compendium.overviewActive = false end
     if compendium.instancePopup then compendium.instancePopup:Hide() end
     local regular = {compendium.instanceControl, compendium.bossTitle, compendium.bosses, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}
     if compendium.model then tinsert(regular, compendium.model) end
@@ -3383,7 +3423,7 @@ function AzerothCompendium:CreateInstanceControls()
                 local listScroller = compendium.instances
                 listScroller.data = AzerothCompendium:GetGroupedInstanceList(listScroller.fullList)
                 listScroller:Refresh()
-                compendium.instancePopup:SetHeight(min(720, listScroller.contentHeight + 10))
+                compendium.instancePopup:SetHeight(min(600, listScroller.contentHeight + 10))
             else
                 OnInstanceClick(entry)
             end
@@ -3429,22 +3469,23 @@ function AzerothCompendium:CreateInstanceControls()
     instances:EnableEmptyText()
     compendium.instances = instances
     local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
-    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -42)
-    instanceControl:SetSize(INSTANCE_COL_W + 60, 22)
+    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 159, -42)
+    instanceControl:SetSize(INSTANCE_COL_W + 100, 22)
     local instanceDropdown = instanceControl.Dropdown
     if instanceDropdown == nil then
         instanceDropdown = CreateTemplated("Button", nil, instanceControl, {"UIPanelButtonTemplate"})
-        instanceDropdown:SetSize(INSTANCE_COL_W, 22)
-        instanceDropdown:SetPoint("LEFT", instanceControl, "LEFT", 30, 0)
+        instanceDropdown:SetSize(INSTANCE_COL_W + 100, 22)
     else
-        instanceDropdown:SetWidth(INSTANCE_COL_W)
+        instanceDropdown:SetWidth(INSTANCE_COL_W + 100)
     end
+    instanceDropdown:ClearAllPoints()
+    instanceDropdown:SetPoint("LEFT", instanceControl, "LEFT", 0, 0)
 
     local instancePopup = CreateFrame("Frame", nil, compendium)
     instancePopup:SetFrameStrata("DIALOG")
     instancePopup:SetFrameLevel(compendium:GetFrameLevel() + 50)
     instancePopup:SetPoint("TOPLEFT", instanceDropdown, "BOTTOMLEFT", 0, -4)
-    instancePopup:SetSize(INSTANCE_COL_W + 10, 720)
+    instancePopup:SetSize(INSTANCE_COL_W + 110, 600)
     instancePopup:SetClampedToScreen(true)
     instancePopup:EnableMouse(true)
     instancePopup.background = instancePopup:CreateTexture(nil, "BACKGROUND")
@@ -3462,7 +3503,7 @@ function AzerothCompendium:CreateInstanceControls()
         if instancePopup:IsShown() then
             instancePopup:Hide()
         else
-            instancePopup:SetHeight(min(720, max(ROW_H, instances.contentHeight or 0) + 10))
+            instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10))
             instancePopup:Show()
             instances:Refresh()
             for index, inst in ipairs(instances.data) do
@@ -3471,19 +3512,11 @@ function AzerothCompendium:CreateInstanceControls()
         end
     end)
 
-    local function StepInstance(delta)
-        for index, inst in ipairs(instances.fullList or {}) do
-            if inst == selectedInstance and instances.fullList[index + delta] then
-                OnInstanceClick(instances.fullList[index + delta])
-                return
-            end
-        end
-    end
-
-    local instanceSteppers = AzerothCompendium:SetupDropdownSteppers(instanceControl, function() StepInstance(-1) end, function() StepInstance(1) end, false, instanceDropdown)
+    if instanceControl.DecrementButton then instanceControl.DecrementButton:Hide() end
+    if instanceControl.IncrementButton then instanceControl.IncrementButton:Hide() end
     local relevantFilter = CreateTemplated("CheckButton", "AzerothCompendiumRelevantFilter", instanceControl, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     relevantFilter:SetSize(24, 24)
-    relevantFilter:SetPoint("LEFT", instanceControl, "RIGHT", 8, 0)
+    relevantFilter:SetPoint("LEFT", instanceDropdown, "RIGHT", 8, 0)
     relevantFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true)
     local relevantLabel = relevantFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     relevantLabel:SetPoint("LEFT", relevantFilter, "RIGHT", 2, 0)
@@ -3492,24 +3525,146 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.ONLYRELEVANT = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(720, max(ROW_H, instances.contentHeight or 0) + 10)) end
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10)) end
     end)
 
+    local hideForeverFilter = CreateTemplated("CheckButton", "AzerothCompendiumHideForeverFilter", instanceControl, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
+    hideForeverFilter:SetSize(24, 24)
+    hideForeverFilter:SetPoint("LEFT", relevantLabel, "RIGHT", 12, 0)
+    hideForeverFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.HIDENEWFOREVER == true)
+    local hideForeverLabel = hideForeverFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    hideForeverLabel:SetPoint("LEFT", hideForeverFilter, "RIGHT", 2, 0)
+    hideForeverLabel:SetText(AzerothCompendium:Trans("LID_HIDENEWFOREVER"))
+    hideForeverFilter:SetScript("OnClick", function(sel)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.HIDENEWFOREVER = sel:GetChecked() == true
+        RefreshInstances()
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10)) end
+    end)
+    hideForeverFilter:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_HIDENEWFOREVER")))
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_HIDENEWFOREVERHINT")), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    hideForeverFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    compendium.hideForeverFilter = hideForeverFilter
+    compendium.hideForeverLabel = hideForeverLabel
+    relevantFilter:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_ONLYRELEVANT")))
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_ONLYRELEVANTHINT")), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    relevantFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.relevantFilter = relevantFilter
     compendium.relevantLabel = relevantLabel
+    local overviewButton = CreateTemplated("Button", nil, instanceControl, {"BigRedThreeSliceButtonTemplate", "GameMenuButtonTemplate", "UIPanelButtonTemplate"})
+    overviewButton:SetNormalFontObject(GameFontNormal)
+    overviewButton:SetHighlightFontObject(GameFontHighlight)
+    overviewButton:SetDisabledFontObject(GameFontDisable)
+    overviewButton:SetSize(92, 22)
+    overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
+    overviewButton:SetText(AzerothCompendium:Trans("LID_OVERVIEW"))
+    overviewButton:SetScript("OnClick", function()
+        compendium.overviewActive = true
+        instancePopup:Hide()
+        RefreshInstances()
+        compendium.overview:ScrollToTop()
+        SaveNavigationState()
+    end)
+    compendium.overviewButton = overviewButton
+    local overview = CreateScroller(compendium, 116, function(scroller)
+        local row = CreateFrame("Frame", nil, scroller)
+        row.tiles = {}
+        function row:Update(entries)
+            local width = compendium.overviewTileWidth
+            for index, inst in ipairs(entries) do
+                local tile = self.tiles[index]
+                if tile == nil then
+                    tile = CreateTextRow(self, function(entry)
+                        middleKind = "map"
+                        OnInstanceClick(entry)
+                    end)
+                    AddLoadingScreen(tile)
+                    self.tiles[index] = tile
+                end
+                tile.entry = inst
+                tile:ClearAllPoints()
+                tile:SetPoint("TOPLEFT", self, "TOPLEFT", (index - 1) * (width + 8), 0)
+                tile:SetSize(width, 108)
+                UpdateInstanceRow(tile, inst)
+                tile:Show()
+            end
+            for index = #entries + 1, #self.tiles do self.tiles[index]:Hide() end
+        end
+        return row
+    end)
+    AzerothCompendium:AnchorContent(overview)
+    overview:EnableEmptyText()
+    overview:Hide()
+    compendium.overview = overview
+    function compendium:RefreshOverview()
+        local viewport = self.overview:GetViewport()
+        local width = viewport and viewport:GetWidth() or 0
+        if width <= 0 then return end
+        self.overviewLayoutWidth = width
+        self.overviewColumns = max(1, floor((width + 8) / 228))
+        self.overviewTileWidth = max(1, (width - (self.overviewColumns - 1) * 8) / self.overviewColumns)
+        local rows = {}
+        for index, inst in ipairs(GetInstanceList()) do
+            local rowIndex = floor((index - 1) / self.overviewColumns) + 1
+            rows[rowIndex] = rows[rowIndex] or {}
+            tinsert(rows[rowIndex], inst)
+        end
+        self.overview.data = rows
+        self.overview:Refresh()
+    end
+    overview:SetScript("OnSizeChanged", function(sel) sel.layoutDirty = true end)
+    overview:SetScript("OnUpdate", function(sel)
+        if not compendium.overviewActive then return end
+        local viewport = sel:GetViewport()
+        local width = viewport and viewport:GetWidth() or 0
+        if width > 0 and (sel.layoutDirty or width ~= compendium.overviewLayoutWidth) then
+            sel.layoutDirty = false
+            compendium:RefreshOverview()
+        end
+    end)
     compendium.instanceControl = instanceControl
     compendium.instancePopup = instancePopup
+    function instanceControl:UpdateDropdownWidth()
+        local labelWidth = compendium.searchLabel and compendium.searchLabel:GetStringWidth() or 0
+        local available = compendium:GetWidth() - AzerothCompendium.ContentLayout.searchRight - labelWidth - 6 - 16
+        local dropdownWidth = 300
+        local searchWidth = max(110, min(300, floor(available / 2) * 2))
+        if listKind == "dungeon" or listKind == "raid" then
+            local filterWidth = 0
+            if listKind == "dungeon" then
+                filterWidth = 8 + 24 + 2 + relevantLabel:GetStringWidth()
+                if AzerothCompendium:GetFlavor() == FLAVOR_FOREVER then
+                    filterWidth = filterWidth + 12 + 24 + 2 + hideForeverLabel:GetStringWidth()
+                end
+            end
+            available = available - 159 - filterWidth
+            dropdownWidth = max(110, min(300, floor(available / 4) * 2))
+            searchWidth = dropdownWidth
+        elseif listKind == "pvp" or listKind == "faction" then
+            searchWidth = max(110, min(300, floor((available - 159 - dropdownWidth) / 2) * 2))
+        end
+        self:SetWidth(dropdownWidth)
+        instanceDropdown:SetWidth(dropdownWidth)
+        compendium.search:SetWidth(searchWidth)
+    end
+    compendium:HookScript("OnSizeChanged", function() instanceControl:UpdateDropdownWidth() end)
     compendium.updateInstanceSelection = function()
+        instanceControl:UpdateDropdownWidth()
+        overviewButton:SetShown(listKind == "dungeon" or listKind == "raid")
         relevantFilter:SetShown(listKind == "dungeon")
+        hideForeverFilter:SetShown(listKind == "dungeon" and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
         local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
         if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
         if instanceDropdown.SetText then instanceDropdown:SetText(text) end
-        local selectedIndex = 0
-        for index, inst in ipairs(instances.fullList or {}) do
-            if inst == selectedInstance then selectedIndex = index end
-        end
 
-        instanceSteppers:SetEnabled(selectedIndex > 1, selectedIndex > 0 and selectedIndex < #(instances.fullList or {}))
     end
 
     instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
@@ -3521,6 +3676,7 @@ local function CreateJournal()
     if compendium ~= nil then return compendium end
     local template = nil
     compendium, template = CreateTemplated("Frame", "AzerothCompendiumFrame", UIParent, {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"})
+    compendium.overviewActive = type(ACOTABPC) ~= "table" or type(ACOTABPC.NAVIGATION) ~= "table" or ACOTABPC.NAVIGATION.overview == true
     if template == nil then AddFallbackChrome(compendium) end
     if type(compendium.Inset) == "table" and type(compendium.Inset.Bg) == "table" then compendium.Inset.Bg:SetAlpha(0.6) end
     SetFramePortrait(compendium, AzerothCompendium:GetIcon())
@@ -3584,6 +3740,7 @@ local function CreateJournal()
     local searchLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
     searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
+    compendium.searchLabel = searchLabel
     CreateFlavorControl(compendium)
     compendium.kindTabs = {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
@@ -3867,7 +4024,11 @@ local function CreateJournal()
     worldQuestItemsTitle:SetPoint("LEFT", compendium.specialTabs.worldquestitems, "RIGHT", 8, 0)
     AzerothCompendium:OnLanguage(function()
         searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
+    compendium.searchLabel = searchLabel
+        compendium.overviewButton:SetText(AzerothCompendium:Trans("LID_OVERVIEW"))
         compendium.relevantLabel:SetText(AzerothCompendium:Trans("LID_ONLYRELEVANT"))
+        compendium.hideForeverLabel:SetText(AzerothCompendium:Trans("LID_HIDENEWFOREVER"))
+        compendium.instanceControl:UpdateDropdownWidth()
         mapView.empty:SetText(AzerothCompendium:Trans("LID_NOMAP"))
         wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))
         wishlistEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
@@ -4610,6 +4771,7 @@ function AzerothCompendiumAPI.ShowBossLoot(key, npcID)
     local boss = inst ~= nil and IsInstanceVisible(inst) and MapPins.FindBoss(npcID, inst) or nil
     if boss == nil then return false end
     AzerothCompendium:OpenCompendium()
+    compendium.overviewActive = false
     if inst.type == "dungeon" and type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true then
         local level = UnitLevel("player")
         if inst.minLevel == nil or inst.maxLevel == nil or level < inst.minLevel or level > inst.maxLevel then

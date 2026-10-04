@@ -42,3 +42,8 @@ jobs:
         uses: BigWigsMods/packager@master
         with:
           args: -g forever -w 0
+
+      - name: Package and release for Classic Era
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g classic -w 0

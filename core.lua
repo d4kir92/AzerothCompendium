@@ -262,7 +262,13 @@ function AzerothCompendium:SetClassFilter(value)
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
 
+function AzerothCompendium:IsClassicEraClient()
+    local interface = select(4, GetBuildInfo())
+    return type(interface) == "number" and interface < 16000
+end
+
 function AzerothCompendium:GetFlavor()
+    if AzerothCompendium:IsClassicEraClient() then return FLAVOR_CLASSIC_ERA end
     local flavor = AzerothCompendium:GetConfig("FLAVOR", FLAVOR_FOREVER)
     if flavor ~= FLAVOR_FOREVER and flavor ~= FLAVOR_CLASSIC_ERA then
         flavor = FLAVOR_FOREVER
@@ -274,7 +280,7 @@ end
 
 function AzerothCompendium:SetFlavor(value)
     if value ~= FLAVOR_CLASSIC_ERA then value = FLAVOR_FOREVER end
-    AzerothCompendium:SetConfig("FLAVOR", value)
+    if not AzerothCompendium:IsClassicEraClient() then AzerothCompendium:SetConfig("FLAVOR", value) end
     if AzerothCompendium.SyncCompendiumFlavor then AzerothCompendium:SyncCompendiumFlavor() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
@@ -305,7 +311,7 @@ end
 function AzerothCompendium:GetInstanceName(inst)
     local base = AzerothCompendium:GetInstanceBaseName(inst)
     local wing = AzerothCompendium:GetInstanceWingName(inst)
-    if wing then return base .. " - " .. wing end
+    if wing then return wing .. " - " .. base end
 
     return base
 end

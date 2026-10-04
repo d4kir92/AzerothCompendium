@@ -1,0 +1,71 @@
+## Interface: 11509
+
+## Version: 0.5.6
+## Title: AzerothCompendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
+## Notes: Browse dungeon, raid, PvP, and reputation rewards
+## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
+## Notes-esES: Consulta recompensas de mazmorras, bandas, JcJ y reputación
+## Notes-esMX: Consulta recompensas de calabozos, bandas, JcJ y reputación
+## Notes-frFR: Consulte le butin des donjons, raids, JcJ et réputations
+## Notes-itIT: Consulta ricompense di dungeon, incursioni, PvP e reputazione
+## Notes-koKR: 던전, 공격대, PvP 및 평판 보상을 살펴봅니다
+## Notes-ptBR: Consulte recompensas de masmorras, raides, JxJ e reputação
+## Notes-ruRU: Просматривайте награды подземелий, рейдов, PvP и репутации
+## Notes-zhCN: 浏览地下城、团队副本、PvP和声望奖励
+## Notes-zhTW: 瀏覽地城、團隊副本、PvP與聲望獎勵
+## Author: D4KiR |T133737:16:16:0:0|t
+## Category: Loot
+## Category-deDE: Beute
+## Category-esES: Botín
+## Category-esMX: Botín
+## Category-frFR: Butin 
+## Category-itIT: Bottino
+## Category-koKR: 전리품
+## Category-ptBR: Saque
+## Category-ruRU: Добыча
+## Category-zhCN: 战利品
+## Category-zhTW: 戰利品
+## DefaultState: enabled
+## SavedVariables: ACOTAB
+## SavedVariablesPerCharacter: ACOTABPC
+## X-Curse-Project-ID: 1698451
+## X-Wago-ID: qGZAX2Kd
+## IconTexture: 133737
+
+libs\D4Lib\D4Lib.xml
+
+locale\enUS.lua
+locale\deDE.lua
+locale\esES.lua
+locale\esMX.lua
+locale\frFR.lua
+locale\itIT.lua
+locale\koKR.lua
+locale\ptBR.lua
+locale\ruRU.lua
+locale\zhCN.lua
+locale\zhTW.lua
+locale\bosses_deDE.lua
+
+data\instances.lua
+data\quests.lua
+data\raid_quests.lua
+data\quest_chains.lua
+data\world_quest_items.lua
+data\quest_followups.lua
+data\instance_entrances.lua
+data\meeting_stones.lua
+data\instance_maps.lua
+data\instance_map_pins.lua
+data\quest_rewards.lua
+data\quest_xp.lua
+data\trash.lua
+data\boss_ranks.lua
+data\vendors.lua
+data\loadingscreens.lua
+data\instance_wings.lua
+
+core.lua
+questtree.lua
+compendium.lua
+settings.lua
