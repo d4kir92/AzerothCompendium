@@ -127,7 +127,7 @@ function Browser:Refresh()
         local minimum = tonumber(input:GetText()) or 0
         if minimum > 0 then
             minimums[key] = minimum
-            if key ~= "level" and key ~= "itemLevel" then statFilter = true end
+            if key ~= "level" and key ~= "maxLevel" and key ~= "itemLevel" then statFilter = true end
         end
     end
     local list, loading, unavailable = {}, 0, 0
@@ -136,8 +136,7 @@ function Browser:Refresh()
         self.count:SetText("")
         self.empty:SetText(AC:Trans("LID_ITEMBROWSERHINT"))
         for _, header in ipairs(self.headers) do
-            local label = header.key == "attribute" and self:Label(self.attributes[self.attributeIndex]) or header.label
-            header:SetText(label .. (header.key == self.sortKey and (self.descending and " v" or " ^") or ""))
+            self:SetHeaderText(header)
         end
         self:Render()
         return
@@ -161,19 +160,20 @@ function Browser:Refresh()
             matches = string.find(text, query, 1, true) ~= nil
         end
         if matches and minimums.level and (not entry.loaded or entry.level < minimums.level) then matches = false end
+        if matches and minimums.maxLevel and (not entry.loaded or entry.level > minimums.maxLevel) then matches = false end
         if matches and minimums.itemLevel and (not entry.loaded or entry.itemLevel < minimums.itemLevel) then matches = false end
         if matches and not entry.stats and name then entry.stats = statsAPI and statsAPI(link or ("item:" .. entry.id)) or {} end
         if matches and statFilter then
             for key, minimum in pairs(minimums) do
-                if key ~= "level" and key ~= "itemLevel" and (not entry.loaded or ((entry.stats or {})[key] or 0) < minimum) then matches = false end
+                if key ~= "level" and key ~= "maxLevel" and key ~= "itemLevel" and (not entry.loaded or ((entry.stats or {})[key] or 0) < minimum) then matches = false end
             end
         end
         entry.attribute = (entry.stats or {})[self.attribute] or 0
-        if matches then table.insert(list, entry) end
+        if matches and entry.loaded then table.insert(list, entry) end
     end
     local key, descending = self.sortKey, self.descending
     table.sort(list, function(a, b)
-        local av, bv = a[key], b[key]
+        local av, bv = self:GetColumnValue(a, key), self:GetColumnValue(b, key)
         if type(av) == "string" then av, bv = strlower(av), strlower(bv) end
         if av == bv then return a.id < b.id end
         if descending then return av > bv end
@@ -182,8 +182,7 @@ function Browser:Refresh()
     self.list = list
     self.count:SetText(AC:Trans("LID_ITEMCOUNT", nil, #list) .. (loading > 0 and (" |cff888888(" .. AC:Trans("LID_LOADINGITEMS", nil, loading) .. ")|r") or "") .. (unavailable > 0 and (" |cff888888(" .. AC:Trans("LID_UNAVAILABLEITEMS", nil, unavailable) .. ")|r") or ""))
     for _, header in ipairs(self.headers) do
-        local label = header.key == "attribute" and self:Label(self.attributes[self.attributeIndex]) or header.label
-        header:SetText(label .. (header.key == key and (descending and " v" or " ^") or ""))
+        self:SetHeaderText(header)
     end
     self:Render()
 end
@@ -221,12 +220,7 @@ function Browser:Render()
             row:SetScript("OnEnter", function(button)
                 if not button.entry then return end
                 GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-                if button.entry.unavailable and not button.entry.loaded then
-                    GameTooltip:SetText(AC:Trans("LID_ITEMUNAVAILABLE"), 1, 0.25, 0.25)
-                    GameTooltip:AddLine("#" .. button.entry.id, 0.7, 0.7, 0.7)
-                else
-                    GameTooltip:SetHyperlink(button.entry.link or ("item:" .. button.entry.id))
-                end
+                GameTooltip:SetHyperlink(button.entry.link or ("item:" .. button.entry.id))
                 GameTooltip:AddLine(button.entry.source, 0.7, 0.7, 0.7, true)
                 GameTooltip:Show()
             end)
@@ -243,24 +237,78 @@ function Browser:Render()
             if entry then
                 row.icon:SetTexture(entry.icon)
                 local color = ITEM_QUALITY_COLORS[entry.quality] or ITEM_QUALITY_COLORS[1]
-                local unavailable = entry.unavailable and not entry.loaded
-                row.cells[1]:SetText(unavailable and (entry.name .. " |cffff4040(" .. AC:Trans("LID_ITEMUNAVAILABLE") .. ")|r") or entry.name)
+                row.cells[1]:SetText(entry.name)
                 row.cells[1]:SetTextColor(color.r, color.g, color.b)
                 for column = 2, #self.headers do
-                    local key = self.headers[column].key
-                    local pending = not entry.loaded and (key == "level" or key == "itemLevel" or key == "attribute" or key == "kind")
-                    row.cells[column]:SetText(pending and (unavailable and "-" or "...") or tostring(entry[key]))
+                    row.cells[column]:SetText(tostring(self:GetColumnValue(entry, self.headers[column].key)))
                 end
             end
         end
     end
 end
 
+function Browser:GetColumnValue(entry, key)
+    if string.sub(key, 1, 5) == "stat:" then return (entry.stats or {})[string.sub(key, 6)] or 0 end
+    return entry[key]
+end
+
+function Browser:SetHeaderText(header)
+    local suffix = ""
+    if header.key == self.sortKey then
+        local direction = self.descending and "Down" or "Up"
+        suffix = " |TInterface\\Buttons\\UI-ScrollBar-Scroll" .. direction .. "Button-Up:14:14:0:0|t"
+    end
+    if header.OverrideText then header:OverrideText(header.label .. suffix) else header:SetText(header.label .. suffix) end
+end
+
+function Browser:BuildColumns()
+    for _, header in ipairs(self.headers) do header:Hide() end
+    for _, row in ipairs(self.rows) do row:Hide() end
+    self.headers, self.rows = {}, {}
+    local definitions = {{"name", NAME or "Name", 180}, {"level", LEVEL or "Level", 64}, {"itemLevel", AC:Trans("LID_ITEMLEVEL"), 76}, {"kind", TYPE or "Type", 90}}
+    for _, attribute in ipairs(self.attributes) do
+        if self.selectedAttributes[attribute[1]] then table.insert(definitions, {"stat:" .. attribute[1], self:Label(attribute), 100}) end
+    end
+    table.insert(definitions, {"source", AC:Trans("LID_SOURCE"), 140})
+    local validSort = false
+    for _, definition in ipairs(definitions) do
+        local modern = AC:CheckTemplates("WowStyle1DropdownTemplate")
+        local header = CreateFrame(modern and "DropdownButton" or "Button", nil, self.table, modern and "WowStyle1DropdownTemplate" or "UIPanelButtonTemplate")
+        header.key, header.label, header.minimumWidth = unpack(definition)
+        if header.key == self.sortKey then validSort = true end
+        local function Sort(descending)
+            self.sortKey, self.descending, self.offset = header.key, descending, 0
+            self:Refresh()
+        end
+        if modern then
+            header:SetupMenu(function(_, root)
+                root:CreateRadio(AC:Trans("LID_SORTASCENDING"), function() return self.sortKey == header.key and not self.descending end, function() Sort(false) end)
+                root:CreateRadio(AC:Trans("LID_SORTDESCENDING"), function() return self.sortKey == header.key and self.descending end, function() Sort(true) end)
+            end)
+        else
+            header:SetScript("OnClick", function() Sort(self.sortKey == header.key and not self.descending) end)
+        end
+        table.insert(self.headers, header)
+    end
+    if not validSort then self.sortKey, self.descending = "name", false end
+    for _, header in ipairs(self.headers) do self:SetHeaderText(header) end
+    self:Layout()
+end
+
 function Browser:Layout()
-    local width = math.max(200, self.body:GetWidth() - 20)
+    local minimumWidth = 0
+    for _, header in ipairs(self.headers) do minimumWidth = minimumWidth + header.minimumWidth end
+    local viewportWidth = math.max(1, self.horizontalViewport:GetWidth())
+    local canvasWidth = math.max(viewportWidth, minimumWidth + 24)
+    self.table:SetSize(canvasWidth, math.max(1, self.horizontalViewport:GetHeight()))
+    self.horizontalBar:SetMinMaxValues(0, math.max(0, canvasWidth - viewportWidth))
+    self.horizontalBar:SetShown(canvasWidth > viewportWidth)
+    self.horizontalBar:SetValue(math.min(self.horizontalBar:GetValue(), math.max(0, canvasWidth - viewportWidth)))
+    self.horizontalViewport:SetHorizontalScroll(self.horizontalBar:GetValue())
+    local width = canvasWidth - 24
     local x = 0
     for index, header in ipairs(self.headers) do
-        header.x, header.width = x, width * header.fraction
+        header.x, header.width = x, width * header.minimumWidth / math.max(1, minimumWidth)
         header:ClearAllPoints()
         header:SetPoint("TOPLEFT", self.table, "TOPLEFT", x + 2, -2)
         header:SetSize(header.width, 25)
@@ -279,6 +327,7 @@ function Browser:Create(parent)
     self.inputs, self.rows, self.headers = {}, {}, {}
     self.sortKey, self.attributeIndex = "name", 1
     self.attribute = self.attributes[1][1]
+    self.selectedAttributes = {[self.attribute] = true}
     local panel = CreateFrame("Frame", nil, parent)
     self.panel = panel
     AC:AnchorContent(panel)
@@ -286,12 +335,17 @@ function Browser:Create(parent)
     filterFrame:SetPoint("TOPLEFT")
     filterFrame:SetPoint("BOTTOMLEFT", 0, 26)
     filterFrame:SetWidth(216)
-    local filterBackground = filterFrame:CreateTexture(nil, "BACKGROUND")
+    local filterFill = filterFrame:CreateTexture(nil, "BACKGROUND", nil, -8)
+    filterFill:SetAllPoints()
+    filterFill:SetAtlas("collections-background-tile")
+    filterFill:SetHorizTile(true)
+    filterFill:SetVertTile(true)
+    local filterBackground = filterFrame:CreateTexture(nil, "BACKGROUND", nil, -7)
     filterBackground:SetAllPoints()
     filterBackground:SetAtlas("common-insideframe")
     local modernScroll = ScrollUtil and ScrollUtil.InitScrollFrameWithScrollBar and AC:CheckTemplates("MinimalScrollBar")
     local filters = CreateFrame("ScrollFrame", nil, filterFrame, not modernScroll and "UIPanelScrollFrameTemplate" or nil)
-    filters:SetPoint("TOPLEFT", 2, -2)
+    filters:SetPoint("TOPLEFT", 8, -2)
     filters:SetPoint("BOTTOMRIGHT", -22, 2)
     if modernScroll then
         local bar = CreateFrame("EventFrame", nil, filterFrame, "MinimalScrollBar")
@@ -316,23 +370,36 @@ function Browser:Create(parent)
         label:SetWidth(180)
         label:SetJustifyH("LEFT")
         label:SetText(text)
-        y = y - 20
+        y = y - 15
     end
     local function Input(key, text, numeric)
         Label(text)
         local input = CreateFrame("EditBox", nil, inputParent, "InputBoxTemplate")
-        input:SetSize(174, 22)
+        input:SetSize(168, 22)
         input:SetPoint("TOPLEFT", 8, y)
         input:SetAutoFocus(false)
         input:SetNumeric(numeric)
         input:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
         input:SetScript("OnEnterPressed", function(box) box:ClearFocus() end)
-        input:SetScript("OnTextChanged", function() self.offset = 0 self:Refresh() end)
+        if not key then
+            input.placeholder = input:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+            input.placeholder:SetPoint("LEFT", 2, 0)
+            input.placeholder:SetPoint("RIGHT", -2, 0)
+            input.placeholder:SetJustifyH("LEFT")
+            input.placeholder:SetWordWrap(false)
+            input.placeholder:SetText(AC:Trans("LID_ITEMSEARCHPLACEHOLDER"))
+        end
+        input:SetScript("OnTextChanged", function(box)
+            if box.placeholder then box.placeholder:SetShown(box:GetText() == "") end
+            self.offset = 0
+            self:Refresh()
+        end)
         if key then self.inputs[key] = input else self.search = input end
         y = y - 34
     end
     Input(nil, AC:Trans("LID_ITEMSEARCH"), false)
     Input("level", AC:Trans("LID_MINLEVEL"), true)
+    Input("maxLevel", AC:Trans("LID_MAXLEVEL"), true)
     Input("itemLevel", AC:Trans("LID_MINITEMLEVEL"), true)
     local categoryTop = y
     self.attributeGroups = {}
@@ -400,33 +467,50 @@ function Browser:Create(parent)
         end)
     end
     LayoutCategories()
-    local tableFrame = CreateFrame("Frame", nil, panel)
+    local tableBorder = CreateFrame("Frame", nil, panel)
+    tableBorder:SetPoint("TOPLEFT", 230, 0)
+    tableBorder:SetPoint("BOTTOMRIGHT", 0, 26)
+    local viewport = CreateFrame("ScrollFrame", nil, tableBorder)
+    viewport:SetPoint("TOPLEFT", 2, -2)
+    viewport:SetPoint("BOTTOMRIGHT", -22, 12)
+    self.horizontalViewport = viewport
+    local tableFrame = CreateFrame("Frame", nil, viewport)
     self.table = tableFrame
-    tableFrame:SetPoint("TOPLEFT", 230, 0)
-    tableFrame:SetPoint("BOTTOMRIGHT", 0, 26)
-    local background = tableFrame:CreateTexture(nil, "BACKGROUND")
+    tableFrame:SetSize(1, 1)
+    viewport:SetScrollChild(tableFrame)
+    local horizontalBar = CreateFrame("Slider", nil, tableBorder)
+    horizontalBar:SetOrientation("HORIZONTAL")
+    horizontalBar:SetPoint("BOTTOMLEFT", 4, 3)
+    horizontalBar:SetPoint("BOTTOMRIGHT", -4, 3)
+    horizontalBar:SetHeight(6)
+    horizontalBar:SetMinMaxValues(0, 0)
+    horizontalBar:SetValue(0)
+    horizontalBar:SetValueStep(12)
+    local track = horizontalBar:CreateTexture(nil, "BACKGROUND")
+    track:SetAllPoints()
+    track:SetColorTexture(0.1, 0.1, 0.1, 0.8)
+    local thumb = horizontalBar:CreateTexture(nil, "ARTWORK")
+    thumb:SetSize(32, 6)
+    thumb:SetColorTexture(0.7, 0.6, 0.4, 1)
+    horizontalBar:SetThumbTexture(thumb)
+    horizontalBar:SetScript("OnValueChanged", function(_, value) viewport:SetHorizontalScroll(value) end)
+    self.horizontalBar = horizontalBar
+    local tableFill = tableBorder:CreateTexture(nil, "BACKGROUND", nil, -8)
+    tableFill:SetAllPoints()
+    tableFill:SetAtlas("collections-background-tile")
+    tableFill:SetHorizTile(true)
+    tableFill:SetVertTile(true)
+    local background = tableBorder:CreateTexture(nil, "BACKGROUND", nil, -7)
     background:SetAllPoints()
     background:SetAtlas("common-insideframe")
     local body = CreateFrame("Frame", nil, tableFrame)
     self.body = body
     body:SetPoint("TOPLEFT", 2, -32)
     body:SetPoint("BOTTOMRIGHT", -2, 2)
-    local definitions = {{"name", NAME or "Name", 0.30}, {"level", LEVEL or "Level", 0.09}, {"itemLevel", AC:Trans("LID_ITEMLEVEL"), 0.11}, {"kind", TYPE or "Type", 0.15}, {"attribute", "", 0.15}, {"source", AC:Trans("LID_SOURCE"), 0.20}}
-    for _, definition in ipairs(definitions) do
-        local header = CreateFrame("Button", nil, tableFrame, "UIPanelButtonTemplate")
-        header.key, header.label, header.fraction = unpack(definition)
-        header:SetNormalFontObject("GameFontNormalSmall")
-        header:SetScript("OnClick", function()
-            if self.sortKey == header.key then self.descending = not self.descending else self.sortKey, self.descending = header.key, false end
-            self.offset = 0
-            self:Refresh()
-        end)
-        table.insert(self.headers, header)
-    end
-    local scroll = CreateFrame("Slider", nil, body, "UIPanelScrollBarTemplate")
+    local scroll = CreateFrame("Slider", nil, tableBorder, "UIPanelScrollBarTemplate")
     self.scroll = scroll
-    scroll:SetPoint("TOPRIGHT", -1, -16)
-    scroll:SetPoint("BOTTOMRIGHT", -1, 16)
+    scroll:SetPoint("TOPRIGHT", tableBorder, "TOPRIGHT", -3, -48)
+    scroll:SetPoint("BOTTOMRIGHT", tableBorder, "BOTTOMRIGHT", -3, 28)
     scroll:SetValueStep(1)
     scroll:SetScript("OnValueChanged", function(_, value)
         local offset = math.floor(value + 0.5)
@@ -443,21 +527,36 @@ function Browser:Create(parent)
     self.empty:SetText(AC:Trans("LID_NOITEMMATCHES"))
     self.count = panel:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     self.count:SetPoint("BOTTOMLEFT", 234, 2)
-    local choose = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    choose:SetSize(150, 22)
+    local modern = AC:CheckTemplates("WowStyle1DropdownTemplate")
+    local choose = CreateFrame(modern and "DropdownButton" or "Button", nil, panel, modern and "WowStyle1DropdownTemplate" or "UIPanelButtonTemplate")
+    choose:SetSize(180, 22)
     choose:SetPoint("BOTTOMRIGHT")
-    choose:SetText(AC:Trans("LID_ATTRIBUTECOLUMN"))
-    choose:SetScript("OnClick", function(button)
-        local entries = {}
-        for index, attribute in ipairs(self.attributes) do
-            table.insert(entries, {text = self:Label(attribute), checked = self.attributeIndex == index, func = function()
-                self.attributeIndex, self.attribute = index, attribute[1]
-                self:Refresh()
-            end})
-        end
-        AC:ShowContextMenu(button, entries)
-    end)
-    body:SetScript("OnSizeChanged", function() self:Layout() end)
+    local function Toggle(attribute)
+        self.selectedAttributes[attribute[1]] = not self.selectedAttributes[attribute[1]]
+        self:BuildColumns()
+        self:Refresh()
+    end
+    if modern then
+        choose:OverrideText(AC:Trans("LID_ATTRIBUTECOLUMN"))
+        choose:SetupMenu(function(_, root)
+            root:CreateTitle(AC:Trans("LID_PRIMARYATTRIBUTES"))
+            for index, attribute in ipairs(self.attributes) do
+                if index == 6 then root:CreateTitle(AC:Trans("LID_SECONDARYATTRIBUTES")) end
+                root:CreateCheckbox(self:Label(attribute), function() return self.selectedAttributes[attribute[1]] == true end, function() Toggle(attribute) end)
+            end
+        end)
+    else
+        choose:SetText(AC:Trans("LID_ATTRIBUTECOLUMN"))
+        choose:SetScript("OnClick", function(button)
+            local entries = {}
+            for _, attribute in ipairs(self.attributes) do
+                table.insert(entries, {text = self:Label(attribute), checked = self.selectedAttributes[attribute[1]] == true, func = function() Toggle(attribute) end})
+            end
+            AC:ShowContextMenu(button, entries)
+        end)
+    end
+    self:BuildColumns()
+    self.horizontalViewport:SetScript("OnSizeChanged", function() self:Layout() end)
     panel:SetScript("OnShow", function() self:Refresh() self:Layout() end)
     panel:Hide()
     return panel
