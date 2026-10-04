@@ -155,13 +155,36 @@ local function AddQuestStatusToTooltip(questID, quest, node)
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL")), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
 end
 
-local function InsertQuestLink(questID)
-    if IsShiftKeyDown == nil or not IsShiftKeyDown() or ChatEdit_InsertLink == nil then return false end
-    if ChatEdit_GetActiveWindow ~= nil and ChatEdit_GetActiveWindow() == nil then return false end
-    local link = C_QuestLog and C_QuestLog.GetQuestLink and C_QuestLog.GetQuestLink(questID)
-    if link == nil and GetQuestLink ~= nil then link = GetQuestLink(questID) end
-    if link == nil then return false end
-    ChatEdit_InsertLink(link)
+local function ShowQuestWowheadLink(questID)
+    if IsShiftKeyDown == nil or not IsShiftKeyDown() then return false end
+    local popup = AzerothCompendium.questWowheadPopup
+    if popup == nil then
+        popup = CreateFrame("Frame", nil, UIParent, "BasicFrameTemplateWithInset")
+        popup:SetSize(520, 110)
+        popup:SetPoint("CENTER")
+        popup:SetFrameStrata("DIALOG")
+        popup.TitleText:SetText("Wowhead")
+        popup.link = CreateFrame("EditBox", nil, popup, "InputBoxTemplate")
+        popup.link:SetPoint("TOPLEFT", 20, -40)
+        popup.link:SetPoint("TOPRIGHT", -20, -40)
+        popup.link:SetHeight(24)
+        popup.link:SetAutoFocus(false)
+        popup.link:SetScript("OnEditFocusGained", function(sel) sel:HighlightText() end)
+        popup.link:SetScript("OnMouseUp", function(sel) sel:HighlightText() end)
+        popup.link:SetScript("OnEscapePressed", function() popup:Hide() end)
+        popup.link:SetScript("OnEnterPressed", function() popup:Hide() end)
+        popup:SetScript("OnHide", function(sel) sel.link:ClearFocus() end)
+        popup.hint = popup:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        popup.hint:SetPoint("TOP", popup.link, "BOTTOM", 0, -10)
+        popup.hint:SetText("Ctrl+C")
+        AzerothCompendium.questWowheadPopup = popup
+    end
+
+    local flavor = AzerothCompendium:GetFlavor() == "forever" and "classic/forever" or "classic"
+    popup.link:SetText("https://www.wowhead.com/" .. flavor .. "/quest=" .. questID)
+    popup:Show()
+    popup.link:SetFocus()
+    popup.link:HighlightText()
 
     return true
 end
@@ -282,6 +305,7 @@ local function ShowNodeTooltip(button)
     end
 
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans("LID_SHAREQUEST"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel((_G.SHIFT_KEY_TEXT or "Shift") .. " + " .. AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), "Wowhead", 0.9, 0.9, 0.9, 1, 0.82, 0)
 
     GameTooltip:Show()
 end
@@ -303,7 +327,7 @@ local function OnNodeClick(button, mouseButton)
         return
     end
 
-    if InsertQuestLink(node.id) then return end
+    if ShowQuestWowheadLink(node.id) then return end
     if AzerothCompendium:IsQuestStartInInstance(node.id) then
         AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name))
 
