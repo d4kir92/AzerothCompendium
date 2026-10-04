@@ -3258,6 +3258,20 @@ local function NormalizeScale(value)
     return min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
 end
 
+function AzerothCompendium:CreateCompendiumDialog(name, title)
+    local frame, template = CreateTemplated("Frame", name, UIParent, {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"})
+    if template == nil then AddFallbackChrome(frame) end
+    if type(frame.Inset) == "table" and type(frame.Inset.Bg) == "table" then frame.Inset.Bg:SetAlpha(0.6) end
+    SetFramePortrait(frame, self:GetIcon())
+    SetFrameTitle(frame, title)
+    frame:SetScale(NormalizeScale(self:GetConfig("COMPENDIUMSCALE", 1)))
+    frame:SetToplevel(true)
+    frame:SetClampedToScreen(true)
+    frame:EnableMouse(true)
+
+    return frame
+end
+
 local function CreateSettingsPanel()
     local panel = CreateFrame("Frame", nil, compendium)
     AddContentBorder(panel)

@@ -159,14 +159,13 @@ local function ShowQuestWowheadLink(questID)
     if IsShiftKeyDown == nil or not IsShiftKeyDown() then return false end
     local popup = AzerothCompendium.questWowheadPopup
     if popup == nil then
-        popup = CreateFrame("Frame", nil, UIParent, "BasicFrameTemplateWithInset")
-        popup:SetSize(520, 110)
+        popup = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWowhead", "Wowhead")
+        popup:SetSize(520, 130)
         popup:SetPoint("CENTER")
         popup:SetFrameStrata("DIALOG")
-        popup.TitleText:SetText("Wowhead")
         popup.link = CreateFrame("EditBox", nil, popup, "InputBoxTemplate")
-        popup.link:SetPoint("TOPLEFT", 20, -40)
-        popup.link:SetPoint("TOPRIGHT", -20, -40)
+        popup.link:SetPoint("TOPLEFT", 24, -60)
+        popup.link:SetPoint("TOPRIGHT", -24, -60)
         popup.link:SetHeight(24)
         popup.link:SetAutoFocus(false)
         popup.link:SetScript("OnEditFocusGained", function(sel) sel:HighlightText() end)
