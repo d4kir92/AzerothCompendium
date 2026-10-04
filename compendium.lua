@@ -2898,7 +2898,19 @@ function AzerothCompendium:UpdateMinimumHeight()
 
     firstHeight = firstHeight + max(0, firstCount - 1) * SIDE_TAB_GAP
     secondHeight = secondHeight + max(0, secondCount - 1) * SIDE_TAB_GAP
-    compendium.minimumHeight = max(MIN_HEIGHT, SIDE_TAB_TOP + max(firstHeight, secondHeight) + self.ContentLayout.bottom)
+    local availableHeight = max(1, compendium:GetHeight() - SIDE_TAB_TOP - self.ContentLayout.bottom)
+    local scale = min(1, availableHeight / max(1, firstHeight, secondHeight))
+    for _, tab in pairs(compendium.kindTabs) do
+        tab:SetScale(scale)
+    end
+
+    for _, tab in pairs(compendium.moduleTabs or {}) do
+        tab:SetScale(scale)
+    end
+
+    compendium.kindTabs.dungeon:ClearAllPoints()
+    compendium.kindTabs.dungeon:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
+    compendium.minimumHeight = MIN_HEIGHT
     if compendium.SetResizeBounds then
         compendium:SetResizeBounds(MIN_WIDTH, compendium.minimumHeight, 0, 0)
     elseif compendium.SetMinResize then
@@ -3774,6 +3786,7 @@ local function CreateJournal()
         previousTab = tab
     end
 
+    compendium:HookScript("OnSizeChanged", function() AzerothCompendium:UpdateMinimumHeight() end)
     AzerothCompendium:RefreshModuleTabs()
     AzerothCompendium:CreateInstanceControls()
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
