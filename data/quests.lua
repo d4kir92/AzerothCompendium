@@ -394,7 +394,6 @@ AzerothCompendium.QUESTS = {
         {95204,22,2,"Crest of Lordaeron",16},
         {95216,22,2,"The New Plague",16},
         {95250,21,1,"Abominable Creatures",16},
-        {97287,33,2,"Shrewd Negotiations",24},
         {97288,21,2,"Unending Torment",16},
         {97289,21,2,"Unending Torment",16},
         {97291,21,2,"Unending Torment",16},
@@ -431,6 +430,7 @@ AzerothCompendium.QUESTS = {
         {96986,33,2,"The Grave Knight",24},
         {96987,33,2,"Opportunistic Education",24},
         {96988,33,2,"Source of Power",24},
+        {97287,33,2,"Shrewd Negotiations",24},
     },
 }
 

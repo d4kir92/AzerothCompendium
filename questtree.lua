@@ -157,9 +157,10 @@ end
 
 local function ShowQuestWowheadLink(questID)
     if IsShiftKeyDown == nil or not IsShiftKeyDown() then return false end
-    local popup = AzerothCompendium.questWowheadPopup
-    if popup == nil then
-        popup = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWowhead", "Wowhead")
+    local popup = AzerothCompendium.questWowheadPopup or _G.AzerothCompendiumQuestWowhead
+    if popup == nil then popup = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWowhead", "Wowhead") end
+    AzerothCompendium.questWowheadPopup = popup
+    if popup.link == nil then
         popup:SetSize(520, 130)
         popup:SetPoint("CENTER")
         popup:SetFrameStrata("DIALOG")
@@ -176,7 +177,6 @@ local function ShowQuestWowheadLink(questID)
         popup.hint = popup:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
         popup.hint:SetPoint("TOP", popup.link, "BOTTOM", 0, -10)
         popup.hint:SetText("Ctrl+C")
-        AzerothCompendium.questWowheadPopup = popup
     end
 
     local flavor = AzerothCompendium:GetFlavor() == "forever" and "forever" or "classic"
