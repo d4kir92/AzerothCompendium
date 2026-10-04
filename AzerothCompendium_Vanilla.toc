@@ -67,5 +67,6 @@ data\instance_wings.lua
 
 core.lua
 questtree.lua
+itembrowser.lua
 compendium.lua
 settings.lua

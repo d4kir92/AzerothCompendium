@@ -148,6 +148,7 @@ local validListKinds = {
     raid = true,
     pvp = true,
     faction = true,
+    allitems = true,
     worldquestitems = true,
     wishlist = true
 }
@@ -467,6 +468,70 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         self.empty:SetPoint("CENTER", self, "CENTER", 0, 0)
         self.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
         self.empty:SetShown(#self.data == 0)
+    end
+
+    scroller.bannerHeight = 0
+    function scroller:SetBannerOffset(offset)
+        if self.bannerHeight == offset then return end
+        self.bannerHeight = offset
+        local viewport = self:GetViewport()
+        if viewport then viewport:SetPoint("TOPLEFT", self, "TOPLEFT", padding, -padding - offset) end
+        if self.bar then self.bar:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, -6 - offset) end
+    end
+
+    function scroller:SetBanner(text, info, onClear)
+        local banner = self.banner
+        if text == nil then
+            if banner then banner:Hide() end
+            self:SetBannerOffset(0)
+            return
+        end
+
+        if banner == nil then
+            banner = CreateFrame("Frame", nil, self)
+            banner:SetHeight(24)
+            banner:SetPoint("TOPLEFT", self, "TOPLEFT", padding + 3, -padding - 3)
+            banner:SetPoint("TOPRIGHT", self, "TOPRIGHT", -padding - 3, -padding - 3)
+            banner:SetFrameLevel(self:GetFrameLevel() + 10)
+            banner:EnableMouse(true)
+            banner.background = banner:CreateTexture(nil, "BACKGROUND")
+            banner.background:SetAllPoints(banner)
+            banner.background:SetColorTexture(1, 0.82, 0, 0.15)
+            local ok, close = pcall(CreateFrame, "Button", nil, banner, "UIPanelCloseButton")
+            if not ok or close == nil then
+                close = CreateFrame("Button", nil, banner)
+                close:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
+                close:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
+                close:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
+            end
+
+            close:SetSize(24, 24)
+            close:ClearAllPoints()
+            close:SetPoint("RIGHT", banner, "RIGHT", 0, 0)
+            close:SetScript("OnClick", function() if banner.onClear then banner.onClear() end end)
+            close:SetScript("OnEnter", function(sel)
+                GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                GameTooltip:SetText(AzerothCompendium:Trans("LID_CLEARFILTER"))
+                GameTooltip:Show()
+            end)
+            close:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            banner.close = close
+            banner.info = banner:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+            banner.info:SetPoint("RIGHT", close, "LEFT", -2, 0)
+            banner.info:SetJustifyH("RIGHT")
+            banner.text = banner:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+            banner.text:SetPoint("LEFT", banner, "LEFT", 8, 0)
+            banner.text:SetPoint("RIGHT", banner.info, "LEFT", -6, 0)
+            banner.text:SetJustifyH("LEFT")
+            banner.text:SetWordWrap(false)
+            self.banner = banner
+        end
+
+        banner.text:SetText(text)
+        banner.info:SetText(info or "")
+        banner.onClear = onClear
+        banner:Show()
+        self:SetBannerOffset(28)
     end
 
     scroller:SetScript("OnSizeChanged", function(sel) sel:Refresh() end)
@@ -1012,7 +1077,7 @@ local function UpdateBossRow(row, boss)
 end
 
 local function GetInstanceList()
-    local list = {}
+    local list, hidden = {}, 0
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
         local relevant = true
         if listKind == "dungeon" and type(ACOTABPC) == "table" and ACOTABPC.ONLYRELEVANT == true then
@@ -1034,9 +1099,15 @@ local function GetInstanceList()
             if completed then relevant = false end
         end
 
-        if relevant and IsInstanceVisible(inst) and InstanceMatches(inst) then tinsert(list, inst) end
+        if IsInstanceVisible(inst) and InstanceMatches(inst) then
+            if relevant then
+                tinsert(list, inst)
+            else
+                hidden = hidden + 1
+            end
+        end
     end
-    return list
+    return list, hidden
 end
 
 function AzerothCompendium:GetGroupedInstanceList(list)
@@ -1115,8 +1186,8 @@ local function CountInstanceQuests(graph)
 end
 
 local function GetLootList()
-    local list = {}
-    if selectedBoss == nil then return list end
+    local list, hidden = {}, 0
+    if selectedBoss == nil then return list, hidden end
     local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", false)
     local class = select(2, UnitClass("player"))
     local loot = selectedBoss.loot or {}
@@ -1126,11 +1197,14 @@ local function GetLootList()
         local boss = entry.source or selectedBoss
         local bossMatched = Matches(AzerothCompendium:GetBossName(boss)) or Matches(boss.name)
         local ok = IsItemVisible(itemID)
-        if onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then ok = false end
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
+        if ok and onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then
+            ok = false
+            hidden = hidden + 1
+        end
         if ok then tinsert(list, entry) end
     end
-    return list
+    return list, hidden
 end
 
 local function GetSpellList()
@@ -1945,7 +2019,14 @@ local function RefreshDetail()
     end
 
     if detailKind == "loot" then
-        compendium.loot:SetData(GetLootList())
+        local lootList, hidden = GetLootList()
+        if AzerothCompendium:GetConfig("CLASSFILTER", false) then
+            compendium.loot:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. AzerothCompendium:Trans("LID_CLASSFILTER"), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden), function() AzerothCompendium:SetClassFilter(false) end)
+        else
+            compendium.loot:SetBanner(nil)
+        end
+
+        compendium.loot:SetData(lootList)
         compendium.loot:Show()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
@@ -2085,7 +2166,8 @@ end
 
 local function RefreshInstances()
     if compendium == nil then return end
-    local list = GetInstanceList()
+    local list, hidden = GetInstanceList()
+    AzerothCompendium:UpdateInstanceFilterBanner(compendium.instances, hidden)
     if UsesLoadingScreens() then
         compendium.instances:SetRowHeight(INSTANCE_ROW_H)
     else
@@ -2126,6 +2208,30 @@ local function RefreshInstances()
     end
 
     RefreshBosses()
+end
+
+function AzerothCompendium:UpdateInstanceFilterBanner(scroller, hidden)
+    if scroller == nil then return end
+    local names = {}
+    if listKind == "dungeon" and type(ACOTABPC) == "table" then
+        if ACOTABPC.ONLYRELEVANT == true then tinsert(names, AzerothCompendium:Trans("LID_ONLYRELEVANT")) end
+        if ACOTABPC.HIDECOMPLETED == true then tinsert(names, AzerothCompendium:Trans("LID_HIDECOMPLETED")) end
+        if AzerothCompendium:GetFlavor() == FLAVOR_FOREVER and ACOTABPC.HIDENEWFOREVER == true then tinsert(names, AzerothCompendium:Trans("LID_HIDENEWFOREVER")) end
+    end
+
+    if #names == 0 then
+        scroller:SetBanner(nil)
+        return
+    end
+
+    scroller:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. table.concat(names, ", "), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden or 0), function()
+        ACOTABPC.ONLYRELEVANT = false
+        ACOTABPC.HIDECOMPLETED = false
+        ACOTABPC.HIDENEWFOREVER = false
+        RefreshInstances()
+        if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
+        if compendium.instancePopup and compendium.instancePopup:IsShown() then compendium.instancePopup:SetHeight(min(600, max(ROW_H, compendium.instances.contentHeight or 0) + compendium.instances.bannerHeight + 10)) end
+    end)
 end
 
 local function OnInstanceClick(inst)
@@ -3202,6 +3308,8 @@ end
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
+    compendium.search:SetShown(mode ~= "allitems")
+    compendium.searchLabel:SetShown(mode ~= "allitems")
     if compendium.overview then compendium.overview:Hide() end
     if enabled then compendium.overviewActive = false end
     if compendium.instancePopup then compendium.instancePopup:Hide() end
@@ -3236,6 +3344,7 @@ local function SetSpecialMode(mode)
         tab:SetTabSelected(mode == kind)
     end
 
+    if AzerothCompendium.ItemBrowser.panel then AzerothCompendium.ItemBrowser.panel:SetShown(mode == "allitems") end
     if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
     for _, tab in pairs(compendium.wishlistTabs or {}) do
         tab:SetShown(mode == "wishlist")
@@ -3455,7 +3564,11 @@ end
 
 local function RefreshCurrentView()
     if AzerothCompendium:RefreshModuleView() then return end
-    if listKind == "wishlist" then
+    if listKind == "allitems" then
+        AzerothCompendium.ItemBrowser:Create(compendium)
+        SetSpecialMode("allitems")
+        AzerothCompendium.ItemBrowser:Refresh()
+    elseif listKind == "wishlist" then
         RefreshWishlistView()
     elseif listKind == "worldquestitems" then
         RefreshWorldQuestItemsView()
@@ -3589,7 +3702,7 @@ function AzerothCompendium:CreateInstanceControls()
         if instancePopup:IsShown() then
             instancePopup:Hide()
         else
-            instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10))
+            instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10))
             instancePopup:Show()
             instances:Refresh()
             for index, inst in ipairs(instances.data) do
@@ -3648,7 +3761,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.ONLYRELEVANT = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10)) end
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
     end)
 
     local hideForeverFilter = CreateTemplated("CheckButton", "AzerothCompendiumHideForeverFilter", filterPopup, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
@@ -3662,7 +3775,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.HIDENEWFOREVER = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10)) end
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
     end)
     hideForeverFilter:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -3684,7 +3797,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.HIDECOMPLETED = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + 10)) end
+        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
     end)
     hideCompletedFilter:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -3810,7 +3923,9 @@ function AzerothCompendium:CreateInstanceControls()
         self.overviewColumns = max(1, floor((width + 8) / 228))
         self.overviewTileWidth = max(1, (width - (self.overviewColumns - 1) * 8) / self.overviewColumns)
         local rows = {}
-        for index, inst in ipairs(GetInstanceList()) do
+        local list, hidden = GetInstanceList()
+        AzerothCompendium:UpdateInstanceFilterBanner(self.overview, hidden)
+        for index, inst in ipairs(list) do
             local rowIndex = floor((index - 1) / self.overviewColumns) + 1
             rows[rowIndex] = rows[rowIndex] or {}
             tinsert(rows[rowIndex], inst)
@@ -3940,7 +4055,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"allitems", "LID_ALLITEMS", "Interface\\Icons\\INV_Misc_Bag_08"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
             if listKind == kind then
@@ -4196,7 +4311,7 @@ local function CreateJournal()
     classFilter:SetSize(24, 24)
     classFilter:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 2, 19)
     classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
-    local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", AzerothCompendium:GetConfig("CLASSFILTER", false) == true and "GameFontNormalSmall" or "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
     classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
     classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetClassFilter(sel:GetChecked() == true) end)
@@ -4244,7 +4359,9 @@ end
 
 function AzerothCompendium:SyncCompendiumClassFilter()
     if compendium == nil or compendium.classFilter == nil then return end
-    compendium.classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
+    local active = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
+    compendium.classFilter:SetChecked(active)
+    if compendium.classFilterLabel then compendium.classFilterLabel:SetFontObject(active and GameFontNormalSmall or GameFontDisableSmall) end
 end
 
 function AzerothCompendium:SyncCompendiumFlavor()
@@ -5012,7 +5129,8 @@ AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
 AzerothCompendium:RegisterEvent(loader, "GLOBAL_MOUSE_DOWN")
-loader:SetScript("OnEvent", function(sel, event)
+loader:SetScript("OnEvent", function(sel, event, itemID, success)
+    if event == "GET_ITEM_INFO_RECEIVED" then AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success) end
     if event == "GLOBAL_MOUSE_DOWN" then
         if compendium == nil or not compendium:IsShown() then return end
         local clicked = AzerothCompendium:GetMouseFocus()
@@ -5055,7 +5173,9 @@ loader:SetScript("OnEvent", function(sel, event)
     AzerothCompendium:After(0.25, function()
         refreshPending = false
         if compendium ~= nil and compendium:IsShown() then
-            if listKind == "wishlist" then
+            if listKind == "allitems" then
+                AzerothCompendium.ItemBrowser:Refresh()
+            elseif listKind == "wishlist" then
                 RefreshWishlistView()
             elseif listKind == "worldquestitems" then
                 RefreshWorldQuestItemsView()
