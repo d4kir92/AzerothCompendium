@@ -155,3 +155,7 @@ AzerothCompendium:AddTrans("enUS", "LID_INSTANCEENTRANCES", "Dungeon & raid entr
 AzerothCompendium:AddTrans("enUS", "LID_MEETINGSTONES", "Meeting stones")
 AzerothCompendium:AddTrans("enUS", "LID_INSTANCEMAPS", "Dungeon & raid maps")
 AzerothCompendium:AddTrans("enUS", "LID_WORLDMAPPINS", "Show icons on the world map")
+AzerothCompendium:AddTrans("enUS", "LID_MINIMAPPINS", "Show icons on the minimap")
+AzerothCompendium:AddTrans("enUS", "LID_SHOWENTRANCEMAP", "Show the world map with the entrance")
+AzerothCompendium:AddTrans("enUS", "LID_RESIZEWINDOW", "Resize window")
+AzerothCompendium:AddTrans("enUS", "LID_RESETSIZEANDSCALE", "Reset size and scale")

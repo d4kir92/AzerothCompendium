@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEENTRANCES", "Входы в по�
 AzerothCompendium:AddTrans("ruRU", "LID_MEETINGSTONES", "Камни встреч")
 AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEMAPS", "Карты подземелий и рейдов")
 AzerothCompendium:AddTrans("ruRU", "LID_WORLDMAPPINS", "Показывать значки на карте мира")
+AzerothCompendium:AddTrans("ruRU", "LID_MINIMAPPINS", "Показывать значки на миникарте")
+AzerothCompendium:AddTrans("ruRU", "LID_SHOWENTRANCEMAP", "Показать карту мира со входом")
+AzerothCompendium:AddTrans("ruRU", "LID_RESIZEWINDOW", "Изменить размер окна")
+AzerothCompendium:AddTrans("ruRU", "LID_RESETSIZEANDSCALE", "Сбросить размер и масштаб")

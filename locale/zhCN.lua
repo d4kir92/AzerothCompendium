@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_INSTANCEENTRANCES", "地下城和团队�
 AzerothCompendium:AddTrans("zhCN", "LID_MEETINGSTONES", "集合石")
 AzerothCompendium:AddTrans("zhCN", "LID_INSTANCEMAPS", "地下城和团队副本地图")
 AzerothCompendium:AddTrans("zhCN", "LID_WORLDMAPPINS", "在世界地图上显示图标")
+AzerothCompendium:AddTrans("zhCN", "LID_MINIMAPPINS", "在小地图上显示图标")
+AzerothCompendium:AddTrans("zhCN", "LID_SHOWENTRANCEMAP", "显示入口所在的世界地图")
+AzerothCompendium:AddTrans("zhCN", "LID_RESIZEWINDOW", "调整窗口大小")
+AzerothCompendium:AddTrans("zhCN", "LID_RESETSIZEANDSCALE", "重置大小和缩放")

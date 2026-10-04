@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("frFR", "LID_INSTANCEENTRANCES", "Entrées de donjons
 AzerothCompendium:AddTrans("frFR", "LID_MEETINGSTONES", "Pierres de rencontre")
 AzerothCompendium:AddTrans("frFR", "LID_INSTANCEMAPS", "Cartes de donjons et de raids")
 AzerothCompendium:AddTrans("frFR", "LID_WORLDMAPPINS", "Afficher les icônes sur la carte du monde")
+AzerothCompendium:AddTrans("frFR", "LID_MINIMAPPINS", "Afficher les icônes sur la minicarte")
+AzerothCompendium:AddTrans("frFR", "LID_SHOWENTRANCEMAP", "Afficher la carte du monde avec l'entrée")
+AzerothCompendium:AddTrans("frFR", "LID_RESIZEWINDOW", "Redimensionner la fenêtre")
+AzerothCompendium:AddTrans("frFR", "LID_RESETSIZEANDSCALE", "Réinitialiser la taille et l'échelle")

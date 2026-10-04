@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("esMX", "LID_INSTANCEENTRANCES", "Entradas de mazmorr
 AzerothCompendium:AddTrans("esMX", "LID_MEETINGSTONES", "Piedras de encuentro")
 AzerothCompendium:AddTrans("esMX", "LID_INSTANCEMAPS", "Mapas de mazmorras y bandas")
 AzerothCompendium:AddTrans("esMX", "LID_WORLDMAPPINS", "Mostrar iconos en el mapa del mundo")
+AzerothCompendium:AddTrans("esMX", "LID_MINIMAPPINS", "Mostrar iconos en el minimapa")
+AzerothCompendium:AddTrans("esMX", "LID_SHOWENTRANCEMAP", "Mostrar el mapa del mundo con la entrada")
+AzerothCompendium:AddTrans("esMX", "LID_RESIZEWINDOW", "Cambiar tamaño de ventana")
+AzerothCompendium:AddTrans("esMX", "LID_RESETSIZEANDSCALE", "Restablecer tamaño y escala")

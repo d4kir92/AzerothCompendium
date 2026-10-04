@@ -155,3 +155,7 @@ AzerothCompendium:AddTrans("deDE", "LID_INSTANCEENTRANCES", "Dungeon- & Raid-Ein
 AzerothCompendium:AddTrans("deDE", "LID_MEETINGSTONES", "Versammlungssteine")
 AzerothCompendium:AddTrans("deDE", "LID_INSTANCEMAPS", "Dungeon- & Raid-Karten")
 AzerothCompendium:AddTrans("deDE", "LID_WORLDMAPPINS", "Symbole auf der Weltkarte anzeigen")
+AzerothCompendium:AddTrans("deDE", "LID_MINIMAPPINS", "Symbole auf der Minikarte anzeigen")
+AzerothCompendium:AddTrans("deDE", "LID_SHOWENTRANCEMAP", "Weltkarte mit dem Eingang anzeigen")
+AzerothCompendium:AddTrans("deDE", "LID_RESIZEWINDOW", "Fenstergröße ändern")
+AzerothCompendium:AddTrans("deDE", "LID_RESETSIZEANDSCALE", "Größe und Skalierung zurücksetzen")

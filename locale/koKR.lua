@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("koKR", "LID_INSTANCEENTRANCES", "던전 및 공격�
 AzerothCompendium:AddTrans("koKR", "LID_MEETINGSTONES", "만남의 돌")
 AzerothCompendium:AddTrans("koKR", "LID_INSTANCEMAPS", "던전 및 공격대 지도")
 AzerothCompendium:AddTrans("koKR", "LID_WORLDMAPPINS", "월드맵에 아이콘 표시")
+AzerothCompendium:AddTrans("koKR", "LID_MINIMAPPINS", "미니맵에 아이콘 표시")
+AzerothCompendium:AddTrans("koKR", "LID_SHOWENTRANCEMAP", "입구가 있는 세계 지도 표시")
+AzerothCompendium:AddTrans("koKR", "LID_RESIZEWINDOW", "창 크기 조절")
+AzerothCompendium:AddTrans("koKR", "LID_RESETSIZEANDSCALE", "크기 및 배율 초기화")

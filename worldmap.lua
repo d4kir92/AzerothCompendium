@@ -35,7 +35,9 @@ local WorldMap = {
     meetingStoneIcon = MEDIA_PATH .. "meetingstone",
     sharedKeys = {
         ["DUNGEONWORLDMAPPINS"] = "DUNGEONWORLDMAPPINS",
+        ["DUNGEONMINIMAPPINS"] = "DUNGEONMINIMAPPINS",
         ["MEETINGSTONEWORLDMAPPINS"] = "MEETINGSTONEWORLDMAPPINS",
+        ["MEETINGSTONEMINIMAPPINS"] = "MEETINGSTONEMINIMAPPINS",
         ["INSTANCEPINS_BOSS"] = "MAPPINS_BOSS",
         ["INSTANCEPINS_ITEM"] = "MAPPINS_ITEM",
         ["INSTANCEPINS_ENTRANCE"] = "MAPPINS_ENTRANCE",
@@ -45,6 +47,11 @@ local WorldMap = {
     instances = {},
     pinCache = {},
     pins = {},
+    minimapPins = {},
+    minimapYards = {
+        outdoor = {[0] = 466.66666, 400, 333.33333, 266.66666, 200, 133.33333},
+        indoor = {[0] = 300, 240, 180, 120, 80, 50},
+    },
 }
 AzerothCompendium.WorldMap = WorldMap
 function AzerothCompendium:GetSharedOption(key)
@@ -68,7 +75,7 @@ function AzerothCompendium:SetSharedOption(key, value)
 end
 
 AzerothCompendium:RegisterSharedSettings({
-    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL"},
+    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "DUNGEONMINIMAPPINS", "MEETINGSTONEMINIMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL"},
     ["getDB"] = function() return ACOTAB end,
     ["get"] = function(key) return AzerothCompendium:GetSharedOption(key) end,
     ["set"] = function(key, value) AzerothCompendium:SetConfig(WorldMap.sharedKeys[key], value) end,
@@ -189,6 +196,19 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["getBossHint"] = function() return AzerothCompendium:Trans("LID_MAPPINBOSSHINT") end,
     ["getLevelHint"] = function() return AzerothCompendium:Trans("LID_MAPPINLEVELHINT") end,
     ["getEntranceText"] = function() return AzerothCompendium:Trans("LID_ENTRANCE") end,
+    ["getEntranceHint"] = function() return AzerothCompendium:Trans("LID_RIGHTCLICK") .. ": " .. AzerothCompendium:Trans("LID_SHOWENTRANCEMAP") end,
+    ["getReturnMapID"] = function(level)
+        local inst = level ~= nil and level.inst or nil
+        if inst ~= nil then
+            local location = AzerothCompendium.INSTANCEENTRANCES[inst.id] or (inst.parentID ~= nil and AzerothCompendium.INSTANCEENTRANCES[inst.parentID])
+            if type(location) == "table" then return location[1] end
+            for id, entry in pairs(AzerothCompendium.INSTANCEENTRANCES) do
+                if (entry[4] or id) == inst.id or (entry[4] or id) == inst.parentID then return entry[1] end
+            end
+        end
+
+        return WorldMap.returnMapID
+    end,
     ["onBossClick"] = function(level, row) AzerothCompendiumAPI.ShowBossLoot(strmatch(level.file, "([^\\]+)$"), row[4]) end,
     ["isPinEnabled"] = function(kind) return AzerothCompendium.MapPins.IsEnabled(kind) end,
     ["setPinEnabled"] = function(kind, enabled) AzerothCompendium:SetSharedOption("INSTANCEPINS_" .. strupper(kind), enabled) end,
@@ -333,6 +353,10 @@ function WorldMap.OnPinClick(pin, button)
             tinsert(ids, entry.instanceMapID)
         end
 
+        if WorldMapFrame == nil then return end
+        if not WorldMapFrame:IsShown() then ShowUIPanel(WorldMapFrame) end
+        if WorldMapFrame.SetMapID ~= nil then WorldMapFrame:SetMapID(group.mapID) end
+        WorldMap.returnMapID = group.mapID
         WorldMap.OnPinLeave(pin)
         WorldMap.map:Show(ids, #group.entries == 1 and WorldMap.GetLevelIndex(group.entries[1]) or nil)
         return
@@ -345,7 +369,10 @@ end
 
 function WorldMap.CreatePin(parent)
     local pin = CreateFrame("Button", nil, parent)
-    pin.icon = pin:CreateTexture(nil, "ARTWORK")
+    pin.circle = pin:CreateTexture(nil, "ARTWORK")
+    pin.circle:SetAllPoints(pin)
+    pin.circle:Hide()
+    pin.icon = pin:CreateTexture(nil, "OVERLAY")
     pin.highlight = pin:CreateTexture(nil, "HIGHLIGHT")
     pin.highlight:SetBlendMode("ADD")
     pin.highlight:SetAlpha(0.5)
@@ -374,6 +401,120 @@ function WorldMap.ApplyIcon(pin, group, size)
         texture:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -inset, inset)
         AzerothCompendium:SetIconTexture(texture, icon, meetingStone)
     end
+end
+
+function WorldMap.UpdatePinStyle(pin)
+    if pin.group == nil then return end
+    local tracked = false
+    if C_Map ~= nil and C_Map.GetUserWaypointPositionForMap ~= nil and AzerothCompendium:IsWaypointTracked() then
+        local pos = C_Map.GetUserWaypointPositionForMap(pin.group.mapID)
+        if pos ~= nil then
+            local x, y = pos:GetXY()
+            if not WorldMap.IsSecret(x) and not WorldMap.IsSecret(y) and x ~= nil and y ~= nil then
+                tracked = abs(x - pin.group.x / 100) < 0.001 and abs(y - pin.group.y / 100) < 0.001
+            end
+        end
+    end
+
+    local atlas = tracked and AzerothCompendium:FindAtlas({"UI-QuestPoi-QuestNumber-SuperTracked"}) or nil
+    if atlas ~= nil then
+        pin.circle:SetAtlas(atlas)
+        pin.circle:Show()
+    else
+        pin.circle:Hide()
+    end
+
+    local size = pin:GetWidth()
+    WorldMap.ApplyIcon(pin, pin.group, size)
+    if atlas ~= nil then
+        local inset = size * 0.14
+        if pin.group.kind == "meetingstone" then inset = size * 0.21 end
+        for _, texture in ipairs({pin.icon, pin.highlight}) do
+            texture:ClearAllPoints()
+            texture:SetPoint("TOPLEFT", pin, "TOPLEFT", inset, -inset)
+            texture:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -inset, inset)
+        end
+    end
+end
+
+function WorldMap.IsSecret(value)
+    return issecretvalue ~= nil and issecretvalue(value)
+end
+
+function WorldMap.GetMinimapOffset(group, wx, wy, scale, radius, cosF, sinF)
+    if group.worldPos == nil then
+        local _, pos = C_Map.GetWorldPosFromMapPos(group.mapID, CreateVector2D(group.x / 100, group.y / 100))
+        if pos ~= nil then group.worldPos = pos end
+    end
+
+    if group.worldPos == nil then return nil end
+    local x, y = group.worldPos:GetXY()
+    if x == nil or y == nil or WorldMap.IsSecret(x) or WorldMap.IsSecret(y) then return nil end
+    local dx, dy = x - wx, y - wy
+    local sx = -(dy * cosF - dx * sinF) * scale
+    local sy = (dx * cosF + dy * sinF) * scale
+    if sx * sx + sy * sy > radius * radius then return nil end
+    return sx, sy
+end
+
+function WorldMap.UpdateMinimap()
+    for _, pin in ipairs(WorldMap.minimapPins) do
+        pin:Hide()
+    end
+
+    if not WorldMap.IsLocationOwner() or C_Map == nil or C_Map.GetBestMapForUnit == nil or C_Map.GetWorldPosFromMapPos == nil or UnitPosition == nil then return end
+    local mapID = C_Map.GetBestMapForUnit("player")
+    local groups = mapID ~= nil and WorldMap.GetLocations(mapID) or nil
+    if groups == nil then return end
+    local wx, wy = UnitPosition("player")
+    if wx == nil or wy == nil or WorldMap.IsSecret(wx) or WorldMap.IsSecret(wy) then return end
+    local zoom = Minimap:GetZoom()
+    if zoom == nil then return end
+    local inside = tonumber(AzerothCompendium:GetCVar("minimapInsideZoom") or "")
+    local outside = tonumber(AzerothCompendium:GetCVar("minimapZoom") or "")
+    local yards = (inside == zoom and outside ~= zoom and WorldMap.minimapYards.indoor or WorldMap.minimapYards.outdoor)[zoom]
+    if yards == nil or yards <= 0 then return end
+    local width = Minimap:GetWidth()
+    local scale = width / yards
+    local radius = width / 2
+    local facing = 0
+    if AzerothCompendium:GetCVar("rotateMinimap") == "1" then facing = GetPlayerFacing() or 0 end
+    if WorldMap.IsSecret(facing) then return end
+    local cosF, sinF = math.cos(facing), math.sin(facing)
+    local count = 0
+    for _, group in ipairs(groups) do
+        local enabled = AzerothCompendium:GetSharedOption(group.kind == "meetingstone" and "MEETINGSTONEMINIMAPPINS" or "DUNGEONMINIMAPPINS")
+        if enabled then
+            local sx, sy = WorldMap.GetMinimapOffset(group, wx, wy, scale, radius, cosF, sinF)
+            if sx ~= nil then
+                count = count + 1
+                local pin = WorldMap.minimapPins[count]
+                if pin == nil then
+                    pin = WorldMap.CreatePin(Minimap)
+                    WorldMap.minimapPins[count] = pin
+                end
+
+                pin.group = group
+                pin:SetSize(MEETING_STONE_SIZE, MEETING_STONE_SIZE)
+                pin:SetFrameLevel(Minimap:GetFrameLevel() + 10)
+                WorldMap.UpdatePinStyle(pin)
+                pin:ClearAllPoints()
+                pin:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
+                pin:Show()
+            end
+        end
+    end
+end
+
+if Minimap ~= nil then
+    WorldMap.minimapUpdater = CreateFrame("FRAME", nil, Minimap)
+    WorldMap.minimapUpdater.elapsed = 0
+    WorldMap.minimapUpdater:SetScript("OnUpdate", function(sel, elapsed)
+        sel.elapsed = sel.elapsed + elapsed
+        if sel.elapsed < UPDATE_INTERVAL then return end
+        sel.elapsed = 0
+        WorldMap.UpdateMinimap()
+    end)
 end
 
 function WorldMap.GetCanvas()
@@ -406,6 +547,10 @@ function WorldMap.UpdateLocations()
     local entrancesOn = AzerothCompendium:GetSharedOption("DUNGEONWORLDMAPPINS")
     local meetingStonesOn = AzerothCompendium:GetSharedOption("MEETINGSTONEWORLDMAPPINS")
     local key = format("%s|%.4f|%.4f|%s|%s", tostring(mapID), scale or 0, poiScale, tostring(entrancesOn), tostring(meetingStonesOn))
+    for _, pin in ipairs(WorldMap.pins) do
+        if pin:IsShown() then WorldMap.UpdatePinStyle(pin) end
+    end
+
     if key == WorldMap.locationKey then return end
     WorldMap.locationKey = key
     for _, pin in ipairs(WorldMap.pins) do
@@ -431,7 +576,7 @@ function WorldMap.UpdateLocations()
             pin.group = group
             pin:SetSize(size, size)
             pin:SetFrameLevel(child:GetFrameLevel() + PIN_LEVEL)
-            WorldMap.ApplyIcon(pin, group, size)
+            WorldMap.UpdatePinStyle(pin)
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", child, "TOPLEFT", w * group.x / 100, -h * group.y / 100)
             pin:Show()

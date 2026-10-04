@@ -132,3 +132,7 @@ AzerothCompendium:AddTrans("itIT", "LID_INSTANCEENTRANCES", "Ingressi di dungeon
 AzerothCompendium:AddTrans("itIT", "LID_MEETINGSTONES", "Pietre del Ritrovo")
 AzerothCompendium:AddTrans("itIT", "LID_INSTANCEMAPS", "Mappe di dungeon e incursioni")
 AzerothCompendium:AddTrans("itIT", "LID_WORLDMAPPINS", "Mostra icone sulla mappa del mondo")
+AzerothCompendium:AddTrans("itIT", "LID_MINIMAPPINS", "Mostra icone sulla minimappa")
+AzerothCompendium:AddTrans("itIT", "LID_SHOWENTRANCEMAP", "Mostra la mappa del mondo con l'ingresso")
+AzerothCompendium:AddTrans("itIT", "LID_RESIZEWINDOW", "Ridimensiona finestra")
+AzerothCompendium:AddTrans("itIT", "LID_RESETSIZEANDSCALE", "Ripristina dimensioni e scala")

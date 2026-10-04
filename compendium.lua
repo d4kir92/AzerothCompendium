@@ -103,7 +103,7 @@ local MODEL_ZOOM_MIN = 0.4
 local MODEL_ZOOM_MAX = 4
 local SCALE_MIN = 0.5
 local SCALE_MAX = 1.5
-local SCALE_STEP = 0.05
+local SCALE_STEP = 0.01
 local compendium = nil
 AzerothCompendium.ContentLayout = {
     left = 16,
@@ -2857,6 +2857,31 @@ local function AddFallbackChrome(frame)
     if close.SetText and close.GetFontString and close:GetFontString() ~= nil then close:SetText("X") end
 end
 
+function AzerothCompendium:ApplyCompendiumScale(frame, value)
+    local left, top = frame:GetLeft(), frame:GetTop()
+    local oldScale = frame:GetEffectiveScale()
+    local parent = frame:GetParent() or UIParent
+    local parentScale = parent:GetEffectiveScale()
+    local screenScale = UIParent:GetEffectiveScale()
+    local screenWidth = UIParent:GetWidth() * screenScale
+    local screenHeight = UIParent:GetHeight() * screenScale
+    local fit = min(screenWidth / (frame:GetWidth() * parentScale), screenHeight / (frame:GetHeight() * parentScale))
+    value = min(value, floor(fit * 100 + 0.000001) / 100)
+    value = max(0.01, value)
+    frame:SetScale(value)
+    if left ~= nil and top ~= nil then
+        local scale = frame:GetEffectiveScale()
+        local x = min(max(0, left * oldScale), max(0, screenWidth - frame:GetWidth() * scale))
+        local y = min(max(frame:GetHeight() * scale, top * oldScale), screenHeight)
+        frame:ClearAllPoints()
+        frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    end
+
+    AzerothCompendium:SetConfig("COMPENDIUMSCALE", value)
+    if frame.SavePosition then frame:SavePosition() end
+    return value
+end
+
 local function MakeResizable(frame)
     frame:SetResizable(true)
     if frame.SetResizeBounds then
@@ -2892,7 +2917,35 @@ local function MakeResizable(frame)
     grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    grip:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:ClearLines()
+        GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_RESIZEWINDOW"), 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:AddDoubleLine((SHIFT_KEY_TEXT or "Shift") .. " + " .. AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_SCALE"), 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:AddDoubleLine(AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_RESETSIZEANDSCALE"), 1, 0.82, 0, 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    grip:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
     grip:SetScript("OnMouseDown", function(sel, button)
+        if button == "RightButton" then
+            sel.sizing = nil
+            local left, top = frame:GetLeft(), frame:GetTop()
+            local effective = frame:GetEffectiveScale()
+            frame:SetScale(1)
+            frame:SetSize(WIDTH, HEIGHT)
+            if left ~= nil and top ~= nil then
+                frame:ClearAllPoints()
+                frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left * effective / frame:GetEffectiveScale(), top * effective / frame:GetEffectiveScale())
+            end
+
+            AzerothCompendium:ApplyCompendiumScale(frame, 1)
+            AzerothCompendium:SetConfig("COMPENDIUMWIDTH", WIDTH)
+            AzerothCompendium:SetConfig("COMPENDIUMHEIGHT", HEIGHT)
+            AzerothCompendium:SyncSettingsScale()
+            if frame.SavePosition then frame:SavePosition() end
+            return
+        end
+
         if button ~= "LeftButton" then return end
         local left, top = frame:GetLeft(), frame:GetTop()
         if left == nil or top == nil then return end
@@ -2904,13 +2957,20 @@ local function MakeResizable(frame)
             x = x / scale,
             y = y / scale,
             w = frame:GetWidth(),
-            h = frame:GetHeight()
+            h = frame:GetHeight(),
+            scaling = IsShiftKeyDown(),
+            startScale = frame:GetScale(),
+            effectiveScale = scale,
+            left = left * scale,
+            top = top * scale,
         }
     end)
 
     local function StopSizing(sel)
         if sel.sizing == nil then return end
         sel.sizing = nil
+        AzerothCompendium:SetConfig("COMPENDIUMSCALE", frame:GetScale())
+        AzerothCompendium:SyncSettingsScale()
         AzerothCompendium:SetConfig("COMPENDIUMWIDTH", floor(frame:GetWidth() + 0.5))
         AzerothCompendium:SetConfig("COMPENDIUMHEIGHT", floor(frame:GetHeight() + 0.5))
         if frame.SavePosition then frame:SavePosition() end
@@ -2927,6 +2987,18 @@ local function MakeResizable(frame)
         end
 
         local x, y = GetCursorPosition()
+        if sizing.scaling then
+            local w, h = sizing.w * sizing.effectiveScale, sizing.h * sizing.effectiveScale
+            local dx, dy = x - sizing.x * sizing.effectiveScale, y - sizing.y * sizing.effectiveScale
+            local value = sizing.startScale * (1 + (dx * w - dy * h) / (w * w + h * h))
+            value = min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
+            if value ~= frame:GetScale() then
+                AzerothCompendium:ApplyCompendiumScale(frame, value)
+            end
+
+            return
+        end
+
         local scale = frame:GetEffectiveScale()
         ApplySize(sizing.w + x / scale - sizing.x, sizing.h + sizing.y - y / scale)
     end)
@@ -3186,132 +3258,15 @@ local function NormalizeScale(value)
     return min(SCALE_MAX, max(SCALE_MIN, floor(value / SCALE_STEP + 0.5) * SCALE_STEP))
 end
 
-local function CreateScaleSlider(parent, target)
-    local value = NormalizeScale(AzerothCompendium:GetConfig("COMPENDIUMSCALE", 1))
-    local function ApplyScale(scale)
-        scale = NormalizeScale(scale)
-        target:SetScale(scale)
-        if target.SavePosition then target:SavePosition() end
-        AzerothCompendium:SetConfig("COMPENDIUMSCALE", scale)
-    end
-
-    local ok, slider = pcall(CreateFrame, "Frame", nil, parent, "MinimalSliderWithSteppersTemplate")
-    if ok and slider ~= nil and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" then
-        slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 16, 3)
-        slider:SetSize(150, 25)
-        local formatters = {}
-        if MinimalSliderWithSteppersMixin and MinimalSliderWithSteppersMixin.Label then formatters[MinimalSliderWithSteppersMixin.Label.Right] = function(scale) return format("%d%%", floor(NormalizeScale(scale) * 100 + 0.5)) end end
-        slider:Init(value, SCALE_MIN, SCALE_MAX, (SCALE_MAX - SCALE_MIN) / SCALE_STEP, formatters)
-        local pendingScale = value
-        slider:RegisterCallback("OnValueChanged", function(_, scale)
-            pendingScale = NormalizeScale(scale)
-            if slider.InteractionFlags == nil or not slider.InteractionFlags:IsAnySet() then ApplyScale(pendingScale) end
-        end, parent)
-
-        slider.Slider:HookScript("OnMouseUp", function() ApplyScale(pendingScale) end)
-        parent.scaleSlider = slider
-        return
-    end
-
-    local minimal
-    minimal, slider = pcall(CreateFrame, "Slider", nil, parent, "MinimalSliderTemplate")
-    if not minimal or slider == nil then
-        slider = CreateFrame("Slider", nil, parent)
-        local track = slider:CreateTexture(nil, "BACKGROUND")
-        track:SetPoint("LEFT", slider, "LEFT", 0, 0)
-        track:SetPoint("RIGHT", slider, "RIGHT", 0, 0)
-        track:SetHeight(4)
-        track:SetColorTexture(0.25, 0.25, 0.25, 1)
-        local thumb = slider:CreateTexture(nil, "ARTWORK")
-        thumb:SetTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-        thumb:SetSize(24, 24)
-        slider:SetThumbTexture(thumb)
-    end
-
-    slider:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 20, 7)
-    slider:SetSize(120, 19)
-    slider:SetOrientation("HORIZONTAL")
-    slider:SetMinMaxValues(SCALE_MIN, SCALE_MAX)
-    slider:SetValueStep(SCALE_STEP)
-    if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
-    local valueText = parent:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    valueText:SetPoint("LEFT", slider, "RIGHT", 6, 0)
-    valueText:SetWidth(42)
-    valueText:SetJustifyH("LEFT")
-    local pendingScale = value
-    local interacting = false
-    slider:SetScript("OnMouseDown", function() interacting = true end)
-    slider:SetScript("OnMouseUp", function()
-        interacting = false
-        ApplyScale(pendingScale)
-    end)
-
-    slider:SetScript("OnValueChanged", function(_, scale)
-        pendingScale = NormalizeScale(scale)
-        valueText:SetFormattedText("%d%%", floor(pendingScale * 100 + 0.5))
-        if not interacting then ApplyScale(pendingScale) end
-    end)
-
-    slider:SetValue(value)
-    parent.scaleSlider = slider
-    parent.scaleValue = valueText
-end
-
 local function CreateSettingsPanel()
     local panel = CreateFrame("Frame", nil, compendium)
     AddContentBorder(panel)
     AzerothCompendium:AnchorContent(panel)
     panel:Hide()
     compendium.settingsPanel = panel
-    local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -16)
-    local labels = {}
-    for index = 1, 3 do
-        labels[index] = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        labels[index]:SetPoint("LEFT", panel, "TOPLEFT", 16, -24 - index * 38)
-    end
-
-    local function GetLanguageTitle()
-        local text = AzerothCompendium:Trans("LID_LANGUAGE")
-        if text ~= "Language" then text = text .. " / Language" end
-        return text
-    end
-
-    local dropdown = nil
-    local templated = AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate")
-    if templated then
-        dropdown = CreateTemplated("DropdownButton", nil, panel, {"WowStyle1DropdownTemplate"})
-        dropdown:SetupMenu(function(_, rootDescription)
-            rootDescription:CreateTitle(GetLanguageTitle())
-            for _, info in ipairs(AzerothCompendium.LANGUAGES) do
-                rootDescription:CreateRadio(info[1], function() return AzerothCompendium:GetLanguage() == info[2] end, function() AzerothCompendium:SetLanguage(info[2]) end)
-            end
-        end)
-    else
-        dropdown = CreateTemplated("Button", nil, panel, {"UIPanelButtonTemplate"})
-        dropdown:SetScript("OnClick", function(sel) MapPins.ShowMenu(sel, AzerothCompendium.LANGUAGES, AzerothCompendium:GetLanguage(), function(lang) AzerothCompendium:SetLanguage(lang) end) end)
-        local arrow = dropdown:CreateTexture(nil, "ARTWORK")
-        arrow:SetSize(16, 16)
-        arrow:SetPoint("RIGHT", dropdown, "RIGHT", -3, 0)
-        arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
-    end
-
-    dropdown:SetSize(190, 22)
-    dropdown:SetPoint("LEFT", labels[1], "LEFT", 190, 0)
     local flavor = compendium.flavorControl or compendium.flavorDropdown
-    flavor:SetParent(panel)
-    flavor:ClearAllPoints()
-    flavor:SetPoint("LEFT", labels[2], "LEFT", 190, 0)
-    CreateScaleSlider(panel, compendium)
-    panel.scaleSlider:ClearAllPoints()
-    panel.scaleSlider:SetPoint("LEFT", labels[3], "LEFT", 190, 0)
-    AzerothCompendium:OnLanguage(function()
-        title:SetText(AzerothCompendium:Trans("LID_SETTINGS"))
-        labels[1]:SetText(GetLanguageTitle() .. ":")
-        labels[2]:SetText(AzerothCompendium:Trans("LID_FLAVOR") .. ":")
-        labels[3]:SetText(AzerothCompendium:Trans("LID_SCALE") .. ":")
-        if not templated and dropdown.SetText then dropdown:SetText(AzerothCompendium:GetLanguageName()) end
-    end)
+    if flavor ~= nil then flavor:Hide() end
+    AzerothCompendium:CreateCompendiumSettings(panel, compendium)
 end
 
 local function SetSpecialMode(mode)
@@ -4441,6 +4396,7 @@ function AzerothCompendium:SyncCompendiumClassFilter()
 end
 
 function AzerothCompendium:SyncCompendiumFlavor()
+    AzerothCompendium:SyncSettingsFlavor()
     if compendium == nil or compendium.flavorDropdown == nil then return end
     AzerothCompendium:SetDropdownText(compendium.flavorDropdown, GetFlavorText())
     if compendium.updateFlavorSteppers then compendium.updateFlavorSteppers() end
@@ -5115,6 +5071,16 @@ function AzerothCompendium:BringCompendiumToFront()
 
     compendium:SetFrameStrata(map ~= nil and map:IsShown() and "HIGH" or "MEDIUM")
     compendium:Raise()
+end
+
+function AzerothCompendium:OpenCompendiumSettings()
+    CreateJournal()
+    listKind = "settings"
+    SaveNavigationState()
+    AzerothCompendium:BringCompendiumToFront()
+    compendium:Show()
+    UpdateKindTabs()
+    RefreshCurrentView()
 end
 
 function AzerothCompendium:ToggleCompendium()
