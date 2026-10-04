@@ -40,15 +40,16 @@ end
 
 function Browser:Collect()
     local entries = {}
-    local function Add(id, source, fallback)
+    local function Add(id, source, fallback, questID)
         if not id then return end
         if AC:GetFlavor() ~= "forever" and AC:IsForeverItem(id) then return end
         local entry = entries[id]
         if not entry then
-            entry = {id = id, sources = {}, fallback = fallback}
+            entry = {id = id, sources = {}, fallback = fallback, questIDs = {}}
             entries[id] = entry
         end
         if source and source ~= "" then entry.sources[source] = true end
+        if questID then entry.questIDs[questID] = true end
     end
     for _, collection in ipairs({AC.INSTANCES or {}, AC.VENDORS or {}}) do
         for _, instance in ipairs(collection) do
@@ -64,12 +65,12 @@ function Browser:Collect()
         if AC:IsQuestForFlavor(questID) then
             local source = AC:Trans("LID_QUESTS") .. " #" .. questID
             for _, items in ipairs({rewards.items or {}, rewards.choices or {}}) do
-                for _, item in ipairs(items) do Add(item[1], source) end
+                for _, item in ipairs(items) do Add(item[1], source, nil, questID) end
             end
         end
     end
     for questID, item in pairs(AC.QUESTSTARTITEMS or {}) do
-        if AC:IsQuestForFlavor(questID) then Add(item[1], AC:Trans("LID_QUESTS") .. " #" .. questID) end
+        if AC:IsQuestForFlavor(questID) then Add(item[1], AC:Trans("LID_QUESTS") .. " #" .. questID, nil, questID) end
     end
     for _, item in ipairs(AC.WORLDQUESTITEMS or {}) do
         if AC:IsQuestForFlavor(item.questID) then Add(item.itemID, item.source, item.itemName) end
@@ -122,16 +123,18 @@ end
 function Browser:Refresh()
     if not self.panel or not self.panel:IsShown() then return end
     local query = strlower(strtrim(self.search:GetText() or ""))
-    local minimums, statFilter = {}, false
+    local minimums, maximums, statFilter = {}, {}, false
     for key, input in pairs(self.inputs) do
-        local minimum = tonumber(input:GetText()) or 0
-        if minimum > 0 then
-            minimums[key] = minimum
+        local value = tonumber(input:GetText())
+        if string.sub(key, 1, 4) == "max:" then
+            if value and value >= 0 then maximums[string.sub(key, 5)] = value statFilter = true end
+        elseif value and value > 0 then
+            minimums[key] = value
             if key ~= "level" and key ~= "maxLevel" and key ~= "itemLevel" then statFilter = true end
         end
     end
     local list, loading, unavailable = {}, 0, 0
-    if query == "" and next(minimums) == nil then
+    if query == "" and next(minimums) == nil and next(maximums) == nil then
         self.list = list
         self.count:SetText("")
         self.empty:SetText(AC:Trans("LID_ITEMBROWSERHINT"))
@@ -166,6 +169,11 @@ function Browser:Refresh()
         if matches and statFilter then
             for key, minimum in pairs(minimums) do
                 if key ~= "level" and key ~= "maxLevel" and key ~= "itemLevel" and (not entry.loaded or ((entry.stats or {})[key] or 0) < minimum) then matches = false end
+            end
+        end
+        if matches then
+            for key, maximum in pairs(maximums) do
+                if not entry.loaded or ((entry.stats or {})[key] or 0) > maximum then matches = false end
             end
         end
         entry.attribute = (entry.stats or {})[self.attribute] or 0
@@ -222,11 +230,14 @@ function Browser:Render()
                 GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
                 GameTooltip:SetHyperlink(button.entry.link or ("item:" .. button.entry.id))
                 GameTooltip:AddLine(button.entry.source, 0.7, 0.7, 0.7, true)
+                GameTooltip:AddLine(AC:Trans("LID_CATALOGSOURCEHINT"), 0.2, 1, 0.2, true)
                 GameTooltip:Show()
             end)
             row:SetScript("OnLeave", function() GameTooltip:Hide() end)
             row:SetScript("OnClick", function(button)
-                if button.entry and button.entry.link and HandleModifiedItemClick then HandleModifiedItemClick(button.entry.link) end
+                if not button.entry then return end
+                if button.entry.link and HandleModifiedItemClick and HandleModifiedItemClick(button.entry.link) then return end
+                AC:NavigateToCatalogItem(button.entry)
             end)
             self.rows[index] = row
         end
@@ -256,7 +267,7 @@ function Browser:SetHeaderText(header)
     local suffix = ""
     if header.key == self.sortKey then
         local direction = self.descending and "Down" or "Up"
-        suffix = " |TInterface\\Buttons\\UI-ScrollBar-Scroll" .. direction .. "Button-Up:14:14:0:0|t"
+        suffix = " |TInterface\\Buttons\\UI-ScrollBar-Scroll" .. direction .. "Button-Up:28:28:0:0|t"
     end
     if header.OverrideText then header:OverrideText(header.label .. suffix) else header:SetText(header.label .. suffix) end
 end
@@ -333,16 +344,9 @@ function Browser:Create(parent)
     AC:AnchorContent(panel)
     local filterFrame = CreateFrame("Frame", nil, panel)
     filterFrame:SetPoint("TOPLEFT")
-    filterFrame:SetPoint("BOTTOMLEFT", 0, 26)
+    filterFrame:SetPoint("BOTTOMLEFT", 0, 0)
     filterFrame:SetWidth(216)
-    local filterFill = filterFrame:CreateTexture(nil, "BACKGROUND", nil, -8)
-    filterFill:SetAllPoints()
-    filterFill:SetAtlas("collections-background-tile")
-    filterFill:SetHorizTile(true)
-    filterFill:SetVertTile(true)
-    local filterBackground = filterFrame:CreateTexture(nil, "BACKGROUND", nil, -7)
-    filterBackground:SetAllPoints()
-    filterBackground:SetAtlas("common-insideframe")
+    AzerothCompendiumAPI.AddContentBorder(filterFrame)
     local modernScroll = ScrollUtil and ScrollUtil.InitScrollFrameWithScrollBar and AC:CheckTemplates("MinimalScrollBar")
     local filters = CreateFrame("ScrollFrame", nil, filterFrame, not modernScroll and "UIPanelScrollFrameTemplate" or nil)
     filters:SetPoint("TOPLEFT", 8, -2)
@@ -362,8 +366,13 @@ function Browser:Create(parent)
     local content = CreateFrame("Frame", nil, filters)
     content:SetSize(190, 1200)
     filters:SetScrollChild(content)
-    local y = -4
-    local inputParent = content
+    local y = -12
+    self.filterPages, self.filterTabs = {}, {}
+    local general = CreateFrame("Frame", nil, content)
+    general:SetPoint("TOPLEFT")
+    general:SetWidth(186)
+    self.filterPages[1] = general
+    local inputParent = general
     local function Label(text)
         local label = inputParent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
         label:SetPoint("TOPLEFT", 4, y)
@@ -372,22 +381,22 @@ function Browser:Create(parent)
         label:SetText(text)
         y = y - 15
     end
-    local function Input(key, text, numeric)
-        Label(text)
+    local function Input(key, text, numeric, bound)
+        if bound ~= "max" then Label(text) end
         local input = CreateFrame("EditBox", nil, inputParent, "InputBoxTemplate")
-        input:SetSize(168, 22)
-        input:SetPoint("TOPLEFT", 8, y)
+        input:SetSize(bound and 72 or 168, 22)
+        input:SetPoint("TOPLEFT", bound == "max" and 104 or 8, y)
         input:SetAutoFocus(false)
         input:SetNumeric(numeric)
         input:SetScript("OnEscapePressed", function(box) box:ClearFocus() end)
         input:SetScript("OnEnterPressed", function(box) box:ClearFocus() end)
-        if not key then
+        if not key or bound then
             input.placeholder = input:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             input.placeholder:SetPoint("LEFT", 2, 0)
             input.placeholder:SetPoint("RIGHT", -2, 0)
             input.placeholder:SetJustifyH("LEFT")
             input.placeholder:SetWordWrap(false)
-            input.placeholder:SetText(AC:Trans("LID_ITEMSEARCHPLACEHOLDER"))
+            input.placeholder:SetText(bound and (bound == "max" and "Max" or "Min") or AC:Trans("LID_ITEMSEARCHPLACEHOLDER"))
         end
         input:SetScript("OnTextChanged", function(box)
             if box.placeholder then box.placeholder:SetShown(box:GetText() == "") end
@@ -395,39 +404,33 @@ function Browser:Create(parent)
             self:Refresh()
         end)
         if key then self.inputs[key] = input else self.search = input end
-        y = y - 34
+        if bound == "min" then
+            local separator = inputParent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+            separator:SetPoint("TOPLEFT", 84, y - 4)
+            separator:SetWidth(16)
+            separator:SetText("-")
+        else
+            y = y - 34
+        end
     end
     Input(nil, AC:Trans("LID_ITEMSEARCH"), false)
     Input("level", AC:Trans("LID_MINLEVEL"), true)
     Input("maxLevel", AC:Trans("LID_MAXLEVEL"), true)
     Input("itemLevel", AC:Trans("LID_MINITEMLEVEL"), true)
-    local categoryTop = y
-    self.attributeGroups = {}
-    for _, definition in ipairs({{"LID_PRIMARYATTRIBUTES", true}, {"LID_SECONDARYATTRIBUTES", false}}) do
-        local group = CreateFrame("Frame", nil, content)
-        group:SetWidth(186)
-        group.title = AC:Trans(definition[1])
-        group.expanded = true
-        group.header = CreateFrame("Button", nil, group)
-        group.header:SetSize(186, 26)
-        group.header:SetPoint("TOPLEFT")
-        group.header:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
-        group.indicator = group.header:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        group.indicator:SetPoint("LEFT", 4, 0)
-        group.indicator:SetText("-")
-        group.label = group.header:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-        group.label:SetPoint("LEFT", 22, 0)
-        group.label:SetText(group.title)
-        group.content = CreateFrame("Frame", nil, group)
-        group.content:SetPoint("TOPLEFT", 0, -28)
-        group.content:SetWidth(186)
-        inputParent, y = group.content, -4
+    general:SetHeight(-y)
+    for _, primary in ipairs({true, false}) do
+        local page = CreateFrame("Frame", nil, content)
+        page:SetPoint("TOPLEFT")
+        page:SetWidth(186)
+        inputParent, y = page, -12
         for _, attribute in ipairs(self.attributes) do
-            if (attribute[3] == true) == definition[2] then Input(attribute[1], self:Label(attribute), true) end
+            if (attribute[3] == true) == primary then
+                Input(attribute[1], self:Label(attribute), true, "min")
+                Input("max:" .. attribute[1], self:Label(attribute), true, "max")
+            end
         end
-        group.contentHeight = -y
-        group.content:SetHeight(group.contentHeight)
-        table.insert(self.attributeGroups, group)
+        page:SetHeight(-y)
+        table.insert(self.filterPages, page)
     end
     local reset = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     reset:SetPoint("TOPLEFT", 4, y)
@@ -439,37 +442,31 @@ function Browser:Create(parent)
         self.offset = 0
         self:Refresh()
     end)
-    local function LayoutCategories()
-        local top = categoryTop
-        for _, group in ipairs(self.attributeGroups) do
-            group:ClearAllPoints()
-            group:SetPoint("TOPLEFT", content, "TOPLEFT", 0, top)
-            local height = 28 + (group.expanded and group.contentHeight or 0)
-            group:SetHeight(height)
-            group.content:SetShown(group.expanded)
-            group.indicator:SetText(group.expanded and "-" or "+")
-            top = top - height - 6
-        end
+    function self:SelectFilterPage(index)
+        self.filterPage = index
+        self.search:ClearFocus()
+        for _, input in pairs(self.inputs) do input:ClearFocus() end
+        for pageIndex, page in ipairs(self.filterPages) do page:SetShown(pageIndex == index) end
+        for tabIndex, tab in ipairs(self.filterTabs) do tab:SetTabSelected(tabIndex == index) end
+        local height = self.filterPages[index]:GetHeight()
         reset:ClearAllPoints()
-        reset:SetPoint("TOPLEFT", content, "TOPLEFT", 4, top)
-        content:SetHeight(-top + 34)
+        reset:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -height - 6)
+        content:SetHeight(height + 40)
         filters:SetVerticalScroll(0)
     end
-    for _, group in ipairs(self.attributeGroups) do
-        group.header:SetScript("OnClick", function()
-            group.expanded = not group.expanded
-            if not group.expanded then
-                for _, input in pairs(self.inputs) do
-                    if input:GetParent() == group.content then input:ClearFocus() end
-                end
-            end
-            LayoutCategories()
-        end)
+    local definitions = {{"LID_GENERALFILTERS", 134442}, {"LID_PRIMARYATTRIBUTES", 132333}, {"LID_SECONDARYATTRIBUTES", 136112}}
+    local previous
+    for index, definition in ipairs(definitions) do
+        local tab = AzerothCompendiumAPI.CreateContentTab(panel, definition[1], definition[2], function() self:SelectFilterPage(index) end)
+        tab:ClearAllPoints()
+        AzerothCompendiumAPI.PositionContentTab(tab, filterFrame, previous)
+        self.filterTabs[index] = tab
+        previous = tab
     end
-    LayoutCategories()
+    self:SelectFilterPage(1)
     local tableBorder = CreateFrame("Frame", nil, panel)
     tableBorder:SetPoint("TOPLEFT", 230, 0)
-    tableBorder:SetPoint("BOTTOMRIGHT", 0, 26)
+    tableBorder:SetPoint("BOTTOMRIGHT", 0, 0)
     local viewport = CreateFrame("ScrollFrame", nil, tableBorder)
     viewport:SetPoint("TOPLEFT", 2, -2)
     viewport:SetPoint("BOTTOMRIGHT", -22, 12)
@@ -495,14 +492,7 @@ function Browser:Create(parent)
     horizontalBar:SetThumbTexture(thumb)
     horizontalBar:SetScript("OnValueChanged", function(_, value) viewport:SetHorizontalScroll(value) end)
     self.horizontalBar = horizontalBar
-    local tableFill = tableBorder:CreateTexture(nil, "BACKGROUND", nil, -8)
-    tableFill:SetAllPoints()
-    tableFill:SetAtlas("collections-background-tile")
-    tableFill:SetHorizTile(true)
-    tableFill:SetVertTile(true)
-    local background = tableBorder:CreateTexture(nil, "BACKGROUND", nil, -7)
-    background:SetAllPoints()
-    background:SetAtlas("common-insideframe")
+    AzerothCompendiumAPI.AddContentBorder(tableBorder)
     local body = CreateFrame("Frame", nil, tableFrame)
     self.body = body
     body:SetPoint("TOPLEFT", 2, -32)
@@ -526,11 +516,11 @@ function Browser:Create(parent)
     self.empty:SetPoint("CENTER")
     self.empty:SetText(AC:Trans("LID_NOITEMMATCHES"))
     self.count = panel:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    self.count:SetPoint("BOTTOMLEFT", 234, 2)
+    self.count:SetPoint("BOTTOMLEFT", tableBorder, "TOPLEFT", 4, 8)
     local modern = AC:CheckTemplates("WowStyle1DropdownTemplate")
     local choose = CreateFrame(modern and "DropdownButton" or "Button", nil, panel, modern and "WowStyle1DropdownTemplate" or "UIPanelButtonTemplate")
     choose:SetSize(180, 22)
-    choose:SetPoint("BOTTOMRIGHT")
+    choose:SetPoint("BOTTOMRIGHT", tableBorder, "TOPRIGHT", 0, 6)
     local function Toggle(attribute)
         self.selectedAttributes[attribute[1]] = not self.selectedAttributes[attribute[1]]
         self:BuildColumns()

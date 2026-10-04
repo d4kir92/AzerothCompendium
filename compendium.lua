@@ -2974,6 +2974,7 @@ local function CreateSideTab(parent, label, icon, onClick)
 end
 
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
+AzerothCompendiumAPI.AddContentBorder = AddContentBorder
 AzerothCompendium.ModuleTabs = {}
 function AzerothCompendiumAPI.CreateContentTab(parent, label, icon, onClick)
     return CreateTabButton(parent, label, {
@@ -3082,8 +3083,10 @@ function AzerothCompendium:RefreshModuleTabs()
         end
     end
 
+    compendium.kindTabs.allitems:ClearAllPoints()
+    compendium.kindTabs.allitems:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     compendium.kindTabs.wishlist:ClearAllPoints()
-    compendium.kindTabs.wishlist:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+    compendium.kindTabs.wishlist:SetPoint("TOPLEFT", compendium.kindTabs.allitems, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     self:UpdateMinimumHeight()
 end
 
@@ -3609,6 +3612,73 @@ NavigateToWishlistItem = function(entry)
     end
 end
 
+function AzerothCompendium:NavigateToCatalogItem(entry)
+    if not compendium or not entry then return false end
+    local kind, inst, boss = FindWishlistSource(entry.id)
+    local questID, worldItem
+    if not inst then
+        for _, item in ipairs(self.WORLDQUESTITEMS or {}) do
+            if item.itemID == entry.id then worldItem = item break end
+        end
+    end
+    if not inst and not worldItem then
+        for _, instanceKind in ipairs({"dungeon", "raid"}) do
+            for _, instance in ipairs(self:GetInstances(instanceKind)) do
+                if IsInstanceVisible(instance) then
+                    for _, node in ipairs(self:GetInstanceQuestGraph(instance)) do
+                        if entry.questIDs and entry.questIDs[node.id] then
+                            kind, inst, questID = instanceKind, instance, node.id
+                            break
+                        end
+                    end
+                end
+                if inst then break end
+            end
+            if inst then break end
+        end
+    end
+    if not inst and not worldItem then return false end
+    self:HideGameTooltip()
+    compendium.overviewActive = false
+    if inst then
+        listKind, selectedInstance, selectedBoss = kind, inst, boss
+        middleKind, detailKind = questID and "quests" or "bosses", "loot"
+        if kind == "dungeon" then
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.ONLYRELEVANT, ACOTABPC.HIDENEWFOREVER, ACOTABPC.HIDECOMPLETED = false, false, false
+        end
+        self:SetConfig("CLASSFILTER", false)
+        compendium.classFilter:SetChecked(false)
+    else
+        listKind = "worldquestitems"
+    end
+    searchText = ""
+    UpdateKindTabs()
+    compendium.search:SetText("")
+    RefreshCurrentView()
+    SaveNavigationState()
+    local function ScrollToItem()
+        if inst and selectedInstance ~= inst then return end
+        if questID then
+            if middleKind == "quests" then compendium.questTree:FocusQuest(questID) end
+            return
+        end
+        local scroller = worldItem and compendium.worldQuestItems or compendium.loot
+        if not scroller:IsShown() then return end
+        for index, item in ipairs(scroller.data or {}) do
+            if (item.itemID or item[1]) == entry.id then scroller:ScrollToIndex(index) break end
+        end
+        if boss then
+            for index, item in ipairs(compendium.bosses.data or {}) do
+                if item == boss then compendium.bosses:ScrollToIndex(index) break end
+            end
+        end
+    end
+    ScrollToItem()
+    self:After(0, ScrollToItem, "AzerothCompendium:CatalogItemNavigation")
+    return true
+end
+
 function AzerothCompendium:RefreshWishlist()
     if compendium == nil or not compendium:IsShown() or listKind ~= "wishlist" then return end
     RefreshWishlistView()
@@ -4055,7 +4125,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", "Interface\\Icons\\INV_Misc_Bag_08"}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
             if listKind == kind then
@@ -5080,6 +5150,7 @@ function MapPins.GetArt(key)
 end
 
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
+AzerothCompendiumAPI.AddContentBorder = AddContentBorder
 function AzerothCompendiumAPI.ShowBossLoot(key, npcID)
     local inst = MapPins.GetArt(key)
     local boss = inst ~= nil and IsInstanceVisible(inst) and MapPins.FindBoss(npcID, inst) or nil
