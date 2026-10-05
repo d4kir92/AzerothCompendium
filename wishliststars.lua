@@ -1,5 +1,5 @@
 local _, AC = ...
-local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true}
+local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 14}
 AC.WishlistStars = Stars
 
 function Stars:ItemID(value)
@@ -16,7 +16,7 @@ function Stars:RegisterBaganator()
     end, function(button)
         local star = button:CreateTexture(nil, "OVERLAY", nil, 7)
         star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
-        star:SetSize(14, 14)
+        star:SetSize(Stars.size, Stars.size)
         return star
     end, {corner = "top_right", priority = 1}, true)
     self.baganatorRegistered = true
@@ -104,8 +104,8 @@ function Stars:Update(button, entry)
         if InCombatLockdown and InCombatLockdown() then return end
         entry.star = button:CreateTexture(nil, "OVERLAY", nil, 7)
         entry.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
-        entry.star:SetSize(14, 14)
-        entry.star:SetPoint("TOPRIGHT", entry.icon, "TOPRIGHT", 2, 2)
+        entry.star:SetSize(Stars.size, Stars.size)
+        entry.star:SetPoint("TOPRIGHT", entry.icon, "TOPRIGHT", -2, -2)
     end
     if entry.star then entry.star:SetShown(listed) end
 end
