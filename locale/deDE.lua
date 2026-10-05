@@ -159,3 +159,6 @@ AzerothCompendium:AddTrans("deDE", "LID_MINIMAPPINS", "Symbole auf der Minikarte
 AzerothCompendium:AddTrans("deDE", "LID_SHOWENTRANCEMAP", "Weltkarte mit dem Eingang anzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_RESIZEWINDOW", "Fenstergröße ändern")
 AzerothCompendium:AddTrans("deDE", "LID_RESETSIZEANDSCALE", "Größe und Skalierung zurücksetzen")
+
+AzerothCompendium:AddTrans("deDE", "LID_MARKFAVORITE", "Als Favorit markieren")
+AzerothCompendium:AddTrans("deDE", "LID_NICETOHAVE", "Nice to have")

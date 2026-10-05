@@ -296,8 +296,22 @@ function AzerothCompendium:IsWishlisted(itemID)
     return AzerothCompendium:GetWishlist()[itemID] ~= nil
 end
 
-function AzerothCompendium:SetWishlistItem(itemID, source)
+function AzerothCompendium:GetWishlistTexture(itemID)
+    local source = AzerothCompendium:GetWishlist()[itemID]
+    if source == nil then return nil end
+    if type(source) == "table" and source.wishlistMark == "nice" then
+        return "Interface\\AddOns\\AzerothCompendium\\media\\hearth"
+    end
+    return "Interface\\AddOns\\AzerothCompendium\\media\\star"
+end
+function AzerothCompendium:SetWishlistItem(itemID, source, mark)
     if type(itemID) ~= "number" then return end
+    if type(source) == "table" then
+        local saved = {}
+        for key, value in pairs(source) do saved[key] = value end
+        saved.wishlistMark = mark or source.wishlistMark or "favorite"
+        source = saved
+    end
     AzerothCompendium:GetWishlist()[itemID] = source
     if AzerothCompendium.WishlistStars then
         AzerothCompendium.WishlistStars:Refresh()

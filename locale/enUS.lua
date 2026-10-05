@@ -159,3 +159,6 @@ AzerothCompendium:AddTrans("enUS", "LID_MINIMAPPINS", "Show icons on the minimap
 AzerothCompendium:AddTrans("enUS", "LID_SHOWENTRANCEMAP", "Show the world map with the entrance")
 AzerothCompendium:AddTrans("enUS", "LID_RESIZEWINDOW", "Resize window")
 AzerothCompendium:AddTrans("enUS", "LID_RESETSIZEANDSCALE", "Reset size and scale")
+
+AzerothCompendium:AddTrans("enUS", "LID_MARKFAVORITE", "Mark as Favorite")
+AzerothCompendium:AddTrans("enUS", "LID_NICETOHAVE", "Nice to have")

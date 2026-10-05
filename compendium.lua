@@ -2347,7 +2347,7 @@ local function ShowItemTooltip(row)
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_GOTOSOURCE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
     end
 
-    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans(AzerothCompendium:IsWishlisted(row.itemID) and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_RIGHTCLICK") .. ":"), AzerothCompendium:Trans("LID_MARKFAVORITE") .. " / " .. AzerothCompendium:Trans("LID_NICETOHAVE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
     GameTooltip:Show()
 end
 
@@ -2367,22 +2367,25 @@ local function ShowWishlistMenu(owner, itemID, source)
         }
     end
 
-    local listed = AzerothCompendium:IsWishlisted(itemID)
-    local label = AzerothCompendium:Trans(listed and "LID_REMOVEFROMWISHLIST" or "LID_ADDTOWISHLIST")
-    local action = function()
-        if listed then
-            AzerothCompendium:SetWishlistItem(itemID, nil)
-        else
-            AzerothCompendium:SetWishlistItem(itemID, source or {})
-        end
-    end
-
-    AzerothCompendium:ShowContextMenu(owner, {
+    local saved = AzerothCompendium:GetWishlist()[itemID]
+    local itemSource = source or type(saved) == "table" and saved or {}
+    local entries = {
         {
-            text = label,
-            func = action
+            text = AzerothCompendium:Trans("LID_MARKFAVORITE"),
+            func = function() AzerothCompendium:SetWishlistItem(itemID, itemSource, "favorite") end
+        },
+        {
+            text = AzerothCompendium:Trans("LID_NICETOHAVE"),
+            func = function() AzerothCompendium:SetWishlistItem(itemID, itemSource, "nice") end
         }
-    }, "cursor")
+    }
+    if saved ~= nil then
+        entries[#entries + 1] = {
+            text = AzerothCompendium:Trans("LID_REMOVEFROMWISHLIST"),
+            func = function() AzerothCompendium:SetWishlistItem(itemID, nil) end
+        }
+    end
+    AzerothCompendium:ShowContextMenu(owner, entries, "cursor")
 end
 
 local function CreateLootRow(scroller)

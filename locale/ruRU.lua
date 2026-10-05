@@ -136,3 +136,6 @@ AzerothCompendium:AddTrans("ruRU", "LID_MINIMAPPINS", "Показывать зн
 AzerothCompendium:AddTrans("ruRU", "LID_SHOWENTRANCEMAP", "Показать карту мира со входом")
 AzerothCompendium:AddTrans("ruRU", "LID_RESIZEWINDOW", "Изменить размер окна")
 AzerothCompendium:AddTrans("ruRU", "LID_RESETSIZEANDSCALE", "Сбросить размер и масштаб")
+
+AzerothCompendium:AddTrans("ruRU", "LID_MARKFAVORITE", "Отметить как избранное")
+AzerothCompendium:AddTrans("ruRU", "LID_NICETOHAVE", "Nice to have")

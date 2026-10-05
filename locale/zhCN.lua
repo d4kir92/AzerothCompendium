@@ -136,3 +136,6 @@ AzerothCompendium:AddTrans("zhCN", "LID_MINIMAPPINS", "在小地图上显示图�
 AzerothCompendium:AddTrans("zhCN", "LID_SHOWENTRANCEMAP", "显示入口所在的世界地图")
 AzerothCompendium:AddTrans("zhCN", "LID_RESIZEWINDOW", "调整窗口大小")
 AzerothCompendium:AddTrans("zhCN", "LID_RESETSIZEANDSCALE", "重置大小和缩放")
+
+AzerothCompendium:AddTrans("zhCN", "LID_MARKFAVORITE", "标记为收藏")
+AzerothCompendium:AddTrans("zhCN", "LID_NICETOHAVE", "Nice to have")

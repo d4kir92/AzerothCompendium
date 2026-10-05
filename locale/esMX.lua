@@ -136,3 +136,6 @@ AzerothCompendium:AddTrans("esMX", "LID_MINIMAPPINS", "Mostrar iconos en el mini
 AzerothCompendium:AddTrans("esMX", "LID_SHOWENTRANCEMAP", "Mostrar el mapa del mundo con la entrada")
 AzerothCompendium:AddTrans("esMX", "LID_RESIZEWINDOW", "Cambiar tamaño de ventana")
 AzerothCompendium:AddTrans("esMX", "LID_RESETSIZEANDSCALE", "Restablecer tamaño y escala")
+
+AzerothCompendium:AddTrans("esMX", "LID_MARKFAVORITE", "Marcar como favorito")
+AzerothCompendium:AddTrans("esMX", "LID_NICETOHAVE", "Nice to have")

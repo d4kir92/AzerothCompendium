@@ -1,7 +1,6 @@
 local _, AC = ...
-local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 28, cornerOffset = 8}
+local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 8}
 AC.WishlistStars = Stars
-local WISHLIST_STAR_ATLAS = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("PetJournal-FavoritesIcon") and "PetJournal-FavoritesIcon"
 
 function Stars:ItemID(value)
     if type(value) == "number" then return value end
@@ -11,16 +10,14 @@ end
 function Stars:RegisterBaganator()
     local api = Baganator and Baganator.API
     if self.baganatorRegistered or not api or type(api.RegisterCornerWidget) ~= "function" then return end
-    api.RegisterCornerWidget("AzerothCompendium: " .. AC:Trans("LID_WISHLIST"), "azerothcompendium_wishlist", function(_, details)
-        local itemID = type(details) == "table" and Stars:ItemID(details.itemID or details.itemLink)
-        return itemID ~= nil and AC:IsWishlisted(itemID)
+    api.RegisterCornerWidget("AzerothCompendium: " .. AC:Trans("LID_WISHLIST"), "azerothcompendium_wishlist", function(star, details)
+        local itemID
+        if type(details) == "table" then itemID = Stars:ItemID(details.itemID or details.itemLink) end
+        local texture = itemID and AC:GetWishlistTexture(itemID)
+        star:SetTexture(texture)
+        return texture ~= nil
     end, function(button)
         local star = button:CreateTexture(nil, "OVERLAY", nil, 7)
-        if WISHLIST_STAR_ATLAS then
-            star:SetAtlas(WISHLIST_STAR_ATLAS)
-        else
-            star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
-        end
         star:SetSize(Stars.size, Stars.size)
         star.padding = -Stars.cornerOffset / 2
         return star
@@ -105,20 +102,17 @@ function Stars:Update(button, entry)
     end
     local itemID = entry.itemID
     if not entry.explicit then itemID = self:Resolve(button) end
-    local listed = itemID and AC:IsWishlisted(itemID) or false
+    local texture = itemID and AC:GetWishlistTexture(itemID)
     if not entry.star then
         if InCombatLockdown and InCombatLockdown() then return end
         entry.star = button:CreateTexture(nil, "OVERLAY", nil, 7)
-        if WISHLIST_STAR_ATLAS then
-            entry.star:SetAtlas(WISHLIST_STAR_ATLAS)
-        else
-            entry.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
-        end
-        entry.star:SetVertexColor(1, 0.95, 0.65)
         entry.star:SetSize(Stars.size, Stars.size)
         entry.star:SetPoint("TOPRIGHT", entry.icon, "TOPRIGHT", Stars.cornerOffset, Stars.cornerOffset)
     end
-    if entry.star then entry.star:SetShown(listed) end
+    if entry.star then
+        entry.star:SetTexture(texture)
+        entry.star:SetShown(texture ~= nil)
+    end
 end
 
 function Stars:Track(button)

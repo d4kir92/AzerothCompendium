@@ -136,3 +136,6 @@ AzerothCompendium:AddTrans("ptBR", "LID_MINIMAPPINS", "Mostrar ícones no minima
 AzerothCompendium:AddTrans("ptBR", "LID_SHOWENTRANCEMAP", "Mostrar o mapa-múndi com a entrada")
 AzerothCompendium:AddTrans("ptBR", "LID_RESIZEWINDOW", "Redimensionar janela")
 AzerothCompendium:AddTrans("ptBR", "LID_RESETSIZEANDSCALE", "Redefinir tamanho e escala")
+
+AzerothCompendium:AddTrans("ptBR", "LID_MARKFAVORITE", "Marcar como favorito")
+AzerothCompendium:AddTrans("ptBR", "LID_NICETOHAVE", "Nice to have")
