@@ -1647,6 +1647,7 @@ function MapPins.Style(pin)
     local size = isBoss and MapPins.bossSize or MapPins.size
     pin:SetSize(size, size)
     local isItem = pin.kind == "item"
+    AzerothCompendium:UpdateWishlistStar(pin, pin.portrait, isItem and pin.entry[4] or nil)
     pin.portrait:SetShown(isBoss or isItem)
     pin.icon:SetShown(not isBoss and not isItem)
     pin.portrait:SetTexCoord(0, 1, 0, 1)
@@ -2430,6 +2431,7 @@ local function CreateLootRow(scroller)
         local itemID = entry[1]
         local chance = entry[2]
         self.itemID = itemID
+        AzerothCompendium:UpdateWishlistStar(self, self.icon, itemID)
         self.jumpBoss = entry.source
         self.boss = entry.source or selectedInstance and not selectedInstance.vendor and selectedBoss or nil
         self.wishlistSource = GetCurrentWishlistSource(entry.source)
@@ -2511,6 +2513,7 @@ local function CreateWishlistRow(scroller)
     function row:Update(entry)
         self.entry = entry
         self.itemID = entry.itemID
+        AzerothCompendium:UpdateWishlistStar(self, self.icon, entry.itemID)
         self.boss = nil
         self.link = nil
         self.icon:SetShown(not entry.wishlistCategory)
@@ -2635,6 +2638,7 @@ local function CreateWorldQuestItemRow(scroller)
     function row:Update(entry)
         self.worldQuestItem = entry
         self.itemID = entry.itemID
+        AzerothCompendium:UpdateWishlistStar(self, self.icon, entry.itemID)
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(entry.itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)

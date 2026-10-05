@@ -66,6 +66,7 @@ data\loadingscreens.lua
 data\instance_wings.lua
 
 core.lua
+wishliststars.lua
 questtree.lua
 itembrowser.lua
 compendium.lua

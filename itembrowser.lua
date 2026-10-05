@@ -247,6 +247,7 @@ function Browser:Render()
             row:SetShown(entry ~= nil)
             if entry then
                 row.icon:SetTexture(entry.icon)
+                AC:UpdateWishlistStar(row, row.icon, entry.id)
                 local color = ITEM_QUALITY_COLORS[entry.quality] or ITEM_QUALITY_COLORS[1]
                 row.cells[1]:SetText(entry.name)
                 row.cells[1]:SetTextColor(color.r, color.g, color.b)

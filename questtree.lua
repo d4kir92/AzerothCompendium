@@ -604,6 +604,7 @@ local function UpdateNode(button, node, width)
             local entry = entries[index]
             local _, _, quality, _, texture = AzerothCompendium:GetItemDisplay(entry[1])
             icon.itemID = entry[1]
+            AzerothCompendium:UpdateWishlistStar(icon, icon.icon, entry[1])
             icon.choice = entry[3]
             icon.icon:SetTexture(texture or 134400)
             icon.count:SetText(entry[2] > 1 and entry[2] or "")

@@ -299,6 +299,7 @@ end
 function AzerothCompendium:SetWishlistItem(itemID, source)
     if type(itemID) ~= "number" then return end
     AzerothCompendium:GetWishlist()[itemID] = source
+    if AzerothCompendium.WishlistStars then AzerothCompendium.WishlistStars:Refresh() end
     if AzerothCompendium.RefreshWishlist then AzerothCompendium:RefreshWishlist() end
 end
 
