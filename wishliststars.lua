@@ -1,5 +1,5 @@
 local _, AC = ...
-local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 14}
+local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 28, cornerOffset = 8}
 AC.WishlistStars = Stars
 local WISHLIST_STAR_ATLAS = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("PetJournal-FavoritesIcon") and "PetJournal-FavoritesIcon"
 
@@ -22,6 +22,7 @@ function Stars:RegisterBaganator()
             star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
         end
         star:SetSize(Stars.size, Stars.size)
+        star.padding = -Stars.cornerOffset / 2
         return star
     end, {corner = "top_right", priority = 1}, true)
     self.baganatorRegistered = true
@@ -113,8 +114,9 @@ function Stars:Update(button, entry)
         else
             entry.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
         end
+        entry.star:SetVertexColor(1, 0.95, 0.65)
         entry.star:SetSize(Stars.size, Stars.size)
-        entry.star:SetPoint("TOPRIGHT", entry.icon, "TOPRIGHT", -2, -2)
+        entry.star:SetPoint("TOPRIGHT", entry.icon, "TOPRIGHT", Stars.cornerOffset, Stars.cornerOffset)
     end
     if entry.star then entry.star:SetShown(listed) end
 end
