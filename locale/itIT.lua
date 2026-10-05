@@ -140,6 +140,6 @@ AzerothCompendium:AddTrans("itIT", "LID_RESETSIZEANDSCALE", "Ripristina dimensio
 AzerothCompendium:AddTrans("itIT", "LID_MARKFAVORITE", "Segna come preferito")
 AzerothCompendium:AddTrans("itIT", "LID_NICETOHAVE", "Utile da avere")
 
-AzerothCompendium:AddTrans("itIT", "LID_FOREVERDAILYNOTICE", "I dati delle spedizioni Forever riflettono lo stato della giornata e vengono aggiornati quotidianamente.")
+AzerothCompendium:AddTrans("itIT", "LID_FOREVERDAILYNOTICE", "Spedizioni Forever: dati del giorno, aggiornati ogni giorno.")
 
 AzerothCompendium:AddTrans("itIT", "LID_SHOWOPPOSINGQUESTS", "Mostra anche le missioni della fazione avversaria")

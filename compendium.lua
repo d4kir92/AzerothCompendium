@@ -1776,7 +1776,16 @@ function MapPins.UpdateToggle(view)
     local last = view.pinToggles[#MapPins.types]
     if last and compendium.detailCount and view:IsShown() then
         compendium.detailCount:ClearAllPoints()
-        compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, -2)
+        compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, 0)
+        local left = compendium.middleTabs.quests:GetRight()
+        local right = last:GetLeft()
+        if left and right then
+            compendium.detailCount:SetWidth(max(1, right - left - 16))
+            compendium.detailCount:SetHeight(30)
+            compendium.detailCount:SetWordWrap(true)
+            compendium.detailCount:SetJustifyV("MIDDLE")
+            compendium.detailCount:SetJustifyH("RIGHT")
+        end
     end
 end
 
@@ -1885,6 +1894,7 @@ local function LayoutMapArt()
     view.art:SetPoint("CENTER", view.viewport, "CENTER", view.offsetX, view.offsetY)
     view.art:SetSize(width, height)
     MapPins.Layout(view)
+    MapPins.UpdateToggle(view)
 end
 
 function MapPins.Zoom(view, delta)
@@ -1976,6 +1986,9 @@ local function RefreshDetail()
     if compendium == nil then return end
     compendium.detailCount:ClearAllPoints()
     compendium.detailCount:SetPoint("BOTTOMRIGHT", compendium.loot, "TOPRIGHT", 0, 6)
+    compendium.detailCount:SetWidth(0)
+    compendium.detailCount:SetHeight(0)
+    compendium.detailCount:SetWordWrap(false)
     if middleKind == "map" and (listKind == "dungeon" or listKind == "raid") then
         compendium.loot:Hide()
         compendium.spells:Hide()
@@ -2091,8 +2104,7 @@ local function RefreshBosses()
     if compendium == nil then return end
     compendium.foreverNotice:SetShown(listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
     compendium.foreverNotice:ClearAllPoints()
-    compendium.foreverNotice:SetPoint("TOPLEFT", compendium.middleTabs.quests, "TOPRIGHT", 8, 3)
-    compendium.foreverNotice:SetPoint("TOPRIGHT", compendium.questTree, "TOPRIGHT", middleKind == "map" and not compendium.overviewActive and -240 or -180, 33)
+    compendium.foreverNotice:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
     compendium.factionToggle:ClearAllPoints()
     compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.overviewActive and compendium.overview or compendium.questTree, "TOPRIGHT", -2, 4)
     compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests"))
@@ -4098,30 +4110,48 @@ local function CreateJournal()
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
     compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
     compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
-    compendium.foreverNotice:SetHeight(30)
+    compendium.foreverNotice:SetHeight(24)
     compendium.foreverNotice:EnableMouse(false)
     for _, edge in ipairs({"TOP", "BOTTOM", "LEFT", "RIGHT"}) do
         local line = compendium.foreverNotice:CreateTexture(nil, "BORDER")
         line:SetColorTexture(1, 0.82, 0, 1)
         if edge == "TOP" or edge == "BOTTOM" then
-            line:SetHeight(3)
+            line:SetHeight(1)
             line:SetPoint(edge .. "LEFT")
             line:SetPoint(edge .. "RIGHT")
         else
-            line:SetWidth(3)
+            line:SetWidth(1)
             line:SetPoint("TOP" .. edge)
             line:SetPoint("BOTTOM" .. edge)
         end
     end
     compendium.foreverNotice.text = compendium.foreverNotice:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    compendium.foreverNotice.text:SetPoint("TOPLEFT", 8, -3)
-    compendium.foreverNotice.text:SetPoint("BOTTOMRIGHT", -8, 3)
+    compendium.foreverNotice.text:SetPoint("TOPLEFT", 3, -3)
+    compendium.foreverNotice.text:SetPoint("BOTTOMRIGHT", -3, 3)
     compendium.foreverNotice.text:SetJustifyH("LEFT")
     compendium.foreverNotice.text:SetWordWrap(true)
     compendium.foreverNotice.text:SetTextColor(1, 0.82, 0)
+    compendium.foreverNotice.measure = compendium.foreverNotice:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    do
+        local font, size, flags = compendium.foreverNotice.text:GetFont()
+        compendium.foreverNotice.text:SetFont(font, max(8, size - 2), flags)
+        compendium.foreverNotice.measure:SetFont(font, max(8, size - 2), flags)
+    end
+    compendium.foreverNotice.measure:SetWordWrap(false)
+    compendium.foreverNotice.measure:Hide()
+    function compendium.foreverNotice:UpdateWidth()
+        local available = max(1, compendium:GetWidth() - 10 - 24 - compendium.version:GetStringWidth() - 12)
+        self:SetWidth(min(available, self.textWidth or available))
+    end
+    compendium:HookScript("OnSizeChanged", function() compendium.foreverNotice:UpdateWidth() end)
     compendium.foreverNotice:Hide()
     AzerothCompendium:OnLanguage(function()
-        compendium.foreverNotice.text:SetText(AzerothCompendium:Trans("LID_FOREVERDAILYNOTICE"))
+        local text = AzerothCompendium:Trans("LID_FOREVERDAILYNOTICE")
+        compendium.foreverNotice.text:SetText(text)
+        compendium.foreverNotice.measure:SetText(text)
+        compendium.foreverNotice.textWidth = math.ceil(compendium.foreverNotice.measure:GetStringWidth()) + 6
+        compendium.foreverNotice:SetHeight(math.ceil(compendium.foreverNotice.measure:GetStringHeight()) + 6)
+        compendium.foreverNotice:UpdateWidth()
     end)
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})

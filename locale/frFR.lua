@@ -140,6 +140,6 @@ AzerothCompendium:AddTrans("frFR", "LID_RESETSIZEANDSCALE", "Réinitialiser la t
 AzerothCompendium:AddTrans("frFR", "LID_MARKFAVORITE", "Marquer comme favori")
 AzerothCompendium:AddTrans("frFR", "LID_NICETOHAVE", "Bon à avoir")
 
-AzerothCompendium:AddTrans("frFR", "LID_FOREVERDAILYNOTICE", "Les données des donjons Forever reflètent un état quotidien et sont actualisées chaque jour.")
+AzerothCompendium:AddTrans("frFR", "LID_FOREVERDAILYNOTICE", "Donjons Forever : données du jour, actualisées quotidiennement.")
 
 AzerothCompendium:AddTrans("frFR", "LID_SHOWOPPOSINGQUESTS", "Afficher aussi les quêtes de la faction adverse")

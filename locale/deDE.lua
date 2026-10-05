@@ -163,6 +163,6 @@ AzerothCompendium:AddTrans("deDE", "LID_RESETSIZEANDSCALE", "Größe und Skalier
 AzerothCompendium:AddTrans("deDE", "LID_MARKFAVORITE", "Als Favorit markieren")
 AzerothCompendium:AddTrans("deDE", "LID_NICETOHAVE", "Nice to have")
 
-AzerothCompendium:AddTrans("deDE", "LID_FOREVERDAILYNOTICE", "Die Daten zu Forever-Dungeons entsprechen dem jeweiligen Tagesstand und werden täglich aktualisiert.")
+AzerothCompendium:AddTrans("deDE", "LID_FOREVERDAILYNOTICE", "Forever-Dungeon-Daten: Tagesstand, täglich aktualisiert.")
 
 AzerothCompendium:AddTrans("deDE", "LID_SHOWOPPOSINGQUESTS", "Auch Quests der gegnerischen Fraktion anzeigen")

@@ -140,6 +140,6 @@ AzerothCompendium:AddTrans("esMX", "LID_RESETSIZEANDSCALE", "Restablecer tamaño
 AzerothCompendium:AddTrans("esMX", "LID_MARKFAVORITE", "Marcar como favorito")
 AzerothCompendium:AddTrans("esMX", "LID_NICETOHAVE", "Deseable")
 
-AzerothCompendium:AddTrans("esMX", "LID_FOREVERDAILYNOTICE", "Los datos de las mazmorras de Forever reflejan el estado del día y se actualizan diariamente.")
+AzerothCompendium:AddTrans("esMX", "LID_FOREVERDAILYNOTICE", "Datos de mazmorras Forever: estado del día, actualización diaria.")
 
 AzerothCompendium:AddTrans("esMX", "LID_SHOWOPPOSINGQUESTS", "Mostrar también las misiones de la facción contraria")
