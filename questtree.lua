@@ -656,13 +656,28 @@ local function ComputeLayers(nodes)
         node.layer = nil
     end
 
-    local function Layer(node, stack)
+    local Layer
+    local function ParentLayer(parent, section, stack)
+        if parent.section == section then return Layer(parent, stack) + 1 end
+        if parent.section < section or stack[parent] then return 0 end
+        stack[parent] = true
+        local layer = 0
+        for _, grandParent in ipairs(parent.parents) do
+            layer = max(layer, ParentLayer(grandParent, section, stack))
+        end
+
+        stack[parent] = nil
+
+        return layer
+    end
+
+    function Layer(node, stack)
         if node.layer ~= nil then return node.layer end
         if stack[node] then return 0 end
         stack[node] = true
         local layer = 0
         for _, parent in ipairs(node.parents) do
-            if parent.section == node.section then layer = max(layer, Layer(parent, stack) + 1) end
+            layer = max(layer, ParentLayer(parent, node.section, stack))
         end
 
         stack[node] = nil

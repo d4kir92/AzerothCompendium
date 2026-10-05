@@ -1051,7 +1051,6 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local afterAnchor = {}
-    local beforeAnchor = {}
     for _, node in ipairs(list) do
         IsBottom(node, {})
         local anchor = IsAnchor(node)
@@ -1059,9 +1058,6 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         node.outside = nil
         if anchor then
             node.section = 2
-        elseif after and Reaches(node, "children", beforeAnchor, {}) then
-            node.section = 2
-            node.outside = true
         elseif after then
             node.section = 3
         else
