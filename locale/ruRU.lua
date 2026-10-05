@@ -139,3 +139,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_RESETSIZEANDSCALE", "Сбросить р
 
 AzerothCompendium:AddTrans("ruRU", "LID_MARKFAVORITE", "Отметить как избранное")
 AzerothCompendium:AddTrans("ruRU", "LID_NICETOHAVE", "Неплохо иметь")
+
+AzerothCompendium:AddTrans("ruRU", "LID_FOREVERDAILYNOTICE", "Данные подземелий Forever отражают состояние на текущий день и обновляются ежедневно.")
+
+AzerothCompendium:AddTrans("ruRU", "LID_SHOWOPPOSINGQUESTS", "Показывать задания противоположной фракции")

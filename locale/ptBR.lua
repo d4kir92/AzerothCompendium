@@ -139,3 +139,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_RESETSIZEANDSCALE", "Redefinir tamanho e
 
 AzerothCompendium:AddTrans("ptBR", "LID_MARKFAVORITE", "Marcar como favorito")
 AzerothCompendium:AddTrans("ptBR", "LID_NICETOHAVE", "Bom ter")
+
+AzerothCompendium:AddTrans("ptBR", "LID_FOREVERDAILYNOTICE", "Os dados das masmorras Forever refletem o estado do dia e são atualizados diariamente.")
+
+AzerothCompendium:AddTrans("ptBR", "LID_SHOWOPPOSINGQUESTS", "Mostrar também as missões da facção adversária")

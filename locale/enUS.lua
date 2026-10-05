@@ -162,3 +162,7 @@ AzerothCompendium:AddTrans("enUS", "LID_RESETSIZEANDSCALE", "Reset size and scal
 
 AzerothCompendium:AddTrans("enUS", "LID_MARKFAVORITE", "Mark as Favorite")
 AzerothCompendium:AddTrans("enUS", "LID_NICETOHAVE", "Nice to have")
+
+AzerothCompendium:AddTrans("enUS", "LID_FOREVERDAILYNOTICE", "Forever dungeon data reflects the daily snapshot and is updated every day.")
+
+AzerothCompendium:AddTrans("enUS", "LID_SHOWOPPOSINGQUESTS", "Show quests of the opposing faction")

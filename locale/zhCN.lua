@@ -139,3 +139,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_RESETSIZEANDSCALE", "重置大小和缩�
 
 AzerothCompendium:AddTrans("zhCN", "LID_MARKFAVORITE", "标记为收藏")
 AzerothCompendium:AddTrans("zhCN", "LID_NICETOHAVE", "有了更好")
+
+AzerothCompendium:AddTrans("zhCN", "LID_FOREVERDAILYNOTICE", "Forever地下城数据反映当日信息，并每日更新。")
+
+AzerothCompendium:AddTrans("zhCN", "LID_SHOWOPPOSINGQUESTS", "显示敌对阵营的任务")

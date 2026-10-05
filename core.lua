@@ -597,13 +597,23 @@ function AzerothCompendium:IsQuestForFlavor(questID)
     return AzerothCompendium:GetFlavor() == FLAVOR_FOREVER or not (AzerothCompendium.QUESTFOREVER and AzerothCompendium.QUESTFOREVER[questID])
 end
 
+function AzerothCompendium:IsQuestSideVisible(side)
+    if side ~= 1 and side ~= 2 then return true end
+    local default = IsOpposingQuestSide(1) and 2 or 1
+    if type(ACOTAB) == "table" then
+        if ACOTAB.SHOWALLIANCEQUESTS == true and ACOTAB.SHOWHORDEQUESTS == false then default = 1 end
+        if ACOTAB.SHOWHORDEQUESTS == true and ACOTAB.SHOWALLIANCEQUESTS == false then default = 2 end
+    end
+    return self:GetConfig("QUESTFACTION", default) == side
+end
+
 function AzerothCompendium:GetInstanceQuests(inst)
     if inst == nil or inst.id == nil then return {} end
 
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and not IsOpposingQuestSide(quest[3]) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) then
             tinsert(available, quest)
         end
     end
@@ -816,7 +826,8 @@ local function IsQuestHidden(questID)
     if not AzerothCompendium:IsQuestForFlavor(questID) then return true end
     if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
 
-    return IsQuestForOpposingFaction(questID)
+    local quest = AzerothCompendium:GetQuestDataByID(questID)
+    return not AzerothCompendium:IsQuestSideVisible(quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[questID])
 end
 
 local questFollowUps = nil

@@ -2005,7 +2005,10 @@ local function RefreshDetail()
         compendium.classFilterLabel:Hide()
         compendium.empty:Hide()
         compendium.detailTitle:SetText("")
+        compendium.detailCount:ClearAllPoints()
+        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle, "LEFT", -8, 0)
         compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
+        compendium.detailCount:Show()
         return
     end
 
@@ -2086,6 +2089,21 @@ end
 
 local function RefreshBosses()
     if compendium == nil then return end
+    compendium.foreverNotice:SetShown(listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
+    compendium.foreverNotice:ClearAllPoints()
+    compendium.foreverNotice:SetPoint("TOPLEFT", compendium.middleTabs.quests, "TOPRIGHT", 8, 3)
+    compendium.foreverNotice:SetPoint("TOPRIGHT", compendium.questTree, "TOPRIGHT", middleKind == "map" and not compendium.overviewActive and -240 or -180, 33)
+    compendium.factionToggle:ClearAllPoints()
+    compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.overviewActive and compendium.overview or compendium.questTree, "TOPRIGHT", -2, 4)
+    compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests"))
+    for side, button in ipairs(compendium.factionToggle.buttons) do
+        local enabled = AzerothCompendium:IsQuestSideVisible(side)
+        button.ring:Show()
+        button.ring:SetDesaturated(not enabled)
+        button.ring:SetAlpha(enabled and 1 or 0.45)
+        button.icon:SetDesaturated(not enabled)
+        button.icon:SetAlpha(enabled and 1 or 0.45)
+    end
     if compendium.overviewActive and (listKind == "dungeon" or listKind == "raid") then
         for _, frame in ipairs({compendium.bosses, compendium.bossTitle, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}) do frame:Hide() end
         if compendium.model then compendium.model:Hide() end
@@ -3293,12 +3311,13 @@ end
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
+    compendium.foreverNotice:Hide()
     compendium.search:SetShown(mode ~= "allitems")
     compendium.searchLabel:SetShown(mode ~= "allitems")
     if compendium.overview then compendium.overview:Hide() end
     if enabled then compendium.overviewActive = false end
     if compendium.instancePopup then compendium.instancePopup:Hide() end
-    local regular = {compendium.instanceControl, compendium.bossTitle, compendium.bosses, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}
+    local regular = {compendium.instanceControl, compendium.factionToggle, compendium.bossTitle, compendium.bosses, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}
     if compendium.model then tinsert(regular, compendium.model) end
     for _, tab in pairs(compendium.detailTabs or {}) do
         tinsert(regular, tab)
@@ -3963,7 +3982,6 @@ function AzerothCompendium:CreateInstanceControls()
         return row
     end)
     AzerothCompendium:AnchorContent(overview)
-    overview:SetPoint("TOPLEFT", compendium, "TOPLEFT", self.ContentLayout.left, -self.ContentLayout.top + self.ContentLayout.tabHeight - self.ContentLayout.tabOffset)
     overview:EnableEmptyText()
     overview:Hide()
     compendium.overview = overview
@@ -4079,6 +4097,32 @@ local function CreateJournal()
     compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
     compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
+    compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
+    compendium.foreverNotice:SetHeight(30)
+    compendium.foreverNotice:EnableMouse(false)
+    for _, edge in ipairs({"TOP", "BOTTOM", "LEFT", "RIGHT"}) do
+        local line = compendium.foreverNotice:CreateTexture(nil, "BORDER")
+        line:SetColorTexture(1, 0.82, 0, 1)
+        if edge == "TOP" or edge == "BOTTOM" then
+            line:SetHeight(3)
+            line:SetPoint(edge .. "LEFT")
+            line:SetPoint(edge .. "RIGHT")
+        else
+            line:SetWidth(3)
+            line:SetPoint("TOP" .. edge)
+            line:SetPoint("BOTTOM" .. edge)
+        end
+    end
+    compendium.foreverNotice.text = compendium.foreverNotice:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    compendium.foreverNotice.text:SetPoint("TOPLEFT", 8, -3)
+    compendium.foreverNotice.text:SetPoint("BOTTOMRIGHT", -8, 3)
+    compendium.foreverNotice.text:SetJustifyH("LEFT")
+    compendium.foreverNotice.text:SetWordWrap(true)
+    compendium.foreverNotice.text:SetTextColor(1, 0.82, 0)
+    compendium.foreverNotice:Hide()
+    AzerothCompendium:OnLanguage(function()
+        compendium.foreverNotice.text:SetText(AzerothCompendium:Trans("LID_FOREVERDAILYNOTICE"))
+    end)
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
     search:SetSize(180, AzerothCompendium.ContentLayout.searchHeight)
@@ -4258,6 +4302,42 @@ local function CreateJournal()
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
+    compendium.factionToggle = CreateFrame("Frame", nil, compendium)
+    compendium.factionToggle:SetSize(64, 28)
+    compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.questTree, "TOPRIGHT", -2, 4)
+    compendium.factionToggle:SetFrameLevel(compendium:GetFrameLevel() + 4)
+    compendium.factionToggle.buttons = {}
+    for side, icon in ipairs({"Interface\\Icons\\INV_BannerPVP_02", "Interface\\Icons\\INV_BannerPVP_01"}) do
+        local button = CreateFrame("Button", nil, compendium.factionToggle)
+        button:SetSize(28, 28)
+        button:SetPoint("LEFT", compendium.factionToggle, "LEFT", (side - 1) * 34, 0)
+        button.icon = button:CreateTexture(nil, "ARTWORK")
+        button.icon:SetPoint("TOPLEFT", 3, -3)
+        button.icon:SetPoint("BOTTOMRIGHT", -3, 3)
+        button.icon:SetTexture(icon)
+        button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        button:GetHighlightTexture():ClearAllPoints()
+        button:GetHighlightTexture():SetAllPoints(button.icon)
+        if button.CreateMaskTexture and button:GetHighlightTexture().AddMaskTexture then
+            local mask = button:CreateMaskTexture()
+            mask:SetAllPoints(button.icon)
+            mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+            button:GetHighlightTexture():AddMaskTexture(mask)
+        end
+        button.ring = AddIconRing(button, button.icon, 22, true)
+        button:SetScript("OnClick", function()
+            AzerothCompendium:SetConfig("QUESTFACTION", side)
+            AzerothCompendium:RefreshCompendium()
+        end)
+        button:SetScript("OnEnter", function(owner)
+            GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+            GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(side == 1 and FACTION_ALLIANCE or FACTION_HORDE))
+            GameTooltip:Show()
+        end)
+        button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        compendium.factionToggle.buttons[side] = button
+    end
+    compendium.factionToggle:Hide()
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot.rowGap = 0
     loot:SetRowHeight(LOOT_ROW_H + 6)

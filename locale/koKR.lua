@@ -139,3 +139,7 @@ AzerothCompendium:AddTrans("koKR", "LID_RESETSIZEANDSCALE", "크기 및 배율 �
 
 AzerothCompendium:AddTrans("koKR", "LID_MARKFAVORITE", "즐겨찾기로 표시")
 AzerothCompendium:AddTrans("koKR", "LID_NICETOHAVE", "있으면 좋은 아이템")
+
+AzerothCompendium:AddTrans("koKR", "LID_FOREVERDAILYNOTICE", "Forever 던전 데이터는 해당 날짜 기준이며 매일 업데이트됩니다.")
+
+AzerothCompendium:AddTrans("koKR", "LID_SHOWOPPOSINGQUESTS", "상대 진영의 퀘스트도 표시")

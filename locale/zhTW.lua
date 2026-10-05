@@ -139,3 +139,7 @@ AzerothCompendium:AddTrans("zhTW", "LID_RESETSIZEANDSCALE", "重設大小與縮�
 
 AzerothCompendium:AddTrans("zhTW", "LID_MARKFAVORITE", "標記為最愛")
 AzerothCompendium:AddTrans("zhTW", "LID_NICETOHAVE", "有了更好")
+
+AzerothCompendium:AddTrans("zhTW", "LID_FOREVERDAILYNOTICE", "Forever地城資料反映當日資訊，並每日更新。")
+
+AzerothCompendium:AddTrans("zhTW", "LID_SHOWOPPOSINGQUESTS", "顯示敵對陣營的任務")
