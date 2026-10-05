@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("ruRU", "LID_RESIZEWINDOW", "Изменить раз�
 AzerothCompendium:AddTrans("ruRU", "LID_RESETSIZEANDSCALE", "Сбросить размер и масштаб")
 
 AzerothCompendium:AddTrans("ruRU", "LID_MARKFAVORITE", "Отметить как избранное")
-AzerothCompendium:AddTrans("ruRU", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("ruRU", "LID_NICETOHAVE", "Неплохо иметь")

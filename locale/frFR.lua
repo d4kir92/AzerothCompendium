@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("frFR", "LID_RESIZEWINDOW", "Redimensionner la fenêt
 AzerothCompendium:AddTrans("frFR", "LID_RESETSIZEANDSCALE", "Réinitialiser la taille et l'échelle")
 
 AzerothCompendium:AddTrans("frFR", "LID_MARKFAVORITE", "Marquer comme favori")
-AzerothCompendium:AddTrans("frFR", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("frFR", "LID_NICETOHAVE", "Bon à avoir")

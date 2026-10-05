@@ -1,5 +1,5 @@
 local _, AC = ...
-local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 8}
+local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 4}
 AC.WishlistStars = Stars
 
 function Stars:ItemID(value)

@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("zhTW", "LID_RESIZEWINDOW", "調整視窗大小")
 AzerothCompendium:AddTrans("zhTW", "LID_RESETSIZEANDSCALE", "重設大小與縮放")
 
 AzerothCompendium:AddTrans("zhTW", "LID_MARKFAVORITE", "標記為最愛")
-AzerothCompendium:AddTrans("zhTW", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("zhTW", "LID_NICETOHAVE", "有了更好")

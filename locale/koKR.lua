@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("koKR", "LID_RESIZEWINDOW", "창 크기 조절")
 AzerothCompendium:AddTrans("koKR", "LID_RESETSIZEANDSCALE", "크기 및 배율 초기화")
 
 AzerothCompendium:AddTrans("koKR", "LID_MARKFAVORITE", "즐겨찾기로 표시")
-AzerothCompendium:AddTrans("koKR", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("koKR", "LID_NICETOHAVE", "있으면 좋은 아이템")

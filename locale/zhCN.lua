@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("zhCN", "LID_RESIZEWINDOW", "调整窗口大小")
 AzerothCompendium:AddTrans("zhCN", "LID_RESETSIZEANDSCALE", "重置大小和缩放")
 
 AzerothCompendium:AddTrans("zhCN", "LID_MARKFAVORITE", "标记为收藏")
-AzerothCompendium:AddTrans("zhCN", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("zhCN", "LID_NICETOHAVE", "有了更好")

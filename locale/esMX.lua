@@ -138,4 +138,4 @@ AzerothCompendium:AddTrans("esMX", "LID_RESIZEWINDOW", "Cambiar tamaño de venta
 AzerothCompendium:AddTrans("esMX", "LID_RESETSIZEANDSCALE", "Restablecer tamaño y escala")
 
 AzerothCompendium:AddTrans("esMX", "LID_MARKFAVORITE", "Marcar como favorito")
-AzerothCompendium:AddTrans("esMX", "LID_NICETOHAVE", "Nice to have")
+AzerothCompendium:AddTrans("esMX", "LID_NICETOHAVE", "Deseable")
