@@ -1026,8 +1026,25 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         if node.instance and (inside[node.id] or startInside[node.id]) then hasInside = true end
     end
 
-    local function IsAnchor(node)
-        return node.instance and (inside[node.id] or startInside[node.id] or not hasInside)
+    local anchors = {}
+    local IsAnchor
+    local function HasAnchorAncestor(node, stack)
+        if stack[node] then return false end
+        stack[node] = true
+        for _, parent in ipairs(node.parents) do
+            if IsAnchor(parent) or HasAnchorAncestor(parent, stack) then return true end
+        end
+
+        return false
+    end
+
+    function IsAnchor(node)
+        if anchors[node] == nil then
+            anchors[node] = false
+            anchors[node] = node.instance and (inside[node.id] or not hasInside or startInside[node.id] and not HasAnchorAncestor(node, {})) and true or false
+        end
+
+        return anchors[node]
     end
     local afterInstance = AzerothCompendium.QUESTAFTERINSTANCE or {}
     local function IsAfterSeed(node)
