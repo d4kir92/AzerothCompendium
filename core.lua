@@ -1038,7 +1038,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         return false
     end
 
-    function IsAnchor(node)
+    IsAnchor = function(node)
         if anchors[node] == nil then
             anchors[node] = false
             anchors[node] = node.instance and (inside[node.id] or not hasInside or startInside[node.id] and not HasAnchorAncestor(node, {})) and true or false

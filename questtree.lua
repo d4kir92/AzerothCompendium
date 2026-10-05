@@ -671,7 +671,7 @@ local function ComputeLayers(nodes)
         return layer
     end
 
-    function Layer(node, stack)
+    Layer = function(node, stack)
         if node.layer ~= nil then return node.layer end
         if stack[node] then return 0 end
         stack[node] = true
