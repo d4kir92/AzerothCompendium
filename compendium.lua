@@ -241,6 +241,8 @@ local function GetAllLoot(inst)
                 tinsert(list, {
                     itemID,
                     entry[2],
+                    mobs = entry.mobs,
+                    itemClass = entry.itemClass,
                     source = boss
                 })
             end
@@ -421,10 +423,18 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         self:ScrollToTop()
     end
 
+    function scroller:QueueRefresh()
+        self.refreshPending = true
+    end
+
     function scroller:Refresh()
         local viewport = self:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
-        if width > 0 then self.content:SetWidth(width) end
+        if width <= 0 then
+            self:QueueRefresh()
+            return
+        end
+        self.content:SetWidth(width)
         local offset = 0
         self.rowOffsets = {}
         for index, entry in ipairs(self.data) do
@@ -441,11 +451,13 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
 
             if row.stripe then row.stripe:SetColorTexture(1, 1, 1, index % 2 == 1 and 0.03 or 0.06) end
             self.rowOffsets[index] = offset
-            row:SetHeight(type(entry) == "table" and entry.rowHeight or self.rowHeight)
+            local height = type(entry) == "table" and entry.rowHeight or self.rowHeight
+            if row.GetRowHeight then height = row:GetRowHeight(entry, width, height) end
+            row:SetHeight(height)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -offset)
             row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -offset)
-            offset = offset + (type(entry) == "table" and entry.rowHeight or self.rowHeight) + self.rowGap
+            offset = offset + height + self.rowGap
             row:Update(entry)
             row:Show()
         end
@@ -534,7 +546,14 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         self:SetBannerOffset(28)
     end
 
-    scroller:SetScript("OnSizeChanged", function(sel) sel:Refresh() end)
+    scroller:SetScript("OnSizeChanged", function(sel) sel:QueueRefresh() end)
+    local viewport = scroller:GetViewport()
+    if viewport then viewport:HookScript("OnSizeChanged", function() scroller:QueueRefresh() end) end
+    scroller:HookScript("OnUpdate", function(sel)
+        if not sel.refreshPending then return end
+        sel.refreshPending = nil
+        sel:Refresh()
+    end)
     return scroller
 end
 
@@ -1203,6 +1222,17 @@ local function GetLootList()
             hidden = hidden + 1
         end
         if ok then tinsert(list, entry) end
+    end
+    if selectedBoss.trash then
+        local order = {[2] = 1, [4] = 2, [9] = 3, [0] = 4, [7] = 5, [12] = 6, [15] = 7}
+        table.sort(list, function(a, b)
+            local classA = a.itemClass or select(6, AzerothCompendium:GetItemInfoInstant(a[1]))
+            local classB = b.itemClass or select(6, AzerothCompendium:GetItemInfoInstant(b[1]))
+            local rankA, rankB = order[classA] or 8, order[classB] or 8
+            if rankA ~= rankB then return rankA < rankB end
+            if classA ~= classB then return (classA or 99) < (classB or 99) end
+            return a[1] < b[1]
+        end)
     end
     return list, hidden
 end
@@ -2460,9 +2490,91 @@ local function CreateLootRow(scroller)
         if HandleModifiedItemClick then HandleModifiedItemClick(sel.link) end
     end)
 
+    row.mobFrame = CreateFrame("Frame", nil, row)
+    row.mobFrame:SetPoint("RIGHT", row.chance, "LEFT", -8, 0)
+    row.mobs = {}
+    function row:GetMobColumns(width)
+        return math.max(1, math.floor(width * 0.45 / 38))
+    end
+    function row:GetRowHeight(entry, width, baseHeight)
+        local lines = math.ceil(#(entry.mobs or {}) / self:GetMobColumns(width))
+        return math.max(baseHeight or LOOT_ROW_H + 6, lines * 38 + 6)
+    end
+    function row:LayoutMobs()
+        local width = self:GetWidth()
+        if not self.mobCount or width <= 0 then return end
+        local columns = self:GetMobColumns(width)
+        local lines = math.ceil(self.mobCount / columns)
+        local frameWidth = math.min(self.mobCount, columns) * 38
+        self.mobFrame:SetSize(math.max(1, frameWidth), math.max(1, lines * 38))
+        for index = 1, self.mobCount do
+            local line = math.floor((index - 1) / columns)
+            local column = (index - 1) % columns
+            local count = math.min(columns, self.mobCount - line * columns)
+            local mob = self.mobs[index]
+            mob:ClearAllPoints()
+            mob:SetPoint("CENTER", self.mobFrame, "TOPLEFT", frameWidth - count * 38 + column * 38 + 19, -line * 38 - 19)
+        end
+    end
+    row:HookScript("OnSizeChanged", function(sel) sel:LayoutMobs() end)
+    function row:UpdateMobs(entry)
+        local sources = {}
+        for _, source in ipairs(entry.mobs or {}) do tinsert(sources, source) end
+        table.sort(sources, function(a, b)
+            if a.chance ~= b.chance then return (a.chance or -1) < (b.chance or -1) end
+            return (a.npcs[1] or 0) < (b.npcs[1] or 0)
+        end)
+        for _, mob in ipairs(self.mobs) do mob:Hide() end
+        self.mobCount = nil
+        self.mobFrame:SetShown(#sources > 0)
+        for index = #sources, 1, -1 do
+            local mob = self.mobs[index]
+            if not mob then
+                mob = CreateFrame("Frame", nil, self.mobFrame)
+                mob:SetSize(26, 26)
+                mob:EnableMouse(true)
+                mob.icon = mob:CreateTexture(nil, "ARTWORK")
+                mob.icon:SetAllPoints(mob)
+                mob.ring = AddIconRing(mob, mob.icon, 26, true)
+                mob.dragon = mob:CreateTexture(nil, "OVERLAY", nil, 2)
+                mob.dragon:SetSize(104, 52)
+                mob.dragon:SetPoint("CENTER", mob, "CENTER", -21.94, -8.13)
+                mob:SetScript("OnEnter", function(sel)
+                    local tooltip = GameTooltip
+                    tooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                    tooltip:SetText(AzerothCompendium:GetBossName(sel.source))
+                    if sel.source.chance ~= nil then tooltip:AddLine(format("%.2f%%", sel.source.chance), 1, 0.82, 0) end
+                    tooltip:Show()
+                end)
+                mob:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+                self.mobs[index] = mob
+            end
+            mob.source = sources[index]
+            local applied = false
+            if mob.source.model and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, mob.icon, mob.source.model) end
+            if not applied then mob.icon:SetTexture(BOSS_PORTRAIT_FALLBACK) end
+            local style = LEVEL_BADGE_STYLE[mob.source.classification or 0] or LEVEL_BADGE_STYLE[0]
+            mob.dragon:Hide()
+            if style.dragon then
+                mob.dragon:SetTexture(MEDIA_PATH .. style.dragon)
+                mob.dragon:Show()
+            end
+            mob:Show()
+        end
+        self.mobCount = #sources
+        self:LayoutMobs()
+        local anchor = #sources > 0 and self.mobFrame or self.chance
+        self.name:SetPoint("RIGHT", anchor, "LEFT", -8, 0)
+        self.slot:SetPoint("RIGHT", anchor, "LEFT", -8, 0)
+    end
+
     function row:Update(entry)
         local itemID = entry[1]
         local chance = entry[2]
+        for _, mob in ipairs(entry.mobs or {}) do
+            if mob.chance ~= nil and (chance == nil or mob.chance > chance) then chance = mob.chance end
+        end
+        self:UpdateMobs(entry)
         self.itemID = itemID
         AzerothCompendium:UpdateWishlistStar(self, self.icon, itemID)
         self.jumpBoss = entry.source
