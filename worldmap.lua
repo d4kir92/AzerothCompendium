@@ -48,6 +48,8 @@ local WorldMap = {
     pinCache = {},
     pins = {},
     minimapPins = {},
+    waypointPositions = {},
+    trackingAtlas = {"UI-QuestPoi-QuestNumber-SuperTracked"},
     minimapYards = {
         outdoor = {[0] = 466.66666, 400, 333.33333, 266.66666, 200, 133.33333},
         indoor = {[0] = 300, 240, 180, 120, 80, 50},
@@ -376,6 +378,7 @@ function WorldMap.CreatePin(parent)
     pin.highlight = pin:CreateTexture(nil, "HIGHLIGHT")
     pin.highlight:SetBlendMode("ADD")
     pin.highlight:SetAlpha(0.5)
+    pin.textures = {pin.icon, pin.highlight}
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     pin:SetScript("OnClick", WorldMap.OnPinClick)
     pin:SetScript("OnEnter", WorldMap.OnPinEnter)
@@ -395,7 +398,7 @@ function WorldMap.ApplyIcon(pin, group, size)
         icon = def.resolved
     end
 
-    for _, texture in ipairs({pin.icon, pin.highlight}) do
+    for _, texture in ipairs(pin.textures) do
         texture:ClearAllPoints()
         texture:SetPoint("TOPLEFT", pin, "TOPLEFT", inset, -inset)
         texture:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -inset, inset)
@@ -407,8 +410,12 @@ function WorldMap.UpdatePinStyle(pin)
     if pin.group == nil then return end
     local tracked = false
     if C_Map ~= nil and C_Map.GetUserWaypointPositionForMap ~= nil and AzerothCompendium:IsWaypointTracked() then
-        local pos = C_Map.GetUserWaypointPositionForMap(pin.group.mapID)
-        if pos ~= nil then
+        local pos = WorldMap.waypointPositions[pin.group.mapID]
+        if pos == nil then
+            pos = C_Map.GetUserWaypointPositionForMap(pin.group.mapID) or false
+            WorldMap.waypointPositions[pin.group.mapID] = pos
+        end
+        if pos ~= false then
             local x, y = pos:GetXY()
             if not WorldMap.IsSecret(x) and not WorldMap.IsSecret(y) and x ~= nil and y ~= nil then
                 tracked = abs(x - pin.group.x / 100) < 0.001 and abs(y - pin.group.y / 100) < 0.001
@@ -416,25 +423,48 @@ function WorldMap.UpdatePinStyle(pin)
         end
     end
 
-    local atlas = tracked and AzerothCompendium:FindAtlas({"UI-QuestPoi-QuestNumber-SuperTracked"}) or nil
-    if atlas ~= nil then
+    local size = pin:GetWidth()
+    if pin.styleGroup == pin.group and pin.styleSize == size and pin.styleTracked == tracked then return end
+    pin.styleGroup = pin.group
+    pin.styleSize = size
+    pin.styleTracked = tracked
+    if tracked and WorldMap.trackingAtlas.resolved == nil then WorldMap.trackingAtlas.resolved = AzerothCompendium:FindAtlas(WorldMap.trackingAtlas) or false end
+    local atlas = tracked and WorldMap.trackingAtlas.resolved or nil
+    if atlas then
         pin.circle:SetAtlas(atlas)
         pin.circle:Show()
     else
         pin.circle:Hide()
     end
 
-    local size = pin:GetWidth()
     WorldMap.ApplyIcon(pin, pin.group, size)
-    if atlas ~= nil then
+    if atlas then
         local inset = size * 0.14
         if pin.group.kind == "meetingstone" then inset = size * 0.21 end
-        for _, texture in ipairs({pin.icon, pin.highlight}) do
+        for _, texture in ipairs(pin.textures) do
             texture:ClearAllPoints()
             texture:SetPoint("TOPLEFT", pin, "TOPLEFT", inset, -inset)
             texture:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -inset, inset)
         end
     end
+end
+
+function WorldMap.RefreshWaypoint()
+    wipe(WorldMap.waypointPositions)
+    for _, pin in ipairs(WorldMap.pins) do
+        if pin:IsShown() then WorldMap.UpdatePinStyle(pin) end
+    end
+
+    for _, pin in ipairs(WorldMap.minimapPins) do
+        if pin:IsShown() then WorldMap.UpdatePinStyle(pin) end
+    end
+end
+
+if C_Map ~= nil and C_Map.GetUserWaypointPositionForMap ~= nil then
+    WorldMap.waypointUpdater = CreateFrame("FRAME")
+    WorldMap.waypointUpdater:RegisterEvent("USER_WAYPOINT_UPDATED")
+    if C_SuperTrack ~= nil then WorldMap.waypointUpdater:RegisterEvent("SUPER_TRACKING_CHANGED") end
+    WorldMap.waypointUpdater:SetScript("OnEvent", WorldMap.RefreshWaypoint)
 end
 
 function WorldMap.IsSecret(value)
