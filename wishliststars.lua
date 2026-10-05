@@ -7,6 +7,27 @@ function Stars:ItemID(value)
     if type(value) == "string" then return tonumber(string.match(value, "item:(%d+)")) end
 end
 
+function Stars:RegisterBaganator()
+    local api = Baganator and Baganator.API
+    if self.baganatorRegistered or not api or type(api.RegisterCornerWidget) ~= "function" then return end
+    api.RegisterCornerWidget("AzerothCompendium: " .. AC:Trans("LID_WISHLIST"), "azerothcompendium_wishlist", function(_, details)
+        local itemID = type(details) == "table" and Stars:ItemID(details.itemID or details.itemLink)
+        return itemID ~= nil and AC:IsWishlisted(itemID)
+    end, function(button)
+        local star = button:CreateTexture(nil, "OVERLAY", nil, 7)
+        star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
+        star:SetSize(14, 14)
+        return star
+    end, {corner = "top_right", priority = 1}, true)
+    self.baganatorRegistered = true
+end
+
+function Stars:RefreshBaganator()
+    local api = Baganator and Baganator.API
+    if self.baganatorRegistered and api and type(api.RequestItemButtonsRefresh) == "function" then
+        api.RequestItemButtonsRefresh()
+    end
+end
 function Stars:Resolve(button)
     local name = button:GetName() or ""
     if type(name) ~= "string" then name = "" end
@@ -33,6 +54,7 @@ function Stars:Resolve(button)
     if string.match(name, "^QuestInfoItem%d+$") and button.type and GetQuestItemLink then
         return self:ItemID(GetQuestItemLink(button.type, button:GetID()))
     end
+    if type(button.BGR) == "table" then return self:ItemID(button.BGR.itemID or button.BGR.itemLink) end
     local hasBagSlot = type(button.GetBagID) == "function" and type(button.GetSlotID) == "function"
     if hasBagSlot or string.match(name, "^ContainerFrame%d+Item%d+$") then
         local bag, slot
@@ -71,6 +93,10 @@ end
 
 function Stars:Update(button, entry)
     if not button:IsVisible() then return end
+    if self.baganatorRegistered and button.BGR then
+        if entry.star then entry.star:Hide() end
+        return
+    end
     local itemID = entry.itemID
     if not entry.explicit then itemID = self:Resolve(button) end
     local listed = itemID and AC:IsWishlisted(itemID) or false
@@ -86,6 +112,7 @@ end
 
 function Stars:Track(button)
     if not button or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
+    if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
     local icon = button.icon or button.Icon or button.IconTexture or name and _G[name .. "IconTexture"]
     if not icon or not icon.GetObjectType or icon:GetObjectType() ~= "Texture" then return end
@@ -110,7 +137,11 @@ local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("ADDON_LOADED")
 watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
-watcher:SetScript("OnEvent", function() Stars.discover = true end)
+watcher:SetScript("OnEvent", function()
+    Stars:RegisterBaganator()
+    Stars.discover = true
+end)
+Stars:RegisterBaganator()
 watcher:SetScript("OnUpdate", function(_, elapsed)
     Stars.elapsed = Stars.elapsed + elapsed
     if Stars.elapsed < 0.2 then return end
