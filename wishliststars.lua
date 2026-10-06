@@ -95,7 +95,9 @@ function AC:UpdateWishlistStar(button, icon, itemID)
 end
 
 function Stars:Update(button, entry)
-    if not button:IsVisible() then return end
+    local visible = button:IsVisible()
+    if issecretvalue and issecretvalue(visible) then return end
+    if not visible then return end
     if self.baganatorRegistered and button.BGR then
         if entry.star then entry.star:Hide() end
         return
