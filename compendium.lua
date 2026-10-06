@@ -1223,17 +1223,18 @@ local function GetLootList()
         end
         if ok then tinsert(list, entry) end
     end
-    if selectedBoss.trash then
-        local order = {[2] = 1, [4] = 2, [9] = 3, [0] = 4, [7] = 5, [12] = 6, [15] = 7}
-        table.sort(list, function(a, b)
-            local classA = a.itemClass or select(6, AzerothCompendium:GetItemInfoInstant(a[1]))
-            local classB = b.itemClass or select(6, AzerothCompendium:GetItemInfoInstant(b[1]))
-            local rankA, rankB = order[classA] or 8, order[classB] or 8
-            if rankA ~= rankB then return rankA < rankB end
-            if classA ~= classB then return (classA or 99) < (classB or 99) end
-            return a[1] < b[1]
-        end)
+    local order = {[2] = 1, [4] = 2, [9] = 3, [0] = 4, [7] = 5, [12] = 6, [15] = 7}
+    local keys = {}
+    for index, entry in ipairs(list) do
+        local classID = entry.itemClass or select(6, AzerothCompendium:GetItemInfoInstant(entry[1]))
+        keys[entry] = {order[classID] or 8, classID or 99, index}
     end
+    table.sort(list, function(a, b)
+        local keyA, keyB = keys[a], keys[b]
+        if keyA[1] ~= keyB[1] then return keyA[1] < keyB[1] end
+        if keyA[2] ~= keyB[2] then return keyA[2] < keyB[2] end
+        return keyA[3] < keyB[3]
+    end)
     return list, hidden
 end
 
