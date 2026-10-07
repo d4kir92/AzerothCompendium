@@ -2,6 +2,22 @@ local _, AC = ...
 local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 4}
 AC.WishlistStars = Stars
 
+function Stars:CanAccess(object)
+    if not object then return false end
+    for _, method in ipairs({"IsForbidden", "HasAnyForbiddenAspects", "CanBeAccessedInContext"}) do
+        if type(object[method]) == "function" then
+            local ok, value = pcall(object[method], object)
+            if not ok or (issecretvalue and issecretvalue(value)) then return false end
+            if method == "CanBeAccessedInContext" then
+                if not value then return false end
+            elseif value then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 function Stars:ItemID(value)
     if type(value) == "number" then return value end
     if type(value) == "string" then return tonumber(string.match(value, "item:(%d+)")) end
@@ -35,7 +51,8 @@ function Stars:Resolve(button)
     local name = button:GetName() or ""
     if type(name) ~= "string" then name = "" end
     local parent = button:GetParent()
-    local parentName = parent and type(parent.GetName) == "function" and parent:GetName() or ""
+    if parent and not self:CanAccess(parent) then return end
+    local parentName = self:CanAccess(parent) and type(parent.GetName) == "function" and parent:GetName() or ""
     if type(parentName) ~= "string" then parentName = "" end
     if string.match(name, "^GroupLootFrame%d+Item$") or string.match(parentName, "^GroupLootFrame%d+$") then
         return parent and GetLootRollItemLink and parent.rollID and self:ItemID(GetLootRollItemLink(parent.rollID))
@@ -82,7 +99,7 @@ function Stars:Resolve(button)
 end
 
 function AC:UpdateWishlistStar(button, icon, itemID)
-    if not button or not icon then return end
+    if not Stars:CanAccess(button) or not Stars:CanAccess(icon) then return end
     local entry = Stars.buttons[button]
     if not entry then
         entry = {}
@@ -95,6 +112,7 @@ function AC:UpdateWishlistStar(button, icon, itemID)
 end
 
 function Stars:Update(button, entry)
+    if not self:CanAccess(button) or not self:CanAccess(entry.icon) or (entry.star and not self:CanAccess(entry.star)) then return end
     local visible = button:IsVisible()
     if issecretvalue and issecretvalue(visible) then return end
     if not visible then return end
@@ -118,14 +136,14 @@ function Stars:Update(button, entry)
 end
 
 function Stars:Track(button)
-    if not button or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
+    if not self:CanAccess(button) or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
     local icon
     local candidates = {button.icon, button.Icon, button.IconTexture, type(name) == "string" and _G[name .. "IconTexture"] or nil}
     for i = 1, 4 do
         local candidate = candidates[i]
-        if type(candidate) == "table" and candidate.GetObjectType and candidate:GetObjectType() == "Texture" then
+        if type(candidate) == "table" and self:CanAccess(candidate) and candidate.GetObjectType and candidate:GetObjectType() == "Texture" then
             icon = candidate
             break
         end
@@ -139,12 +157,12 @@ function Stars:Refresh()
         self.discover = false
         local frame = EnumerateFrames()
         while frame do
-            if not frame.IsForbidden or not frame:IsForbidden() then pcall(self.Track, self, frame) end
+            if self:CanAccess(frame) then pcall(self.Track, self, frame) end
             frame = EnumerateFrames(frame)
         end
     end
     for button, entry in pairs(self.buttons) do
-        if (not button.IsForbidden or not button:IsForbidden()) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
+        if self:CanAccess(button) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
     end
 end
 
