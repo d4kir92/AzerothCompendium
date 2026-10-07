@@ -112,6 +112,10 @@ function AC:UpdateWishlistStar(button, icon, itemID)
 end
 
 function Stars:Update(button, entry)
+    if not AC:GetConfig("WISHLISTENABLED", true) then
+        if entry.star and self:CanAccess(entry.star) then entry.star:Hide() end
+        return
+    end
     if not self:CanAccess(button) or not self:CanAccess(entry.icon) or (entry.star and not self:CanAccess(entry.star)) then return end
     local visible = button:IsVisible()
     if issecretvalue and issecretvalue(visible) then return end
@@ -136,6 +140,7 @@ function Stars:Update(button, entry)
 end
 
 function Stars:Track(button)
+    if not AC:GetConfig("WISHLISTENABLED", true) then return end
     if not self:CanAccess(button) or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
@@ -153,7 +158,7 @@ function Stars:Track(button)
 end
 
 function Stars:Refresh()
-    if self.discover and EnumerateFrames then
+    if AC:GetConfig("WISHLISTENABLED", true) and self.discover and EnumerateFrames then
         self.discover = false
         local frame = EnumerateFrames()
         while frame do
@@ -179,7 +184,7 @@ watcher:SetScript("OnUpdate", function(_, elapsed)
     Stars.elapsed = Stars.elapsed + elapsed
     if Stars.elapsed < 0.2 then return end
     Stars.elapsed = 0
-    Stars:Refresh()
+    if AC:GetConfig("WISHLISTENABLED", true) then Stars:Refresh() end
 end)
 if SetItemButtonTexture then
     hooksecurefunc("SetItemButtonTexture", function(button)

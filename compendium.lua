@@ -1545,6 +1545,10 @@ end
 
 local function UpdateKindTabs()
     if compendium == nil then return end
+    local wishlistEnabled = AzerothCompendium:GetConfig("WISHLISTENABLED", true)
+    compendium.kindTabs.wishlist:SetShown(wishlistEnabled)
+    compendium.kindTabs.settings:ClearAllPoints()
+    compendium.kindTabs.settings:SetPoint("TOPLEFT", wishlistEnabled and compendium.kindTabs.wishlist or compendium.kindTabs.allitems, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     for kind, tab in pairs(compendium.kindTabs) do
         tab:SetChecked(kind == listKind)
     end
@@ -2478,6 +2482,7 @@ local function ShowItemTooltip(row)
 end
 
 local function ShowWishlistMenu(owner, itemID, source)
+    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
     itemID = tonumber(itemID)
     if itemID == nil then return end
     if owner.worldQuestItem then
@@ -3380,6 +3385,7 @@ function AzerothCompendium:RefreshModuleTabs()
     compendium.kindTabs.allitems:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     compendium.kindTabs.wishlist:ClearAllPoints()
     compendium.kindTabs.wishlist:SetPoint("TOPLEFT", compendium.kindTabs.allitems, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+    UpdateKindTabs()
     self:UpdateMinimumHeight()
 end
 
@@ -3757,6 +3763,13 @@ local function RefreshWorldQuestItemsView()
 end
 
 local function RefreshCurrentView()
+    if listKind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then
+        listKind = "dungeon"
+        selectedInstance = nil
+        selectedBoss = nil
+        SaveNavigationState()
+    end
+    UpdateKindTabs()
     if AzerothCompendium:RefreshModuleView() then return end
     if listKind == "allitems" then
         AzerothCompendium.ItemBrowser:Create(compendium)
@@ -4362,6 +4375,7 @@ local function CreateJournal()
     for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
+            if kind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
             if listKind == kind then
                 UpdateKindTabs()
                 return
@@ -4727,7 +4741,9 @@ end
 function AzerothCompendium:RefreshCompendium()
     AzerothCompendium:SyncCompendiumClassFilter()
     AzerothCompendium:SyncCompendiumFlavor()
-    if compendium == nil or not compendium:IsShown() then return end
+    if compendium == nil then return end
+    UpdateKindTabs()
+    if not compendium:IsShown() then return end
     RefreshCurrentView()
 end
 

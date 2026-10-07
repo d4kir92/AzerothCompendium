@@ -293,10 +293,12 @@ function AzerothCompendium:GetWishlist()
 end
 
 function AzerothCompendium:IsWishlisted(itemID)
+    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return false end
     return AzerothCompendium:GetWishlist()[itemID] ~= nil
 end
 
 function AzerothCompendium:GetWishlistTexture(itemID)
+    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return nil end
     local source = AzerothCompendium:GetWishlist()[itemID]
     if source == nil then return nil end
     if type(source) == "table" and source.wishlistMark == "nice" then
@@ -305,6 +307,7 @@ function AzerothCompendium:GetWishlistTexture(itemID)
     return "Interface\\AddOns\\AzerothCompendium\\media\\star"
 end
 function AzerothCompendium:SetWishlistItem(itemID, source, mark)
+    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
     if type(itemID) ~= "number" then return end
     if type(source) == "table" then
         local saved = {}

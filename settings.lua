@@ -38,11 +38,12 @@ local function AddCategory(key, level, added)
     tinsert(labels, {header.Label, header.element, "LID_" .. key})
 end
 
-local function AddCheckbox(key, default, func, label)
+local function AddCheckbox(key, default, func, label, added)
     local checkbox = acoset:AddCheckbox({
         ["label"] = label or ("LID_" .. key),
         ["search"] = key,
         ["value"] = AzerothCompendium:GetConfig(key, default),
+        ["added"] = added,
         ["func"] = function(value)
             AzerothCompendium:SV(ACOTAB, key, value)
             if func then func(value) end
@@ -196,6 +197,15 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
         end
     end)
 
+    AddCategory("LOOTSETTINGS", nil, "2026-10-07")
+    AddCheckbox("WISHLISTENABLED", true, function()
+        if AzerothCompendium.WishlistStars then
+            AzerothCompendium.WishlistStars.discover = true
+            AzerothCompendium.WishlistStars:Refresh()
+            AzerothCompendium.WishlistStars:RefreshBaganator()
+        end
+        AzerothCompendium:RefreshCompendium()
+    end, nil, "2026-10-07")
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("MAPICONS", nil, "2026-10-04")
