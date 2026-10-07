@@ -220,6 +220,12 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_ENTRANCE", "LID_SHOWENTRANCEPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_LEVEL", "LID_SHOWLEVELPINS", "2026-10-04")
+    AddCategory("TRAINERSPELLS", nil, "2026-10-07")
+    AzerothCompendium.TrainerSpellsTabCheckboxes = {}
+    for _, key in ipairs({"TRAINERSPELLS_COMPENDIUM_CLASS", "TRAINERSPELLS_COMPENDIUM_PROFESSIONS"}) do
+        AzerothCompendium.TrainerSpellsTabCheckboxes[key] = AddCheckbox(key, true, function(value) AzerothCompendium:SetTrainerSpellsTabSetting(key, value) end, nil, "2026-10-07")
+    end
+
     acoset:ResumeLayout()
     AzerothCompendium:RefreshSettingsLanguage()
     return acoset

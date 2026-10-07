@@ -3395,9 +3395,85 @@ function AzerothCompendium:RefreshModuleTabs()
     self:UpdateMinimumHeight()
 end
 
+AzerothCompendium.TrainerSpellsTabSettings = {
+    ["TrainerSpells:class"] = "TRAINERSPELLS_COMPENDIUM_CLASS",
+    ["TrainerSpells:professions"] = "TRAINERSPELLS_COMPENDIUM_PROFESSIONS"
+}
+
+function AzerothCompendium:IsModuleTabEnabled(id)
+    local key = self.TrainerSpellsTabSettings[id]
+    return key == nil or self:GetConfig(key, true) ~= false
+end
+
+function AzerothCompendium:RemoveModuleTab(id)
+    for index, entry in ipairs(self.ModuleTabs) do
+        if entry.id == id then
+            tremove(self.ModuleTabs, index)
+            if compendium ~= nil then
+                if compendium.moduleTabs and compendium.moduleTabs[id] then
+                    compendium.moduleTabs[id]:Hide()
+                    compendium.moduleTabs[id] = nil
+                end
+
+                if compendium.modulePanels and compendium.modulePanels[id] then
+                    compendium.modulePanels[id]:Hide()
+                    compendium.removedModulePanels = compendium.removedModulePanels or {}
+                    compendium.removedModulePanels[id] = {panel = compendium.modulePanels[id], placeholder = entry.placeholder}
+                    compendium.modulePanels[id] = nil
+                end
+
+                if listKind == id and compendium.kindTabs and compendium.kindTabs.dungeon then compendium.kindTabs.dungeon:Click() end
+            end
+
+            self:RefreshModuleTabs()
+            return true
+        end
+    end
+
+    return false
+end
+
+function AzerothCompendium:OnTrainerSpellsTabSettingChanged(key, value)
+    for id, settingKey in pairs(self.TrainerSpellsTabSettings) do
+        if settingKey == key then
+            if value == false then
+                self:RemoveModuleTab(id)
+            else
+                self:RegisterTrainerSpellsPlaceholders()
+            end
+        end
+    end
+
+    local checkbox = self.TrainerSpellsTabCheckboxes and self.TrainerSpellsTabCheckboxes[key]
+    if checkbox and checkbox.SetChecked then checkbox:SetChecked(value ~= false) end
+end
+
+function AzerothCompendium:SetTrainerSpellsTabSetting(key, value)
+    self:SetConfig(key, value)
+    self:SetSharedSetting(key, value)
+    self:OnTrainerSpellsTabSettingChanged(key, value)
+end
+
+AzerothCompendium:RegisterSharedSettings({
+    ["keys"] = {"TRAINERSPELLS_COMPENDIUM_CLASS", "TRAINERSPELLS_COMPENDIUM_PROFESSIONS"},
+    ["getDB"] = function() return ACOTAB end,
+    ["get"] = function(key) return AzerothCompendium:GetConfig(key, true) ~= false end,
+    ["set"] = function(key, value) AzerothCompendium:SetConfig(key, value) end,
+    ["onChange"] = function(key, value) AzerothCompendium:OnTrainerSpellsTabSettingChanged(key, value) end,
+})
+
+function AzerothCompendiumAPI.UnregisterTab(id)
+    if type(id) ~= "string" or id == "MapUtils" then return false end
+    return AzerothCompendium:RemoveModuleTab(id)
+end
+
 function AzerothCompendiumAPI.RegisterTab(id, definition)
     if id == "MapUtils" then return false end
     if type(id) ~= "string" or id == "" or type(definition) ~= "table" then return false end
+    if not AzerothCompendium:IsModuleTabEnabled(id) then
+        AzerothCompendium:RemoveModuleTab(id)
+        return false
+    end
     if (type(definition.onClick) ~= "function" and type(definition.createPanel) ~= "function") or definition.icon == nil then return false end
     if type(definition.label) ~= "string" and type(definition.label) ~= "function" then return false end
     for _, entry in ipairs(AzerothCompendium.ModuleTabs) do
@@ -3416,6 +3492,15 @@ function AzerothCompendiumAPI.RegisterTab(id, definition)
             AzerothCompendium:RefreshModuleTabs()
             if listKind == id then AzerothCompendium:RefreshModuleView() end
             return true
+        end
+    end
+
+    local removed = compendium and compendium.removedModulePanels and compendium.removedModulePanels[id]
+    if removed then
+        compendium.removedModulePanels[id] = nil
+        if (removed.placeholder and true or false) == (definition.placeholder and true or false) then
+            compendium.modulePanels = compendium.modulePanels or {}
+            compendium.modulePanels[id] = removed.panel
         end
     end
 
@@ -3647,20 +3732,23 @@ function AzerothCompendium:CreateTrainerSpellsPlaceholder(host, label, descripti
     host:SetScript("OnHide", function() link:ClearFocus() end)
 end
 
-AzerothCompendiumAPI.RegisterTab("TrainerSpells:professions", {
-    label = function() return AzerothCompendium:Trans("LID_PROFESSIONS") end,
-    icon = 134708,
-    insertBefore = "wishlist",
-    placeholder = true,
-    createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_PROFESSIONS", "LID_TRAINERSPELLS_PROFESSIONS") end
-})
-AzerothCompendiumAPI.RegisterTab("TrainerSpells:class", {
-    label = function() return AzerothCompendium:Trans("LID_CLASSES") end,
-    icon = 133743,
-    insertBefore = "wishlist",
-    placeholder = true,
-    createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_CLASSES", "LID_TRAINERSPELLS_CLASSES") end
-})
+function AzerothCompendium:RegisterTrainerSpellsPlaceholders()
+    if self:IsAddOnLoaded("TrainerSpells") then return end
+    AzerothCompendiumAPI.RegisterTab("TrainerSpells:professions", {
+        label = function() return AzerothCompendium:Trans("LID_PROFESSIONS") end,
+        icon = 134708,
+        insertBefore = "wishlist",
+        placeholder = true,
+        createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_PROFESSIONS", "LID_TRAINERSPELLS_PROFESSIONS") end
+    })
+    AzerothCompendiumAPI.RegisterTab("TrainerSpells:class", {
+        label = function() return AzerothCompendium:Trans("LID_CLASSES") end,
+        icon = 133743,
+        insertBefore = "wishlist",
+        placeholder = true,
+        createPanel = function(host) AzerothCompendium:CreateTrainerSpellsPlaceholder(host, "LID_CLASSES", "LID_TRAINERSPELLS_CLASSES") end
+    })
+end
 
 local function RefreshWishlistView()
     if compendium == nil or compendium.wishlist == nil then return end
@@ -5541,7 +5629,10 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         return
     end
 
-    if event == "PLAYER_LOGIN" then return end
+    if event == "PLAYER_LOGIN" then
+        AzerothCompendium:RegisterTrainerSpellsPlaceholders()
+        return
+    end
 
     if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
         if compendium ~= nil and compendium:IsShown() and listKind == "dungeon" then
