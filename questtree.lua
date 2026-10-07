@@ -156,6 +156,8 @@ local function AddQuestStatusToTooltip(questID, quest, node)
     quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL")), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL")), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
+    local classText = AzerothCompendium:GetQuestClassText(questID)
+    if classText then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.CLASS or "Class"), classText, 0.9, 0.9, 0.9, 1, 1, 1) end
 end
 
 local function ShowQuestWowheadLink(questID)
@@ -441,6 +443,9 @@ local function CreateNode(canvas, tree)
     node.levelText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     node.levelText:SetJustifyH("LEFT")
     node.levelText:SetWordWrap(false)
+    node.classText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.classText:SetJustifyH("RIGHT")
+    node.classText:SetWordWrap(false)
     node.rewardLabel = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     node.rewardLabel:SetJustifyH("LEFT")
     node.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
@@ -491,7 +496,7 @@ end
 
 local function GetNodeHeight(node)
     local height = NODE_PAD_TOP + TITLE_H + REWARD_LINE_H + TEXT_LINE_H + NODE_PAD_BOTTOM
-    if GetNodeRequiredLevel(node) then height = height + TEXT_LINE_H end
+    if GetNodeRequiredLevel(node) or AzerothCompendium:GetQuestClasses(node.id) then height = height + TEXT_LINE_H end
 
     return height
 end
@@ -575,6 +580,7 @@ local function UpdateNode(button, node, width)
     button.border:SetColor(border[1], border[2], border[3], border[4])
     local y = NODE_PAD_TOP + TITLE_H
     local requiredLevel = GetNodeRequiredLevel(node)
+    local classText = AzerothCompendium:GetQuestClassText(node.id)
     if requiredLevel then
         PlaceLine(button.levelText, button, y, TEXT_LINE_H)
         button.levelText:SetText(AzerothCompendium:Trans("LID_REQUIRESLEVEL", nil, requiredLevel))
@@ -586,10 +592,19 @@ local function UpdateNode(button, node, width)
         end
 
         button.levelText:Show()
-        y = y + TEXT_LINE_H
     else
         button.levelText:Hide()
     end
+
+    if classText then
+        PlaceLine(button.classText, button, y, TEXT_LINE_H)
+        button.classText:SetText(classText)
+        button.classText:Show()
+    else
+        button.classText:Hide()
+    end
+
+    if requiredLevel or classText then y = y + TEXT_LINE_H end
 
     local entries, rewards = GetRewardEntries(node.id)
     local shown = 0

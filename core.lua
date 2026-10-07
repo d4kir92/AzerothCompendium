@@ -655,6 +655,48 @@ function AzerothCompendium:GetQuestRequiredLevel(quest)
     return AzerothCompendium.QUESTREQUIREDLEVELS and AzerothCompendium.QUESTREQUIREDLEVELS[questID] or 0
 end
 
+function AzerothCompendium:GetQuestClasses(questID)
+    local mask = AzerothCompendium.QUESTCLASSES and AzerothCompendium.QUESTCLASSES[questID]
+    if type(mask) ~= "number" or mask <= 0 or bit == nil or GetClassInfo == nil then return nil end
+    local classes = {}
+    for classID = 1, 13 do
+        if bit.band(mask, 2 ^ (classID - 1)) ~= 0 then
+            local name, file = GetClassInfo(classID)
+            if name and file then tinsert(classes, {name, file}) end
+        end
+    end
+
+    return #classes > 0 and classes or nil
+end
+
+function AzerothCompendium:IsQuestForPlayerClass(questID)
+    local mask = AzerothCompendium.QUESTCLASSES and AzerothCompendium.QUESTCLASSES[questID]
+    if type(mask) ~= "number" or mask <= 0 or bit == nil then return true end
+    local _, _, classID = UnitClass("player")
+    if type(classID) ~= "number" then return true end
+
+    return bit.band(mask, 2 ^ (classID - 1)) ~= 0
+end
+
+function AzerothCompendium:GetQuestClassText(questID)
+    local classes = AzerothCompendium:GetQuestClasses(questID)
+    if classes == nil then return nil end
+    local own = AzerothCompendium:IsQuestForPlayerClass(questID)
+    local names = {}
+    for _, class in ipairs(classes) do
+        local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[class[2]]
+        if own and color and color.colorStr then
+            tinsert(names, "|c" .. color.colorStr .. class[1] .. "|r")
+        elseif own then
+            tinsert(names, class[1])
+        else
+            tinsert(names, "|cffff4040" .. class[1] .. "|r")
+        end
+    end
+
+    return table.concat(names, ", ")
+end
+
 function AzerothCompendium:GetQuestName(quest)
     if quest == nil then return "" end
     local questID = quest[1]
