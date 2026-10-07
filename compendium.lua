@@ -4878,6 +4878,7 @@ function AzerothCompendium:SyncCompendiumFlavor()
 end
 
 function AzerothCompendium:RefreshCompendium()
+    AzerothCompendium:InvalidateInstanceQuests()
     AzerothCompendium:SyncCompendiumClassFilter()
     AzerothCompendium:SyncCompendiumFlavor()
     if compendium == nil then return end
@@ -5679,14 +5680,19 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
     end
 
     if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
-        if compendium ~= nil and compendium:IsShown() and listKind == "dungeon" then
-            AzerothCompendium:After(0, function() if compendium ~= nil and compendium:IsShown() and listKind == "dungeon" then RefreshInstances() end end, "AzerothCompendium:CompletedDungeons")
-        end
-        if compendium ~= nil and compendium:IsShown() and middleKind == "quests" then compendium.questTree:Refresh() end
-        if compendium ~= nil and compendium:IsShown() and listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
+        if sel.questRefreshPending or compendium == nil or not compendium:IsShown() then return end
+        sel.questRefreshPending = true
+        AzerothCompendium:After(0, function()
+            sel.questRefreshPending = false
+            if compendium == nil or not compendium:IsShown() then return end
+            if listKind == "dungeon" then RefreshInstances() end
+            if middleKind == "quests" then compendium.questTree:Refresh() end
+            if listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
+        end, "AzerothCompendium:CompletedDungeons")
         return
     end
 
+    if event == "QUEST_DATA_LOAD_RESULT" then AzerothCompendium:InvalidateInstanceQuests() end
     if compendium == nil or not compendium:IsShown() then return end
     if refreshPending then return end
     refreshPending = true

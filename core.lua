@@ -488,7 +488,11 @@ end)
 
 function AzerothCompendium:GetBossCreatureName(boss)
     if type(boss.name) ~= "string" or not boss.name:find(" / ", 1, true) then return AzerothCompendium:GetCreatureName(boss.npcs[1]) end
-    local names, seen = {}, {}
+    creatureNames.joinNames = creatureNames.joinNames or {}
+    creatureNames.joinSeen = creatureNames.joinSeen or {}
+    local names, seen = creatureNames.joinNames, creatureNames.joinSeen
+    wipe(names)
+    wipe(seen)
     for _, npcID in ipairs(boss.npcs) do
         local name = AzerothCompendium:GetCreatureName(npcID)
         if name == nil then return nil end
@@ -614,13 +618,31 @@ function AzerothCompendium:IsQuestSideVisible(side)
     return self:GetConfig("QUESTFACTION", default) == side
 end
 
+local instanceQuestCache = {lists = {}}
+function AzerothCompendium:InvalidateInstanceQuests()
+    instanceQuestCache.key = nil
+end
+
 function AzerothCompendium:GetInstanceQuests(inst)
     if inst == nil or inst.id == nil then return {} end
+    local onlyOwnClass = AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) == true
+    local alliance, horde = AzerothCompendium:IsQuestSideVisible(1), AzerothCompendium:IsQuestSideVisible(2)
+    local flavor = AzerothCompendium:GetFlavor()
+    if instanceQuestCache.key ~= true or instanceQuestCache.flavor ~= flavor or instanceQuestCache.alliance ~= alliance or instanceQuestCache.horde ~= horde or instanceQuestCache.onlyOwnClass ~= onlyOwnClass then
+        wipe(instanceQuestCache.lists)
+        instanceQuestCache.key = true
+        instanceQuestCache.flavor = flavor
+        instanceQuestCache.alliance = alliance
+        instanceQuestCache.horde = horde
+        instanceQuestCache.onlyOwnClass = onlyOwnClass
+    end
 
+    local cached = instanceQuestCache.lists[inst.id]
+    if cached then return cached end
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             tinsert(available, quest)
         end
     end
@@ -644,6 +666,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
 
         return a[1] < b[1]
     end)
+    instanceQuestCache.lists[inst.id] = available
 
     return available
 end
@@ -673,15 +696,24 @@ function AzerothCompendium:GetQuestRequiredLevel(quest)
 end
 
 AzerothCompendium.PLACEHOLDER_QUEST_PATTERNS = {"^%s*<", "<UNUSED>", "<NYI>", "<TXT>", "<DEPRECATED>", "%[UNUSED%]", "%[NYI%]", "%[PH%]", "%[DEPRECATED%]", "^zzOLD", "^ZZOLD"}
-function AzerothCompendium:IsPlaceholderQuest(questID)
-    local data = AzerothCompendium:GetQuestDataByID(questID)
-    for _, name in ipairs({AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or "", data and data[4] or ""}) do
-        for _, pattern in ipairs(AzerothCompendium.PLACEHOLDER_QUEST_PATTERNS) do
-            if string.find(name, pattern) then return true end
-        end
+local placeholderQuests = {}
+local function MatchesPlaceholderPattern(name)
+    if name == nil then return false end
+    for _, pattern in ipairs(AzerothCompendium.PLACEHOLDER_QUEST_PATTERNS) do
+        if string.find(name, pattern) then return true end
     end
 
     return false
+end
+
+function AzerothCompendium:IsPlaceholderQuest(questID)
+    local cached = placeholderQuests[questID]
+    if cached ~= nil then return cached end
+    local data = AzerothCompendium:GetQuestDataByID(questID)
+    local result = MatchesPlaceholderPattern(AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID]) or MatchesPlaceholderPattern(data and data[4])
+    placeholderQuests[questID] = result
+
+    return result
 end
 
 function AzerothCompendium:GetQuestClasses(questID)

@@ -49,6 +49,7 @@ local WorldMap = {
     pins = {},
     minimapPins = {},
     waypointPositions = {},
+    locationState = {poiScale = 0},
     trackingAtlas = {"UI-QuestPoi-QuestNumber-SuperTracked"},
     minimapYards = {
         outdoor = {[0] = 466.66666, 400, 333.33333, 266.66666, 200, 133.33333},
@@ -593,13 +594,14 @@ function WorldMap.UpdateLocations()
     local poiScale = WorldMap.GetPoiScale()
     local entrancesOn = AzerothCompendium:GetSharedOption("DUNGEONWORLDMAPPINS")
     local meetingStonesOn = AzerothCompendium:GetSharedOption("MEETINGSTONEWORLDMAPPINS")
-    local key = format("%s|%.4f|%.4f|%s|%s", tostring(mapID), scale or 0, poiScale, tostring(entrancesOn), tostring(meetingStonesOn))
     for _, pin in ipairs(WorldMap.pins) do
         if pin:IsShown() then WorldMap.UpdatePinStyle(pin) end
     end
 
-    if key == WorldMap.locationKey then return end
-    WorldMap.locationKey = key
+    local last = WorldMap.locationState
+    if WorldMap.locationKey == true and last.mapID == mapID and abs((last.scale or 0) - (scale or 0)) < 0.00005 and abs(last.poiScale - poiScale) < 0.00005 and last.entrancesOn == entrancesOn and last.meetingStonesOn == meetingStonesOn then return end
+    WorldMap.locationKey = true
+    last.mapID, last.scale, last.poiScale, last.entrancesOn, last.meetingStonesOn = mapID, scale, poiScale, entrancesOn, meetingStonesOn
     for _, pin in ipairs(WorldMap.pins) do
         pin:Hide()
     end
