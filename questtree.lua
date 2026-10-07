@@ -63,9 +63,12 @@ function AzerothCompendium:GetQuestTagIcon(tagID)
 end
 
 local OUTSIDE_ICON = "Interface\\Icons\\INV_Misc_Map_01"
-local SECTION_COUNT = 3
-local SECTION_TITLES = {"LID_QUESTTREESTART", "LID_QUESTTREEINSTANCE", "LID_QUESTTREEAFTER"}
-local SECTION_EMPTY = {"LID_QUESTTREENOSTART", "LID_NOENTRIES", "LID_QUESTTREENOAFTER"}
+local SECTION_COUNT = 4
+local SECTION_TITLES = {"LID_QUESTTREEATTUNE", "LID_QUESTTREESTART", "LID_QUESTTREEINSTANCE", "LID_QUESTTREEAFTER"}
+local SECTION_EMPTY = {"LID_NOENTRIES", "LID_QUESTTREENOSTART", "LID_NOENTRIES", "LID_QUESTTREENOAFTER"}
+local KEY_LINE_H = 22
+local KEY_OWNED_ICON = "Interface\\RaidFrame\\ReadyCheck-Ready"
+local KEY_MISSING_ICON = "Interface\\RaidFrame\\ReadyCheck-NotReady"
 local ZOOM_MIN = 0.4
 local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
@@ -707,7 +710,7 @@ local function BuildComponents(nodes)
             while #stack > 0 do
                 local node = tremove(stack)
                 tinsert(component.nodes, node)
-                if node.section == 1 then component.hasTop = true end
+                if node.section <= 2 then component.hasTop = true end
                 if node.instance and node.level < component.level then component.level = node.level end
                 for _, list in ipairs({node.parents, node.children}) do
                     for _, other in ipairs(list) do
@@ -1022,6 +1025,118 @@ local function CreateZoomSlider(tree, onChange)
     return slider
 end
 
+local function GetInstanceLabel(id)
+    local inst = AzerothCompendium:GetInstanceByID(id)
+
+    return inst and AzerothCompendium:GetInstanceName(inst) or tostring(id)
+end
+
+local function GetAttunementNpcName(attunement)
+    if attunement.sourceNpc == nil then return nil end
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        for _, boss in ipairs(inst.bosses or {}) do
+            for _, npcID in ipairs(boss.npcs or {}) do
+                if npcID == attunement.sourceNpc then return AzerothCompendium:GetBossName(boss) end
+            end
+        end
+    end
+
+    return nil
+end
+
+local function GetAttunementDetail(attunement)
+    local npcName = GetAttunementNpcName(attunement)
+    if attunement.source ~= nil then
+        if npcName then return format(AzerothCompendium:Trans("LID_ATTUNEFOUNDNEAR"), GetInstanceLabel(attunement.source), npcName) end
+
+        return format(AzerothCompendium:Trans("LID_ATTUNEFOUNDIN"), GetInstanceLabel(attunement.source))
+    end
+
+    if attunement.opens ~= nil then
+        local names = {}
+        for _, id in ipairs(attunement.opens) do
+            local inst = AzerothCompendium:GetInstanceByID(id)
+            tinsert(names, inst and AzerothCompendium:GetInstanceWingName(inst) or GetInstanceLabel(id))
+        end
+
+        local opens = format(AzerothCompendium:Trans("LID_ATTUNEOPENS"), table.concat(names, ", "))
+        if npcName then return format(AzerothCompendium:Trans("LID_ATTUNENEAR"), npcName) .. " · " .. opens end
+
+        return opens
+    end
+
+    return AzerothCompendium:Trans("LID_ATTUNEREQUIRED")
+end
+
+local function CreateKeyLine(box, tree)
+    local line = CreateFrame("Button", nil, box)
+    line:SetHeight(KEY_LINE_H)
+    line:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -HEADER_H)
+    line:SetPoint("TOPRIGHT", box, "TOPRIGHT", -10, -HEADER_H)
+    line.icon = line:CreateTexture(nil, "ARTWORK")
+    line.icon:SetSize(ICON_SIZE, ICON_SIZE)
+    line.icon:SetPoint("LEFT", line, "LEFT", 0, 0)
+    line.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    line.status = line:CreateTexture(nil, "OVERLAY")
+    line.status:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    line.status:SetPoint("LEFT", line.icon, "RIGHT", 4, 0)
+    line.text = line:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    line.text:SetPoint("LEFT", line.status, "RIGHT", 4, 0)
+    line.text:SetPoint("RIGHT", line, "RIGHT", 0, 0)
+    line.text:SetJustifyH("LEFT")
+    line.text:SetWordWrap(false)
+    line:SetScript("OnEnter", function(sel)
+        local attunement = sel.attunement
+        if attunement == nil then return end
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetItemByID(attunement.key)
+        if AzerothCompendium:HasAttunementKey(attunement.key) then
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_ATTUNEHASKEY"), 0.25, 1, 0.25)
+        else
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_ATTUNENOKEY"), 1, 0.25, 0.25)
+        end
+
+        GameTooltip:AddLine(GetAttunementDetail(attunement), 1, 1, 1, true)
+        if attunement.source ~= nil and tree.OpenInstance then GameTooltip:AddLine(format(AzerothCompendium:Trans("LID_ATTUNEOPENSOURCE"), GetInstanceLabel(attunement.source)), 0.6, 0.6, 0.6, true) end
+        GameTooltip:Show()
+    end)
+
+    line:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    line:SetScript("OnClick", function(sel)
+        if sel.attunement and sel.attunement.source ~= nil and tree.OpenInstance then tree.OpenInstance(sel.attunement.source) end
+    end)
+
+    return line
+end
+
+local function UpdateKeyLine(line, attunement, box)
+    line.attunement = attunement
+    if attunement == nil or attunement.key == nil then
+        line:Hide()
+
+        return
+    end
+
+    if line:GetParent() ~= box then
+        line:SetParent(box)
+        line:ClearAllPoints()
+        line:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -HEADER_H)
+        line:SetPoint("TOPRIGHT", box, "TOPRIGHT", -10, -HEADER_H)
+    end
+
+    line:SetFrameLevel(box:GetFrameLevel() + 1)
+
+    local name, _, quality, _, icon = AzerothCompendium:GetItemDisplay(attunement.key)
+    if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(attunement.key) end
+    name = name or ("Item " .. attunement.key)
+    local color = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+    if color and color.hex then name = color.hex .. name .. "|r" end
+    line.icon:SetTexture(icon or 134400)
+    line.status:SetTexture(AzerothCompendium:HasAttunementKey(attunement.key) and KEY_OWNED_ICON or KEY_MISSING_ICON)
+    line.text:SetText(name .. "  |cffa0a0a0" .. GetAttunementDetail(attunement) .. "|r")
+    line:Show()
+end
+
 function AzerothCompendium:CreateQuestTree(parent)
     local tree = CreateFrame("Frame", nil, parent)
     local scroll = nil
@@ -1150,6 +1265,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         tree.boxes[section] = box
     end
 
+    tree.keyLine = CreateKeyLine(tree.boxes[1], tree)
     tree.topBox = tree.boxes[1]
     tree.empty = tree:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
     tree.empty:SetPoint("CENTER", tree, "CENTER", 0, 0)
@@ -1264,31 +1380,48 @@ function AzerothCompendium:CreateQuestTree(parent)
         if cols == viewCols then nodeW = max(NODE_MIN_W, min(NODE_MAX_W, floor((viewW - 2 * PAD - (cols - 1) * GAP_X) / cols))) end
         local rowStep = nodeH + GAP_Y
         local colStep = nodeW + GAP_X
-        local function BoxHeight(count)
-            if count <= 0 then return HEADER_H + EMPTY_H end
+        local attunement = graph.attunement
+        local keySection = attunement ~= nil and attunement.key ~= nil and (attunement.opens ~= nil and 3 or 1) or nil
+        local function HeaderHeight(section)
+            if section == keySection then return HEADER_H + KEY_LINE_H end
 
-            return HEADER_H + PAD + count * nodeH + (count - 1) * GAP_Y + PAD
+            return HEADER_H
+        end
+
+        local function BoxHeight(section, count)
+            if count <= 0 then
+                if section == 1 then return HeaderHeight(section) + 4 end
+
+                return HeaderHeight(section) + EMPTY_H
+            end
+
+            return HeaderHeight(section) + PAD + count * nodeH + (count - 1) * GAP_Y + PAD
+        end
+
+        local function IsBoxVisible(section)
+            return section ~= 1 or attunement ~= nil and attunement.opens == nil
         end
 
         local canvasW = max(viewW, 2 * PAD + cols * nodeW + (cols - 1) * GAP_X)
         local canvasH = 0
         for section = 1, SECTION_COUNT do
             self.boxTops[section] = canvasH
-            canvasH = canvasH + BoxHeight(rows[section]) + BOX_GAP
+            if IsBoxVisible(section) then canvasH = canvasH + BoxHeight(section, rows[section]) + BOX_GAP end
         end
 
         canvasH = canvasH - BOX_GAP
-        self.bottomBoxTop = self.boxTops[2]
+        self.bottomBoxTop = self.boxTops[3]
         for _, component in ipairs(components) do
             for _, node in ipairs(component.nodes) do
                 node.x = PAD + (component.col + node.column) * colStep
                 local row = node.layer
-                if node.section == 1 then row = rows[1] - component.layers[1] + node.layer end
-                node.y = self.boxTops[node.section] + HEADER_H + PAD + row * rowStep
+                if node.section <= 2 then row = rows[node.section] - component.layers[node.section] + node.layer end
+                node.y = self.boxTops[node.section] + HeaderHeight(node.section) + PAD + row * rowStep
             end
         end
 
-        if #graph == 0 then
+        UpdateKeyLine(self.keyLine, attunement, self.boxes[keySection or 1])
+        if #graph == 0 and attunement == nil then
             for _, box in ipairs(self.boxes) do
                 box:Hide()
             end
@@ -1300,9 +1433,11 @@ function AzerothCompendium:CreateQuestTree(parent)
             for section, box in ipairs(self.boxes) do
                 box:ClearAllPoints()
                 box:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, -self.boxTops[section])
-                box:SetSize(canvasW, BoxHeight(rows[section]))
-                if rows[section] == 0 then box.empty:Show() else box.empty:Hide() end
-                box:Show()
+                box:SetSize(canvasW, BoxHeight(section, rows[section]))
+                box.empty:ClearAllPoints()
+                box.empty:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -HeaderHeight(section) - 2)
+                if rows[section] == 0 and section ~= 1 then box.empty:Show() else box.empty:Hide() end
+                box:SetShown(IsBoxVisible(section))
             end
         end
 

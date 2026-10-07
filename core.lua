@@ -865,6 +865,59 @@ local function GetQuestFollowUps()
     return questFollowUps
 end
 
+function AzerothCompendium:GetInstanceByID(id)
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        if inst.id == id then return inst end
+    end
+
+    return nil
+end
+
+function AzerothCompendium:GetAttunement(inst)
+    if inst == nil or inst.id == nil then return nil end
+
+    return AzerothCompendium.ATTUNEMENTS and AzerothCompendium.ATTUNEMENTS[inst.id]
+end
+
+function AzerothCompendium:RequiresAttunement(inst)
+    local attunement = AzerothCompendium:GetAttunement(inst)
+
+    return attunement ~= nil and attunement.opens == nil
+end
+
+function AzerothCompendium:HasAttunementKey(itemID)
+    if itemID == nil then return false end
+    local getCount = C_Item and C_Item.GetItemCount or GetItemCount
+    if getCount then
+        local ok, count = pcall(getCount, itemID)
+        if ok and type(count) == "number" and count > 0 then return true end
+    end
+
+    local container = KEYRING_CONTAINER or -2
+    local getSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots
+    local getItemID = C_Container and C_Container.GetContainerItemID or GetContainerItemID
+    if getSlots == nil or getItemID == nil then return false end
+    local ok, slots = pcall(getSlots, container)
+    if not ok or type(slots) ~= "number" then return false end
+    for slot = 1, slots do
+        local okItem, id = pcall(getItemID, container, slot)
+        if okItem and id == itemID then return true end
+    end
+
+    return false
+end
+
+function AzerothCompendium:IsAttuned(inst)
+    if not AzerothCompendium:RequiresAttunement(inst) then return true end
+    local attunement = AzerothCompendium:GetAttunement(inst)
+    if attunement.key ~= nil and AzerothCompendium:HasAttunementKey(attunement.key) then return true end
+    for _, questID in ipairs(attunement.done or {}) do
+        if AzerothCompendium:IsQuestCompleted(questID) then return true end
+    end
+
+    return attunement.key == nil
+end
+
 function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     local nodes = {}
     local list = {}
@@ -935,6 +988,19 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
     for id in pairs(inInstance) do
         Visit(id)
+    end
+
+    local attunement = AzerothCompendium:GetAttunement(inst)
+    local attuneSet = {}
+    for _, quest in ipairs(attunement and attunement.quests or {}) do
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and AzerothCompendium:IsQuestSideVisible(quest[2]) then
+            attuneSet[quest[1]] = true
+            Visit(quest[1])
+        end
+    end
+
+    for _, link in ipairs(attunement and attunement.links or {}) do
+        if (attuneSet[link[1]] or nodes[link[1]] ~= nil) and (attuneSet[link[2]] or nodes[link[2]] ~= nil) then Link(link[1], link[2]) end
     end
 
     local followUps = GetQuestFollowUps()
@@ -1084,17 +1150,21 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         local anchor = IsAnchor(node)
         local after = IsAfterSeed(node) or Reaches(node, "parents", afterAnchor, {})
         node.outside = nil
-        if anchor then
-            node.section = 2
-        elseif after then
-            node.section = 3
-        else
+        if attuneSet[node.id] then
             node.section = 1
+        elseif anchor then
+            node.section = 3
+        elseif after then
+            node.section = 4
+        else
+            node.section = 2
         end
 
         node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
     end
+
+    list.attunement = attunement
 
     return list
 end

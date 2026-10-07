@@ -804,12 +804,53 @@ local function UpdateInstanceBackground(row, inst)
         end)
 
         row.locationPins = {CreateLocationPin(row, LOCATION_PINS.entrance), CreateLocationPin(row, LOCATION_PINS.meetingStone)}
+        row.attuneIcon = CreateFrame("Frame", nil, row)
+        row.attuneIcon:SetSize(16, 16)
+        row.attuneIcon:SetPoint("RIGHT", row.questCount, "LEFT", -6, 0)
+        row.attuneIcon:SetFrameLevel(row:GetFrameLevel() + 2)
+        row.attuneIcon:EnableMouse(true)
+        if row.attuneIcon.SetMouseClickEnabled then
+            row.attuneIcon:SetMouseClickEnabled(false)
+        else
+            row.attuneIcon:SetScript("OnMouseUp", function(sel)
+                local parent = sel:GetParent()
+                if parent.Click then parent:Click() end
+            end)
+        end
+
+        row.attuneIcon.texture = row.attuneIcon:CreateTexture(nil, "ARTWORK")
+        row.attuneIcon.texture:SetAllPoints(row.attuneIcon)
+        row.attuneIcon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        row.attuneIcon:SetScript("OnEnter", function(sel)
+            local parent = sel:GetParent()
+            local attunement = AzerothCompendium:GetAttunement(parent.entry)
+            if attunement == nil then return end
+            if parent.LockHighlight then parent:LockHighlight() end
+            GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+            GameTooltip:SetText(AzerothCompendium:Trans("LID_QUESTTREEATTUNE"))
+            local name = AzerothCompendium:GetItemDisplay(attunement.key) or tostring(attunement.key)
+            if AzerothCompendium:IsAttuned(parent.entry) then
+                GameTooltip:AddLine(name .. ": " .. AzerothCompendium:Trans("LID_ATTUNEHASKEY"), 0.25, 1, 0.25)
+            else
+                GameTooltip:AddLine(name .. ": " .. AzerothCompendium:Trans("LID_ATTUNENOKEY"), 1, 0.25, 0.25)
+            end
+
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_ATTUNEHINT"), 0.6, 0.6, 0.6, true)
+            GameTooltip:Show()
+        end)
+
+        row.attuneIcon:SetScript("OnLeave", function(sel)
+            local parent = sel:GetParent()
+            if parent.UnlockHighlight then parent:UnlockHighlight() end
+            AzerothCompendium:HideGameTooltip()
+        end)
     end
 
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
     row.questCountHover:Hide()
+    row.attuneIcon:Hide()
     for _, pin in ipairs(row.locationPins) do
         pin:Hide()
     end
@@ -906,6 +947,15 @@ local function UpdateInstanceRow(row, inst)
         row.questsDone = done
         row.questsTotal = #quests
         row.questCountHover:Show()
+        local attunement = AzerothCompendium:RequiresAttunement(inst) and AzerothCompendium:GetAttunement(inst)
+        if attunement and attunement.key ~= nil then
+            local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(attunement.key)
+            local attuned = AzerothCompendium:IsAttuned(inst)
+            row.attuneIcon.texture:SetTexture(icon or 134400)
+            row.attuneIcon.texture:SetDesaturated(not attuned)
+            row.attuneIcon.texture:SetAlpha(attuned and 1 or 0.6)
+            row.attuneIcon:Show()
+        end
     end
 
     if row.selectionBorder == nil then
@@ -1601,6 +1651,12 @@ function MapPins.GetQuestItems()
                 tinsert(items, {format("%s (%d) - %s", name, item[1], step[2]), item[1]})
             end
         end
+    end
+
+    local attunement = AzerothCompendium:GetAttunement(selectedInstance)
+    if attunement ~= nil and attunement.opens ~= nil and attunement.key ~= nil and not seen[attunement.key] then
+        seen[attunement.key] = true
+        tinsert(items, {format("%s (%d) - %s", AzerothCompendium:GetItemDisplay(attunement.key) or tostring(attunement.key), attunement.key, AzerothCompendium:Trans("LID_QUESTTREEATTUNE")), attunement.key})
     end
 
     table.sort(items, function(a, b) return a[1] < b[1] end)
@@ -2343,6 +2399,15 @@ function MapPins.OnClick(pin, mouse)
                 compendium.questTree:FocusQuest(node.id)
                 return
             end
+        end
+
+        local attunement = AzerothCompendium:GetAttunement(selectedInstance)
+        if attunement ~= nil and attunement.key == pin.entry[4] then
+            AzerothCompendium:HideGameTooltip()
+            middleKind = "quests"
+            if searchText ~= "" then compendium.search:SetText("") end
+            SaveNavigationState()
+            RefreshBosses()
         end
         return
     end
@@ -4351,6 +4416,19 @@ local function CreateJournal()
     AddContentBorder(questTree)
     AzerothCompendium:AnchorContent(questTree)
     questTree:Hide()
+    questTree.OpenInstance = function(id)
+        local inst = AzerothCompendium:GetInstanceByID(id)
+        if inst == nil or not IsInstanceVisible(inst) then return end
+        AzerothCompendium:HideGameTooltip()
+        compendium.overviewActive = false
+        listKind, selectedInstance, selectedBoss, middleKind = inst.type == "raid" and "raid" or "dungeon", inst, nil, "quests"
+        searchText = ""
+        UpdateKindTabs()
+        compendium.search:SetText("")
+        RefreshCurrentView()
+        SaveNavigationState()
+    end
+
     compendium.questTree = questTree
     local mapView = CreateFrame("Frame", nil, compendium)
     AddContentBorder(mapView)
