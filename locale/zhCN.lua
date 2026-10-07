@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_REMOVEFROMWISHLIST", "从愿望清单移
 AzerothCompendium:AddTrans("zhCN", "LID_WISHLISTHELP1", "在掉落列表或世界掉落任务物品中右键点击物品，即可将其添加到愿望清单。")
 AzerothCompendium:AddTrans("zhCN", "LID_WISHLISTHELP2", "左键点击愿望清单中的条目可跳转到其来源。")
 AzerothCompendium:AddTrans("zhCN", "LID_WISHLISTHELP3", "右键点击愿望清单中的条目可将其移除。")
-AzerothCompendium:AddTrans("zhCN", "LID_WISHLISTHELP4", "标签页按来源筛选愿望清单。愿望清单由此账号的所有角色共享。")
+AzerothCompendium:AddTrans("zhCN", "LID_WISHLISTHELP4", "标签页按来源筛选愿望清单。愿望清单为每个角色单独保存。")
 AzerothCompendium:AddTrans("zhCN", "LID_FLAVOR", "游戏版本")
 AzerothCompendium:AddTrans("zhCN", "LID_WING_GRAVEYARD", "墓地")
 AzerothCompendium:AddTrans("zhCN", "LID_WING_LIBRARY", "图书馆")

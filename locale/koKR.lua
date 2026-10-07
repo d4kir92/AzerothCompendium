@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("koKR", "LID_REMOVEFROMWISHLIST", "위시리스트에
 AzerothCompendium:AddTrans("koKR", "LID_WISHLISTHELP1", "전리품 목록이나 월드 드롭 퀘스트 아이템에서 아이템을 오른쪽 클릭하면 위시리스트에 추가됩니다.")
 AzerothCompendium:AddTrans("koKR", "LID_WISHLISTHELP2", "위시리스트 항목을 왼쪽 클릭하면 해당 획득처로 이동합니다.")
 AzerothCompendium:AddTrans("koKR", "LID_WISHLISTHELP3", "위시리스트 항목을 오른쪽 클릭하면 제거할 수 있습니다.")
-AzerothCompendium:AddTrans("koKR", "LID_WISHLISTHELP4", "탭은 위시리스트를 획득처별로 걸러 줍니다. 위시리스트는 이 계정의 모든 캐릭터가 공유합니다.")
+AzerothCompendium:AddTrans("koKR", "LID_WISHLISTHELP4", "탭은 위시리스트를 획득처별로 걸러 줍니다. 위시리스트는 캐릭터마다 별도로 저장됩니다.")
 AzerothCompendium:AddTrans("koKR", "LID_FLAVOR", "게임 버전")
 AzerothCompendium:AddTrans("koKR", "LID_WING_GRAVEYARD", "묘지")
 AzerothCompendium:AddTrans("koKR", "LID_WING_LIBRARY", "도서관")

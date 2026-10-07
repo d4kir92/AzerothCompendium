@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("esES", "LID_REMOVEFROMWISHLIST", "Eliminar de la lis
 AzerothCompendium:AddTrans("esES", "LID_WISHLISTHELP1", "Haz clic derecho en un objeto de una lista de botín o de los objetos de misión de botín mundial para añadirlo a la lista de deseos.")
 AzerothCompendium:AddTrans("esES", "LID_WISHLISTHELP2", "Haz clic izquierdo en una entrada de la lista de deseos para ir a su origen.")
 AzerothCompendium:AddTrans("esES", "LID_WISHLISTHELP3", "Haz clic derecho en una entrada de la lista de deseos para eliminarla.")
-AzerothCompendium:AddTrans("esES", "LID_WISHLISTHELP4", "Las pestañas filtran la lista de deseos por origen. La lista de deseos se comparte entre todos los personajes de esta cuenta.")
+AzerothCompendium:AddTrans("esES", "LID_WISHLISTHELP4", "Las pestañas filtran la lista de deseos por origen. La lista de deseos se guarda por separado para cada personaje.")
 AzerothCompendium:AddTrans("esES", "LID_FLAVOR", "Versión del juego")
 AzerothCompendium:AddTrans("esES", "LID_WING_GRAVEYARD", "Cementerio")
 AzerothCompendium:AddTrans("esES", "LID_WING_LIBRARY", "Biblioteca")

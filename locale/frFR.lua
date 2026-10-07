@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("frFR", "LID_REMOVEFROMWISHLIST", "Retirer de la list
 AzerothCompendium:AddTrans("frFR", "LID_WISHLISTHELP1", "Faites un clic droit sur un objet dans une liste de butin ou parmi les objets de quête du butin mondial pour l'ajouter à la liste de souhaits.")
 AzerothCompendium:AddTrans("frFR", "LID_WISHLISTHELP2", "Faites un clic gauche sur une entrée de la liste de souhaits pour aller à sa source.")
 AzerothCompendium:AddTrans("frFR", "LID_WISHLISTHELP3", "Faites un clic droit sur une entrée de la liste de souhaits pour la retirer.")
-AzerothCompendium:AddTrans("frFR", "LID_WISHLISTHELP4", "Les onglets filtrent la liste de souhaits par source. La liste de souhaits est partagée par tous les personnages de ce compte.")
+AzerothCompendium:AddTrans("frFR", "LID_WISHLISTHELP4", "Les onglets filtrent la liste de souhaits par source. La liste de souhaits est enregistrée séparément pour chaque personnage.")
 AzerothCompendium:AddTrans("frFR", "LID_FLAVOR", "Version du jeu")
 AzerothCompendium:AddTrans("frFR", "LID_WING_GRAVEYARD", "Cimetière")
 AzerothCompendium:AddTrans("frFR", "LID_WING_LIBRARY", "Bibliothèque")

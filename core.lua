@@ -287,9 +287,13 @@ end
 
 function AzerothCompendium:GetWishlist()
     ACOTAB = ACOTAB or {}
-    if type(ACOTAB["WISHLIST"]) ~= "table" then ACOTAB["WISHLIST"] = {} end
+    ACOTABPC = ACOTABPC or {}
+    if type(ACOTABPC["WISHLIST"]) ~= "table" then
+        ACOTABPC["WISHLIST"] = type(ACOTAB["WISHLIST"]) == "table" and ACOTAB["WISHLIST"] or {}
+        ACOTAB["WISHLIST"] = nil
+    end
 
-    return ACOTAB["WISHLIST"]
+    return ACOTABPC["WISHLIST"]
 end
 
 function AzerothCompendium:IsWishlisted(itemID)
@@ -616,7 +620,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", false) or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             tinsert(available, quest)
         end
     end

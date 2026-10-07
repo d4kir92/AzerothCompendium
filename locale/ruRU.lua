@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_REMOVEFROMWISHLIST", "Удалить и�
 AzerothCompendium:AddTrans("ruRU", "LID_WISHLISTHELP1", "Щелкните правой кнопкой по предмету в списке добычи или среди предметов заданий из мировой добычи, чтобы добавить его в список желаний.")
 AzerothCompendium:AddTrans("ruRU", "LID_WISHLISTHELP2", "Щелкните левой кнопкой по записи списка желаний, чтобы перейти к ее источнику.")
 AzerothCompendium:AddTrans("ruRU", "LID_WISHLISTHELP3", "Щелкните правой кнопкой по записи списка желаний, чтобы удалить ее.")
-AzerothCompendium:AddTrans("ruRU", "LID_WISHLISTHELP4", "Вкладки фильтруют список желаний по источнику. Список желаний общий для всех персонажей этой учетной записи.")
+AzerothCompendium:AddTrans("ruRU", "LID_WISHLISTHELP4", "Вкладки фильтруют список желаний по источнику. Список желаний сохраняется отдельно для каждого персонажа.")
 AzerothCompendium:AddTrans("ruRU", "LID_FLAVOR", "Версия игры")
 AzerothCompendium:AddTrans("ruRU", "LID_WING_GRAVEYARD", "Кладбище")
 AzerothCompendium:AddTrans("ruRU", "LID_WING_LIBRARY", "Библиотека")

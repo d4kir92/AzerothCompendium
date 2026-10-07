@@ -4667,6 +4667,23 @@ local function CreateJournal()
         button:SetScript("OnLeave", function() GameTooltip:Hide() end)
         compendium.factionToggle.buttons[side] = button
     end
+
+    compendium.factionToggle.classFilter = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
+    compendium.factionToggle.classFilter:SetSize(26, 26)
+    compendium.factionToggle.classFilter:SetPoint("RIGHT", compendium.factionToggle, "LEFT", -4, 0)
+    compendium.factionToggle.classFilter:SetChecked(AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", false))
+    compendium.factionToggle.classFilter:SetScript("OnClick", function(owner)
+        AzerothCompendium:SetConfig("QUESTONLYOWNCLASS", owner:GetChecked() and true or false)
+        AzerothCompendium:RefreshCompendium()
+    end)
+
+    compendium.factionToggle.classFilter:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_HIDEOTHERCLASSQUESTS")))
+        GameTooltip:Show()
+    end)
+
+    compendium.factionToggle.classFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.factionToggle:Hide()
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot.rowGap = 0

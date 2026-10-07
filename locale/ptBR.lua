@@ -40,7 +40,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_REMOVEFROMWISHLIST", "Remover da lista d
 AzerothCompendium:AddTrans("ptBR", "LID_WISHLISTHELP1", "Clique com o botão direito em um item de uma lista de saque ou dos itens de missão de saque mundial para adicioná-lo à lista de desejos.")
 AzerothCompendium:AddTrans("ptBR", "LID_WISHLISTHELP2", "Clique com o botão esquerdo em uma entrada da lista de desejos para ir até a origem dela.")
 AzerothCompendium:AddTrans("ptBR", "LID_WISHLISTHELP3", "Clique com o botão direito em uma entrada da lista de desejos para removê-la.")
-AzerothCompendium:AddTrans("ptBR", "LID_WISHLISTHELP4", "As abas filtram a lista de desejos por origem. A lista de desejos é compartilhada por todos os personagens desta conta.")
+AzerothCompendium:AddTrans("ptBR", "LID_WISHLISTHELP4", "As abas filtram a lista de desejos por origem. A lista de desejos é salva separadamente para cada personagem.")
 AzerothCompendium:AddTrans("ptBR", "LID_FLAVOR", "Versão do jogo")
 AzerothCompendium:AddTrans("ptBR", "LID_WING_GRAVEYARD", "Cemitério")
 AzerothCompendium:AddTrans("ptBR", "LID_WING_LIBRARY", "Biblioteca")
