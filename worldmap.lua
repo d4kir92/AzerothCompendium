@@ -67,6 +67,7 @@ end
 function AzerothCompendium:OnSharedOptionChanged(key, value)
     if WorldMap.checkboxes[key] ~= nil then WorldMap.checkboxes[key]:SetChecked(value) end
     WorldMap.locationKey = nil
+    if WorldMap.UpdateMinimapState ~= nil and WorldMap.UpdateMinimapState() then WorldMap.RedrawMinimap() end
     if WorldMap.map ~= nil then WorldMap.map:Invalidate() end
     if AzerothCompendium.RefreshMapPins ~= nil then AzerothCompendium:RefreshMapPins() end
 end
@@ -499,39 +500,78 @@ function WorldMap.UpdateMinimap()
     local now = GetTime()
     if not (WorldMap.IsSecret(mapID) or WorldMap.IsSecret(wx) or WorldMap.IsSecret(wy) or WorldMap.IsSecret(facing) or WorldMap.IsSecret(zoom)) then
         if last.mapID == mapID and last.x == wx and last.y == wy and last.facing == facing and last.zoom == zoom and now - last.time < 1 then return end
+        local mapChanged = last.mapID ~= mapID
         last.mapID, last.x, last.y, last.facing, last.zoom, last.time = mapID, wx, wy, facing, zoom, now
+        if mapChanged and not WorldMap.UpdateMinimapState() then return end
     end
 
     WorldMap.RedrawMinimap()
 end
 
-function WorldMap.RedrawMinimap()
-    for _, pin in ipairs(WorldMap.minimapPins) do
-        pin:Hide()
+function WorldMap.HideMinimapPins(from)
+    for index = from or 1, #WorldMap.minimapPins do
+        WorldMap.minimapPins[index]:Hide()
+    end
+end
+
+function WorldMap.UpdateMinimapState()
+    local updater = WorldMap.minimapUpdater
+    if updater == nil or not updater.ready then return false end
+    local active = false
+    if WorldMap.IsLocationOwner() and C_Map ~= nil and C_Map.GetBestMapForUnit ~= nil and (AzerothCompendium:GetSharedOption("DUNGEONMINIMAPPINS") or AzerothCompendium:GetSharedOption("MEETINGSTONEMINIMAPPINS")) then
+        local mapID = C_Map.GetBestMapForUnit("player")
+        active = WorldMap.IsSecret(mapID) or mapID ~= nil and WorldMap.GetLocations(mapID) ~= nil
     end
 
-    if not WorldMap.IsLocationOwner() or C_Map == nil or C_Map.GetBestMapForUnit == nil or C_Map.GetWorldPosFromMapPos == nil or UnitPosition == nil then return end
+    if active then
+        if not updater:IsShown() then
+            WorldMap.minimapLast.time = 0
+            WorldMap.minimapLast.mapID = nil
+            updater:Show()
+        end
+    else
+        updater:Hide()
+        WorldMap.HideMinimapPins()
+    end
+
+    return active
+end
+
+function WorldMap.RedrawMinimap()
+    WorldMap.HideMinimapPins(WorldMap.PlaceMinimapPins() + 1)
+end
+
+function WorldMap.PlaceMinimapPins()
+    if not WorldMap.IsLocationOwner() or C_Map == nil or C_Map.GetBestMapForUnit == nil or C_Map.GetWorldPosFromMapPos == nil or UnitPosition == nil then return 0 end
     local mapID = C_Map.GetBestMapForUnit("player")
     local groups = mapID ~= nil and WorldMap.GetLocations(mapID) or nil
-    if groups == nil then return end
+    if groups == nil then return 0 end
     local wx, wy = UnitPosition("player")
-    if wx == nil or wy == nil or WorldMap.IsSecret(wx) or WorldMap.IsSecret(wy) then return end
+    if wx == nil or wy == nil or WorldMap.IsSecret(wx) or WorldMap.IsSecret(wy) then return 0 end
     local zoom = Minimap:GetZoom()
-    if zoom == nil then return end
+    if zoom == nil then return 0 end
     local inside = tonumber(AzerothCompendium:GetCVar("minimapInsideZoom") or "")
     local outside = tonumber(AzerothCompendium:GetCVar("minimapZoom") or "")
     local yards = (inside == zoom and outside ~= zoom and WorldMap.minimapYards.indoor or WorldMap.minimapYards.outdoor)[zoom]
-    if yards == nil or yards <= 0 then return end
+    if yards == nil or yards <= 0 then return 0 end
     local width = Minimap:GetWidth()
     local scale = width / yards
     local radius = width / 2
     local facing = 0
     if AzerothCompendium:GetCVar("rotateMinimap") == "1" then facing = GetPlayerFacing() or 0 end
-    if WorldMap.IsSecret(facing) then return end
+    if WorldMap.IsSecret(facing) then return 0 end
     local cosF, sinF = math.cos(facing), math.sin(facing)
+    local dungeonsOn = AzerothCompendium:GetSharedOption("DUNGEONMINIMAPPINS")
+    local meetingStonesOn = AzerothCompendium:GetSharedOption("MEETINGSTONEMINIMAPPINS")
     local count = 0
     for _, group in ipairs(groups) do
-        local enabled = AzerothCompendium:GetSharedOption(group.kind == "meetingstone" and "MEETINGSTONEMINIMAPPINS" or "DUNGEONMINIMAPPINS")
+        local enabled
+        if group.kind == "meetingstone" then
+            enabled = meetingStonesOn
+        else
+            enabled = dungeonsOn
+        end
+
         if enabled then
             local sx, sy = WorldMap.GetMinimapOffset(group, wx, wy, scale, radius, cosF, sinF)
             if sx ~= nil then
@@ -552,16 +592,27 @@ function WorldMap.RedrawMinimap()
             end
         end
     end
+
+    return count
 end
 
 if Minimap ~= nil then
     WorldMap.minimapUpdater = CreateFrame("FRAME", nil, Minimap)
     WorldMap.minimapUpdater.elapsed = 0
+    WorldMap.minimapUpdater:Hide()
     WorldMap.minimapUpdater:SetScript("OnUpdate", function(sel, elapsed)
         sel.elapsed = sel.elapsed + elapsed
         if sel.elapsed < UPDATE_INTERVAL then return end
         sel.elapsed = 0
         WorldMap.UpdateMinimap()
+    end)
+    WorldMap.minimapZoneWatcher = CreateFrame("FRAME")
+    for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED_NEW_AREA"}) do
+        pcall(WorldMap.minimapZoneWatcher.RegisterEvent, WorldMap.minimapZoneWatcher, event)
+    end
+    WorldMap.minimapZoneWatcher:SetScript("OnEvent", function()
+        WorldMap.minimapUpdater.ready = true
+        WorldMap.UpdateMinimapState()
     end)
 end
 
@@ -594,10 +645,6 @@ function WorldMap.UpdateLocations()
     local poiScale = WorldMap.GetPoiScale()
     local entrancesOn = AzerothCompendium:GetSharedOption("DUNGEONWORLDMAPPINS")
     local meetingStonesOn = AzerothCompendium:GetSharedOption("MEETINGSTONEWORLDMAPPINS")
-    for _, pin in ipairs(WorldMap.pins) do
-        if pin:IsShown() then WorldMap.UpdatePinStyle(pin) end
-    end
-
     local last = WorldMap.locationState
     if WorldMap.locationKey == true and last.mapID == mapID and abs((last.scale or 0) - (scale or 0)) < 0.00005 and abs(last.poiScale - poiScale) < 0.00005 and last.entrancesOn == entrancesOn and last.meetingStonesOn == meetingStonesOn then return end
     WorldMap.locationKey = true
