@@ -58,6 +58,7 @@ AzerothCompendium:AddTrans("frFR", "LID_HIDEMAPPINS", "Masquer les repères de l
 AzerothCompendium:AddTrans("frFR", "LID_MAPPINLEVELHINT", "Clic : afficher ce niveau de la carte")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTHINT", "Survolez une quête pour voir les détails")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTCOUNT", "%d quêtes")
+AzerothCompendium:AddTrans("frFR", "LID_ONLYOWNCLASS", "Ma classe uniquement")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTSCOMPLETED", "%d quêtes terminées sur %d")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTSCOMPLETEDHINT", "Compte les quêtes de cette instance que ce personnage a rendues.")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTTREESTART", "Extérieur - Préparation")

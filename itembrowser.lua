@@ -40,16 +40,15 @@ end
 
 function Browser:Collect()
     local entries = {}
-    local function Add(id, source, fallback, questID)
+    local function Add(id, source, fallback)
         if not id then return end
         if AC:GetFlavor() ~= "forever" and AC:IsForeverItem(id) then return end
         local entry = entries[id]
         if not entry then
-            entry = {id = id, sources = {}, fallback = fallback, questIDs = {}}
+            entry = {id = id, sources = {}, fallback = fallback}
             entries[id] = entry
         end
         if source and source ~= "" then entry.sources[source] = true end
-        if questID then entry.questIDs[questID] = true end
     end
     for _, collection in ipairs({AC.INSTANCES or {}, AC.VENDORS or {}}) do
         for _, instance in ipairs(collection) do
@@ -65,12 +64,12 @@ function Browser:Collect()
         if AC:IsQuestForFlavor(questID) then
             local source = AC:Trans("LID_QUESTS") .. " #" .. questID
             for _, items in ipairs({rewards.items or {}, rewards.choices or {}}) do
-                for _, item in ipairs(items) do Add(item[1], source, nil, questID) end
+                for _, item in ipairs(items) do Add(item[1], source) end
             end
         end
     end
     for questID, item in pairs(AC.QUESTSTARTITEMS or {}) do
-        if AC:IsQuestForFlavor(questID) then Add(item[1], AC:Trans("LID_QUESTS") .. " #" .. questID, nil, questID) end
+        if AC:IsQuestForFlavor(questID) then Add(item[1], AC:Trans("LID_QUESTS") .. " #" .. questID) end
     end
     for _, item in ipairs(AC.WORLDQUESTITEMS or {}) do
         if AC:IsQuestForFlavor(item.questID) then Add(item.itemID, item.source, item.itemName) end
@@ -82,6 +81,7 @@ function Browser:Collect()
         for source in pairs(entry.sources) do table.insert(sources, source) end
         table.sort(sources)
         entry.source = table.concat(sources, "; ")
+        entry.sources = nil
         table.insert(self.entries, entry)
     end
     self.flavor = AC:GetFlavor()

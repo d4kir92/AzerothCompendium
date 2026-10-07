@@ -141,6 +141,7 @@ function Stars:Update(button, entry)
     entry.misses = nil
     local texture = itemID and AC:GetWishlistTexture(itemID)
     if not entry.star then
+        if not texture then return end
         if InCombatLockdown and InCombatLockdown() then return end
         entry.star = button:CreateTexture(nil, "OVERLAY", nil, 7)
         entry.star:SetSize(Stars.size, Stars.size)
@@ -184,11 +185,8 @@ function Stars:Refresh()
         end
     end
     for button, entry in pairs(self.buttons) do
-        local ok, visible = pcall(button.IsVisible, button)
-        if ok and not (issecretvalue and issecretvalue(visible)) and visible == true and self:CanAccess(button) then
-            local updated, drop = pcall(self.Update, self, button, entry)
-            if (not updated or drop == true) and not entry.explicit then self.buttons[button] = nil end
-        end
+        local updated, drop = pcall(self.Update, self, button, entry)
+        if (not updated or drop == true) and not entry.explicit then self.buttons[button] = nil end
     end
 end
 

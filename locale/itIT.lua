@@ -58,6 +58,7 @@ AzerothCompendium:AddTrans("itIT", "LID_HIDEMAPPINS", "Nascondi i segnalini dell
 AzerothCompendium:AddTrans("itIT", "LID_MAPPINLEVELHINT", "Clic: mostra questo livello della mappa")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTHINT", "Passa il mouse su una missione per i dettagli")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTCOUNT", "%d missioni")
+AzerothCompendium:AddTrans("itIT", "LID_ONLYOWNCLASS", "Solo la mia classe")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTSCOMPLETED", "%d di %d missioni completate")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTSCOMPLETEDHINT", "Conta le missioni di questa istanza che questo personaggio ha consegnato.")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTTREESTART", "Esterno - Preparazione")

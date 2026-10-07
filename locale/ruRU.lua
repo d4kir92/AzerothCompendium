@@ -58,6 +58,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_HIDEMAPPINS", "Скрыть метки �
 AzerothCompendium:AddTrans("ruRU", "LID_MAPPINLEVELHINT", "Клик: показать этот уровень карты")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTHINT", "Наведите курсор на задание, чтобы увидеть подробности")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTCOUNT", "Заданий: %d")
+AzerothCompendium:AddTrans("ruRU", "LID_ONLYOWNCLASS", "Только мой класс")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTSCOMPLETED", "Выполнено заданий: %d из %d")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTSCOMPLETEDHINT", "Считает задания этого подземелья, которые сдал этот персонаж.")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTTREESTART", "Снаружи - подготовка")
