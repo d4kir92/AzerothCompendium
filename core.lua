@@ -1083,6 +1083,11 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     local nodes = {}
     local list = {}
     local inInstance = {}
+    local onlyOwnClass = AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) == true
+    local function IsHidden(questID)
+        return IsQuestHidden(questID) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
+    end
+
     for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
         inInstance[quest[1]] = quest
     end
@@ -1129,7 +1134,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
         if chain then
             local previous = nil
             for _, chainID in ipairs(chain) do
-                if not IsQuestHidden(chainID) then
+                if not IsHidden(chainID) then
                     if previous ~= nil then Link(previous, chainID) end
                     previous = chainID
                 end
@@ -1139,13 +1144,13 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
 
             for _, chainID in ipairs(chain) do
                 if chainID == id then break end
-                if not IsQuestHidden(chainID) then Visit(chainID) end
+                if not IsHidden(chainID) then Visit(chainID) end
             end
         end
 
         for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(id)) do
             for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[variantID] or {}) do
-                if not IsQuestHidden(prerequisiteID) then
+                if not IsHidden(prerequisiteID) then
                     Link(prerequisiteID, id)
                     Visit(prerequisiteID)
                 end
@@ -1183,7 +1188,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
             expanded[id] = true
             for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(id)) do
                 for _, childID in ipairs(followUps[variantID] or {}) do
-                    if not IsQuestHidden(childID) then
+                    if not IsHidden(childID) then
                         Visit(childID)
                         Link(id, childID)
                         tinsert(queue, AzerothCompendium:GetQuestCanonicalID(childID))
