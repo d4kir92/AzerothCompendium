@@ -91,7 +91,7 @@ function AC:UpdateWishlistStar(button, icon, itemID)
     entry.icon = icon
     entry.itemID = itemID
     entry.explicit = true
-    Stars:Update(button, entry)
+    pcall(Stars.Update, Stars, button, entry)
 end
 
 function Stars:Update(button, entry)
@@ -139,12 +139,12 @@ function Stars:Refresh()
         self.discover = false
         local frame = EnumerateFrames()
         while frame do
-            if not frame.IsForbidden or not frame:IsForbidden() then self:Track(frame) end
+            if not frame.IsForbidden or not frame:IsForbidden() then pcall(self.Track, self, frame) end
             frame = EnumerateFrames(frame)
         end
     end
     for button, entry in pairs(self.buttons) do
-        if not button.IsForbidden or not button:IsForbidden() then self:Update(button, entry) end
+        if (not button.IsForbidden or not button:IsForbidden()) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
     end
 end
 
@@ -166,6 +166,6 @@ end)
 if SetItemButtonTexture then
     hooksecurefunc("SetItemButtonTexture", function(button)
         if type(button) == "string" then button = _G[button] end
-        Stars:Track(button)
+        pcall(Stars.Track, Stars, button)
     end)
 end
