@@ -1160,6 +1160,40 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local instanceAncestors = {}
+    local enders = AzerothCompendium.QUESTENDERS or {}
+    local phaseKeys = {"accept", "objective", "turnin"}
+    local function GetPhaseGroups(node)
+        local id = node.id
+        local doInside = inside[id]
+        if doInside == nil then doInside = not HasInstanceAncestor(node, instanceAncestors, {}) end
+        local endInside = doInside
+        if enders[id] then endInside = enders[id][7] ~= nil end
+        local groups = {}
+        local seenInside = false
+        for index, phaseInside in ipairs({startInside[id] == true, doInside, endInside}) do
+            local section = phaseInside and 3 or seenInside and 4 or 2
+            if phaseInside then seenInside = true end
+            local group = groups[#groups]
+            if group == nil or group.section ~= section then
+                group = {section = section}
+                tinsert(groups, group)
+            end
+
+            group[phaseKeys[index]] = true
+        end
+
+        if not seenInside and HasInstanceAncestor(node, instanceAncestors, {}) then groups[1].section = 4 end
+        if attuneSet[id] then
+            if groups[1].section == 2 then
+                groups[1].section = 1
+            else
+                tinsert(groups, 1, {section = 1, accept = true})
+            end
+        end
+
+        return groups
+    end
+
     for _, node in ipairs(list) do
         IsBottom(node, {})
         node.outside = nil
@@ -1167,11 +1201,15 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
             node.section = 1
         elseif node.instance and afterInstance[node.id] then
             node.section = 4
+        elseif node.instance then
+            local groups = GetPhaseGroups(node)
+            node.section = groups[#groups].section
+            if #groups > 1 then
+                node.groups = groups
+                node.phases = groups[#groups]
+            end
         elseif startInside[node.id] then
             node.section = 3
-        elseif node.instance and inside[node.id] then
-            node.section = 3
-            node.split = not attuneSet[node.id]
         elseif HasInstanceAncestor(node, instanceAncestors, {}) then
             node.section = 4
         else
@@ -1184,32 +1222,41 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
     local copies = {}
     for _, node in ipairs(list) do
-        local section = attuneSet[node.id] and node.instance and 1 or node.split and 2 or nil
-        if section then
-            local copy = {
-                id = node.id,
-                quest = node.quest,
-                instance = false,
-                bottom = false,
-                section = section,
-                accept = section == 2,
-                name = node.name,
-                level = node.level,
-                parents = node.parents,
-                children = {node},
-                parentSet = node.parentSet
-            }
+        if node.groups then
+            local previous = nil
+            for index = 1, #node.groups - 1 do
+                local copy = {
+                    id = node.id,
+                    quest = node.quest,
+                    instance = false,
+                    bottom = false,
+                    section = node.groups[index].section,
+                    phases = node.groups[index],
+                    name = node.name,
+                    level = node.level,
+                    parents = previous and {previous} or node.parents,
+                    children = {},
+                    parentSet = previous and {[node.id] = true} or node.parentSet
+                }
 
-            for _, parent in ipairs(node.parents) do
-                for index, child in ipairs(parent.children) do
-                    if child == node then parent.children[index] = copy end
+                if previous then
+                    previous.children = {copy}
+                else
+                    for _, parent in ipairs(node.parents) do
+                        for childIndex, child in ipairs(parent.children) do
+                            if child == node then parent.children[childIndex] = copy end
+                        end
+                    end
                 end
+
+                tinsert(copies, copy)
+                previous = copy
             end
 
-            node.parents = {copy}
+            previous.children = {node}
+            node.parents = {previous}
             node.parentSet = {[node.id] = true}
-            node.split = nil
-            tinsert(copies, copy)
+            node.groups = nil
         end
     end
 
@@ -1265,29 +1312,56 @@ local function TooltipContainsLine(tooltip, text)
     return false
 end
 
-local function AddQuestPrerequisiteTooltip(tooltip, questID)
-    local destinations = GetPrerequisiteInstancesByQuestID()
+local questInstancesByQuestID = nil
+
+local function GetQuestInstancesByQuestID()
+    if questInstancesByQuestID ~= nil then return questInstancesByQuestID end
+    questInstancesByQuestID = {}
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
+            questInstancesByQuestID[quest[1]] = questInstancesByQuestID[quest[1]] or {}
+            tinsert(questInstancesByQuestID[quest[1]], inst)
+        end
+    end
+
+    return questInstancesByQuestID
+end
+
+local function FindTooltipQuestInstances(tooltip, destinations, questID)
     local instances = questID and destinations[questID]
-    if instances == nil then
-        local title = GetTooltipQuestTitle(tooltip)
-        if type(title) ~= "string" or title == "" then return end
-        local matched = {}
-        instances = {}
-        for id, destinationList in pairs(destinations) do
-            if AzerothCompendium:GetQuestNameByID(id) == title then
-                for _, inst in ipairs(destinationList) do
-                    if not matched[inst.id] then
-                        matched[inst.id] = true
-                        tinsert(instances, inst)
-                    end
+    if instances ~= nil then return instances end
+    if questID ~= nil and (AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or AzerothCompendium:GetQuestDataByID(questID)) then return {} end
+    local title = GetTooltipQuestTitle(tooltip)
+    if type(title) ~= "string" or title == "" then return {} end
+    local matched = {}
+    instances = {}
+    for id, destinationList in pairs(destinations) do
+        if AzerothCompendium:GetQuestNameByID(id) == title then
+            for _, inst in ipairs(destinationList) do
+                if not matched[inst.id] then
+                    matched[inst.id] = true
+                    tinsert(instances, inst)
                 end
             end
         end
     end
-    if instances == nil or #instances == 0 then return end
+
+    return instances
+end
+
+local function AddQuestPrerequisiteTooltip(tooltip, questID)
+    local lines = {}
+    for _, inst in ipairs(FindTooltipQuestInstances(tooltip, GetQuestInstancesByQuestID(), questID)) do
+        tinsert(lines, AzerothCompendium:Trans(inst.type == "raid" and "LID_RAIDQUESTFOR" or "LID_DUNGEONQUESTFOR", nil, AzerothCompendium:GetInstanceName(inst)))
+    end
+
+    for _, inst in ipairs(FindTooltipQuestInstances(tooltip, GetPrerequisiteInstancesByQuestID(), questID)) do
+        tinsert(lines, AzerothCompendium:Trans("LID_PREREQUISITEFOR", nil, AzerothCompendium:GetInstanceName(inst)))
+    end
+
     local added = false
-    for _, inst in ipairs(instances) do
-        local text = AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_PREREQUISITEFOR", nil, AzerothCompendium:GetInstanceName(inst)))
+    for _, line in ipairs(lines) do
+        local text = AzerothCompendium:GetCompendiumTooltipLabel(line)
         if not TooltipContainsLine(tooltip, text) then
             tooltip:AddLine(text, 1, 0.82, 0, true)
             added = true

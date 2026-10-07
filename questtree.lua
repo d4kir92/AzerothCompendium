@@ -78,7 +78,8 @@ local STATUS_ICON = {
     ["ready"] = {"Interface\\GossipFrame\\ActiveQuestIcon", false},
     ["active"] = {"Interface\\GossipFrame\\ActiveQuestIcon", true},
     ["open"] = {"Interface\\GossipFrame\\AvailableQuestIcon", false},
-    ["locked"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true}
+    ["lowlevel"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true},
+    ["locked"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true, {1, 0.2, 0.2}}
 }
 
 local STATUS_BORDER = {
@@ -86,10 +87,24 @@ local STATUS_BORDER = {
     ["ready"] = {1, 0.82, 0, 1},
     ["active"] = {0.7, 0.6, 0.25, 1},
     ["open"] = {0.35, 0.35, 0.38, 1},
+    ["lowlevel"] = {0.35, 0.35, 0.38, 1},
     ["locked"] = {0.35, 0.35, 0.38, 1}
 }
 
+local STATUS_TEXT = {
+    ["complete"] = "LID_QUESTCOMPLETE",
+    ["ready"] = "LID_QUESTREADY",
+    ["active"] = "LID_QUESTACTIVE",
+    ["open"] = "LID_QUESTNOTACCEPTED",
+    ["lowlevel"] = "LID_QUESTLOWLEVEL",
+    ["locked"] = "LID_QUESTLOCKED"
+}
+
 local function IsQuestLocked(node)
+    while node and node.parents and #node.parents == 1 and node.parents[1].id == node.id do
+        node = node.parents[1]
+    end
+
     for _, parent in ipairs(node and node.parents or {}) do
         if not AzerothCompendium:IsQuestCompleted(parent.id) then return true end
     end
@@ -98,12 +113,27 @@ local function IsQuestLocked(node)
 end
 
 local function GetQuestStatus(questID, node)
-    if AzerothCompendium:IsQuestCompleted(questID) then return "complete" end
-    if AzerothCompendium:IsQuestReadyForTurnIn(questID) then return "ready" end
-    if AzerothCompendium:IsQuestActive(questID) then return "active" end
-    if IsQuestLocked(node) then return "locked" end
+    local status = "open"
+    if AzerothCompendium:IsQuestCompleted(questID) then
+        status = "complete"
+    elseif AzerothCompendium:IsQuestReadyForTurnIn(questID) then
+        status = "ready"
+    elseif AzerothCompendium:IsQuestActive(questID) then
+        status = "active"
+    elseif IsQuestLocked(node) then
+        status = "locked"
+    else
+        local requiredLevel = AzerothCompendium:GetQuestRequiredLevel(node and node.quest or questID)
+        local playerLevel = UnitLevel and UnitLevel("player") or 0
+        if type(requiredLevel) == "number" and playerLevel > 0 and playerLevel < requiredLevel then status = "lowlevel" end
+    end
 
-    return "open"
+    local phases = node and node.phases
+    if phases == nil or phases.turnin then return status end
+    if status == "ready" then return "complete" end
+    if status == "active" and not phases.objective then return "complete" end
+
+    return status
 end
 
 local function IsGroupUnitOnQuest(unit, questID)
@@ -150,8 +180,8 @@ end
 
 local function AddQuestStatusToTooltip(questID, quest, node)
     local status = GetQuestStatus(questID, node)
-    local text = status == "complete" and AzerothCompendium:Trans("LID_QUESTCOMPLETE") or status == "ready" and AzerothCompendium:Trans("LID_QUESTREADY") or status == "active" and AzerothCompendium:Trans("LID_QUESTACTIVE") or status == "locked" and AzerothCompendium:Trans("LID_QUESTLOCKED") or AzerothCompendium:Trans("LID_QUESTNOTACCEPTED")
-    local color = (status == "open" or status == "locked") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
+    local text = AzerothCompendium:Trans(STATUS_TEXT[status])
+    local color = status == "locked" and {1, 0.3, 0.3} or (status == "open" or status == "lowlevel") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.STATUS or "Status"), text, 0.9, 0.9, 0.9, color[1], color[2], color[3])
     quest = quest or AzerothCompendium:GetQuestDataByID(questID) or questID
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTREQUIREDLEVEL")), tostring(AzerothCompendium:GetQuestRequiredLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
@@ -446,6 +476,10 @@ local function CreateNode(canvas, tree)
     node.classText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     node.classText:SetJustifyH("RIGHT")
     node.classText:SetWordWrap(false)
+    node.phaseText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.phaseText:SetJustifyH("LEFT")
+    node.phaseText:SetWordWrap(false)
+    node.phaseText:SetTextColor(0.75, 0.75, 0.75)
     node.rewardLabel = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     node.rewardLabel:SetJustifyH("LEFT")
     node.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
@@ -494,26 +528,36 @@ local function GetNodeRequiredLevel(node)
     return type(level) == "number" and level > 0 and level or nil
 end
 
-local function GetAcceptText(node)
-    local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
-    if startItem then
-        local name = AzerothCompendium:GetItemDisplay(startItem[1])
-        return format("%s: %s", _G.ITEM or "Item", name or startItem[2])
+local function GetPhaseText(node)
+    local phases = node.phases
+    if phases == nil then return nil end
+    if phases.accept then
+        local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+        if startItem then
+            local name = AzerothCompendium:GetItemDisplay(startItem[1])
+            return format("%s: %s", _G.ITEM or "Item", name or startItem[2])
+        end
+
+        local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
+        return giver and giver[5] and format("%s: %s", AzerothCompendium:Trans("LID_QUESTGIVER"), giver[5]) or nil
     end
 
-    local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
-    if giver and giver[5] then return format("%s: %s", AzerothCompendium:Trans("LID_QUESTGIVER"), giver[5]) end
+    if phases.turnin then
+        local ender = AzerothCompendium.QUESTENDERS and AzerothCompendium.QUESTENDERS[node.id]
+        return ender and ender[5] and format("%s: %s", AzerothCompendium:Trans("LID_QUESTENDER"), ender[5]) or nil
+    end
 
-    return nil
+    return AzerothCompendium:Trans("LID_QUESTPHASEDO")
+end
+
+local function IsCompactNode(node)
+    return node.phases ~= nil and not node.phases.turnin
 end
 
 local function GetNodeHeight(node)
     local height = NODE_PAD_TOP + TITLE_H + NODE_PAD_BOTTOM
-    if node.accept then
-        if GetAcceptText(node) then height = height + TEXT_LINE_H end
-    else
-        height = height + REWARD_LINE_H + TEXT_LINE_H
-    end
+    if GetPhaseText(node) then height = height + TEXT_LINE_H end
+    if not IsCompactNode(node) then height = height + REWARD_LINE_H + TEXT_LINE_H end
 
     if GetNodeRequiredLevel(node) or AzerothCompendium:GetQuestClasses(node.id) then height = height + TEXT_LINE_H end
 
@@ -534,6 +578,8 @@ local function UpdateNode(button, node, width)
     local statusIcon = STATUS_ICON[status]
     button.statusIcon:SetTexture(statusIcon[1])
     button.statusIcon:SetDesaturated(statusIcon[2])
+    local tint = statusIcon[3]
+    button.statusIcon:SetVertexColor(tint and tint[1] or 1, tint and tint[2] or 1, tint and tint[3] or 1)
     local color = GetQuestDifficultyColorCode(node.level)
     local prefix = ""
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
@@ -625,22 +671,23 @@ local function UpdateNode(button, node, width)
 
     if requiredLevel or classText then y = y + TEXT_LINE_H end
 
-    if node.accept then
+    local phaseText = GetPhaseText(node)
+    if phaseText then
+        PlaceLine(button.phaseText, button, y, TEXT_LINE_H)
+        button.phaseText:SetText(phaseText)
+        button.phaseText:Show()
+        y = y + TEXT_LINE_H
+    else
+        button.phaseText:Hide()
+    end
+
+    if IsCompactNode(node) then
         button.rewardLabel:Hide()
         button.overflow:Hide()
+        button.xpText:Hide()
         button.moneyText:Hide()
         for _, icon in ipairs(button.icons) do
             icon:Hide()
-        end
-
-        local acceptText = GetAcceptText(node)
-        if acceptText then
-            PlaceLine(button.xpText, button, y, TEXT_LINE_H)
-            button.xpText:SetText(acceptText)
-            button.xpText:SetTextColor(0.75, 0.75, 0.75)
-            button.xpText:Show()
-        else
-            button.xpText:Hide()
         end
 
         button:Show()
@@ -1203,6 +1250,128 @@ local function UpdateKeyLine(line, attunement, box)
     line:Show()
 end
 
+local function CreateLegend(tree, anchor)
+    local legend = CreateFrame("Frame", nil, tree, AzerothCompendium:CheckTemplates("BackdropTemplate") and "BackdropTemplate" or nil)
+    legend:SetFrameStrata("HIGH")
+    legend:SetSize(320, 10)
+    legend:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -8, 8)
+    legend:EnableMouse(true)
+    if legend.SetBackdrop then
+        legend:SetBackdrop({
+            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true,
+            tileSize = 16,
+            edgeSize = 16,
+            insets = {left = 4, right = 4, top = 4, bottom = 4}
+        })
+        legend:SetBackdropColor(0.05, 0.05, 0.07, 0.96)
+        legend:SetBackdropBorderColor(1, 0.82, 0, 1)
+    end
+
+    legend.title = legend:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    legend.title:SetPoint("TOPLEFT", legend, "TOPLEFT", 12, -12)
+    local close = CreateFrame("Button", nil, legend, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", legend, "TOPRIGHT", 0, 0)
+    local okay = CreateFrame("Button", nil, legend, "UIPanelButtonTemplate")
+    okay:SetSize(90, 22)
+    okay:SetPoint("BOTTOMRIGHT", legend, "BOTTOMRIGHT", -10, 10)
+    okay:SetText(_G.OKAY or "OK")
+    local rows = {}
+    local function AddRow(text, setup)
+        local row = legend:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        row:SetJustifyH("LEFT")
+        row:SetWidth(270)
+        row:SetPoint("TOPLEFT", legend, "TOPLEFT", 38, -36 - #rows * 18)
+        local icon = legend:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+        icon:SetPoint("RIGHT", row, "LEFT", -6, 0)
+        local label = legend:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        label:SetPoint("RIGHT", row, "LEFT", -6, 0)
+        setup(icon, label)
+        tinsert(rows, {row, text})
+    end
+
+    for _, status in ipairs({"lowlevel", "open", "locked", "active", "ready", "complete"}) do
+        AddRow("LID_LEGEND" .. string.upper(status), function(icon)
+            local info = STATUS_ICON[status]
+            icon:SetTexture(info[1])
+            icon:SetDesaturated(info[2])
+            if info[3] then icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
+        end)
+    end
+
+    AddRow("LID_LEGENDTAG", function(icon)
+        local tag = GetQuestTagIcon(81)
+        if tag and tag[2] then icon:SetAtlas(tag[1]) elseif tag then icon:SetTexture(tag[1]) end
+    end)
+
+    AddRow("LID_LEGENDPHASES", function(icon)
+        icon:SetColorTexture(0.35, 0.65, 1, 0.9)
+        icon:SetSize(LINE_W + 1, STATUS_ICON_SIZE)
+    end)
+
+    AddRow("LID_LEGENDCHAIN", function(icon)
+        icon:SetColorTexture(0.55, 0.55, 0.58, 0.8)
+        icon:SetSize(LINE_W + 1, STATUS_ICON_SIZE)
+    end)
+
+    AddRow("LID_LEGENDCLASS", function(icon, label)
+        icon:Hide()
+        label:SetText("|cffff4040Abc|r")
+    end)
+
+    AddRow("LID_LEGENDGROUP", function(icon, label)
+        icon:Hide()
+        label:SetText("|cff66e666" .. "2/5" .. "|r")
+    end)
+
+    legend:SetHeight(36 + #rows * 18 + 40)
+    local function UpdateTexts()
+        legend.title:SetText(AzerothCompendium:Trans("LID_QUESTLEGEND"))
+        for _, row in ipairs(rows) do
+            row[1]:SetText(AzerothCompendium:Trans(row[2]))
+        end
+    end
+
+    UpdateTexts()
+    AzerothCompendium:OnLanguage(UpdateTexts)
+    local function Dismiss()
+        legend:Hide()
+        AzerothCompendium:SetConfig("QUESTLEGENDSEEN", true)
+    end
+
+    close:SetScript("OnClick", Dismiss)
+    okay:SetScript("OnClick", Dismiss)
+    legend:Hide()
+    local button = CreateFrame("Button", nil, tree)
+    button:SetSize(BOTTOM_H - 4, BOTTOM_H - 4)
+    button:SetNormalTexture("Interface\\FriendsFrame\\InformationIcon")
+    button:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    button:SetScript("OnClick", function()
+        if legend:IsShown() then Dismiss() else legend:Show() end
+    end)
+
+    button:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_TOP")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_QUESTLEGEND"))
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    local function ShowFirstTime()
+        if not AzerothCompendium:GetConfig("QUESTLEGENDSEEN", false) then legend:Show() end
+    end
+
+    tree:HookScript("OnShow", ShowFirstTime)
+    if tree:IsVisible() then ShowFirstTime() end
+
+    tree.legend = legend
+    tree.legendButton = button
+
+    return button
+end
+
 function AzerothCompendium:CreateQuestTree(parent)
     local tree = CreateFrame("Frame", nil, parent)
     local scroll = nil
@@ -1241,7 +1410,9 @@ function AzerothCompendium:CreateQuestTree(parent)
     zoomIcon:SetSize(HBAR_H, HBAR_H)
     zoomIcon:SetPoint("RIGHT", zoomSlider, "LEFT", -2, 0)
     tree.zoomBar = zoomSlider
-    local hbar = CreateHBar(tree, scroll, zoomIcon)
+    local legendButton = CreateLegend(tree, scroll)
+    legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
+    local hbar = CreateHBar(tree, scroll, legendButton)
     tree.hbar = hbar
     local function SetHScroll(value)
         scroll:SetHorizontalScroll(ClampScroll(scroll, true, value))
@@ -1373,6 +1544,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         if cy <= py then return end
         local completed = AzerothCompendium:IsQuestCompleted(parentNode.id)
         local r, g, b, a = 0.55, 0.55, 0.58, 0.8
+        if parentNode.id == childNode.id then r, g, b, a = 0.35, 0.65, 1, 0.9 end
         if completed then r, g, b, a = 0.2, 0.75, 0.2, 0.85 end
         local half = LINE_W / 2
         if px == cx then
