@@ -121,8 +121,16 @@ function Stars:Track(button)
     if not button or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
-    local icon = button.icon or button.Icon or button.IconTexture or name and _G[name .. "IconTexture"]
-    if not icon or not icon.GetObjectType or icon:GetObjectType() ~= "Texture" then return end
+    local icon
+    local candidates = {button.icon, button.Icon, button.IconTexture, name and _G[name .. "IconTexture"] or nil}
+    for i = 1, 4 do
+        local candidate = candidates[i]
+        if type(candidate) == "table" and candidate.GetObjectType and candidate:GetObjectType() == "Texture" then
+            icon = candidate
+            break
+        end
+    end
+    if not icon then return end
     self.buttons[button] = {icon = icon}
 end
 
