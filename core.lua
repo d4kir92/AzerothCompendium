@@ -1140,44 +1140,14 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
     local inside = AzerothCompendium.QUESTINSIDE or {}
     local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
-    local hasInside = false
-    for _, node in ipairs(list) do
-        if node.instance and (inside[node.id] or startInside[node.id]) then hasInside = true end
-    end
-
-    local anchors = {}
-    local IsAnchor
-    local function HasAnchorAncestor(node, stack)
-        if stack[node] then return false end
-        stack[node] = true
-        for _, parent in ipairs(node.parents) do
-            if IsAnchor(parent) or HasAnchorAncestor(parent, stack) then return true end
-        end
-
-        return false
-    end
-
-    IsAnchor = function(node)
-        if anchors[node] == nil then
-            anchors[node] = false
-            anchors[node] = node.instance and (inside[node.id] or not hasInside or startInside[node.id] and not HasAnchorAncestor(node, {})) and true or false
-        end
-
-        return anchors[node]
-    end
     local afterInstance = AzerothCompendium.QUESTAFTERINSTANCE or {}
-    local function IsAfterSeed(node)
-        return IsAnchor(node) or (node.instance and (startInside[node.id] == true or afterInstance[node.id] == true))
-    end
-
-    local function Reaches(node, key, cache, stack)
+    local function HasInstanceAncestor(node, cache, stack)
         if cache[node] ~= nil then return cache[node] end
         if stack[node] then return false end
         stack[node] = true
         local result = false
-        local Seed = key == "parents" and IsAfterSeed or IsAnchor
-        for _, other in ipairs(node[key]) do
-            if Seed(other) or Reaches(other, key, cache, stack) then result = true end
+        for _, parent in ipairs(node.parents) do
+            if parent.instance or HasInstanceAncestor(parent, cache, stack) then result = true end
         end
 
         stack[node] = nil
@@ -1186,17 +1156,20 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         return result
     end
 
-    local afterAnchor = {}
+    local instanceAncestors = {}
     for _, node in ipairs(list) do
         IsBottom(node, {})
-        local anchor = IsAnchor(node)
-        local after = IsAfterSeed(node) or Reaches(node, "parents", afterAnchor, {})
         node.outside = nil
         if attuneSet[node.id] and not node.instance then
             node.section = 1
-        elseif anchor then
+        elseif node.instance and afterInstance[node.id] then
+            node.section = 4
+        elseif startInside[node.id] then
             node.section = 3
-        elseif after then
+        elseif node.instance and inside[node.id] then
+            node.section = 3
+            node.split = not attuneSet[node.id]
+        elseif HasInstanceAncestor(node, instanceAncestors, {}) then
             node.section = 4
         else
             node.section = 2
@@ -1206,15 +1179,17 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
     end
 
-    local attuneCopies = {}
+    local copies = {}
     for _, node in ipairs(list) do
-        if attuneSet[node.id] and node.instance then
+        local section = attuneSet[node.id] and node.instance and 1 or node.split and 2 or nil
+        if section then
             local copy = {
                 id = node.id,
                 quest = node.quest,
                 instance = false,
                 bottom = false,
-                section = 1,
+                section = section,
+                accept = section == 2,
                 name = node.name,
                 level = node.level,
                 parents = node.parents,
@@ -1230,11 +1205,12 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
             node.parents = {copy}
             node.parentSet = {[node.id] = true}
-            tinsert(attuneCopies, copy)
+            node.split = nil
+            tinsert(copies, copy)
         end
     end
 
-    for _, copy in ipairs(attuneCopies) do
+    for _, copy in ipairs(copies) do
         tinsert(list, copy)
     end
 

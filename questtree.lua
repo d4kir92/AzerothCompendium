@@ -494,8 +494,27 @@ local function GetNodeRequiredLevel(node)
     return type(level) == "number" and level > 0 and level or nil
 end
 
+local function GetAcceptText(node)
+    local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+    if startItem then
+        local name = AzerothCompendium:GetItemDisplay(startItem[1])
+        return format("%s: %s", _G.ITEM or "Item", name or startItem[2])
+    end
+
+    local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
+    if giver and giver[5] then return format("%s: %s", AzerothCompendium:Trans("LID_QUESTGIVER"), giver[5]) end
+
+    return nil
+end
+
 local function GetNodeHeight(node)
-    local height = NODE_PAD_TOP + TITLE_H + REWARD_LINE_H + TEXT_LINE_H + NODE_PAD_BOTTOM
+    local height = NODE_PAD_TOP + TITLE_H + NODE_PAD_BOTTOM
+    if node.accept then
+        if GetAcceptText(node) then height = height + TEXT_LINE_H end
+    else
+        height = height + REWARD_LINE_H + TEXT_LINE_H
+    end
+
     if GetNodeRequiredLevel(node) or AzerothCompendium:GetQuestClasses(node.id) then height = height + TEXT_LINE_H end
 
     return height
@@ -606,6 +625,31 @@ local function UpdateNode(button, node, width)
 
     if requiredLevel or classText then y = y + TEXT_LINE_H end
 
+    if node.accept then
+        button.rewardLabel:Hide()
+        button.overflow:Hide()
+        button.moneyText:Hide()
+        for _, icon in ipairs(button.icons) do
+            icon:Hide()
+        end
+
+        local acceptText = GetAcceptText(node)
+        if acceptText then
+            PlaceLine(button.xpText, button, y, TEXT_LINE_H)
+            button.xpText:SetText(acceptText)
+            button.xpText:SetTextColor(0.75, 0.75, 0.75)
+            button.xpText:Show()
+        else
+            button.xpText:Hide()
+        end
+
+        button:Show()
+
+        return
+    end
+
+    button.xpText:Show()
+    button.moneyText:Show()
     local entries, rewards = GetRewardEntries(node.id)
     local shown = 0
     button.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
