@@ -1150,7 +1150,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         local anchor = IsAnchor(node)
         local after = IsAfterSeed(node) or Reaches(node, "parents", afterAnchor, {})
         node.outside = nil
-        if attuneSet[node.id] then
+        if attuneSet[node.id] and not node.instance then
             node.section = 1
         elseif anchor then
             node.section = 3
@@ -1162,6 +1162,38 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
         node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
+    end
+
+    local attuneCopies = {}
+    for _, node in ipairs(list) do
+        if attuneSet[node.id] and node.instance then
+            local copy = {
+                id = node.id,
+                quest = node.quest,
+                instance = false,
+                bottom = false,
+                section = 1,
+                name = node.name,
+                level = node.level,
+                parents = node.parents,
+                children = {node},
+                parentSet = node.parentSet
+            }
+
+            for _, parent in ipairs(node.parents) do
+                for index, child in ipairs(parent.children) do
+                    if child == node then parent.children[index] = copy end
+                end
+            end
+
+            node.parents = {copy}
+            node.parentSet = {[node.id] = true}
+            tinsert(attuneCopies, copy)
+        end
+    end
+
+    for _, copy in ipairs(attuneCopies) do
+        tinsert(list, copy)
     end
 
     list.attunement = attunement

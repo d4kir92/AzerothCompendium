@@ -453,8 +453,15 @@ local function CreateNode(canvas, tree)
     node.moneyText:SetJustifyH("RIGHT")
     node.moneyText:SetWordWrap(false)
     node.icons = {}
-    node:SetScript("OnEnter", ShowNodeTooltip)
-    node:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    node:SetScript("OnEnter", function(sel)
+        sel.tree:SetQuestHighlight(sel.node and sel.node.id)
+        ShowNodeTooltip(sel)
+    end)
+
+    node:SetScript("OnLeave", function(sel)
+        sel.tree:SetQuestHighlight(nil)
+        AzerothCompendium:HideGameTooltip()
+    end)
     node:SetScript("OnMouseDown", function(sel, mouseButton) sel.tree:StartDrag(mouseButton) end)
     node:SetScript("OnClick", OnNodeClick)
 
@@ -1486,6 +1493,16 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         return false
+    end
+
+    function tree:SetQuestHighlight(questID)
+        for _, button in ipairs(self.nodes) do
+            if questID ~= nil and button:IsShown() and button.node and button.node.id == questID then
+                button:LockHighlight()
+            else
+                button:UnlockHighlight()
+            end
+        end
     end
 
     function tree:Refresh()
