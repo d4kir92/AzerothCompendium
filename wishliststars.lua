@@ -126,6 +126,12 @@ function Stars:Update(button, entry)
     end
     local itemID = entry.itemID
     if not entry.explicit then itemID = self:Resolve(button) end
+    if itemID == nil and not entry.explicit then
+        entry.misses = (entry.misses or 0) + 1
+        if entry.star then entry.star:Hide() end
+        return entry.misses >= 8
+    end
+    entry.misses = nil
     local texture = itemID and AC:GetWishlistTexture(itemID)
     if not entry.star then
         if InCombatLockdown and InCombatLockdown() then return end
@@ -140,8 +146,8 @@ function Stars:Update(button, entry)
 end
 
 function Stars:Track(button)
-    if not AC:GetConfig("WISHLISTENABLED", true) then return end
-    if not self:CanAccess(button) or self.buttons[button] or not button.GetName or not button.CreateTexture then return end
+    if type(button) ~= "table" or self.buttons[button] or not AC:GetConfig("WISHLISTENABLED", true) then return end
+    if not self:CanAccess(button) or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
     local icon
@@ -172,7 +178,10 @@ function Stars:Refresh()
     end
     for button, entry in pairs(self.buttons) do
         local ok, visible = pcall(button.IsVisible, button)
-        if ok and not (issecretvalue and issecretvalue(visible)) and visible == true and self:CanAccess(button) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
+        if ok and not (issecretvalue and issecretvalue(visible)) and visible == true and self:CanAccess(button) then
+            local updated, drop = pcall(self.Update, self, button, entry)
+            if (not updated or drop == true) and not entry.explicit then self.buttons[button] = nil end
+        end
     end
 end
 
