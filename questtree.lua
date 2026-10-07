@@ -105,11 +105,26 @@ local function IsQuestLocked(node)
         node = node.parents[1]
     end
 
-    for _, parent in ipairs(node and node.parents or {}) do
-        if not AzerothCompendium:IsQuestCompleted(parent.id) then return true end
+    if node == nil then return false end
+    local anyOf = {}
+    for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(node.id)) do
+        for _, id in ipairs(AzerothCompendium.QUESTPREANY and AzerothCompendium.QUESTPREANY[variantID] or {}) do
+            anyOf[AzerothCompendium:GetQuestCanonicalID(id)] = true
+        end
     end
 
-    return false
+    local hasAny, anyDone = false, false
+    for _, parent in ipairs(node.parents or {}) do
+        local completed = AzerothCompendium:IsQuestCompleted(parent.id)
+        if anyOf[parent.id] then
+            hasAny = true
+            if completed then anyDone = true end
+        elseif not completed then
+            return true
+        end
+    end
+
+    return hasAny and not anyDone
 end
 
 local function GetQuestStatus(questID, node)
@@ -188,6 +203,8 @@ local function AddQuestStatusToTooltip(questID, quest, node)
     GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTRECOMMENDEDLEVEL")), tostring(AzerothCompendium:GetQuestRecommendedLevel(quest)), 0.9, 0.9, 0.9, 1, 0.82, 0)
     local classText = AzerothCompendium:GetQuestClassText(questID)
     if classText then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.CLASS or "Class"), classText, 0.9, 0.9, 0.9, 1, 1, 1) end
+    local variants = AzerothCompendium:GetQuestVariants(questID)
+    if #variants > 1 then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTVARIANTS", nil, #variants)), 0.75, 0.75, 0.75, true) end
 end
 
 local function ShowQuestWowheadLink(questID)
@@ -793,7 +810,9 @@ local function ComputeLayers(nodes)
         stack[node] = true
         local layer = 0
         for _, parent in ipairs(node.parents) do
-            layer = max(layer, ParentLayer(parent, node.section, stack))
+            local parentLayer = ParentLayer(parent, node.section, stack)
+            if parent.section > node.section then parentLayer = max(0, parentLayer - 1) end
+            layer = max(layer, parentLayer)
         end
 
         stack[node] = nil
@@ -1541,7 +1560,27 @@ function AzerothCompendium:CreateQuestTree(parent)
         local py = parentNode.y + parentNode.h
         local cx = childNode.x + nodeW / 2
         local cy = childNode.y
-        if cy <= py then return end
+        if cy <= py then
+            local root = parentNode
+            while #root.parents == 1 and root.parents[1].id == root.id do
+                root = root.parents[1]
+            end
+
+            if root == parentNode or root.y > cy then return end
+            if root.y + root.h < cy then return AddEdge(root, childNode, nodeW, gapY) end
+            local rx = root.x + nodeW / 2
+            local firstRow = cy <= tree.boxTops[childNode.section] + HEADER_H + KEY_LINE_H + PAD
+            local topY = cy - (firstRow and PAD or gapY) / 2
+            local half = LINE_W / 2
+            local r, g, b, a = 0.55, 0.55, 0.58, 0.8
+            if AzerothCompendium:IsQuestCompleted(parentNode.id) then r, g, b, a = 0.2, 0.75, 0.2, 0.85 end
+            AddLine(rx - half, topY, LINE_W, root.y - topY, r, g, b, a)
+            AddLine(min(rx, cx) - half, topY - half, math.abs(cx - rx) + LINE_W, LINE_W, r, g, b, a)
+            AddLine(cx - half, topY, LINE_W, cy - topY, r, g, b, a)
+
+            return
+        end
+
         local completed = AzerothCompendium:IsQuestCompleted(parentNode.id)
         local r, g, b, a = 0.55, 0.55, 0.58, 0.8
         if parentNode.id == childNode.id then r, g, b, a = 0.35, 0.65, 1, 0.9 end

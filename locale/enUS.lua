@@ -195,3 +195,4 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTPHASEDO", "Complete the objectives"
 AzerothCompendium:AddTrans("enUS", "LID_QUESTENDER", "Turn in")
 AzerothCompendium:AddTrans("enUS", "LID_DUNGEONQUESTFOR", "Dungeon quest for %s")
 AzerothCompendium:AddTrans("enUS", "LID_RAIDQUESTFOR", "Raid quest for %s")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTVARIANTS", "This quest exists in %d variants, only one of them can be done")

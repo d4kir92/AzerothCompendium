@@ -170,3 +170,4 @@ AzerothCompendium:AddTrans("ruRU", "LID_QUESTPHASEDO", "Выполните це�
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTENDER", "Сдать")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONQUESTFOR", "Задание подземелья: %s")
 AzerothCompendium:AddTrans("ruRU", "LID_RAIDQUESTFOR", "Задание рейда: %s")
+AzerothCompendium:AddTrans("ruRU", "LID_QUESTVARIANTS", "У этого задания %d варианта, выполнить можно только один")

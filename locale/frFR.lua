@@ -170,3 +170,4 @@ AzerothCompendium:AddTrans("frFR", "LID_QUESTPHASEDO", "Accomplir les objectifs"
 AzerothCompendium:AddTrans("frFR", "LID_QUESTENDER", "Rendre")
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONQUESTFOR", "Quête de donjon pour %s")
 AzerothCompendium:AddTrans("frFR", "LID_RAIDQUESTFOR", "Quête de raid pour %s")
+AzerothCompendium:AddTrans("frFR", "LID_QUESTVARIANTS", "Cette quête existe en %d variantes, une seule peut être accomplie")

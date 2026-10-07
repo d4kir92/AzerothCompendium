@@ -616,9 +616,19 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) then
             tinsert(available, quest)
         end
+    end
+
+    local listed = {}
+    for _, quest in ipairs(available) do
+        listed[quest[1]] = true
+    end
+
+    for index = #available, 1, -1 do
+        local canonical = AzerothCompendium:GetQuestCanonicalID(available[index][1])
+        if canonical ~= available[index][1] and listed[canonical] then tremove(available, index) end
     end
     table.sort(available, function(a, b)
         local levelA = AzerothCompendium:GetQuestRecommendedLevel(a)
@@ -656,6 +666,18 @@ function AzerothCompendium:GetQuestRequiredLevel(quest)
     if data and type(data[5]) == "number" then return data[5] end
 
     return AzerothCompendium.QUESTREQUIREDLEVELS and AzerothCompendium.QUESTREQUIREDLEVELS[questID] or 0
+end
+
+AzerothCompendium.PLACEHOLDER_QUEST_PATTERNS = {"^%s*<", "<UNUSED>", "<NYI>", "<TXT>", "<DEPRECATED>", "%[UNUSED%]", "%[NYI%]", "%[PH%]", "%[DEPRECATED%]", "^zzOLD", "^ZZOLD"}
+function AzerothCompendium:IsPlaceholderQuest(questID)
+    local data = AzerothCompendium:GetQuestDataByID(questID)
+    for _, name in ipairs({AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID] or "", data and data[4] or ""}) do
+        for _, pattern in ipairs(AzerothCompendium.PLACEHOLDER_QUEST_PATTERNS) do
+            if string.find(name, pattern) then return true end
+        end
+    end
+
+    return false
 end
 
 function AzerothCompendium:GetQuestClasses(questID)
@@ -757,7 +779,24 @@ local function IsQuestForOpposingFaction(questID)
     return IsOpposingQuestSide(side)
 end
 
-function AzerothCompendium:IsQuestCompleted(questID)
+local questVariants = {}
+function AzerothCompendium:GetQuestVariants(questID)
+    local variants = questVariants[questID]
+    if variants then return variants end
+    variants = {questID}
+    local names = AzerothCompendium.QUESTNAMES or {}
+    local name = names[questID]
+    for _, other in ipairs(AzerothCompendium.QUESTEXCLUSIVE and AzerothCompendium.QUESTEXCLUSIVE[questID] or {}) do
+        if name ~= nil and names[other] == name then tinsert(variants, other) end
+    end
+
+    table.sort(variants)
+    questVariants[questID] = variants
+
+    return variants
+end
+
+local function IsSingleQuestCompleted(questID)
     if IsQuestForOpposingFaction(questID) then return false end
     if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then
         local ok, completed = pcall(C_QuestLog.IsQuestFlaggedCompleted, questID)
@@ -771,7 +810,15 @@ function AzerothCompendium:IsQuestCompleted(questID)
     return false
 end
 
-function AzerothCompendium:IsQuestActive(questID)
+function AzerothCompendium:IsQuestCompleted(questID)
+    for _, id in ipairs(AzerothCompendium:GetQuestVariants(questID)) do
+        if IsSingleQuestCompleted(id) then return true end
+    end
+
+    return false
+end
+
+local function IsSingleQuestActive(questID)
     if IsQuestForOpposingFaction(questID) then return false end
     if C_QuestLog and C_QuestLog.IsOnQuest then
         local ok, active = pcall(C_QuestLog.IsOnQuest, questID)
@@ -785,8 +832,16 @@ function AzerothCompendium:IsQuestActive(questID)
     return false
 end
 
-function AzerothCompendium:IsQuestReadyForTurnIn(questID)
-    if not AzerothCompendium:IsQuestActive(questID) then return false end
+function AzerothCompendium:IsQuestActive(questID)
+    for _, id in ipairs(AzerothCompendium:GetQuestVariants(questID)) do
+        if IsSingleQuestActive(id) then return true end
+    end
+
+    return false
+end
+
+local function IsSingleQuestReadyForTurnIn(questID)
+    if not IsSingleQuestActive(questID) then return false end
     if C_QuestLog then
         for _, name in ipairs({"ReadyForTurnIn", "IsComplete"}) do
             local fn = C_QuestLog[name]
@@ -804,6 +859,14 @@ function AzerothCompendium:IsQuestReadyForTurnIn(questID)
 
             return isComplete == 1 or isComplete == true
         end
+    end
+
+    return false
+end
+
+function AzerothCompendium:IsQuestReadyForTurnIn(questID)
+    for _, id in ipairs(AzerothCompendium:GetQuestVariants(questID)) do
+        if IsSingleQuestReadyForTurnIn(id) then return true end
     end
 
     return false
@@ -870,9 +933,26 @@ end
 local function IsQuestHidden(questID)
     if not AzerothCompendium:IsQuestForFlavor(questID) then return true end
     if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
+    if AzerothCompendium:IsPlaceholderQuest(questID) then return true end
 
     local quest = AzerothCompendium:GetQuestDataByID(questID)
+    if quest == nil and not (AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID]) then return true end
+
     return not AzerothCompendium:IsQuestSideVisible(quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[questID])
+end
+
+function AzerothCompendium:GetQuestCanonicalID(questID)
+    local variants = AzerothCompendium:GetQuestVariants(questID)
+    if #variants == 1 then return questID end
+    local fallback = nil
+    for _, id in ipairs(variants) do
+        if not IsQuestHidden(id) then
+            if AzerothCompendium:IsQuestForPlayerClass(id) then return id end
+            fallback = fallback or id
+        end
+    end
+
+    return fallback or questID
 end
 
 local questFollowUps = nil
@@ -972,6 +1052,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local function GetNode(id)
+        id = AzerothCompendium:GetQuestCanonicalID(id)
         local node = nodes[id]
         if node == nil then
             node = {
@@ -991,6 +1072,8 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
     end
 
     local function Link(parentID, childID)
+        parentID = AzerothCompendium:GetQuestCanonicalID(parentID)
+        childID = AzerothCompendium:GetQuestCanonicalID(childID)
         if parentID == childID then return end
         local child = GetNode(childID)
         if child.parentSet[parentID] then return end
@@ -1002,6 +1085,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
     local visited = {}
     local function Visit(id)
+        id = AzerothCompendium:GetQuestCanonicalID(id)
         if visited[id] then return end
         visited[id] = true
         GetNode(id)
@@ -1023,10 +1107,12 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
             end
         end
 
-        for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id] or {}) do
-            if not IsQuestHidden(prerequisiteID) then
-                Link(prerequisiteID, id)
-                Visit(prerequisiteID)
+        for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(id)) do
+            for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[variantID] or {}) do
+                if not IsQuestHidden(prerequisiteID) then
+                    Link(prerequisiteID, id)
+                    Visit(prerequisiteID)
+                end
             end
         end
     end
@@ -1059,11 +1145,13 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         local id = tremove(queue)
         if not expanded[id] then
             expanded[id] = true
-            for _, childID in ipairs(followUps[id] or {}) do
-                if not IsQuestHidden(childID) then
-                    Visit(childID)
-                    Link(id, childID)
-                    tinsert(queue, childID)
+            for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(id)) do
+                for _, childID in ipairs(followUps[variantID] or {}) do
+                    if not IsQuestHidden(childID) then
+                        Visit(childID)
+                        Link(id, childID)
+                        tinsert(queue, AzerothCompendium:GetQuestCanonicalID(childID))
+                    end
                 end
             end
         end
