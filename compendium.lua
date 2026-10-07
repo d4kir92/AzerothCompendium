@@ -1243,7 +1243,7 @@ local function GetQuestGraph()
     if selectedInstance == nil then return {} end
     local filter = nil
     if searchText ~= "" then filter = function(node) return Matches(node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)) end end
-    return AzerothCompendium:GetInstanceQuestGraph(selectedInstance, filter)
+    return AzerothCompendium:GetInstanceQuestGraph(selectedInstance, filter, type(ACOTABPC) == "table" and ACOTABPC.QUESTHIDECOMPLETED == true)
 end
 
 local function CountInstanceQuests(graph)
@@ -2110,7 +2110,7 @@ local function RefreshDetail()
         compendium.empty:Hide()
         compendium.detailTitle:SetText("")
         compendium.detailCount:ClearAllPoints()
-        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.classFilter.label, "LEFT", -12, 0)
+        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.completedFilter.label, "LEFT", -12, 0)
         compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
         compendium.detailCount:Show()
         return
@@ -4682,11 +4682,33 @@ local function CreateJournal()
 
     compendium.factionToggle.classFilter:SetScript("OnEnter", function(owner)
         GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
-        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_HIDEOTHERCLASSQUESTS")))
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_ONLYOWNCLASS")))
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_HIDEOTHERCLASSQUESTS"), 1, 1, 1, true)
         GameTooltip:Show()
     end)
 
     compendium.factionToggle.classFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    compendium.factionToggle.completedFilter = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
+    compendium.factionToggle.completedFilter:SetSize(26, 26)
+    compendium.factionToggle.completedFilter:SetPoint("RIGHT", compendium.factionToggle.classFilter.label, "LEFT", -8, -1)
+    compendium.factionToggle.completedFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.QUESTHIDECOMPLETED == true)
+    compendium.factionToggle.completedFilter.label = compendium.factionToggle.completedFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    compendium.factionToggle.completedFilter.label:SetPoint("RIGHT", compendium.factionToggle.completedFilter, "LEFT", 0, 1)
+    compendium.factionToggle.completedFilter.label:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTS"))
+    compendium.factionToggle.completedFilter:SetScript("OnClick", function(owner)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.QUESTHIDECOMPLETED = owner:GetChecked() == true
+        AzerothCompendium:RefreshCompendium()
+    end)
+
+    compendium.factionToggle.completedFilter:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTS")))
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTSHINT"), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+
+    compendium.factionToggle.completedFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.factionToggle:Hide()
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot.rowGap = 0
@@ -4829,6 +4851,8 @@ local function CreateJournal()
         worldQuestItemsTitle:SetText(AzerothCompendium:Trans("LID_WORLDQUESTITEMS"))
         worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
         classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
+        compendium.factionToggle.classFilter.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
+        compendium.factionToggle.completedFilter.label:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTS"))
     end)
 
     local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")

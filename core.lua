@@ -1047,7 +1047,7 @@ function AzerothCompendium:IsAttuned(inst)
     return attunement.key == nil
 end
 
-function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
+function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     local nodes = {}
     local list = {}
     local inInstance = {}
@@ -1161,6 +1161,29 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
         end
     end
 
+    local function Prune(keep)
+        local filtered = {}
+        for _, node in ipairs(list) do
+            if keep[node] then
+                local parents = {}
+                local children = {}
+                for _, parent in ipairs(node.parents) do
+                    if keep[parent] then tinsert(parents, parent) end
+                end
+
+                for _, child in ipairs(node.children) do
+                    if keep[child] then tinsert(children, child) end
+                end
+
+                node.parents = parents
+                node.children = children
+                tinsert(filtered, node)
+            end
+        end
+
+        list = filtered
+    end
+
     if filter ~= nil then
         local matched = {}
         local function AncestorMatches(node, seen)
@@ -1190,26 +1213,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
             if node.instance and AncestorMatches(node, {}) then Keep(node) end
         end
 
-        local filtered = {}
-        for _, node in ipairs(list) do
-            if keep[node] then
-                local parents = {}
-                local children = {}
-                for _, parent in ipairs(node.parents) do
-                    if keep[parent] then tinsert(parents, parent) end
-                end
-
-                for _, child in ipairs(node.children) do
-                    if keep[child] then tinsert(children, child) end
-                end
-
-                node.parents = parents
-                node.children = children
-                tinsert(filtered, node)
-            end
-        end
-
-        list = filtered
+        Prune(keep)
     end
 
     local function IsBottom(node, stack)
@@ -1310,6 +1314,15 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter)
 
         node.name = node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
+    end
+
+    if hideCompleted then
+        local keep = {}
+        for _, node in ipairs(list) do
+            keep[node] = not AzerothCompendium:IsQuestCompleted(node.id)
+        end
+
+        Prune(keep)
     end
 
     local copies = {}

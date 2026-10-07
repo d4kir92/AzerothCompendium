@@ -944,10 +944,24 @@ local function CreateBox(canvas, titleText)
     return box
 end
 
-local function ClampScroll(scroll, horizontal, value)
+local function GetScrollRange(scroll, horizontal)
+    local child = scroll:GetScrollChild()
     local range = horizontal and scroll:GetHorizontalScrollRange() or scroll:GetVerticalScrollRange()
+    if child then
+        if horizontal then
+            range = (child:GetWidth() or 0) - (scroll:GetWidth() or 0)
+        else
+            range = (child:GetHeight() or 0) - (scroll:GetHeight() or 0)
+        end
+    end
 
-    return min(max(0, range or 0), max(0, value))
+    if range == nil or range <= 1 then return 0 end
+
+    return range
+end
+
+local function ClampScroll(scroll, horizontal, value)
+    return min(GetScrollRange(scroll, horizontal), max(0, value))
 end
 
 local function HasMinimalScrollBar()
@@ -1038,11 +1052,11 @@ local function CreateHBar(tree, scroll, anchor)
         bar:SetPoint("RIGHT", anchor, "LEFT", -10, 0)
         bar:RegisterCallback(BaseScrollBoxEvents.OnScroll, function(_, percentage)
             if syncing then return end
-            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            local range = GetScrollRange(scroll, true)
             scroll:SetHorizontalScroll(ClampScroll(scroll, true, percentage * range))
         end, scroll)
         bar.Sync = function(sel)
-            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            local range = GetScrollRange(scroll, true)
             local viewW = scroll:GetWidth() or 0
             if range <= 0 or viewW <= 0 then
                 sel:Hide()
@@ -1078,7 +1092,7 @@ local function CreateHBar(tree, scroll, anchor)
         end)
 
         bar.Sync = function(sel)
-            local range = max(0, scroll:GetHorizontalScrollRange() or 0)
+            local range = GetScrollRange(scroll, true)
             local barW = sel:GetWidth() or 0
             local viewW = scroll:GetWidth() or 0
             syncing = true
@@ -1440,10 +1454,13 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     local function UpdateHBar()
         hbar:Sync()
+        local vbar = tree.vbar or scroll.ScrollBar
+        if vbar then vbar:SetShown(GetScrollRange(scroll, false) > 0) end
     end
 
     hbar:HookScript("OnSizeChanged", UpdateHBar)
     if scroll.HookScript then scroll:HookScript("OnScrollRangeChanged", UpdateHBar) end
+    tree:HookScript("OnShow", UpdateHBar)
     SetZoom = function(zoom)
         zoom = min(ZOOM_MAX, max(ZOOM_MIN, zoom))
         if math.abs(zoom - tree.zoom) < 0.001 then return end
