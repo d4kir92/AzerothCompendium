@@ -1497,17 +1497,22 @@ function AzerothCompendium:CreateQuestTree(parent)
             h = scroll:GetHorizontalScroll(),
             v = scroll:GetVerticalScroll()
         }
+        self:SetScript("OnUpdate", self.OnDragUpdate)
+    end
+
+    function tree:StopDrag()
+        self.drag = nil
+        self:SetScript("OnUpdate", nil)
     end
 
     scroll:EnableMouse(true)
     scroll:SetScript("OnMouseDown", function(_, mouseButton) tree:StartDrag(mouseButton) end)
-    scroll:SetScript("OnMouseUp", function() tree.drag = nil end)
-    tree:SetScript("OnHide", function() tree.drag = nil end)
-    tree:SetScript("OnUpdate", function(sel)
+    scroll:SetScript("OnMouseUp", function() tree:StopDrag() end)
+    tree:SetScript("OnHide", function() tree:StopDrag() end)
+    function tree.OnDragUpdate(sel)
         local drag = sel.drag
-        if drag == nil then return end
-        if IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then
-            sel.drag = nil
+        if drag == nil or IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then
+            sel:StopDrag()
 
             return
         end
@@ -1520,7 +1525,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         sel.dragMoved = true
         SetHScroll(drag.h - dx)
         scroll:SetVerticalScroll(ClampScroll(scroll, false, drag.v + dy))
-    end)
+    end
 
     local lineLayer = CreateFrame("Frame", nil, canvas)
     lineLayer:SetAllPoints(canvas)

@@ -423,8 +423,16 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         self:ScrollToTop()
     end
 
+    function scroller.OnRefreshUpdate(sel)
+        sel:SetScript("OnUpdate", nil)
+        if not sel.refreshPending then return end
+        sel.refreshPending = nil
+        sel:Refresh()
+    end
+
     function scroller:QueueRefresh()
         self.refreshPending = true
+        self:SetScript("OnUpdate", self.OnRefreshUpdate)
     end
 
     function scroller:Refresh()
@@ -549,11 +557,6 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
     scroller:SetScript("OnSizeChanged", function(sel) sel:QueueRefresh() end)
     local viewport = scroller:GetViewport()
     if viewport then viewport:HookScript("OnSizeChanged", function() scroller:QueueRefresh() end) end
-    scroller:HookScript("OnUpdate", function(sel)
-        if not sel.refreshPending then return end
-        sel.refreshPending = nil
-        sel:Refresh()
-    end)
     return scroller
 end
 
@@ -3190,9 +3193,11 @@ local function MakeResizable(frame)
             left = left * scale,
             top = top * scale,
         }
+        sel:SetScript("OnUpdate", sel.OnSizingUpdate)
     end)
 
     local function StopSizing(sel)
+        sel:SetScript("OnUpdate", nil)
         if sel.sizing == nil then return end
         sel.sizing = nil
         AzerothCompendium:SetConfig("COMPENDIUMSCALE", frame:GetScale())
@@ -3204,9 +3209,12 @@ local function MakeResizable(frame)
 
     grip:SetScript("OnMouseUp", StopSizing)
     grip:SetScript("OnHide", StopSizing)
-    grip:SetScript("OnUpdate", function(sel)
+    function grip.OnSizingUpdate(sel)
         local sizing = sel.sizing
-        if sizing == nil then return end
+        if sizing == nil then
+            sel:SetScript("OnUpdate", nil)
+            return
+        end
         if IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then
             StopSizing(sel)
             return
@@ -3227,7 +3235,7 @@ local function MakeResizable(frame)
 
         local scale = frame:GetEffectiveScale()
         ApplySize(sizing.w + x / scale - sizing.x, sizing.h + sizing.y - y / scale)
-    end)
+    end
 
     frame:HookScript("OnShow", function() ApplySize(frame:GetWidth(), frame:GetHeight()) end)
     frame.resizeGrip = grip
@@ -3545,18 +3553,28 @@ local function CreateModelFrame(parent)
         if button ~= "LeftButton" then return end
         sel.dragging = true
         sel.cursorX = GetCursorPosition()
+        sel:SetScript("OnUpdate", sel.OnRotateUpdate)
     end)
 
-    frame:SetScript("OnMouseUp", function(sel) sel.dragging = false end)
-    frame:SetScript("OnHide", function(sel) sel.dragging = false end)
-    frame:SetScript("OnUpdate", function(sel)
-        if not sel.dragging then return end
+    local function StopRotating(sel)
+        sel.dragging = false
+        sel:SetScript("OnUpdate", nil)
+    end
+
+    frame:SetScript("OnMouseUp", StopRotating)
+    frame:SetScript("OnHide", StopRotating)
+    function frame.OnRotateUpdate(sel)
+        if not sel.dragging then
+            StopRotating(sel)
+            return
+        end
+
         local x = GetCursorPosition()
         local last = sel.cursorX or x
         sel.cursorX = x
         sel.rotation = (sel.rotation or 0) + (x - last) / 60
         if sel.SetRotation then pcall(sel.SetRotation, sel, sel.rotation) end
-    end)
+    end
 
     frame:SetScript("OnMouseWheel", function(sel, delta)
         sel.zoom = min(MODEL_ZOOM_MAX, max(MODEL_ZOOM_MIN, (sel.zoom or 1) - delta * 0.15))
@@ -4065,7 +4083,8 @@ function AzerothCompendium:CreateInstanceControls()
     instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
     instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
     instancePopup:Hide()
-    instancePopup:SetScript("OnUpdate", function(sel) if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not instanceControl:IsMouseOver() then sel:Hide() end end)
+    instancePopup.closeOwner = instanceControl
+    compendium.autoClosePopups = {instancePopup}
     instanceDropdown:SetScript("OnClick", function()
         if instancePopup:IsShown() then
             instancePopup:Hide()
@@ -4107,7 +4126,8 @@ function AzerothCompendium:CreateInstanceControls()
     filterPopup.background:SetAllPoints(filterPopup)
     filterPopup.background:SetColorTexture(0.04, 0.04, 0.05, 1)
     filterPopup:Hide()
-    filterPopup:SetScript("OnUpdate", function(sel) if IsMouseButtonDown("LeftButton") and not sel:IsMouseOver() and not filterDropdown:IsMouseOver() then sel:Hide() end end)
+    filterPopup.closeOwner = filterDropdown
+    tinsert(compendium.autoClosePopups, filterPopup)
     filterDropdown:SetScript("OnClick", function()
         if filterPopup:IsShown() then
             filterPopup:Hide()
@@ -4285,7 +4305,12 @@ function AzerothCompendium:CreateInstanceControls()
     function compendium:RefreshOverview()
         local viewport = self.overview:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
-        if width <= 0 then return end
+        if width <= 0 then
+            self.overview.layoutDirty = true
+            self.overview:QueueRefresh()
+            return
+        end
+
         self.overviewLayoutWidth = width
         self.overviewColumns = max(1, floor((width + 8) / 228))
         self.overviewTileWidth = max(1, (width - (self.overviewColumns - 1) * 8) / self.overviewColumns)
@@ -4300,16 +4325,28 @@ function AzerothCompendium:CreateInstanceControls()
         self.overview.data = rows
         self.overview:Refresh()
     end
-    overview:SetScript("OnSizeChanged", function(sel) sel.layoutDirty = true end)
-    overview:SetScript("OnUpdate", function(sel)
+    function overview.OnRefreshUpdate(sel)
+        sel:SetScript("OnUpdate", nil)
+        sel.refreshPending = nil
         if not compendium.overviewActive then return end
         local viewport = sel:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
-        if width > 0 and (sel.layoutDirty or width ~= compendium.overviewLayoutWidth) then
+        if width <= 0 then
+            sel:SetScript("OnUpdate", sel.OnRefreshUpdate)
+            return
+        end
+
+        if sel.layoutDirty or width ~= compendium.overviewLayoutWidth then
             sel.layoutDirty = false
             compendium:RefreshOverview()
         end
+    end
+
+    overview:SetScript("OnSizeChanged", function(sel)
+        sel.layoutDirty = true
+        sel:QueueRefresh()
     end)
+    overview:HookScript("OnShow", function(sel) sel:QueueRefresh() end)
     compendium.instanceControl = instanceControl
     compendium.instancePopup = instancePopup
     function instanceControl:UpdateDropdownWidth()
@@ -4558,14 +4595,19 @@ local function CreateJournal()
     mapView.viewport:SetScript("OnMouseDown", function(_, button)
         if button ~= "LeftButton" or mapView.info == nil or (mapView.zoom or 1) <= 1 then return end
         mapView.dragX, mapView.dragY = GetCursorPosition()
+        mapView.viewport:SetScript("OnUpdate", mapView.viewport.OnDragUpdate)
     end)
 
-    mapView.viewport:SetScript("OnMouseUp", function() mapView.dragX, mapView.dragY = nil, nil end)
-    mapView.viewport:SetScript("OnHide", function() mapView.dragX, mapView.dragY = nil, nil end)
-    mapView.viewport:SetScript("OnUpdate", function()
-        if mapView.dragX == nil then return end
-        if not IsMouseButtonDown("LeftButton") then
-            mapView.dragX, mapView.dragY = nil, nil
+    function mapView.viewport.StopDrag()
+        mapView.dragX, mapView.dragY = nil, nil
+        mapView.viewport:SetScript("OnUpdate", nil)
+    end
+
+    mapView.viewport:SetScript("OnMouseUp", mapView.viewport.StopDrag)
+    mapView.viewport:SetScript("OnHide", mapView.viewport.StopDrag)
+    function mapView.viewport.OnDragUpdate()
+        if mapView.dragX == nil or not IsMouseButtonDown("LeftButton") then
+            mapView.viewport.StopDrag()
             return
         end
 
@@ -4575,7 +4617,7 @@ local function CreateJournal()
         mapView.offsetY = (mapView.offsetY or 0) + (y - mapView.dragY) / scale
         mapView.dragX, mapView.dragY = x, y
         LayoutMapArt()
-    end)
+    end
 
     mapView.art = mapView.viewport:CreateTexture(nil, "ARTWORK")
     mapView.art:SetPoint("CENTER", mapView, "CENTER", 0, 0)
@@ -5654,6 +5696,12 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
     if event == "GET_ITEM_INFO_RECEIVED" then AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success) end
     if event == "GLOBAL_MOUSE_DOWN" then
         if compendium == nil or not compendium:IsShown() then return end
+        if itemID == "LeftButton" then
+            for _, popup in ipairs(compendium.autoClosePopups or {}) do
+                if popup:IsShown() and not popup:IsMouseOver() and not popup.closeOwner:IsMouseOver() then popup:Hide() end
+            end
+        end
+
         local clicked = AzerothCompendium:GetMouseFocus()
         local focus = clicked
         while focus ~= nil and focus ~= compendium and focus.GetParent ~= nil and not (focus.IsForbidden and focus:IsForbidden()) do
