@@ -58,6 +58,13 @@ function Stars:Resolve(button)
         return parent and GetLootRollItemLink and parent.rollID and self:ItemID(GetLootRollItemLink(parent.rollID))
     end
     if string.match(name, "^Character.+Slot$") then return self:ItemID(GetInventoryItemLink("player", button:GetID())) end
+    if string.match(name, "^EquipmentFlyoutFrameButton%d+$") then
+        local location = button.location
+        if type(location) ~= "number" or not EquipmentManager_GetItemInfoByLocation then return nil end
+        if EQUIPMENTFLYOUT_FIRST_SPECIAL_LOCATION and location >= EQUIPMENTFLYOUT_FIRST_SPECIAL_LOCATION then return nil end
+        local itemID = EquipmentManager_GetItemInfoByLocation(location)
+        return type(itemID) == "number" and itemID or nil
+    end
     if string.match(name, "^Inspect.+Slot$") then return self:ItemID(GetInventoryItemLink("target", button:GetID())) end
     if string.match(name, "^BankFrameItem%d+$") and BankButtonIDToInvSlotID then
         return self:ItemID(GetInventoryItemLink("player", BankButtonIDToInvSlotID(button:GetID())))
@@ -75,11 +82,11 @@ function Stars:Resolve(button)
         return self:ItemID(GetQuestItemLink(button.type, button:GetID()))
     end
     if type(button.BGR) == "table" then return self:ItemID(button.BGR.itemID or button.BGR.itemLink) end
-    local hasBagSlot = type(button.GetBagID) == "function" and type(button.GetSlotID) == "function"
-    if hasBagSlot or string.match(name, "^ContainerFrame%d+Item%d+$") then
-        local bag, slot
-        if hasBagSlot then
-            bag, slot = button:GetBagID(), button:GetSlotID()
+    local bag = type(button.GetBagID) == "function" and button:GetBagID() or nil
+    if type(bag) == "number" or string.match(name, "^ContainerFrame%d+Item%d+$") then
+        local slot
+        if type(bag) == "number" then
+            slot = type(button.GetSlotID) == "function" and button:GetSlotID() or button:GetID()
         else
             bag = parent and type(parent.GetID) == "function" and parent:GetID()
             slot = type(button.GetID) == "function" and button:GetID()
@@ -185,10 +192,35 @@ function Stars:Refresh()
     end
 end
 
+function Stars:TrackChildren(frame)
+    if not self:CanAccess(frame) or type(frame.GetChildren) ~= "function" then return end
+    for _, child in ipairs({frame:GetChildren()}) do
+        pcall(self.Track, self, child)
+    end
+end
+
+function Stars:TrackContainers()
+    for index = 1, 13 do
+        local frame = _G["ContainerFrame" .. index]
+        if frame and frame:IsShown() then self:TrackChildren(frame) end
+    end
+    for _, name in ipairs(self.containerFrames) do
+        local frame = _G[name]
+        if frame and frame:IsShown() then self:TrackChildren(frame) end
+    end
+end
+
+Stars.containerFrames = {"ContainerFrameCombinedBags", "BankFrame", "BankSlotsFrame", "BankPanel", "ReagentBankFrame"}
 local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("ADDON_LOADED")
+watcher:RegisterEvent("BAG_UPDATE_DELAYED")
+watcher:RegisterEvent("BANKFRAME_OPENED")
 watcher:SetScript("OnEvent", function(_, event)
+    if event == "BAG_UPDATE_DELAYED" or event == "BANKFRAME_OPENED" then
+        Stars.containers = true
+        return
+    end
     Stars:RegisterBaganator()
     if event == "PLAYER_LOGIN" or IsLoggedIn and IsLoggedIn() then Stars.discover = true end
 end)
@@ -197,11 +229,24 @@ watcher:SetScript("OnUpdate", function(_, elapsed)
     Stars.elapsed = Stars.elapsed + elapsed
     if Stars.elapsed < 0.25 then return end
     Stars.elapsed = 0
-    if AC:GetConfig("WISHLISTENABLED", true) then Stars:Refresh() end
+    if not AC:GetConfig("WISHLISTENABLED", true) then return end
+    if Stars.containers then
+        Stars.containers = false
+        pcall(Stars.TrackContainers, Stars)
+    end
+    Stars:Refresh()
 end)
-if SetItemButtonTexture then
-    hooksecurefunc("SetItemButtonTexture", function(button)
-        if type(button) == "string" then button = _G[button] end
-        pcall(Stars.Track, Stars, button)
-    end)
+local function OnItemButtonTexture(button)
+    if type(button) == "string" then button = _G[button] end
+    pcall(Stars.Track, Stars, button)
+end
+if SetItemButtonTexture then hooksecurefunc("SetItemButtonTexture", OnItemButtonTexture) end
+if type(ItemButtonMixin) == "table" and type(ItemButtonMixin.SetItemButtonTexture) == "function" then hooksecurefunc(ItemButtonMixin, "SetItemButtonTexture", OnItemButtonTexture) end
+for index = 1, 13 do
+    local frame = _G["ContainerFrame" .. index]
+    if frame and frame.HookScript then frame:HookScript("OnShow", function() Stars.containers = true end) end
+end
+for _, name in ipairs(Stars.containerFrames) do
+    local frame = _G[name]
+    if frame and frame.HookScript then frame:HookScript("OnShow", function() Stars.containers = true end) end
 end

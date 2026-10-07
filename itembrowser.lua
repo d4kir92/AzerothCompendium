@@ -214,6 +214,7 @@ function Browser:Render()
             background:SetAllPoints()
             background:SetColorTexture(1, 1, 1, index % 2 == 0 and 0.045 or 0.015)
             row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+            row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
             row.icon = row:CreateTexture(nil, "ARTWORK")
             row.icon:SetSize(24, 24)
             row.icon:SetPoint("LEFT", 3, 0)
@@ -231,11 +232,18 @@ function Browser:Render()
                 GameTooltip:SetHyperlink(button.entry.link or ("item:" .. button.entry.id))
                 GameTooltip:AddLine(button.entry.source, 0.7, 0.7, 0.7, true)
                 GameTooltip:AddLine(AC:Trans("LID_CATALOGSOURCEHINT"), 0.2, 1, 0.2, true)
+                if AC:GetConfig("WISHLISTENABLED", true) then
+                    GameTooltip:AddDoubleLine(AC:Trans("LID_RIGHTCLICK") .. ":", AC:Trans("LID_MARKFAVORITE") .. " / " .. AC:Trans("LID_NICETOHAVE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+                end
                 GameTooltip:Show()
             end)
             row:SetScript("OnLeave", function() GameTooltip:Hide() end)
-            row:SetScript("OnClick", function(button)
+            row:SetScript("OnClick", function(button, mouseButton)
                 if not button.entry then return end
+                if mouseButton == "RightButton" then
+                    AC:ShowItemWishlistMenu(button, button.entry.id)
+                    return
+                end
                 if button.entry.link and HandleModifiedItemClick and HandleModifiedItemClick(button.entry.link) then return end
                 AC:NavigateToCatalogItem(button.entry)
             end)

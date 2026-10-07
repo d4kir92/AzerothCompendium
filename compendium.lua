@@ -2519,6 +2519,12 @@ local function ShowWishlistMenu(owner, itemID, source)
     AzerothCompendium:ShowContextMenu(owner, entries, "cursor")
 end
 
+function AzerothCompendium:ShowItemWishlistMenu(owner, itemID)
+    local kind, inst, boss = FindWishlistSource(itemID)
+    local source = inst and boss and {["kind"] = kind, ["instance"] = GetInstanceKey(inst), ["boss"] = GetBossKey(boss)} or nil
+    ShowWishlistMenu(owner, itemID, source)
+end
+
 local function CreateLootRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
