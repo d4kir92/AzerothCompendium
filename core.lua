@@ -620,7 +620,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", false) or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             tinsert(available, quest)
         end
     end
