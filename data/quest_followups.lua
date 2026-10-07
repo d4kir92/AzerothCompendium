@@ -493,6 +493,8 @@ AzerothCompendium.QUESTFOLLOWUPS = {
 	[3453] = {3454},
 	[3441] = {3442},
 	[5126] = {5127},
+	[544] = {545},
+	[556] = {557},
 }
 
 AzerothCompendium.QUESTSIDES = {
@@ -1229,6 +1231,11 @@ AzerothCompendium.QUESTSIDES = {
 	[6582] = 3,
 	[6583] = 3,
 	[6584] = 3,
+	[544] = 2,
+	[545] = 2,
+	[556] = 2,
+	[557] = 2,
+	[93680] = 2,
 }
 
 for questID, value in pairs({

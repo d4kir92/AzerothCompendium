@@ -446,6 +446,8 @@ AzerothCompendium.QUESTCHAINS = {
 	[6601] = {6585, 6601},
 	[7490] = {7490},
 	[7491] = {7490, 7491},
+	[544] = {544},
+	[545] = {544, 545},
 }
 
 AzerothCompendium.QUESTPREREQUISITES = {
@@ -928,6 +930,8 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[5167] = {5164},
 	[7491] = {7490},
 	[7493] = {7491},
+	[545] = {544},
+	[557] = {556},
 }
 
 AzerothCompendium.QUESTGIVERS = {
@@ -1882,6 +1886,11 @@ AzerothCompendium.QUESTGIVERS = {
 	[5167] = {1422, 39.4, 66.7, 176192, "Catalogue of the Wayward"},
 	[7491] = {1454, 32, 37.8, 4949, "Thrall"},
 	[7493] = {1454, 51.6, 75.6, 14392, "Overlord Runthak"},
+	[544] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[545] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[556] = {1424, 61.4, 20.8, 2437, "Keeper Bel'varil"},
+	[557] = {1424, 61.4, 20.8, 2437, "Keeper Bel'varil"},
+	[93680] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -2928,6 +2937,11 @@ AzerothCompendium.QUESTNAMES = {
 	[5167] = "Legplates of the Chromatic Defier",
 	[7491] = "For All To See",
 	[7493] = "The Journey Has Just Begun",
+	[544] = "Prison Break In",
+	[545] = "Dalaran Patrols",
+	[556] = "Stone Tokens",
+	[557] = "Bracers of Binding",
+	[93680] = "Key to the City",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -3676,6 +3690,11 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[5167] = 57,
 	[7491] = 60,
 	[7493] = 60,
+	[544] = 30,
+	[545] = 30,
+	[556] = 30,
+	[557] = 30,
+	[93680] = 30,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -4424,6 +4443,11 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[5167] = 60,
 	[7491] = 60,
 	[7493] = 60,
+	[544] = 34,
+	[545] = 35,
+	[556] = 32,
+	[557] = 34,
+	[93680] = 33,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -5073,4 +5097,9 @@ AzerothCompendium.QUESTENDERS = {
 	[6584] = {1445, 56.6, 87.6, 10321, "Emberstrife"},
 	[7491] = {1454, 51.6, 75.6, 14392, "Overlord Runthak"},
 	[7493] = {1454, 51.6, 75.6, 14392, "Overlord Runthak"},
+	[544] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[545] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[556] = {1424, 61.4, 20.8, 2437, "Keeper Bel'varil"},
+	[557] = {1424, 61.4, 20.8, 2437, "Keeper Bel'varil"},
+	[93680] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
 }
