@@ -4256,6 +4256,7 @@ end
 local function CreateJournal()
     LoadNavigationState()
     if compendium ~= nil then return compendium end
+    AzerothCompendium:PreloadItems()
     local template = nil
     compendium, template = CreateTemplated("Frame", "AzerothCompendiumFrame", UIParent, {"ButtonFrameTemplate", "PortraitFrameTemplate", "BasicFrameTemplateWithInset"})
     compendium.overviewActive = type(ACOTABPC) ~= "table" or type(ACOTABPC.NAVIGATION) ~= "table" or ACOTABPC.NAVIGATION.overview == true
@@ -5534,10 +5535,7 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         return
     end
 
-    if event == "PLAYER_LOGIN" then
-        AzerothCompendium:PreloadItems()
-        return
-    end
+    if event == "PLAYER_LOGIN" then return end
 
     if event == "QUEST_LOG_UPDATE" or event == "QUEST_TURNED_IN" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
         if compendium ~= nil and compendium:IsShown() and listKind == "dungeon" then

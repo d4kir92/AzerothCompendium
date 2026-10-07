@@ -487,7 +487,24 @@ function WorldMap.GetMinimapOffset(group, wx, wy, scale, radius, cosF, sinF)
     return sx, sy
 end
 
+WorldMap.minimapLast = {time = 0}
 function WorldMap.UpdateMinimap()
+    local last = WorldMap.minimapLast
+    local mapID = C_Map ~= nil and C_Map.GetBestMapForUnit ~= nil and C_Map.GetBestMapForUnit("player") or nil
+    local wx, wy
+    if UnitPosition ~= nil then wx, wy = UnitPosition("player") end
+    local facing = GetPlayerFacing ~= nil and GetPlayerFacing() or 0
+    local zoom = Minimap:GetZoom()
+    local now = GetTime()
+    if not (WorldMap.IsSecret(mapID) or WorldMap.IsSecret(wx) or WorldMap.IsSecret(wy) or WorldMap.IsSecret(facing) or WorldMap.IsSecret(zoom)) then
+        if last.mapID == mapID and last.x == wx and last.y == wy and last.facing == facing and last.zoom == zoom and now - last.time < 1 then return end
+        last.mapID, last.x, last.y, last.facing, last.zoom, last.time = mapID, wx, wy, facing, zoom, now
+    end
+
+    WorldMap.RedrawMinimap()
+end
+
+function WorldMap.RedrawMinimap()
     for _, pin in ipairs(WorldMap.minimapPins) do
         pin:Hide()
     end

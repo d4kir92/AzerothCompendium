@@ -1,10 +1,10 @@
 local _, AC = ...
-local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 4}
+local Stars = {buttons = setmetatable({}, {__mode = "k"}), elapsed = 0, discover = true, size = 16, cornerOffset = 4, accessMethods = {"IsForbidden", "HasAnyForbiddenAspects", "CanBeAccessedInContext"}, iconKeys = {"icon", "Icon", "IconTexture"}}
 AC.WishlistStars = Stars
 
 function Stars:CanAccess(object)
     if not object then return false end
-    for _, method in ipairs({"IsForbidden", "HasAnyForbiddenAspects", "CanBeAccessedInContext"}) do
+    for _, method in ipairs(self.accessMethods) do
         if type(object[method]) == "function" then
             local ok, value = pcall(object[method], object)
             if not ok or (issecretvalue and issecretvalue(value)) then return false end
@@ -145,9 +145,13 @@ function Stars:Track(button)
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
     local icon
-    local candidates = {button.icon, button.Icon, button.IconTexture, type(name) == "string" and _G[name .. "IconTexture"] or nil}
     for i = 1, 4 do
-        local candidate = candidates[i]
+        local candidate
+        if i <= 3 then
+            candidate = button[self.iconKeys[i]]
+        elseif type(name) == "string" then
+            candidate = _G[name .. "IconTexture"]
+        end
         if type(candidate) == "table" and self:CanAccess(candidate) and candidate.GetObjectType and candidate:GetObjectType() == "Texture" then
             icon = candidate
             break
@@ -167,22 +171,22 @@ function Stars:Refresh()
         end
     end
     for button, entry in pairs(self.buttons) do
-        if self:CanAccess(button) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
+        local ok, visible = pcall(button.IsVisible, button)
+        if ok and not (issecretvalue and issecretvalue(visible)) and visible == true and self:CanAccess(button) and not pcall(self.Update, self, button, entry) and not entry.explicit then self.buttons[button] = nil end
     end
 end
 
 local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("ADDON_LOADED")
-watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
-watcher:SetScript("OnEvent", function()
+watcher:SetScript("OnEvent", function(_, event)
     Stars:RegisterBaganator()
-    Stars.discover = true
+    if event == "PLAYER_LOGIN" or IsLoggedIn and IsLoggedIn() then Stars.discover = true end
 end)
 Stars:RegisterBaganator()
 watcher:SetScript("OnUpdate", function(_, elapsed)
     Stars.elapsed = Stars.elapsed + elapsed
-    if Stars.elapsed < 0.2 then return end
+    if Stars.elapsed < 0.25 then return end
     Stars.elapsed = 0
     if AC:GetConfig("WISHLISTENABLED", true) then Stars:Refresh() end
 end)
