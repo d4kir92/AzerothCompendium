@@ -173,9 +173,30 @@ function Stars:Track(button)
     end
     if not icon then return end
     self.buttons[button] = {icon = icon}
+    self.pending[button] = true
+    if not self.showHooked[button] and button.HookScript then
+        self.showHooked[button] = true
+        pcall(button.HookScript, button, "OnShow", self.OnButtonShow)
+    end
+end
+
+function Stars.OnButtonShow(button)
+    if Stars.buttons[button] then Stars.pending[button] = true end
+end
+
+function Stars:UpdatePending()
+    for button in pairs(self.pending) do
+        self.pending[button] = nil
+        local entry = self.buttons[button]
+        if entry then
+            local updated, drop = pcall(self.Update, self, button, entry)
+            if (not updated or drop == true) and not entry.explicit then self.buttons[button] = nil end
+        end
+    end
 end
 
 function Stars:Refresh()
+    self.full = false
     if AC:GetConfig("WISHLISTENABLED", true) and self.discover and EnumerateFrames then
         self.discover = false
         local frame = EnumerateFrames()
@@ -188,6 +209,7 @@ function Stars:Refresh()
         local updated, drop = pcall(self.Update, self, button, entry)
         if (not updated or drop == true) and not entry.explicit then self.buttons[button] = nil end
     end
+    wipe(self.pending)
 end
 
 function Stars:TrackChildren(frame)
@@ -209,14 +231,28 @@ function Stars:TrackContainers()
 end
 
 Stars.containerFrames = {"ContainerFrameCombinedBags", "BankFrame", "BankSlotsFrame", "BankPanel", "ReagentBankFrame"}
+Stars.pending = setmetatable({}, {__mode = "k"})
+Stars.showHooked = setmetatable({}, {__mode = "k"})
+Stars.fallbackInterval = 2
+Stars.containerEvents = {BAG_UPDATE_DELAYED = true, BANKFRAME_OPENED = true, PLAYERBANKSLOTS_CHANGED = true}
+Stars.itemEvents = {"PLAYER_EQUIPMENT_CHANGED", "MERCHANT_SHOW", "MERCHANT_UPDATE", "LOOT_OPENED", "LOOT_SLOT_CHANGED", "START_LOOT_ROLL", "TRADE_PLAYER_ITEM_CHANGED", "TRADE_TARGET_ITEM_CHANGED", "INSPECT_READY", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE"}
 local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PLAYER_LOGIN")
 watcher:RegisterEvent("ADDON_LOADED")
-watcher:RegisterEvent("BAG_UPDATE_DELAYED")
-watcher:RegisterEvent("BANKFRAME_OPENED")
+for event in pairs(Stars.containerEvents) do
+    pcall(watcher.RegisterEvent, watcher, event)
+end
+for _, event in ipairs(Stars.itemEvents) do
+    pcall(watcher.RegisterEvent, watcher, event)
+end
 watcher:SetScript("OnEvent", function(_, event)
-    if event == "BAG_UPDATE_DELAYED" or event == "BANKFRAME_OPENED" then
+    if Stars.containerEvents[event] then
         Stars.containers = true
+        Stars.full = true
+        return
+    end
+    if event ~= "PLAYER_LOGIN" and event ~= "ADDON_LOADED" then
+        Stars.full = true
         return
     end
     Stars:RegisterBaganator()
@@ -225,18 +261,35 @@ end)
 Stars:RegisterBaganator()
 watcher:SetScript("OnUpdate", function(_, elapsed)
     Stars.elapsed = Stars.elapsed + elapsed
-    if Stars.elapsed < 0.25 then return end
-    Stars.elapsed = 0
-    if not AC:GetConfig("WISHLISTENABLED", true) then return end
+    if Stars.elapsed >= Stars.fallbackInterval then
+        Stars.elapsed = 0
+        Stars.full = true
+    end
+    if not (Stars.full or Stars.containers or Stars.discover or next(Stars.pending)) then return end
+    if not AC:GetConfig("WISHLISTENABLED", true) then
+        Stars.full, Stars.containers = false, false
+        wipe(Stars.pending)
+        return
+    end
     if Stars.containers then
         Stars.containers = false
         pcall(Stars.TrackContainers, Stars)
     end
-    Stars:Refresh()
+    if Stars.full or Stars.discover then
+        Stars.elapsed = 0
+        Stars:Refresh()
+    else
+        Stars:UpdatePending()
+    end
 end)
 local function OnItemButtonTexture(button)
     if type(button) == "string" then button = _G[button] end
-    pcall(Stars.Track, Stars, button)
+    if type(button) ~= "table" then return end
+    if Stars.buttons[button] then
+        Stars.pending[button] = true
+    else
+        pcall(Stars.Track, Stars, button)
+    end
 end
 if SetItemButtonTexture then hooksecurefunc("SetItemButtonTexture", OnItemButtonTexture) end
 if type(ItemButtonMixin) == "table" and type(ItemButtonMixin.SetItemButtonTexture) == "function" then hooksecurefunc(ItemButtonMixin, "SetItemButtonTexture", OnItemButtonTexture) end
