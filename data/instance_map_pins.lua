@@ -38,6 +38,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.565, 0.230, 246020}, -- Shade of the Archmage
         {"boss", 0.517, 0.551, 246003}, -- Fel Ancient
         {"boss", 0.613, 0.424, 246017}, -- Unstable Sentinel
+        {"boss", 0.668, 0.502, 240352}, -- Mana Elemental
     },
     [2959002] = { -- City of Dalaran - Dalaran Sewers
         {"entrance", 0.184, 0.840},
@@ -142,6 +143,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.856, 0.866, 4829},
     },
     [223] = { -- Blackfathom Deeps 3
+        {"level", 0.300, 0.612, 222, true},
         {"boss", 0.606, 0.312, 4830},
         {"boss", 0.234, 0.498, 12876},
     },
@@ -240,6 +242,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.425, 0.080, 10808}, -- Timmy the Cruel
         {"boss", 0.575, 0.190, 10439}, -- Ramstein the Gorger
         {"entrance", 0.686, 0.880},
+        {"level", 0.900, 0.330, 318, true},
         {"boss", 0.815, 0.438, 10393},
         {"boss", 0.847, 0.454, 10558},
         {"boss", 0.729, 0.193, 10516},
