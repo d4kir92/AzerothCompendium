@@ -442,7 +442,7 @@ local function CreateRewardIcon(node)
             GameTooltip:SetHyperlink("item:" .. sel.itemID)
         end
 
-        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(sel.choice and "LID_QUESTCHOICE" or "LID_QUESTREWARDS")), 1, 0.82, 0)
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(sel.provided and "LID_QUESTPROVIDEDITEM" or sel.choice and "LID_QUESTCHOICE" or "LID_QUESTREWARDS")), 1, 0.82, 0)
         GameTooltip:Show()
     end)
 
@@ -508,6 +508,13 @@ local function CreateNode(canvas, tree)
     node.moneyText:SetJustifyH("RIGHT")
     node.moneyText:SetWordWrap(false)
     node.icons = {}
+    node.providedLabel = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    node.providedLabel:SetJustifyH("LEFT")
+    node.providedIcon = CreateRewardIcon(node)
+    node.providedIcon.provided = true
+    node.providedName = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.providedName:SetJustifyH("LEFT")
+    node.providedName:SetWordWrap(false)
     node:SetScript("OnEnter", function(sel)
         sel.tree:SetQuestHighlight(sel.node and sel.node.id)
         ShowNodeTooltip(sel)
@@ -536,6 +543,18 @@ local function GetRewardEntries(questID)
     end
 
     return entries, rewards
+end
+
+local function GetProvidedItem(questID)
+    for _, attunement in pairs(AzerothCompendium.ATTUNEMENTS or {}) do
+        if attunement.key ~= nil and attunement.opens == nil then
+            for _, doneID in ipairs(attunement.done or {}) do
+                if doneID == questID then return attunement.key end
+            end
+        end
+    end
+
+    return nil
 end
 
 local function GetNodeRequiredLevel(node)
@@ -573,6 +592,7 @@ end
 local function GetNodeHeight(node)
     local height = NODE_PAD_TOP + TITLE_H + NODE_PAD_BOTTOM
     if GetPhaseText(node) then height = height + TEXT_LINE_H end
+    if GetProvidedItem(node.id) then height = height + REWARD_LINE_H end
     if not IsCompactNode(node) then height = height + REWARD_LINE_H + TEXT_LINE_H end
 
     if GetNodeRequiredLevel(node) or AzerothCompendium:GetQuestClasses(node.id) then height = height + TEXT_LINE_H end
@@ -695,6 +715,35 @@ local function UpdateNode(button, node, width)
         y = y + TEXT_LINE_H
     else
         button.phaseText:Hide()
+    end
+
+    local providedItem = GetProvidedItem(node.id)
+    if providedItem then
+        local name, _, quality, _, texture = AzerothCompendium:GetItemDisplay(providedItem)
+        if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(providedItem) end
+        local itemColor = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+        button.providedLabel:SetText(AzerothCompendium:Trans("LID_QUESTPROVIDEDITEM") .. ":")
+        button.providedLabel:ClearAllPoints()
+        button.providedLabel:SetPoint("LEFT", button, "TOPLEFT", NODE_PAD_X, -(y + REWARD_LINE_H / 2))
+        button.providedLabel:Show()
+        local icon = button.providedIcon
+        icon.itemID = providedItem
+        icon.icon:SetTexture(texture or 134400)
+        icon.qualityFrame:SetColorTexture(itemColor and itemColor.r or 0.9, itemColor and itemColor.g or 0.75, itemColor and itemColor.b or 0.3, 0.9)
+        icon.count:SetText("")
+        icon:ClearAllPoints()
+        icon:SetPoint("LEFT", button.providedLabel, "RIGHT", 6, 0)
+        icon:Show()
+        button.providedName:ClearAllPoints()
+        button.providedName:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+        button.providedName:SetPoint("RIGHT", button, "RIGHT", -NODE_PAD_X, 0)
+        button.providedName:SetText((itemColor and itemColor.hex or "") .. (name or ("Item " .. providedItem)) .. (itemColor and itemColor.hex and "|r" or ""))
+        button.providedName:Show()
+        y = y + REWARD_LINE_H
+    else
+        button.providedLabel:Hide()
+        button.providedIcon:Hide()
+        button.providedName:Hide()
     end
 
     if IsCompactNode(node) then

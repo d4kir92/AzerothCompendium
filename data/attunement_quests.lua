@@ -52,6 +52,7 @@ for questID, value in pairs({
 	[557] = {1424, 61.4, 20.8, 2437, "Keeper Bel'varil"},
 	[92432] = {1424, 48.3, 60.1, 247264, "Emissary Jacques"},
 	[93680] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[96984] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
 }) do
 	AzerothCompendium.QUESTGIVERS[questID] = AzerothCompendium.QUESTGIVERS[questID] or value
 end
