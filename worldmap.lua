@@ -422,10 +422,10 @@ end
 function WorldMap.UpdatePinStyle(pin)
     if pin.group == nil then return end
     local tracked = false
-    if C_Map ~= nil and C_Map.GetUserWaypointPositionForMap ~= nil and AzerothCompendium:IsWaypointTracked() then
+    if AzerothCompendium:IsWaypointTracked() then
         local pos = WorldMap.waypointPositions[pin.group.mapID]
         if pos == nil then
-            pos = C_Map.GetUserWaypointPositionForMap(pin.group.mapID) or false
+            pos = AzerothCompendium:GetUserWaypointPositionForMap(pin.group.mapID) or false
             WorldMap.waypointPositions[pin.group.mapID] = pos
         end
         if pos ~= false then
@@ -441,10 +441,14 @@ function WorldMap.UpdatePinStyle(pin)
     pin.styleGroup = pin.group
     pin.styleSize = size
     pin.styleTracked = tracked
-    if tracked and WorldMap.trackingAtlas.resolved == nil then WorldMap.trackingAtlas.resolved = AzerothCompendium:FindAtlas(WorldMap.trackingAtlas) or false end
+    if tracked and WorldMap.trackingAtlas.resolved == nil then
+        WorldMap.trackingAtlas.resolved = AzerothCompendium:FindAtlas(WorldMap.trackingAtlas) or false
+        if not WorldMap.trackingAtlas.resolved and AzerothCompendium:HasAtlasOrFallback(WorldMap.trackingAtlas[1]) then WorldMap.trackingAtlas.resolved = WorldMap.trackingAtlas[1] end
+    end
+
     local atlas = tracked and WorldMap.trackingAtlas.resolved or nil
     if atlas then
-        pin.circle:SetAtlas(atlas)
+        AzerothCompendium:SetAtlasOrFallback(pin.circle, atlas)
         pin.circle:Show()
     else
         pin.circle:Hide()
@@ -473,12 +477,16 @@ function WorldMap.RefreshWaypoint()
     end
 end
 
-if C_Map ~= nil and C_Map.GetUserWaypointPositionForMap ~= nil then
-    WorldMap.waypointUpdater = CreateFrame("FRAME")
-    WorldMap.waypointUpdater:RegisterEvent("USER_WAYPOINT_UPDATED")
-    if C_SuperTrack ~= nil then WorldMap.waypointUpdater:RegisterEvent("SUPER_TRACKING_CHANGED") end
-    WorldMap.waypointUpdater:SetScript("OnEvent", WorldMap.RefreshWaypoint)
-end
+AzerothCompendium:EnableWaypointFallback(function() return ACOTABPC end)
+AzerothCompendium:RegisterWaypointCallback(WorldMap.RefreshWaypoint)
+AzerothCompendium:RegisterWaypointMarker(function(mapID, x, y)
+    for _, pin in ipairs(WorldMap.pins) do
+        local group = pin.group
+        if pin:IsShown() and group ~= nil and group.mapID == mapID and abs(group.x / 100 - x) < 0.001 and abs(group.y / 100 - y) < 0.001 then return true end
+    end
+
+    return false
+end)
 
 function WorldMap.IsSecret(value)
     return issecretvalue ~= nil and issecretvalue(value)
