@@ -28,11 +28,16 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.340, 0.570, 260322}, -- Saltspine
         {"boss", 0.635, 0.250, 260326}, -- Relic Guardian
         {"boss", 0.715, 0.530, 260325}, -- Shadetooth
+        {"boss", 0.790, 0.280, 260808}, -- Highland Horror
     },
     [2959] = { -- City of Dalaran
         {"level", 0.605, 0.530, 2959002},
+        {"level", 0.513, 0.684, 2959002},
+        {"level", 0.531, 0.365, 2959002},
         {"boss", 0.536, 0.712, 245999}, -- Arcane Anomaly
-        {"boss", 0.515, 0.270, 246020}, -- Shade of the Archmage
+        {"boss", 0.565, 0.230, 246020}, -- Shade of the Archmage
+        {"boss", 0.517, 0.551, 246003}, -- Fel Ancient
+        {"boss", 0.613, 0.424, 246017}, -- Unstable Sentinel
     },
     [2959002] = { -- City of Dalaran - Dalaran Sewers
         {"entrance", 0.184, 0.840},
@@ -64,6 +69,9 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [279] = { -- Wailing Caverns
         {"entrance", 0.463, 0.590},
         {"boss", 0.400, 0.271, 3671},
+        {"boss", 0.300, 0.300, 3671}, -- Lady Anacondra
+        {"boss", 0.310, 0.430, 3671}, -- Lady Anacondra
+        {"boss", 0.460, 0.440, 3671}, -- Lady Anacondra
         {"boss", 0.156, 0.585, 3669},
         {"boss", 0.418, 0.356, 3653},
         {"boss", 0.856, 0.299, 3670},

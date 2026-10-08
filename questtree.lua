@@ -77,6 +77,12 @@ local LIST_ROW_H = 18
 local LIST_INDENT = 14
 local LIST_TOGGLE_SIZE = 14
 local VIEW_BUTTON_W = 60
+local DETAIL_RATIO = 0.48
+local DETAIL_MIN_W = 260
+local DETAIL_PAD = 10
+local DETAIL_ITEM_H = 22
+local DETAIL_BUTTON_H = 22
+local DETAIL_RETRIES = 3
 local PLUS_TEXTURE = "Interface\\Buttons\\UI-PlusButton-Up"
 local MINUS_TEXTURE = "Interface\\Buttons\\UI-MinusButton-Up"
 local STATUS_ICON = {
@@ -213,8 +219,8 @@ local function AddQuestStatusToTooltip(questID, quest, node)
     if #variants > 1 then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTVARIANTS", nil, #variants)), 0.75, 0.75, 0.75, true) end
 end
 
-local function ShowQuestWowheadLink(questID)
-    if IsShiftKeyDown == nil or not IsShiftKeyDown() then return false end
+local function ShowQuestWowheadLink(questID, force)
+    if not force and (IsShiftKeyDown == nil or not IsShiftKeyDown()) then return false end
     local popup = AzerothCompendium.questWowheadPopup or _G.AzerothCompendiumQuestWowhead
     if popup == nil then popup = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWowhead", "Wowhead") end
     AzerothCompendium.questWowheadPopup = popup
@@ -373,17 +379,12 @@ local SHARE_ERRORS = {
     unsupported = "LID_SHAREQUESTUNSUPPORTED",
 }
 
-local function OnNodeClick(button, mouseButton)
-    local node = button.node
-    if node == nil or button.tree.dragMoved then return end
-    if mouseButton == "RightButton" then
-        local shared, reason = AzerothCompendium:ShareQuest(node.id)
-        if not shared then AzerothCompendium:INFO(format(AzerothCompendium:Trans(SHARE_ERRORS[reason] or "LID_SHAREQUESTNOTSHAREABLE"), node.name)) end
+local function ShareNodeQuest(node)
+    local shared, reason = AzerothCompendium:ShareQuest(node.id)
+    if not shared then AzerothCompendium:INFO(format(AzerothCompendium:Trans(SHARE_ERRORS[reason] or "LID_SHAREQUESTNOTSHAREABLE"), node.name)) end
+end
 
-        return
-    end
-
-    if ShowQuestWowheadLink(node.id) then return end
+local function ShowNodeOnMap(node)
     if AzerothCompendium:IsQuestStartInInstance(node.id) then
         AzerothCompendium:INFO(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name))
 
@@ -398,6 +399,14 @@ local function OnNodeClick(button, mouseButton)
         local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
         AzerothCompendium:INFO(AzerothCompendium:Trans(message))
     end
+end
+
+local function OnNodeClick(button, mouseButton)
+    local node = button.node
+    if node == nil or button.tree.dragMoved then return end
+    if mouseButton == "RightButton" then return ShareNodeQuest(node) end
+    if ShowQuestWowheadLink(node.id) then return end
+    ShowNodeOnMap(node)
 end
 
 local function CreateBorder(frame, layer, sublevel)
@@ -1425,13 +1434,24 @@ end
 
 local function FindListPath(items, questID, path)
     for _, item in ipairs(items) do
-        if item.node.id == questID then return true end
+        if item.node.id == questID then return item end
         tinsert(path, item.key)
-        if FindListPath(item.children, questID, path) then return true end
+        local found = FindListPath(item.children, questID, path)
+        if found then return found end
         tremove(path)
     end
 
-    return false
+    return nil
+end
+
+local function FindListItem(items, key)
+    for _, item in ipairs(items) do
+        if item.key == key then return item end
+        local found = FindListItem(item.children, key)
+        if found then return found end
+    end
+
+    return nil
 end
 
 local function GetListQuestTitle(node)
@@ -1480,6 +1500,10 @@ local function CreateListRow(parent, tree)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     row.background = row:CreateTexture(nil, "BACKGROUND")
     row.background:SetAllPoints(row)
+    row.selected = row:CreateTexture(nil, "BORDER")
+    row.selected:SetAllPoints(row)
+    row.selected:SetColorTexture(1, 0.82, 0, 0.18)
+    row.selected:Hide()
     local highlight = row:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(row)
     highlight:SetColorTexture(1, 1, 1, 0.08)
@@ -1519,7 +1543,11 @@ local function CreateListRow(parent, tree)
 
     row:SetScript("OnClick", function(sel, mouseButton)
         if sel.kind == "quest" then
-            OnNodeClick(sel, mouseButton)
+            if mouseButton == "RightButton" then
+                ShareNodeQuest(sel.node)
+            elseif not ShowQuestWowheadLink(sel.node.id) then
+                tree:SelectListKey(sel.key)
+            end
         elseif sel.kind == "section" then
             tree:ToggleListKey(sel.key)
         elseif sel.kind == "key" then
@@ -1530,9 +1558,10 @@ local function CreateListRow(parent, tree)
     return row
 end
 
-local function UpdateListRow(row, entry, index, collapsed)
+local function UpdateListRow(row, entry, index, collapsed, selectedKey)
     row.kind = entry.kind
     row.key = entry.key
+    row.selected:SetShown(entry.kind == "quest" and entry.key == selectedKey)
     row.node = entry.item and entry.item.node or nil
     row.attunement = entry.attunement
     row.toggle:ClearAllPoints()
@@ -1624,6 +1653,369 @@ local function CreateViewSwitch(tree, onChange)
     AzerothCompendium:OnLanguage(UpdateTexts)
 
     return switch
+end
+
+local function GetQuestObjectiveText(questID)
+    local lines = {}
+    local function AddLine(text)
+        if type(text) == "string" and text:match("%S") then tinsert(lines, text) end
+    end
+
+    if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
+        local ok, data = pcall(C_TooltipInfo.GetHyperlink, "quest:" .. questID)
+        if ok and type(data) == "table" and type(data.lines) == "table" then
+            for index = 2, #data.lines do
+                AddLine(data.lines[index].leftText)
+            end
+        end
+    else
+        local scanner = AzerothCompendium.questScanTooltip
+        if scanner == nil then
+            scanner = CreateFrame("GameTooltip", "AzerothCompendiumQuestScanTooltip", UIParent, "GameTooltipTemplate")
+            AzerothCompendium.questScanTooltip = scanner
+        end
+
+        scanner:SetOwner(WorldFrame, "ANCHOR_NONE")
+        scanner:ClearLines()
+        pcall(scanner.SetHyperlink, scanner, "quest:" .. questID)
+        for index = 2, scanner:NumLines() do
+            local region = _G["AzerothCompendiumQuestScanTooltipTextLeft" .. index]
+            AddLine(region and region:GetText())
+        end
+
+        scanner:Hide()
+    end
+
+    if #lines == 0 then return nil end
+
+    return table.concat(lines, "\n")
+end
+
+local function GetPhaseEnds(node)
+    local first, last = node, node
+    while #first.parents > 0 and first.parents[1].id == first.id do
+        first = first.parents[1]
+    end
+
+    local guard = 0
+    local moved = true
+    while moved and guard < 10 do
+        moved = false
+        guard = guard + 1
+        for _, child in ipairs(last.children or {}) do
+            if child.id == last.id then
+                last = child
+                moved = true
+                break
+            end
+        end
+    end
+
+    return first, last
+end
+
+local function CollectRelated(list, ownID)
+    local result = {}
+    local seen = {}
+    for _, other in ipairs(list or {}) do
+        if other.id ~= ownID and not seen[other.id] then
+            seen[other.id] = true
+            tinsert(result, other)
+        end
+    end
+
+    table.sort(result, SortNodes)
+
+    return result
+end
+
+local function CreateDetailItem(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetHeight(DETAIL_ITEM_H)
+    button.background = button:CreateTexture(nil, "BACKGROUND")
+    button.background:SetAllPoints(button)
+    button.background:SetColorTexture(0, 0, 0, 0.35)
+    button.icon = button:CreateTexture(nil, "ARTWORK")
+    button.icon:SetSize(DETAIL_ITEM_H - 4, DETAIL_ITEM_H - 4)
+    button.icon:SetPoint("LEFT", button, "LEFT", 2, 0)
+    button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    button.text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    button.text:SetPoint("LEFT", button.icon, "RIGHT", 6, 0)
+    button.text:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+    button.text:SetJustifyH("LEFT")
+    button.text:SetWordWrap(false)
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(button)
+    highlight:SetColorTexture(1, 1, 1, 0.08)
+    button:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        if GameTooltip.SetItemByID then
+            GameTooltip:SetItemByID(sel.itemID)
+        else
+            GameTooltip:SetHyperlink("item:" .. sel.itemID)
+        end
+
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    button:SetScript("OnClick", function(sel)
+        local _, link = AzerothCompendium:GetItemDisplay(sel.itemID)
+        if link and IsModifiedClick and IsModifiedClick() and HandleModifiedItemClick then HandleModifiedItemClick(link) end
+    end)
+
+    return button
+end
+
+local function CreateQuestDetail(tree)
+    local panel = CreateFrame("Frame", nil, tree)
+    panel.background = panel:CreateTexture(nil, "BACKGROUND", nil, -8)
+    panel.background:SetAllPoints(panel)
+    panel.background:SetColorTexture(0, 0, 0, 0.3)
+    panel.border = CreateBorder(panel, "BACKGROUND", -6)
+    panel.border:SetColor(0.75, 0.6, 0.25, 0.7)
+    local scroll = CreateFrame("ScrollFrame", nil, panel)
+    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", DETAIL_PAD, -DETAIL_PAD)
+    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -DETAIL_PAD, DETAIL_PAD)
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetSize(1, 1)
+    scroll:SetScrollChild(content)
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(sel, delta) sel:SetVerticalScroll(ClampScroll(sel, false, sel:GetVerticalScroll() - delta * WHEEL_STEP)) end)
+    panel.empty = panel:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    panel.empty:SetPoint("CENTER", panel, "CENTER", 0, 0)
+    panel.fonts = {}
+    panel.items = {}
+    panel.retries = {}
+    panel.buttons = {}
+    local actions = {
+        {"LID_SHOWQUESTCHAIN", function(node)
+            tree:SetViewMode("tree")
+            tree:FocusQuest(node.id)
+        end},
+        {"LID_SHOWONMAP", ShowNodeOnMap},
+        {"LID_SHAREQUEST", ShareNodeQuest},
+        {"Wowhead", function(node) ShowQuestWowheadLink(node.id, true) end}
+    }
+
+    for index, action in ipairs(actions) do
+        local button = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+        button:SetHeight(DETAIL_BUTTON_H)
+        button:SetNormalFontObject("GameFontNormalSmall")
+        button:SetHighlightFontObject("GameFontHighlightSmall")
+        button:SetDisabledFontObject("GameFontDisableSmall")
+        button.label = action[1]
+        button:SetScript("OnClick", function()
+            if panel.node then action[2](panel.node) end
+        end)
+
+        panel.buttons[index] = button
+    end
+
+    function panel:SetNode(node)
+        local changed = self.node ~= node and (self.node == nil or node == nil or self.node.id ~= node.id)
+        self.node = node
+        for _, fontString in ipairs(self.fonts) do
+            fontString:Hide()
+        end
+
+        for _, item in ipairs(self.items) do
+            item:Hide()
+        end
+
+        for _, button in ipairs(self.buttons) do
+            button:SetText(button.label == "Wowhead" and button.label or AzerothCompendium:Trans(button.label))
+            button:Hide()
+        end
+
+        if node == nil then
+            self.empty:SetText(AzerothCompendium:Trans("LID_QUESTSELECT"))
+            self.empty:Show()
+
+            return
+        end
+
+        self.empty:Hide()
+        local width = max(1, scroll:GetWidth() or 0)
+        content:SetWidth(width)
+        local y = 0
+        local fontIndex = 0
+        local itemIndex = 0
+        local function AddText(text, fontObject, gap, r, g, b)
+            fontIndex = fontIndex + 1
+            local fontString = self.fonts[fontIndex]
+            if fontString == nil then
+                fontString = content:CreateFontString(nil, "ARTWORK")
+                fontString:SetJustifyH("LEFT")
+                self.fonts[fontIndex] = fontString
+            end
+
+            fontString:SetFontObject(fontObject)
+            if r then fontString:SetTextColor(r, g, b) end
+            fontString:ClearAllPoints()
+            fontString:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(y + (gap or 0)))
+            fontString:SetWidth(width)
+            fontString:SetText(text)
+            fontString:Show()
+            y = y + (gap or 0) + (fontString:GetStringHeight() or 12)
+        end
+
+        local function AddHeader(text)
+            AddText(text, "GameFontNormal", 12, 1, 0.82, 0)
+        end
+
+        local function AddBody(text, r, g, b)
+            AddText(text, "GameFontHighlightSmall", 3, r or 1, g or 1, b or 1)
+        end
+
+        local function AddItem(itemID, count, suffix)
+            itemIndex = itemIndex + 1
+            local item = self.items[itemIndex]
+            if item == nil then
+                item = CreateDetailItem(content)
+                self.items[itemIndex] = item
+            end
+
+            local name, _, quality, _, icon = AzerothCompendium:GetItemDisplay(itemID)
+            if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(itemID) end
+            local color = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+            local text = (color and color.hex or "") .. (name or AzerothCompendium:Trans("LID_LOADING")) .. (color and color.hex and "|r" or "")
+            if (count or 1) > 1 then text = text .. " x" .. count end
+            if suffix then text = text .. "  |cffa0a0a0" .. suffix .. "|r" end
+            item.itemID = itemID
+            item.icon:SetTexture(icon or 134400)
+            item.text:SetText(text)
+            item:ClearAllPoints()
+            item:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(y + 4))
+            item:SetWidth(width)
+            item:Show()
+            y = y + 4 + DETAIL_ITEM_H
+        end
+
+        local function AddQuestLines(list)
+            for _, other in ipairs(list) do
+                local icon = AzerothCompendium:IsQuestCompleted(other.id) and KEY_OWNED_ICON or STATUS_ICON.open[1]
+                AddBody(format("|T%s:%d|t ", icon, STATUS_ICON_SIZE) .. GetQuestDifficultyColorCode(other.level) .. "[" .. other.level .. "] " .. other.name .. "|r")
+            end
+        end
+
+        AddText(GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. node.name .. "|r", "GameFontNormalLarge", 0)
+        local status = GetQuestStatus(node.id, node)
+        local statusColor = status == "locked" and {1, 0.3, 0.3} or (status == "open" or status == "lowlevel") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
+        AddText(format("|T%s:%d|t ", STATUS_ICON[status][1], STATUS_ICON_SIZE) .. AzerothCompendium:Trans(STATUS_TEXT[status]), "GameFontHighlightSmall", 4, statusColor[1], statusColor[2], statusColor[3])
+        local requiredLevel = GetNodeRequiredLevel(node)
+        if requiredLevel then
+            local playerLevel = UnitLevel and UnitLevel("player") or requiredLevel
+            if playerLevel < requiredLevel then
+                AddBody(AzerothCompendium:Trans("LID_REQUIRESLEVEL", nil, requiredLevel), 1, 0.25, 0.25)
+            else
+                AddBody(AzerothCompendium:Trans("LID_REQUIRESLEVEL", nil, requiredLevel), 0.75, 0.75, 0.75)
+            end
+        end
+
+        local classText = AzerothCompendium:GetQuestClassText(node.id)
+        if classText then AddBody(classText) end
+        if node.outside then AddBody(AzerothCompendium:Trans("LID_QUESTOUTSIDE"), 1, 0.82, 0) end
+        AddHeader(AzerothCompendium:Trans("LID_QUESTOBJECTIVE"))
+        local objective = GetQuestObjectiveText(node.id)
+        if objective then
+            AddBody(objective)
+        else
+            AddBody(AzerothCompendium:Trans("LID_LOADING"), 0.6, 0.6, 0.6)
+            RequestQuestData(node.id)
+            local retries = self.retries[node.id] or 0
+            if retries < DETAIL_RETRIES then
+                self.retries[node.id] = retries + 1
+                AzerothCompendium:After(1, function()
+                    if self.node == node and self:IsVisible() then self:SetNode(node) end
+                end, "AzerothCompendium:QuestDetail")
+            end
+        end
+
+        local providedItem = GetProvidedItem(node.id)
+        if providedItem then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTPROVIDEDITEM"))
+            AddItem(providedItem)
+        end
+
+        AddHeader(AzerothCompendium:Trans("LID_QUESTGIVER"))
+        local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
+        local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+        if startItem then AddItem(startItem[1], 1, giver and giver[5]) end
+        if AzerothCompendium:IsQuestStartInInstance(node.id) then
+            AddBody(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name), 1, 0.82, 0)
+        elseif giver and not startItem then
+            local mapID, _, _, instanceID = AzerothCompendium:GetQuestGiverLocation(node.id)
+            local mapName = AzerothCompendium:GetQuestGiverInstanceName(instanceID) or (mapID and GetMapName(mapID))
+            AddBody(mapName and format("%s, %s", giver[5], mapName) or giver[5])
+        elseif not startItem then
+            AddBody("-", 0.6, 0.6, 0.6)
+        end
+
+        local ender = AzerothCompendium.QUESTENDERS and AzerothCompendium.QUESTENDERS[node.id]
+        if ender and ender[5] then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTENDER"))
+            local mapName = ender[1] and GetMapName(ender[1])
+            AddBody(mapName and format("%s, %s", ender[5], mapName) or ender[5])
+        end
+
+        local first, last = GetPhaseEnds(node)
+        local prereqs = CollectRelated(first.parents, node.id)
+        if #prereqs > 0 then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTPREREQS"))
+            AddQuestLines(prereqs)
+        end
+
+        local followups = CollectRelated(last.children, node.id)
+        if #followups > 0 then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTFOLLOWUPS"))
+            AddQuestLines(followups)
+        end
+
+        local rewards = AzerothCompendium:GetQuestRewards(node.id) or {}
+        local xp = AzerothCompendium:GetQuestRewardXP(node.id)
+        if #(rewards.items or {}) > 0 or xp > 0 or rewards.money or #(rewards.rep or {}) > 0 then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTREWARDS"))
+            for _, entry in ipairs(rewards.items or {}) do
+                AddItem(entry[1], entry[2])
+            end
+
+            if xp > 0 then AddBody(xp .. " " .. AzerothCompendium:Trans("LID_QUESTXPSHORT"), 0.6, 0.4, 1) end
+            if rewards.money then AddBody(GetMoneyText(rewards.money)) end
+            for _, entry in ipairs(rewards.rep or {}) do
+                AddBody(format("+%d %s", entry[2], GetFactionName(entry[1])), 0.3, 0.8, 1)
+            end
+        end
+
+        if #(rewards.choices or {}) > 0 then
+            AddHeader(AzerothCompendium:Trans("LID_QUESTCHOICE"))
+            for _, entry in ipairs(rewards.choices) do
+                AddItem(entry[1], entry[2])
+            end
+        end
+
+        y = y + 14
+        local buttonW = floor((width - 6) / 2)
+        for index, button in ipairs(self.buttons) do
+            button:ClearAllPoints()
+            button:SetWidth(buttonW)
+            button:SetPoint("TOPLEFT", content, "TOPLEFT", ((index - 1) % 2) * (buttonW + 6), -(y + floor((index - 1) / 2) * (DETAIL_BUTTON_H + 4)))
+            button:Show()
+        end
+
+        local mapButton = self.buttons[2]
+        if giver == nil or AzerothCompendium:IsQuestStartInInstance(node.id) then mapButton:Disable() else mapButton:Enable() end
+        y = y + 2 * DETAIL_BUTTON_H + 4
+        content:SetHeight(max(1, y))
+        if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
+        if changed then
+            scroll:SetVerticalScroll(0)
+        else
+            scroll:SetVerticalScroll(ClampScroll(scroll, false, scroll:GetVerticalScroll()))
+        end
+    end
+
+    return panel
 end
 
 local function CreateLegend(tree, anchor)
@@ -1771,6 +2163,12 @@ function AzerothCompendium:CreateQuestTree(parent)
     local listHolder = CreateFrame("Frame", nil, scroll)
     listHolder:SetSize(1, 1)
     listHolder:Hide()
+    local detail = CreateQuestDetail(tree)
+    detail:SetPoint("TOPRIGHT", tree, "TOPRIGHT", -6, -6)
+    detail:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
+    detail:SetWidth(DETAIL_MIN_W)
+    detail:Hide()
+    tree.detail = detail
     if minimal then
         local vbar = CreateFrame("EventFrame", nil, tree, "MinimalScrollBar")
         vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 5, 0)
@@ -1985,12 +2383,40 @@ function AzerothCompendium:CreateQuestTree(parent)
         self:Layout()
     end
 
+    function tree:SelectListKey(key)
+        self.selectedKey = key
+        self:Layout()
+    end
+
+    local function ResolveSelection(sections)
+        local item = nil
+        for _, items in ipairs(sections) do
+            item = item or tree.selectedKey and FindListItem(items, tree.selectedKey)
+        end
+
+        for _, items in ipairs(sections) do
+            item = item or tree.selectedQuestID and FindListPath(items, tree.selectedQuestID, {})
+        end
+
+        for _, items in ipairs(sections) do
+            item = item or items[1]
+        end
+
+        tree.selectedKey = item and item.key or nil
+        tree.selectedQuestID = item and item.node.id or nil
+
+        return item
+    end
+
     function tree:LayoutList()
         local graph = self.graph
         local attunement = graph.attunement
         local keySection = attunement ~= nil and attunement.key ~= nil and (attunement.opens ~= nil and 3 or 1) or nil
         local sections = BuildListTree(graph)
         self.listSections = sections
+        if attunement == nil or attunement.opens ~= nil then sections[1] = {} end
+        detail:SetWidth(max(DETAIL_MIN_W, floor((self:GetWidth() or 0) * DETAIL_RATIO)))
+        local selected = ResolveSelection(sections)
         local entries = {}
         if #graph == 0 and attunement == nil then
             self.empty:Show()
@@ -2041,8 +2467,10 @@ function AzerothCompendium:CreateQuestTree(parent)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -(index - 1) * LIST_ROW_H)
             row:SetWidth(width)
-            UpdateListRow(row, entry, index, self.collapsed)
+            UpdateListRow(row, entry, index, self.collapsed, self.selectedKey)
         end
+
+        detail:SetNode(selected and selected.node or nil)
 
         for index = #entries + 1, #self.listRows do
             self.listRows[index]:Hide()
@@ -2063,6 +2491,15 @@ function AzerothCompendium:CreateQuestTree(parent)
         local list = mode == "list"
         holder:SetShown(not list)
         listHolder:SetShown(list)
+        detail:SetShown(list)
+        scroll:ClearAllPoints()
+        scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
+        if list then
+            scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 4, 0)
+        else
+            scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
+        end
+
         scroll:SetScrollChild(list and listHolder or holder)
         zoomSlider:SetShown(not list)
         zoomIcon:SetShown(not list)
@@ -2222,7 +2659,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         if self.viewMode == "list" then
             for section, items in ipairs(self.listSections) do
                 local path = {}
-                if FindListPath(items, questID, path) then
+                local found = FindListPath(items, questID, path)
+                if found then
+                    self.selectedKey = found.key
                     self.collapsed["section" .. section] = nil
                     for _, key in ipairs(path) do
                         self.collapsed[key] = nil

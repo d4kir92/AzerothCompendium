@@ -5153,6 +5153,20 @@ function MapPins.Init()
         end
     end
 
+    local fileEntries = {}
+    for _, entry in ipairs(MapPins.entries) do
+        tinsert(fileEntries, entry)
+    end
+
+    local function InFile(kind, art, x, y, arg, up)
+        for _, entry in ipairs(fileEntries) do
+            local orig = entry.orig
+            if entry[1] == kind and orig[1] == art and orig[4] == arg and orig[5] == (up == true) and abs(orig[2] - x) <= 0.0005 and abs(orig[3] - y) <= 0.0005 then return true end
+        end
+
+        return false
+    end
+
     MapPins.AddUnplaced()
     local used = {}
     for _, entry in ipairs(MapPins.entries) do
@@ -5160,6 +5174,15 @@ function MapPins.Init()
         used[key] = (used[key] or 0) + 1
         entry.key = used[key] > 1 and key .. "#" .. used[key] or key
         local edit = ACOTAB["MAPPINEDITS"][entry.key]
+        if type(edit) == "table" then
+            local stale = edit.ox ~= nil and (abs(edit.ox - entry.orig[2]) > 0.0005 or abs(edit.oy - entry.orig[3]) > 0.0005)
+            local applied = not edit.del and tonumber(edit[1]) and InFile(entry[1], edit[1], edit[2], edit[3], edit.arg == nil and entry[4] or edit.arg, edit.up)
+            if stale or applied then
+                ACOTAB["MAPPINEDITS"][entry.key] = nil
+                edit = nil
+            end
+        end
+
         if type(edit) == "table" and tonumber(edit[1]) and tonumber(edit[2]) and tonumber(edit[3]) then
             if edit.arg ~= nil then entry[4] = edit.arg end
             if edit.up ~= nil then entry[5] = edit.up == true or nil end
@@ -5172,8 +5195,13 @@ function MapPins.Init()
         if type(edit) == "table" and tonumber(edit[1]) and tonumber(edit[2]) and tonumber(edit[3]) then MapPins.Place(entry, edit[1], edit[2], edit[3]) end
     end
 
+    for index = #ACOTAB["MAPPINADDS"], 1, -1 do
+        local save = ACOTAB["MAPPINADDS"][index]
+        if type(save) ~= "table" or type(save.kind) ~= "string" or not tonumber(save.art) or not tonumber(save.x) or not tonumber(save.y) or InFile(save.kind, save.art, save.x, save.y, save.arg, save.up) then tremove(ACOTAB["MAPPINADDS"], index) end
+    end
+
     for _, save in ipairs(ACOTAB["MAPPINADDS"]) do
-        if type(save) == "table" and type(save.kind) == "string" and tonumber(save.art) and tonumber(save.x) and tonumber(save.y) then MapPins.Insert(save) end
+        MapPins.Insert(save)
     end
 end
 
@@ -5201,6 +5229,8 @@ function MapPins.Edit(entry, art, x, y)
             arg = entry[4],
             up = entry[5] == true,
             del = entry.deleted == true,
+            ox = entry.orig[2],
+            oy = entry.orig[3],
         }
     else
         ACOTAB["MAPPINEDITS"][entry.key] = nil
@@ -5625,7 +5655,7 @@ function MapPins.DebugRefresh()
     MapPins.output.openChild:SetHeight(max(10, MapPins.output.open:GetStringHeight()))
     local lines = {}
     for _, entry in ipairs(MapPins.entries) do
-        if MapPins.IsChanged(entry) then tinsert(lines, MapPins.FormatEntry(entry)) end
+        if MapPins.IsChanged(entry) and not (entry.unplaced and entry.deleted) then tinsert(lines, MapPins.FormatEntry(entry)) end
     end
 
     table.sort(lines)
