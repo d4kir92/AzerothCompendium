@@ -1623,7 +1623,7 @@ local function CreateViewSwitch(tree, onChange)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
     switch.buttons = {}
     for index, mode in ipairs({"tree", "list"}) do
-        local button = CreateFrame("Button", nil, switch, "UIPanelButtonTemplate")
+        local button = AzerothCompendium:CreateMenuButton(nil, switch)
         button:SetSize(VIEW_BUTTON_W, BOTTOM_H - 2)
         button:SetPoint("LEFT", switch, "LEFT", (index - 1) * VIEW_BUTTON_W, 0)
         button:SetNormalFontObject("GameFontNormalSmall")
@@ -1799,9 +1799,9 @@ local function CreateQuestDetail(tree)
     }
 
     for index, action in ipairs(actions) do
-        local button = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+        local button = AzerothCompendium:CreateMenuButton(nil, content)
         button:SetHeight(DETAIL_BUTTON_H)
-        button:SetNormalFontObject("GameFontNormalSmall")
+        button:SetNormalFontObject("GameFontHighlightSmall")
         button:SetHighlightFontObject("GameFontHighlightSmall")
         button:SetDisabledFontObject("GameFontDisableSmall")
         button.label = action[1]
@@ -2041,7 +2041,7 @@ local function CreateLegend(tree, anchor)
     legend.title:SetPoint("TOPLEFT", legend, "TOPLEFT", 12, -12)
     local close = CreateFrame("Button", nil, legend, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", legend, "TOPRIGHT", 0, 0)
-    local okay = CreateFrame("Button", nil, legend, "UIPanelButtonTemplate")
+    local okay = AzerothCompendium:CreateMenuButton(nil, legend)
     okay:SetSize(90, 22)
     okay:SetPoint("BOTTOMRIGHT", legend, "BOTTOMRIGHT", -10, 10)
     okay:SetText(_G.OKAY or "OK")

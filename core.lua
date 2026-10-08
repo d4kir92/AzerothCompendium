@@ -14,6 +14,24 @@ function AzerothCompendium:GetCompendiumTooltipLabel(text, size)
     return format("|T%d:%d:%d:0:0|t %s", ICON, size, size, tostring(text or ""))
 end
 
+function AzerothCompendium:CreateMenuButton(name, parent)
+    local button
+    for _, template in ipairs({"MainMenuFrameButtonTemplate", "BigRedThreeSliceButtonTemplate", "GameMenuButtonTemplate", "UIPanelButtonTemplate"}) do
+        local ok, frame = pcall(CreateFrame, "Button", name, parent, template)
+        if ok and frame ~= nil then
+            button = frame
+            break
+        end
+    end
+
+    button = button or CreateFrame("Button", name, parent)
+    button:SetNormalFontObject(GameFontHighlight)
+    button:SetHighlightFontObject(GameFontHighlight)
+    button:SetDisabledFontObject(GameFontDisable)
+
+    return button
+end
+
 local function IsOpposingQuestSide(side)
     local faction = UnitFactionGroup and UnitFactionGroup("player")
 

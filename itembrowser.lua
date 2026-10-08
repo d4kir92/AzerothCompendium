@@ -441,7 +441,7 @@ function Browser:Create(parent)
         page:SetHeight(-y)
         table.insert(self.filterPages, page)
     end
-    local reset = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    local reset = AC:CreateMenuButton(nil, content)
     reset:SetPoint("TOPLEFT", 4, y)
     reset:SetSize(178, 24)
     reset:SetText(RESET or "Reset")
