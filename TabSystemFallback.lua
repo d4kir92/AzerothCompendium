@@ -1,9 +1,14 @@
 TabSystemButtonArtMixinFallback = {}
+local MEDIA = "Interface\\AddOns\\AzerothCompendium\\media\\ui\\"
 local FALLBACK_TEXTURES = {
-    ["SquareMask"] = "Interface\\Buttons\\WHITE8X8",
-    ["spellbook-Tab-Frame-C60"] = "Interface\\SpellBook\\SpellBook-SkillLineTab",
-    ["spellbook-Tab-Frame-Glow-C60"] = "Interface\\SpellBook\\SpellBook-SkillLineTab",
-    ["spellbook-Tab-Frame-glow-gradient-C60"] = "Interface\\Buttons\\CheckButtonHilight",
+    ["SquareMask"] = {"Interface\\Buttons\\WHITE8X8"},
+    ["spellbook-Tab-Frame-C60"] = {MEDIA .. "spellbooktab", 43, 38, 1 / 64, 44 / 64, 1 / 128, 39 / 128},
+    ["spellbook-Tab-Frame-Glow-C60"] = {MEDIA .. "spellbooktab", 43, 38, 1 / 64, 44 / 64, 41 / 128, 79 / 128},
+    ["spellbook-Tab-Frame-glow-gradient-C60"] = {MEDIA .. "spellbooktab", 43, 38, 1 / 64, 44 / 64, 81 / 128, 119 / 128},
+    ["common-sidetab-c60"] = {MEDIA .. "sidetab", 55, 60, 1 / 128, 56 / 128, 1 / 128, 61 / 128},
+    ["common-sidetab-hover-c60"] = {MEDIA .. "sidetab", 55, 60, 1 / 128, 56 / 128, 63 / 128, 123 / 128},
+    ["common-sidetab-selected-c60"] = {MEDIA .. "sidetab", 55, 60, 58 / 128, 113 / 128, 1 / 128, 61 / 128},
+    ["common-sidetab-mask-c60"] = {MEDIA .. "sidetabmask", 55, 60},
 }
 
 local ATLASES = {
@@ -31,10 +36,11 @@ function TabSystemButtonArtMixinFallback.SetAtlasOrTexture(texture, atlas, useAt
         return true
     end
 
-    local file = FALLBACK_TEXTURES[atlas]
-    if file then
-        texture:SetTexture(file)
-        if useAtlasSize then texture:SetSize(36, 36) end
+    local info = FALLBACK_TEXTURES[atlas]
+    if info then
+        texture:SetTexture(info[1])
+        if info[4] then texture:SetTexCoord(info[4], info[5], info[6], info[7]) end
+        if useAtlasSize and info[2] then texture:SetSize(info[2], info[3]) end
     end
     return false
 end
@@ -143,4 +149,53 @@ function TabSystemButtonArtMixinFallback:SetSquareMode(enabled)
     end
 
     self:SetTabSelected(self.isSelected)
+end
+
+LargeSideTabButtonMixinFallback = {}
+function LargeSideTabButtonMixinFallback:OnLoad()
+    TabSystemButtonArtMixinFallback.SetAtlasOrTexture(self.Background, "common-sidetab-c60", true)
+    TabSystemButtonArtMixinFallback.SetAtlasOrTexture(self.Mask, "common-sidetab-mask-c60", true)
+    TabSystemButtonArtMixinFallback.SetAtlasOrTexture(self.SelectedTexture, "common-sidetab-selected-c60", true)
+    TabSystemButtonArtMixinFallback.SetAtlasOrTexture(self.HighlightTexture, "common-sidetab-hover-c60", true)
+    self.Icon:AddMaskTexture(self.Mask)
+    self:SetSize(55, 55)
+    self.Icon:ClearAllPoints()
+    self.Icon:SetPoint("CENTER", -4, 0)
+    self.SelectedTexture:Hide()
+end
+
+function LargeSideTabButtonMixinFallback:OnMouseDown(button)
+    if button == "LeftButton" then self.Icon:SetPoint("CENTER", -3, -1) end
+end
+
+function LargeSideTabButtonMixinFallback:OnMouseUp(button, upInside)
+    if button == "LeftButton" then
+        self.Icon:SetPoint("CENTER", -4, 0)
+        if PlaySound and SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_TAB then PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB) end
+    end
+
+    if self.customMouseUpHandler then self.customMouseUpHandler(self, button, upInside) end
+end
+
+function LargeSideTabButtonMixinFallback:SetCustomOnMouseUpHandler(handler)
+    self.customMouseUpHandler = handler
+end
+
+function LargeSideTabButtonMixinFallback:SetFillToInterior(fillToInterior, extent)
+    self.fillToInterior = fillToInterior
+    self.interiorExtent = extent
+    self:UpdateIconInterior()
+end
+
+function LargeSideTabButtonMixinFallback:UpdateIconInterior()
+    if self.fillToInterior then
+        local extent = self.interiorExtent or 50
+        self.Icon:SetTexCoord(0.03125, 0.96875, 0.03125, 0.96875)
+        self.Icon:SetSize(extent, extent)
+    end
+end
+
+function LargeSideTabButtonMixinFallback:SetChecked(checked)
+    self.SelectedTexture:SetShown(checked)
+    self:UpdateIconInterior()
 end

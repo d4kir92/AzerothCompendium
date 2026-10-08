@@ -3050,7 +3050,7 @@ end
 local function SetFrameTitle(frame, text)
     if type(frame.SetTitle) == "function" then pcall(frame.SetTitle, frame, text) end
     local name = frame:GetName()
-    local title = type(frame.TitleContainer) == "table" and frame.TitleContainer.TitleText or frame.TitleText or name and _G[name .. "TitleText"]
+    local title = type(frame.GetTitleText) == "function" and frame:GetTitleText() or type(frame.TitleContainer) == "table" and frame.TitleContainer.TitleText or frame.TitleText or name and _G[name .. "TitleText"]
     if title == nil then
         title = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         title:SetPoint("TOP", frame, "TOP", 0, -6)
@@ -3244,28 +3244,9 @@ local function MakeResizable(frame)
 end
 
 local function CreateSideTab(parent, label, icon, onClick)
-    local ok, tab = pcall(CreateFrame, "Frame", nil, parent, "LargeSideTabButtonTemplate")
-    local large = ok and tab ~= nil
-    if not large then
-        tab = CreateTemplated("CheckButton", nil, parent, {"RightSideTabTemplate", "SpellBookSkillLineTabTemplate"})
-        tab:SetSize(32, 32)
-    end
-
-    if type(tab.Icon) ~= "table" then
-        local background = tab:CreateTexture(nil, "BACKGROUND")
-        background:SetAllPoints(tab)
-        background:SetColorTexture(0.05, 0.05, 0.06, 0.9)
-        local texture = tab:CreateTexture(nil, "ARTWORK")
-        texture:SetSize(30, 30)
-        texture:SetPoint("CENTER", tab, "CENTER", 0, 0)
-        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-        tab.Icon = texture
-        tab:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
-        tab:SetCheckedTexture("Interface\\Buttons\\CheckButtonHilight", "ADD")
-    end
-
+    local tab = CreateFrame("Frame", nil, parent, AzerothCompendium:CheckTemplates("LargeSideTabButtonTemplate") and "LargeSideTabButtonTemplate" or "LargeSideTabButtonTemplateFallback")
     tab.Icon:SetTexture(icon)
-    if large and type(tab.SetFillToInterior) == "function" then tab:SetFillToInterior(true) end
+    tab:SetFillToInterior(true)
     AzerothCompendium:OnLanguage(function()
         tab.tooltip = AzerothCompendium:TryTrans(label)
         tab.tooltipText = tab.tooltip
@@ -3278,12 +3259,8 @@ local function CreateSideTab(parent, label, icon, onClick)
     end)
 
     tab:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-    if large then
-        tab:EnableMouse(true)
-        tab:SetCustomOnMouseUpHandler(function(_, button, upInside) if button == "LeftButton" and upInside then onClick() end end)
-    else
-        tab:HookScript("OnClick", onClick)
-    end
+    tab:EnableMouse(true)
+    tab:SetCustomOnMouseUpHandler(function(_, button, upInside) if button == "LeftButton" and upInside then onClick() end end)
     return tab
 end
 
@@ -3795,7 +3772,7 @@ function AzerothCompendium:CreateWishlistTabs()
     ACOTABPC = ACOTABPC or {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
-    local categories = {{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
+    local categories = {{"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
     compendium.wishlistTabs = {}
     local previous = nil
     for _, info in ipairs(categories) do
@@ -4615,7 +4592,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", 236180}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
+    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
             if kind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
