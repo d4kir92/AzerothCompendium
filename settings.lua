@@ -167,11 +167,11 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     acoset.flavor = acoset:AddDropdown({
         ["label"] = "LID_FLAVOR",
         ["search"] = "FLAVOR",
-        ["choices"] = {{label = "Classic Era", value = "classic_era"}, {label = "Forever", value = "forever"}},
+        ["choices"] = AzerothCompendium:GetFlavorChoices(),
         ["value"] = AzerothCompendium:GetFlavor(),
         ["func"] = function(value) AzerothCompendium:SetFlavor(value) end,
     })
-    acoset.flavor:SetEnabled(not AzerothCompendium:IsClassicEraClient())
+    acoset.flavor:SetEnabled(not AzerothCompendium:IsFixedFlavorClient())
     tinsert(labels, {acoset.flavor.Label, acoset.flavor.uiElement, "LID_FLAVOR"})
     acoset.scale = acoset:AddSlider({
         ["label"] = AzerothCompendium:Trans("LID_SCALE") .. ": %d%%",

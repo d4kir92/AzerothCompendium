@@ -267,7 +267,87 @@ function AzerothCompendium:IsClassicEraClient()
     return type(interface) == "number" and interface < 16000
 end
 
+function AzerothCompendium:IsTBCClient()
+    local interface = select(4, GetBuildInfo())
+    return type(interface) == "number" and interface >= 20000 and interface < 30000
+end
+
+function AzerothCompendium:IsFixedFlavorClient()
+    return AzerothCompendium:IsClassicEraClient() or AzerothCompendium:IsTBCClient()
+end
+
+function AzerothCompendium:GetFlavorChoices()
+    if AzerothCompendium:IsTBCClient() then
+        return {
+            {
+                label = "TBC",
+                value = "tbc"
+            }
+        }
+    end
+    return {
+        {
+            label = "Classic Era",
+            value = FLAVOR_CLASSIC_ERA
+        },
+        {
+            label = "Forever",
+            value = FLAVOR_FOREVER
+        }
+    }
+end
+
+function AzerothCompendium:GetFlavorText()
+    for _, choice in ipairs(AzerothCompendium:GetFlavorChoices()) do
+        if choice.value == AzerothCompendium:GetFlavor() then return choice.label end
+    end
+    return "Forever"
+end
+
+function AzerothCompendium:GetWowheadBranch()
+    local flavor = AzerothCompendium:GetFlavor()
+    if flavor == FLAVOR_FOREVER then return "forever" end
+    if flavor == "tbc" then return "tbc" end
+    return "classic"
+end
+
+function AzerothCompendium:GetMaxLevel()
+    if AzerothCompendium:GetFlavor() == "tbc" then return 70 end
+    return 60
+end
+
+function AzerothCompendium:GetContinents()
+    if AzerothCompendium:GetFlavor() == "tbc" then return {"kalimdor", "easternkingdoms", "outland"} end
+    return {"kalimdor", "easternkingdoms"}
+end
+
+function AzerothCompendium:GetInstanceContinent(inst)
+    local continents = AzerothCompendium.INSTANCECONTINENTS
+    if inst == nil or continents == nil then return nil end
+    return continents[inst.id] or inst.parentID and continents[inst.parentID] or nil
+end
+
+function AzerothCompendium:GetSelectedContinent()
+    local continent = type(ACOTABPC) == "table" and ACOTABPC.CONTINENT or nil
+    local continents = AzerothCompendium:GetContinents()
+    if continent == nil or #continents < 2 then return nil end
+    for _, value in ipairs(continents) do
+        if value == continent then return continent end
+    end
+    return nil
+end
+
+function AzerothCompendium:SetSelectedContinent(continent)
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.CONTINENT = continent
+end
+
+function AzerothCompendium:IsMaxLevelInstance(inst)
+    return inst ~= nil and (inst.heroic == true or (inst.maxLevel or 0) >= AzerothCompendium:GetMaxLevel())
+end
+
 function AzerothCompendium:GetFlavor()
+    if AzerothCompendium:IsTBCClient() then return "tbc" end
     if AzerothCompendium:IsClassicEraClient() then return FLAVOR_CLASSIC_ERA end
     local flavor = AzerothCompendium:GetConfig("FLAVOR", FLAVOR_FOREVER)
     if flavor ~= FLAVOR_FOREVER and flavor ~= FLAVOR_CLASSIC_ERA then
@@ -280,7 +360,7 @@ end
 
 function AzerothCompendium:SetFlavor(value)
     if value ~= FLAVOR_CLASSIC_ERA then value = FLAVOR_FOREVER end
-    if not AzerothCompendium:IsClassicEraClient() then AzerothCompendium:SetConfig("FLAVOR", value) end
+    if not AzerothCompendium:IsFixedFlavorClient() then AzerothCompendium:SetConfig("FLAVOR", value) end
     if AzerothCompendium.SyncCompendiumFlavor then AzerothCompendium:SyncCompendiumFlavor() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end

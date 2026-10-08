@@ -33,6 +33,7 @@
 ## IconTexture: 133737
 
 libs\D4Lib\D4Lib.xml
+TabSystemFallback.xml
 
 locale\enUS.lua
 locale\deDE.lua
@@ -66,6 +67,7 @@ data\boss_ranks.lua
 data\vendors.lua
 data\loadingscreens.lua
 data\instance_wings.lua
+data\continents.lua
 
 core.lua
 wishliststars.lua

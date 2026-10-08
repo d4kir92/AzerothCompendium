@@ -225,7 +225,7 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
 function WorldMap.AddLocation(groups, kind, id, location)
     local insts = WorldMap.GetInstances(location[4] or id)
     if #insts == 0 then return end
-    if insts[1].forever and AzerothCompendium:IsClassicEraClient() then return end
+    if insts[1].forever and AzerothCompendium:IsFixedFlavorClient() then return end
     local mapID = location[1]
     groups[mapID] = groups[mapID] or {}
     local group = nil
@@ -406,6 +406,17 @@ function WorldMap.ApplyIcon(pin, group, size)
         texture:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", -inset, inset)
         AzerothCompendium:SetIconTexture(texture, icon, meetingStone)
     end
+end
+
+function WorldMap.GetEntranceSize(group)
+    local def = group.raid and WorldMap.raidIcon or WorldMap.dungeonIcon
+    if def.resolved == nil then def.resolved = AzerothCompendium:FindAtlas(def[1]) or def[2] end
+    if def.size == nil then
+        local info = C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and def.resolved ~= def[2] and C_Texture.GetAtlasInfo(def.resolved) or nil
+        def.size = info ~= nil and info.width ~= nil and info.width > 0 and min(ENTRANCE_SIZE, info.width) or ENTRANCE_SIZE
+    end
+
+    return def.size
 end
 
 function WorldMap.UpdatePinStyle(pin)
@@ -668,7 +679,7 @@ function WorldMap.UpdateLocations()
                 WorldMap.pins[count] = pin
             end
 
-            local size = (meetingStone and MEETING_STONE_SIZE or ENTRANCE_SIZE) * poiScale / scale
+            local size = (meetingStone and MEETING_STONE_SIZE or WorldMap.GetEntranceSize(group)) * poiScale / scale
             pin.group = group
             pin:SetSize(size, size)
             pin:SetFrameLevel(child:GetFrameLevel() + PIN_LEVEL)

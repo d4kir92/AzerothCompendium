@@ -231,8 +231,7 @@ local function ShowQuestWowheadLink(questID)
         popup.hint:SetText("Ctrl+C")
     end
 
-    local flavor = AzerothCompendium:GetFlavor() == "forever" and "forever" or "classic"
-    popup.link:SetText("https://www.wowhead.com/" .. flavor .. "/quest=" .. questID)
+    popup.link:SetText("https://www.wowhead.com/" .. AzerothCompendium:GetWowheadBranch() .. "/quest=" .. questID)
     popup:Show()
     popup.link:SetFocus()
     popup.link:HighlightText()
