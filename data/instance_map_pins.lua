@@ -34,7 +34,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.605, 0.530, 2959002},
         {"level", 0.513, 0.684, 2959002},
         {"level", 0.531, 0.365, 2959002},
-        {"boss", 0.536, 0.712, 245999}, -- Arcane Anomaly
+        {"boss", 0.524, 0.840, 245999}, -- Arcane Anomaly
         {"boss", 0.565, 0.230, 246020}, -- Shade of the Archmage
         {"boss", 0.517, 0.551, 246003}, -- Fel Ancient
         {"boss", 0.613, 0.424, 246017}, -- Unstable Sentinel
