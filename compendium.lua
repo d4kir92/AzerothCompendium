@@ -649,12 +649,18 @@ local function ApplyIcon(texture, icon)
 end
 
 local function SetBadgeHighlight(pin, highlighted)
-    if not AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then return end
-    if highlighted and AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS) then
-        pin.badge:SetAtlas(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS)
+    if not AzerothCompendium:HasAtlasOrFallback(LOCATION_PIN_BADGE_ATLAS) then return end
+    if highlighted and AzerothCompendium:HasAtlasOrFallback(LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS) then
+        AzerothCompendium:SetAtlasOrFallback(pin.badge, LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS, false)
     else
-        pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
+        AzerothCompendium:SetAtlasOrFallback(pin.badge, LOCATION_PIN_BADGE_ATLAS, false)
     end
+end
+
+local function SetLocationBadge(badge)
+    if AzerothCompendium:SetAtlasOrFallback(badge, LOCATION_PIN_BADGE_ATLAS, false) then return end
+    badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
+    badge:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 end
 
 local LOCATION_PINS = {
@@ -693,12 +699,7 @@ local function CreateLocationPin(row, def)
     pin.badge = pin:CreateTexture(nil, "OVERLAY")
     pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
     pin.badge:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 3, -2)
-    if AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then
-        pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
-    else
-        pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
-        pin.badge:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    end
+    SetLocationBadge(pin.badge)
 
     pin:SetScript("OnClick", function(sel)
         local inst = sel:GetParent().entry
@@ -1192,7 +1193,7 @@ function AzerothCompendium:GetGroupedInstanceList(list)
     ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
     local groups, levels, result = {}, {}, {}
     for _, inst in ipairs(list) do
-        local level = floor((inst.minLevel or 0) / 10) * 10
+        local level = max(1, ceil((inst.minLevel or 0) / 10)) * 10 - 9
         if groups[level] == nil then
             groups[level] = {}
             tinsert(levels, level)
@@ -1617,14 +1618,18 @@ function MapPins.AddRowButton(row)
     button:SetFrameLevel(row:GetFrameLevel() + 2)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetAllPoints(button)
-    button.icon:SetTexture(TAB_ICONS["map"].texture)
-    button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
     button.highlight:SetAllPoints(button)
-    button.highlight:SetTexture(TAB_ICONS["map"].texture)
-    button.highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     button.highlight:SetBlendMode("ADD")
     button.highlight:SetAlpha(0.5)
+    if not AzerothCompendium:HasNativeWaypoints() and AzerothCompendium:SetAtlasOrFallback(button.icon, LOCATION_PIN_BADGE_ATLAS, false) then
+        AzerothCompendium:SetAtlasOrFallback(button.highlight, LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS, false)
+    else
+        button.icon:SetTexture(TAB_ICONS["map"].texture)
+        button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        button.highlight:SetTexture(TAB_ICONS["map"].texture)
+        button.highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
     button:SetScript("OnClick", function(sel) MapPins.ShowBoss(sel:GetParent().entry) end)
     button:SetScript("OnEnter", function(sel)
         local maps = GetInstanceMaps() or {}
@@ -2802,12 +2807,7 @@ local function CreateWorldQuestItemRow(scroller)
     row.pin.badge = row.pin:CreateTexture(nil, "OVERLAY")
     row.pin.badge:SetSize(LOCATION_PIN_BADGE_SIZE, LOCATION_PIN_BADGE_SIZE)
     row.pin.badge:SetPoint("BOTTOMRIGHT", row.pin, "BOTTOMRIGHT", 3, -2)
-    if AzerothCompendium:AtlasExists(LOCATION_PIN_BADGE_ATLAS) then
-        row.pin.badge:SetAtlas(LOCATION_PIN_BADGE_ATLAS)
-    else
-        row.pin.badge:SetTexture(LOCATION_PIN_BADGE_FALLBACK)
-        row.pin.badge:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    end
+    SetLocationBadge(row.pin.badge)
 
     row.name = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     row.name:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)

@@ -1764,6 +1764,10 @@ function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     return AzerothCompendium:SetTrackedWaypoint(mapID, x / 100, y / 100)
 end
 
+function AzerothCompendium:HasNativeWaypoints()
+    return C_Map ~= nil and C_Map.SetUserWaypoint ~= nil
+end
+
 function AzerothCompendium:CanOpenWorldMapTo()
     return C_Map ~= nil and C_Map.OpenWorldMap ~= nil
 end
@@ -1774,6 +1778,15 @@ function AzerothCompendium:OpenWorldMapTo(mapID)
     C_Map.OpenWorldMap(mapID)
 
     return true
+end
+
+function AzerothCompendium:ShowWaypointMapDeferred()
+    local waypoint = AzerothCompendium:GetUserWaypoint()
+    local mapID = waypoint and waypoint.uiMapID
+    if mapID == nil or C_Timer == nil then return end
+    C_Timer.After(0, function()
+        if WorldMapFrame and WorldMapFrame:IsShown() and WorldMapFrame.SetMapID and WorldMapFrame:GetMapID() ~= mapID then WorldMapFrame:SetMapID(mapID) end
+    end)
 end
 
 local mapOpener
@@ -1815,6 +1828,7 @@ local function CreateMapOpener()
         if SecureActionButton_ShouldUseOnKeyDown and (down == true) ~= (SecureActionButton_ShouldUseOnKeyDown(sel) == true) then return end
         local opened = false
         if sel.owner and sel.onClick then opened = sel.onClick(sel.owner) == true end
+        if opened then AzerothCompendium:ShowWaypointMapDeferred() end
         if WorldMapFrame and WorldMapFrame:IsShown() then opened = false end
         sel:SetAttribute("type1", opened and "click" or nil)
         sel:SetAttribute("clickbutton1", opened and GetWorldMapClickButton() or nil)

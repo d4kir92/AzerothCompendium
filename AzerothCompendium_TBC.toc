@@ -1,6 +1,6 @@
 ## Interface: 20505, 20506
 
-## Version: 0.6.23
+## Version: 0.7.0
 ## Title: AzerothCompendium by |cff55d2ffD4KiR |T133737:16:16:0:0|t
 ## Notes: Browse dungeon, raid, PvP, and reputation rewards
 ## Notes-deDE: Durchsucht Beute aus Dungeons, Schlachtzügen, PvP und Ruf
