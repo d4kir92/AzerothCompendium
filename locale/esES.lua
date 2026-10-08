@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("esES", "LID_FOREVERDAILYNOTICE", "Datos de mazmorras
 
 AzerothCompendium:AddTrans("esES", "LID_SHOWOPPOSINGQUESTS", "Mostrar también las misiones de la facción contraria")
 AzerothCompendium:AddTrans("esES", "LID_QUESTLEGEND", "Leyenda")
+AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWTREE", "Árbol")
+AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWLIST", "Lista")
 AzerothCompendium:AddTrans("esES", "LID_LEGENDLOWLEVEL", "Aún no disponible (nivel demasiado bajo)")
 AzerothCompendium:AddTrans("esES", "LID_LEGENDOPEN", "Se puede aceptar la misión")
 AzerothCompendium:AddTrans("esES", "LID_LEGENDLOCKED", "Falta la misión previa")

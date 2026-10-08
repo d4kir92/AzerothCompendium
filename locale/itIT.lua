@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("itIT", "LID_FOREVERDAILYNOTICE", "Spedizioni Forever
 
 AzerothCompendium:AddTrans("itIT", "LID_SHOWOPPOSINGQUESTS", "Mostra anche le missioni della fazione avversaria")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTLEGEND", "Legenda")
+AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWTREE", "Albero")
+AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWLIST", "Elenco")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDLOWLEVEL", "Non ancora disponibile (livello troppo basso)")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDOPEN", "Missione accettabile")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDLOCKED", "Manca la missione precedente")

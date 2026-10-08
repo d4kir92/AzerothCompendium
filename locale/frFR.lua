@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("frFR", "LID_FOREVERDAILYNOTICE", "Donjons Forever : 
 
 AzerothCompendium:AddTrans("frFR", "LID_SHOWOPPOSINGQUESTS", "Afficher aussi les quêtes de la faction adverse")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTLEGEND", "Légende")
+AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWTREE", "Arbre")
+AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWLIST", "Liste")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDLOWLEVEL", "Pas encore disponible (niveau trop bas)")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDOPEN", "Quête disponible")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDLOCKED", "Quête précédente manquante")

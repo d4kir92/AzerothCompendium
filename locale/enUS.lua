@@ -191,6 +191,8 @@ AzerothCompendium:AddTrans("enUS", "LID_FOREVERDAILYNOTICE", "Forever dungeon da
 
 AzerothCompendium:AddTrans("enUS", "LID_SHOWOPPOSINGQUESTS", "Show quests of the opposing faction")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTLEGEND", "Legend")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWTREE", "Tree")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWLIST", "List")
 AzerothCompendium:AddTrans("enUS", "LID_LEGENDLOWLEVEL", "Not available yet (level too low)")
 AzerothCompendium:AddTrans("enUS", "LID_LEGENDOPEN", "Quest can be accepted")
 AzerothCompendium:AddTrans("enUS", "LID_LEGENDLOCKED", "Previous quest missing")

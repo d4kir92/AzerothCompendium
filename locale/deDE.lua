@@ -191,6 +191,8 @@ AzerothCompendium:AddTrans("deDE", "LID_FOREVERDAILYNOTICE", "Forever-Dungeon-Da
 
 AzerothCompendium:AddTrans("deDE", "LID_SHOWOPPOSINGQUESTS", "Auch Quests der gegnerischen Fraktion anzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTLEGEND", "Legende")
+AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWTREE", "Baum")
+AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWLIST", "Liste")
 AzerothCompendium:AddTrans("deDE", "LID_LEGENDLOWLEVEL", "Noch nicht annehmbar (Stufe zu niedrig)")
 AzerothCompendium:AddTrans("deDE", "LID_LEGENDOPEN", "Quest kann angenommen werden")
 AzerothCompendium:AddTrans("deDE", "LID_LEGENDLOCKED", "Vorquest fehlt")

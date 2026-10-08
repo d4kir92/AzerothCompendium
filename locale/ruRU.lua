@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_FOREVERDAILYNOTICE", "Подземель
 
 AzerothCompendium:AddTrans("ruRU", "LID_SHOWOPPOSINGQUESTS", "Показывать задания противоположной фракции")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTLEGEND", "Условные обозначения")
+AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWTREE", "Дерево")
+AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWLIST", "Список")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDLOWLEVEL", "Пока недоступно (слишком низкий уровень)")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDOPEN", "Задание можно взять")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDLOCKED", "Не выполнено предыдущее задание")

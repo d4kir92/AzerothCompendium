@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("ptBR", "LID_FOREVERDAILYNOTICE", "Masmorras Forever:
 
 AzerothCompendium:AddTrans("ptBR", "LID_SHOWOPPOSINGQUESTS", "Mostrar também as missões da facção adversária")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTLEGEND", "Legenda")
+AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWTREE", "Árvore")
+AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWLIST", "Lista")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDLOWLEVEL", "Ainda não disponível (nível muito baixo)")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDOPEN", "Missão pode ser aceita")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDLOCKED", "Falta a missão anterior")

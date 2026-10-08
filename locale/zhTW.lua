@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("zhTW", "LID_FOREVERDAILYNOTICE", "Forever地城資�
 
 AzerothCompendium:AddTrans("zhTW", "LID_SHOWOPPOSINGQUESTS", "顯示敵對陣營的任務")
 AzerothCompendium:AddTrans("zhTW", "LID_QUESTLEGEND", "圖例")
+AzerothCompendium:AddTrans("zhTW", "LID_QUESTVIEWTREE", "樹狀")
+AzerothCompendium:AddTrans("zhTW", "LID_QUESTVIEWLIST", "列表")
 AzerothCompendium:AddTrans("zhTW", "LID_LEGENDLOWLEVEL", "尚不可接 (等級過低)")
 AzerothCompendium:AddTrans("zhTW", "LID_LEGENDOPEN", "可以接受任務")
 AzerothCompendium:AddTrans("zhTW", "LID_LEGENDLOCKED", "缺少前置任務")

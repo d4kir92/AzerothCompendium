@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("koKR", "LID_FOREVERDAILYNOTICE", "Forever 던전 데
 
 AzerothCompendium:AddTrans("koKR", "LID_SHOWOPPOSINGQUESTS", "상대 진영의 퀘스트도 표시")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTLEGEND", "범례")
+AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWTREE", "트리")
+AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWLIST", "목록")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDLOWLEVEL", "아직 수락 불가 (레벨 부족)")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDOPEN", "퀘스트 수락 가능")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDLOCKED", "선행 퀘스트 필요")

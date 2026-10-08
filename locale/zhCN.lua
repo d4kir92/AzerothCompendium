@@ -166,6 +166,8 @@ AzerothCompendium:AddTrans("zhCN", "LID_FOREVERDAILYNOTICE", "Forever地下城�
 
 AzerothCompendium:AddTrans("zhCN", "LID_SHOWOPPOSINGQUESTS", "显示敌对阵营的任务")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTLEGEND", "图例")
+AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWTREE", "树状")
+AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWLIST", "列表")
 AzerothCompendium:AddTrans("zhCN", "LID_LEGENDLOWLEVEL", "尚不可接 (等级过低)")
 AzerothCompendium:AddTrans("zhCN", "LID_LEGENDOPEN", "可以接受任务")
 AzerothCompendium:AddTrans("zhCN", "LID_LEGENDLOCKED", "缺少前置任务")

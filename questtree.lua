@@ -73,6 +73,12 @@ local ZOOM_MIN = 0.4
 local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
 local ZOOM_BAR_W = 130
+local LIST_ROW_H = 18
+local LIST_INDENT = 14
+local LIST_TOGGLE_SIZE = 14
+local VIEW_BUTTON_W = 60
+local PLUS_TEXTURE = "Interface\\Buttons\\UI-PlusButton-Up"
+local MINUS_TEXTURE = "Interface\\Buttons\\UI-MinusButton-Up"
 local STATUS_ICON = {
     ["complete"] = {"Interface\\RaidFrame\\ReadyCheck-Ready", false},
     ["ready"] = {"Interface\\GossipFrame\\ActiveQuestIcon", false},
@@ -1092,11 +1098,11 @@ local function CreateMinimalHBar(parent)
     return bar
 end
 
-local function CreateHBar(tree, scroll, anchor)
+local function CreateHBar(tree, scroll, leftAnchor, anchor)
     local bar = CreateMinimalHBar(tree)
     local syncing = false
     if bar then
-        bar:SetPoint("LEFT", tree, "BOTTOMLEFT", 0, BOTTOM_H / 2)
+        bar:SetPoint("LEFT", leftAnchor, "RIGHT", 10, 0)
         bar:SetPoint("RIGHT", anchor, "LEFT", -10, 0)
         bar:RegisterCallback(BaseScrollBoxEvents.OnScroll, function(_, percentage)
             if syncing then return end
@@ -1122,7 +1128,7 @@ local function CreateHBar(tree, scroll, anchor)
     else
         bar = CreateFrame("Slider", nil, tree)
         bar:SetOrientation("HORIZONTAL")
-        bar:SetPoint("LEFT", tree, "BOTTOMLEFT", 0, BOTTOM_H / 2)
+        bar:SetPoint("LEFT", leftAnchor, "RIGHT", 10, 0)
         bar:SetPoint("RIGHT", anchor, "LEFT", -10, 0)
         bar:SetHeight(HBAR_H)
         bar:SetMinMaxValues(0, 0)
@@ -1303,6 +1309,16 @@ local function CreateKeyLine(box, tree)
     return line
 end
 
+local function GetKeyLineInfo(attunement)
+    local name, _, quality, _, icon = AzerothCompendium:GetItemDisplay(attunement.key)
+    if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(attunement.key) end
+    name = name or ("Item " .. attunement.key)
+    local color = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+    if color and color.hex then name = color.hex .. name .. "|r" end
+
+    return icon or 134400, AzerothCompendium:HasAttunementKey(attunement.key) and KEY_OWNED_ICON or KEY_MISSING_ICON, name .. "  |cffa0a0a0" .. GetAttunementDetail(attunement) .. "|r"
+end
+
 local function UpdateKeyLine(line, attunement, box)
     line.attunement = attunement
     if attunement == nil or attunement.key == nil then
@@ -1319,16 +1335,295 @@ local function UpdateKeyLine(line, attunement, box)
     end
 
     line:SetFrameLevel(box:GetFrameLevel() + 1)
-
-    local name, _, quality, _, icon = AzerothCompendium:GetItemDisplay(attunement.key)
-    if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(attunement.key) end
-    name = name or ("Item " .. attunement.key)
-    local color = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
-    if color and color.hex then name = color.hex .. name .. "|r" end
-    line.icon:SetTexture(icon or 134400)
-    line.status:SetTexture(AzerothCompendium:HasAttunementKey(attunement.key) and KEY_OWNED_ICON or KEY_MISSING_ICON)
-    line.text:SetText(name .. "  |cffa0a0a0" .. GetAttunementDetail(attunement) .. "|r")
+    local icon, status, text = GetKeyLineInfo(attunement)
+    line.icon:SetTexture(icon)
+    line.status:SetTexture(status)
+    line.text:SetText(text)
     line:Show()
+end
+
+local function GetListNodeKey(node)
+    local phases = node.phases
+    local phase = phases and (phases.accept and "a" or phases.turnin and "t" or "o") or ""
+
+    return node.id .. ":" .. node.section .. phase
+end
+
+local function BuildListTree(graph)
+    local placed = {}
+    local Attach
+    Attach = function(node)
+        placed[node] = true
+        local item = {
+            node = node,
+            key = GetListNodeKey(node),
+            children = {}
+        }
+
+        local children = {}
+        for _, child in ipairs(node.children or {}) do
+            if child.section == node.section and not placed[child] then tinsert(children, child) end
+        end
+
+        table.sort(children, SortNodes)
+        for _, child in ipairs(children) do
+            if not placed[child] then tinsert(item.children, Attach(child)) end
+        end
+
+        return item
+    end
+
+    local roots = {}
+    local rest = {}
+    for _, node in ipairs(graph) do
+        local root = true
+        for _, parent in ipairs(node.parents or {}) do
+            if parent ~= node and parent.section == node.section then root = false end
+        end
+
+        tinsert(root and roots or rest, node)
+    end
+
+    table.sort(roots, SortNodes)
+    table.sort(rest, SortNodes)
+    local sections = {}
+    for section = 1, SECTION_COUNT do
+        sections[section] = {}
+    end
+
+    for _, list in ipairs({roots, rest}) do
+        for _, node in ipairs(list) do
+            if not placed[node] then tinsert(sections[node.section], Attach(node)) end
+        end
+    end
+
+    return sections
+end
+
+local function CountListItems(items)
+    local count = #items
+    for _, item in ipairs(items) do
+        count = count + CountListItems(item.children)
+    end
+
+    return count
+end
+
+local function FlattenList(items, depth, collapsed, out)
+    for _, item in ipairs(items) do
+        tinsert(out, {
+            kind = "quest",
+            item = item,
+            key = item.key,
+            depth = depth,
+            hasChildren = #item.children > 0
+        })
+
+        if #item.children > 0 and not collapsed[item.key] then FlattenList(item.children, depth + 1, collapsed, out) end
+    end
+end
+
+local function FindListPath(items, questID, path)
+    for _, item in ipairs(items) do
+        if item.node.id == questID then return true end
+        tinsert(path, item.key)
+        if FindListPath(item.children, questID, path) then return true end
+        tremove(path)
+    end
+
+    return false
+end
+
+local function GetListQuestTitle(node)
+    local prefix = ""
+    local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+    if startItem then
+        local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
+        prefix = format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    end
+
+    local tagIcon = AzerothCompendium.QUESTTAGS and GetQuestTagIcon(AzerothCompendium.QUESTTAGS[node.id])
+    if tagIcon then
+        if tagIcon[2] and CreateAtlasMarkup then
+            prefix = prefix .. CreateAtlasMarkup(tagIcon[1], STATUS_ICON_SIZE, STATUS_ICON_SIZE) .. " "
+        elseif not tagIcon[2] then
+            prefix = prefix .. format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tagIcon[1], STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+        end
+    end
+
+    local text = prefix .. GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. node.name .. "|r"
+    local classText = AzerothCompendium:GetQuestClassText(node.id)
+    if classText then text = text .. "  " .. classText end
+    local phaseText = GetPhaseText(node)
+    if phaseText then text = text .. "  |cffa0a0a0" .. phaseText .. "|r" end
+
+    return text
+end
+
+local function GetListQuestRight(node)
+    local text = ""
+    local groupCount, groupTotal = GetGroupQuestCount(node.id)
+    if groupCount then
+        local color = groupCount >= groupTotal and "|cff66e666" or groupCount > 0 and "|cffffd100" or "|cff999999"
+        text = format("%s%d/%d|r", color, groupCount, groupTotal)
+    end
+
+    if node.outside then text = text .. format(" |T%s:%d:%d:0:0:64:64:5:59:5:59|t", OUTSIDE_ICON, STATUS_ICON_SIZE, STATUS_ICON_SIZE) end
+
+    return text
+end
+
+local function CreateListRow(parent, tree)
+    local row = CreateFrame("Button", nil, parent)
+    row.tree = tree
+    row:SetHeight(LIST_ROW_H)
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    row.background = row:CreateTexture(nil, "BACKGROUND")
+    row.background:SetAllPoints(row)
+    local highlight = row:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(row)
+    highlight:SetColorTexture(1, 1, 1, 0.08)
+    row.toggle = CreateFrame("Button", nil, row)
+    row.toggle:SetSize(LIST_TOGGLE_SIZE, LIST_TOGGLE_SIZE)
+    row.toggle:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
+    row.toggle:SetScript("OnClick", function() tree:ToggleListKey(row.key) end)
+    row.bar = row:CreateTexture(nil, "BORDER")
+    row.bar:SetSize(3, LIST_ROW_H - 4)
+    row.bar:SetPoint("RIGHT", row.toggle, "LEFT", -2, 0)
+    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    row.icon:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
+    row.right = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    row.right:SetJustifyH("RIGHT")
+    row.right:SetWordWrap(false)
+    row.text = row:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
+    row.text:SetPoint("RIGHT", row.right, "LEFT", -6, 0)
+    row.text:SetJustifyH("LEFT")
+    row.text:SetWordWrap(false)
+    row:SetScript("OnMouseDown", function() tree.dragMoved = false end)
+    row:SetScript("OnEnter", function(sel)
+        if sel.kind == "quest" then
+            tree:SetQuestHighlight(sel.node.id)
+            ShowNodeTooltip(sel)
+        elseif sel.kind == "key" then
+            tree.keyLine:GetScript("OnEnter")(sel)
+        end
+    end)
+
+    row:SetScript("OnLeave", function()
+        tree:SetQuestHighlight(nil)
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    row:SetScript("OnClick", function(sel, mouseButton)
+        if sel.kind == "quest" then
+            OnNodeClick(sel, mouseButton)
+        elseif sel.kind == "section" then
+            tree:ToggleListKey(sel.key)
+        elseif sel.kind == "key" then
+            tree.keyLine:GetScript("OnClick")(sel)
+        end
+    end)
+
+    return row
+end
+
+local function UpdateListRow(row, entry, index, collapsed)
+    row.kind = entry.kind
+    row.key = entry.key
+    row.node = entry.item and entry.item.node or nil
+    row.attunement = entry.attunement
+    row.toggle:ClearAllPoints()
+    row.toggle:SetPoint("LEFT", row, "LEFT", 6 + (entry.depth or 0) * LIST_INDENT, 0)
+    if entry.hasChildren then
+        row.toggle:SetNormalTexture(collapsed[entry.key] and PLUS_TEXTURE or MINUS_TEXTURE)
+        row.toggle:Show()
+    else
+        row.toggle:Hide()
+    end
+
+    row.icon:SetDesaturated(false)
+    row.icon:SetVertexColor(1, 1, 1)
+    row.icon:SetTexCoord(0, 1, 0, 1)
+    row.bar:Hide()
+    row.right:SetText("")
+    if entry.kind == "section" then
+        row.background:SetColorTexture(0.75, 0.6, 0.25, 0.22)
+        row.icon:Hide()
+        row.text:SetFontObject("GameFontNormal")
+        row.text:SetText(AzerothCompendium:Trans(SECTION_TITLES[entry.section]))
+        row.right:SetText("|cffa0a0a0" .. entry.count .. "|r")
+    elseif entry.kind == "key" then
+        row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
+        local icon, status, text = GetKeyLineInfo(entry.attunement)
+        row.icon:SetTexture(icon)
+        row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        row.icon:Show()
+        row.text:SetFontObject("GameFontHighlightSmall")
+        row.text:SetText(format("|T%s:%d|t ", status, STATUS_ICON_SIZE) .. text)
+    elseif entry.kind == "empty" then
+        row.background:SetColorTexture(0, 0, 0, 0)
+        row.icon:Hide()
+        row.text:SetFontObject("GameFontDisableSmall")
+        row.text:SetText(AzerothCompendium:Trans(SECTION_EMPTY[entry.section]))
+    else
+        local node = row.node
+        local status = GetQuestStatus(node.id, node)
+        local info = STATUS_ICON[status]
+        local border = STATUS_BORDER[status]
+        row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
+        row.bar:SetColorTexture(border[1], border[2], border[3], border[4])
+        row.bar:Show()
+        row.icon:SetTexture(info[1])
+        row.icon:SetDesaturated(info[2])
+        if info[3] then row.icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
+        row.icon:Show()
+        row.text:SetFontObject("GameFontNormalSmall")
+        row.text:SetText(GetListQuestTitle(node))
+        row.right:SetText(GetListQuestRight(node))
+    end
+
+    row:Show()
+end
+
+local function CreateViewSwitch(tree, onChange)
+    local switch = CreateFrame("Frame", nil, tree)
+    switch:SetSize(2 * VIEW_BUTTON_W, BOTTOM_H - 2)
+    switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
+    switch.buttons = {}
+    for index, mode in ipairs({"tree", "list"}) do
+        local button = CreateFrame("Button", nil, switch, "UIPanelButtonTemplate")
+        button:SetSize(VIEW_BUTTON_W, BOTTOM_H - 2)
+        button:SetPoint("LEFT", switch, "LEFT", (index - 1) * VIEW_BUTTON_W, 0)
+        button:SetNormalFontObject("GameFontNormalSmall")
+        button:SetHighlightFontObject("GameFontHighlightSmall")
+        button:SetScript("OnClick", function() onChange(mode) end)
+        switch.buttons[mode] = button
+    end
+
+    function switch:SetMode(mode)
+        for key, button in pairs(self.buttons) do
+            if key == mode then
+                button:LockHighlight()
+                button:SetNormalFontObject("GameFontHighlightSmall")
+            else
+                button:UnlockHighlight()
+                button:SetNormalFontObject("GameFontNormalSmall")
+            end
+        end
+    end
+
+    local function UpdateTexts()
+        switch.buttons.tree:SetText(AzerothCompendium:Trans("LID_QUESTVIEWTREE"))
+        switch.buttons.list:SetText(AzerothCompendium:Trans("LID_QUESTVIEWLIST"))
+    end
+
+    UpdateTexts()
+    AzerothCompendium:OnLanguage(UpdateTexts)
+
+    return switch
 end
 
 local function CreateLegend(tree, anchor)
@@ -1473,6 +1768,9 @@ function AzerothCompendium:CreateQuestTree(parent)
     local canvas = CreateFrame("Frame", nil, holder)
     canvas:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, 0)
     canvas:SetSize(1, 1)
+    local listHolder = CreateFrame("Frame", nil, scroll)
+    listHolder:SetSize(1, 1)
+    listHolder:Hide()
     if minimal then
         local vbar = CreateFrame("EventFrame", nil, tree, "MinimalScrollBar")
         vbar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 5, 0)
@@ -1493,7 +1791,9 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.zoomBar = zoomSlider
     local legendButton = CreateLegend(tree, scroll)
     legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
-    local hbar = CreateHBar(tree, scroll, legendButton)
+    local viewSwitch = CreateViewSwitch(tree, function(mode) tree:SetViewMode(mode) end)
+    tree.viewSwitch = viewSwitch
+    local hbar = CreateHBar(tree, scroll, viewSwitch, legendButton)
     tree.hbar = hbar
     local function SetHScroll(value)
         scroll:SetHorizontalScroll(ClampScroll(scroll, true, value))
@@ -1676,7 +1976,104 @@ function AzerothCompendium:CreateQuestTree(parent)
         scroll:SetVerticalScroll(0)
     end
 
+    tree.listRows = {}
+    tree.collapsed = {}
+    tree.listSections = {}
+    function tree:ToggleListKey(key)
+        if key == nil then return end
+        self.collapsed[key] = not self.collapsed[key] or nil
+        self:Layout()
+    end
+
+    function tree:LayoutList()
+        local graph = self.graph
+        local attunement = graph.attunement
+        local keySection = attunement ~= nil and attunement.key ~= nil and (attunement.opens ~= nil and 3 or 1) or nil
+        local sections = BuildListTree(graph)
+        self.listSections = sections
+        local entries = {}
+        if #graph == 0 and attunement == nil then
+            self.empty:Show()
+        else
+            self.empty:Hide()
+            for section = 1, SECTION_COUNT do
+                if section ~= 1 or attunement ~= nil and attunement.opens == nil then
+                    local key = "section" .. section
+                    tinsert(entries, {
+                        kind = "section",
+                        section = section,
+                        key = key,
+                        depth = 0,
+                        count = CountListItems(sections[section]),
+                        hasChildren = true
+                    })
+
+                    if not self.collapsed[key] then
+                        if section == keySection then
+                            tinsert(entries, {
+                                kind = "key",
+                                attunement = attunement,
+                                depth = 1
+                            })
+                        end
+
+                        FlattenList(sections[section], 1, self.collapsed, entries)
+                        if #sections[section] == 0 and section ~= 1 then
+                            tinsert(entries, {
+                                kind = "empty",
+                                section = section,
+                                depth = 1
+                            })
+                        end
+                    end
+                end
+            end
+        end
+
+        local width = max(1, scroll:GetWidth() or 0)
+        for index, entry in ipairs(entries) do
+            local row = self.listRows[index]
+            if row == nil then
+                row = CreateListRow(listHolder, self)
+                self.listRows[index] = row
+            end
+
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -(index - 1) * LIST_ROW_H)
+            row:SetWidth(width)
+            UpdateListRow(row, entry, index, self.collapsed)
+        end
+
+        for index = #entries + 1, #self.listRows do
+            self.listRows[index]:Hide()
+        end
+
+        listHolder:SetSize(width, max(1, #entries * LIST_ROW_H))
+        self.hint:Hide()
+        if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
+        SetHScroll(0)
+        scroll:SetVerticalScroll(ClampScroll(scroll, false, scroll:GetVerticalScroll()))
+        UpdateHBar()
+    end
+
+    function tree:SetViewMode(mode)
+        if mode ~= "list" then mode = "tree" end
+        AzerothCompendium:SetConfig("QUESTVIEW", mode)
+        self.viewMode = mode
+        local list = mode == "list"
+        holder:SetShown(not list)
+        listHolder:SetShown(list)
+        scroll:SetScrollChild(list and listHolder or holder)
+        zoomSlider:SetShown(not list)
+        zoomIcon:SetShown(not list)
+        viewSwitch:SetMode(mode)
+        self:Layout()
+        SetHScroll(0)
+        scroll:SetVerticalScroll(0)
+    end
+
     function tree:Layout()
+        if self.viewMode == "list" then return self:LayoutList() end
         local graph = self.graph
         lineCount = 0
         local baseLevel = canvas:GetFrameLevel() or 0
@@ -1822,6 +2219,29 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:FocusQuest(questID)
+        if self.viewMode == "list" then
+            for section, items in ipairs(self.listSections) do
+                local path = {}
+                if FindListPath(items, questID, path) then
+                    self.collapsed["section" .. section] = nil
+                    for _, key in ipairs(path) do
+                        self.collapsed[key] = nil
+                    end
+
+                    self:Layout()
+                    for index, row in ipairs(self.listRows) do
+                        if row:IsShown() and row.kind == "quest" and row.node.id == questID then
+                            scroll:SetVerticalScroll(ClampScroll(scroll, false, (index - 0.5) * LIST_ROW_H - scroll:GetHeight() / 2))
+
+                            return true
+                        end
+                    end
+                end
+            end
+
+            return false
+        end
+
         for index, node in ipairs(self.graph) do
             if node.id == questID then
                 local button = self.nodes[index]
@@ -1843,6 +2263,14 @@ function AzerothCompendium:CreateQuestTree(parent)
                 button:UnlockHighlight()
             end
         end
+
+        for _, row in ipairs(self.listRows) do
+            if questID ~= nil and row:IsShown() and row.kind == "quest" and row.node.id == questID then
+                row:LockHighlight()
+            else
+                row:UnlockHighlight()
+            end
+        end
     end
 
     function tree:Refresh()
@@ -1850,6 +2278,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     tree:SetScript("OnSizeChanged", function(sel) sel:Layout() end)
+    tree:SetViewMode(AzerothCompendium:GetConfig("QUESTVIEW", "tree"))
 
     return tree
 end
