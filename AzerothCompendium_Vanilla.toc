@@ -47,25 +47,25 @@ locale\zhCN.lua
 locale\zhTW.lua
 locale\bosses_deDE.lua
 
-data\instances.lua
-data\quests.lua
+data\classic_era\instances.lua
+data\classic_era\quests.lua
 data\raid_quests.lua
-data\quest_chains.lua
+data\classic_era\quest_chains.lua
 data\world_quest_items.lua
-data\quest_followups.lua
+data\classic_era\quest_followups.lua
 data\attunements.lua
-data\instance_entrances.lua
+data\classic_era\instance_entrances.lua
 data\meeting_stones.lua
 data\instance_maps.lua
 data\instance_map_pins.lua
-data\quest_rewards.lua
+data\classic_era\quest_rewards.lua
 data\attunement_quests.lua
 data\quest_xp.lua
-data\trash.lua
-data\boss_ranks.lua
+data\classic_era\trash.lua
+data\classic_era\boss_ranks.lua
 data\vendors.lua
 data\loadingscreens.lua
-data\instance_wings.lua
+data\classic_era\instance_wings.lua
 
 core.lua
 wishliststars.lua
