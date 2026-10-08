@@ -31,14 +31,14 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.790, 0.280, 260808}, -- Highland Horror
     },
     [2959] = { -- City of Dalaran
-        {"level", 0.605, 0.530, 2959002},
+        {"level", 0.616, 0.542, 2959002},
         {"level", 0.513, 0.684, 2959002},
         {"level", 0.531, 0.365, 2959002},
         {"boss", 0.524, 0.840, 245999}, -- Arcane Anomaly
         {"boss", 0.565, 0.230, 246020}, -- Shade of the Archmage
         {"boss", 0.517, 0.551, 246003}, -- Fel Ancient
         {"boss", 0.613, 0.424, 246017}, -- Unstable Sentinel
-        {"boss", 0.668, 0.502, 240352}, -- Mana Elemental
+        {"boss", 0.668, 0.516, 240352}, -- Mana Elemental
         {"boss", 0.418, 0.729, 246008}, -- Mana Devourer
     },
     [2959002] = { -- City of Dalaran - Dalaran Sewers
