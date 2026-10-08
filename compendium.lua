@@ -5175,7 +5175,7 @@ function MapPins.Init()
         entry.key = used[key] > 1 and key .. "#" .. used[key] or key
         local edit = ACOTAB["MAPPINEDITS"][entry.key]
         if type(edit) == "table" then
-            local stale = edit.ox ~= nil and (abs(edit.ox - entry.orig[2]) > 0.0005 or abs(edit.oy - entry.orig[3]) > 0.0005)
+            local stale = edit.ox == nil and edit.del == true or edit.ox ~= nil and (abs(edit.ox - entry.orig[2]) > 0.0005 or abs((edit.oy or 0) - entry.orig[3]) > 0.0005)
             local applied = not edit.del and tonumber(edit[1]) and InFile(entry[1], edit[1], edit[2], edit[3], edit.arg == nil and entry[4] or edit.arg, edit.up)
             if stale or applied then
                 ACOTAB["MAPPINEDITS"][entry.key] = nil
