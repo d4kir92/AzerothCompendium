@@ -45,6 +45,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"entrance", 0.184, 0.840},
         {"level", 0.645, 0.640, 2959, true},
         {"boss", 0.545, 0.510, 247126}, -- Atrexis the Grave Knight
+        {"boss", 0.680, 0.180, 247032}, -- Lyn the Ignored
     },
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},

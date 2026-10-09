@@ -917,13 +917,6 @@ AzerothCompendium.INSTANCES = {
 				["loot"] = {},
 				["spells"] = {},
 			},
-			{
-				["name"] = "Mana Wraith",
-				["npcs"] = {246931},
-				["model"] = 130220,
-				["loot"] = {},
-				["spells"] = {},
-			},
 		},
 	},
 	{
