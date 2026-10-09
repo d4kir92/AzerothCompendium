@@ -5693,6 +5693,7 @@ function AzerothCompendium:ToggleMapPinDebug()
     MapPins.debug = not MapPins.debug
     MapPins.selected = nil
     AzerothCompendium:INFO(MapPins.debug and "Map pin debug enabled (/ac debug help)" or "Map pin debug disabled")
+    if MapPins.debug then AzerothCompendium:OpenCompendium() end
     if compendium ~= nil then MapPins.Update(compendium.mapView) end
 end
 
