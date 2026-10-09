@@ -84,7 +84,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{72, 100},},
 	},
 	[378] = {
-		["choices"] = {{3562, 1}, {1264, 1},},
+		["choices"] = {{3562, 1}, {1264, 1}, {270036, 1},},
 		["xp"] = 2750,
 		["rep"] = {{47, 150},},
 	},
@@ -144,7 +144,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{72, 50},},
 	},
 	[704] = {
-		["items"] = {{4980, 1},},
+		["choices"] = {{4980, 1}, {270059, 1}, {270060, 1},},
 		["xp"] = 2850,
 		["rep"] = {{47, 100},},
 	},
@@ -153,7 +153,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{47, 25},},
 	},
 	[709] = {
-		["items"] = {{4746, 1},},
+		["choices"] = {{4746, 1}, {270074, 1}, {270075, 1},},
 		["xp"] = 3150,
 	},
 	[720] = {
@@ -312,11 +312,12 @@ AzerothCompendium.QUESTREWARDS = {
 		["xp"] = 1350,
 	},
 	[1101] = {
-		["items"] = {{3041, 1},},
+		["items"] = {{274084, 1},},
 		["choices"] = {{4197, 1}, {6742, 1}, {6725, 1},},
 		["xp"] = 3350,
 	},
 	[1102] = {
+		["items"] = {{274084, 1},},
 		["choices"] = {{4197, 1}, {6742, 1}, {6725, 1},},
 		["xp"] = 4050,
 		["rep"] = {{81, 200},},
@@ -336,7 +337,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{47, 200},},
 	},
 	[1142] = {
-		["choices"] = {{6751, 1}, {6752, 1},},
+		["choices"] = {{6751, 1}, {6752, 1}, {270047, 1},},
 		["xp"] = 3050,
 		["rep"] = {{69, 150},},
 	},
@@ -586,7 +587,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["xp"] = 315,
 	},
 	[2418] = {
-		["choices"] = {{9522, 1}, {10358, 1}, {10359, 1},},
+		["choices"] = {{9522, 1}, {10358, 1}, {10359, 1}, {270055, 1},},
 		["xp"] = 3500,
 		["rep"] = {{21, 150}, {87, -750},},
 	},
@@ -1621,7 +1622,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["xp"] = 8300,
 	},
 	[6521] = {
-		["choices"] = {{17039, 1}, {17042, 1}, {17043, 1},},
+		["choices"] = {{17039, 1}, {17042, 1}, {17043, 1}, {270054, 1},},
 		["money"] = 2000,
 		["xp"] = 3500,
 	},
@@ -3691,6 +3692,7 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{72, 50},},
 	},
 	[92753] = {
+		["money"] = 1000,
 		["xp"] = 1350,
 		["rep"] = {{72, 50},},
 	},
@@ -4174,8 +4176,8 @@ AzerothCompendium.QUESTREWARDS = {
 	},
 	[7493] = {},
 	[544] = {
-		["money"] = 7000,
-		["xp"] = 3350,
+		["money"] = 6500,
+		["xp"] = 3300,
 		["rep"] = {{68, 150},},
 	},
 	[545] = {
@@ -4184,13 +4186,13 @@ AzerothCompendium.QUESTREWARDS = {
 		["rep"] = {{68, 75},},
 	},
 	[556] = {
-		["money"] = 3000,
-		["xp"] = 2550,
+		["money"] = 3500,
+		["xp"] = 2650,
 		["rep"] = {{68, 100},},
 	},
 	[557] = {
 		["money"] = 3500,
-		["xp"] = 2700,
+		["xp"] = 2650,
 		["rep"] = {{68, 100},},
 	},
 	[93680] = {},
@@ -5215,7 +5217,7 @@ AzerothCompendium.QUESTINSIDE = {
 	[1475] = true,
 	[1486] = true,
 	[1487] = true,
-	[1491] = true,
+	[1491] = false,
 	[1500] = true,
 	[2040] = true,
 	[2199] = false,
@@ -5379,7 +5381,7 @@ AzerothCompendium.QUESTINSIDE = {
 	[5722] = true,
 	[5723] = true,
 	[5725] = true,
-	[5727] = true,
+	[5727] = false,
 	[5728] = true,
 	[5742] = true,
 	[5761] = true,
@@ -6181,6 +6183,7 @@ AzerothCompendium.QUESTINSIDE = {
 	[92432] = false,
 	[92459] = false,
 	[92434] = false,
+	[96800] = true,
 }
 
 AzerothCompendium.QUESTSTARTINSIDE = {
@@ -7034,6 +7037,7 @@ AzerothCompendium.QUESTSTARTINSIDE = {
 	[92459] = false,
 	[92434] = false,
 	[92401] = false,
+	[96800] = false,
 }
 
 AzerothCompendium.QUESTAFTERINSTANCE = {
