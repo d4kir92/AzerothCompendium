@@ -13449,13 +13449,13 @@ local lootByInstance = {
 	["Excavation Site: Wetlands"] = {
 		{
 			[1] = 2084,
-			[2] = 5.8,
+			[2] = 6.43,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
 					["npcs"] = {275045},
-					["chance"] = 5.8,
+					["chance"] = 6.43,
 					["classification"] = 1,
 					["model"] = 4916,
 				},
@@ -13463,34 +13463,34 @@ local lootByInstance = {
 		},
 		{
 			[1] = 3667,
-			[2] = 41.03,
+			[2] = 39.53,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Marsh Crocolisk",
 					["npcs"] = {260796},
-					["chance"] = 32.65,
+					["chance"] = 36.84,
 					["classification"] = 0,
 					["model"] = 1035,
 				},
 				{
-					["name"] = "Marsh Skulker",
-					["npcs"] = {274715},
-					["chance"] = 38.81,
-					["classification"] = 1,
-					["model"] = 807,
-				},
-				{
 					["name"] = "Elder Crocolisk",
 					["npcs"] = {260797},
-					["chance"] = 39.13,
+					["chance"] = 37.85,
 					["classification"] = 1,
 					["model"] = 1038,
 				},
 				{
+					["name"] = "Marsh Skulker",
+					["npcs"] = {274715},
+					["chance"] = 38.92,
+					["classification"] = 1,
+					["model"] = 807,
+				},
+				{
 					["name"] = "Young Crocolisk",
 					["npcs"] = {260798},
-					["chance"] = 41.03,
+					["chance"] = 39.53,
 					["classification"] = 0,
 					["model"] = 1035,
 				},
@@ -13498,13 +13498,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 8365,
-			[2] = 10.26,
+			[2] = 12.5,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
+					["name"] = "Highland Tortoise",
+					["npcs"] = {260809},
+					["chance"] = 6.25,
+					["classification"] = 0,
+					["model"] = 4829,
+				},
+				{
 					["name"] = "Highland Snapper",
 					["npcs"] = {260810},
-					["chance"] = 10.26,
+					["chance"] = 12.5,
 					["classification"] = 1,
 					["model"] = 7114,
 				},
@@ -13512,13 +13519,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11150,
-			[2] = 1.45,
+			[2] = 1.17,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
 					["npcs"] = {275045},
-					["chance"] = 1.45,
+					["chance"] = 1.17,
 					["classification"] = 1,
 					["model"] = 4916,
 				},
@@ -13526,27 +13533,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 271100,
-			[2] = 18.98,
+			[2] = 19.14,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Thicket Stalker",
 					["npcs"] = {271732},
-					["chance"] = 16.67,
+					["chance"] = 15.22,
 					["classification"] = 1,
 					["model"] = 1339,
 				},
 				{
 					["name"] = "Thicket Lurker",
 					["npcs"] = {260800},
-					["chance"] = 16.95,
+					["chance"] = 18.4,
 					["classification"] = 1,
 					["model"] = 1337,
 				},
 				{
 					["name"] = "Thicket Hunter",
 					["npcs"] = {260801},
-					["chance"] = 18.98,
+					["chance"] = 19.14,
 					["classification"] = 1,
 					["model"] = 11316,
 				},
@@ -13554,13 +13561,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 284844,
-			[2] = 30.14,
+			[2] = 36.02,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Thaumaturgist",
 					["npcs"] = {275046},
-					["chance"] = 30.14,
+					["chance"] = 36.02,
 					["classification"] = 1,
 					["model"] = 4918,
 				},
@@ -13568,27 +13575,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 284845,
-			[2] = 17.39,
+			[2] = 16.42,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Thicket Hunter",
 					["npcs"] = {260801},
-					["chance"] = 15.66,
+					["chance"] = 14.64,
 					["classification"] = 1,
 					["model"] = 11316,
 				},
 				{
 					["name"] = "Thicket Lurker",
 					["npcs"] = {260800},
-					["chance"] = 17.24,
+					["chance"] = 14.76,
 					["classification"] = 1,
 					["model"] = 1337,
 				},
 				{
 					["name"] = "Thicket Matriarch",
 					["npcs"] = {260802},
-					["chance"] = 17.39,
+					["chance"] = 16.42,
 					["classification"] = 1,
 					["model"] = 11315,
 				},
