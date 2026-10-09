@@ -15,7 +15,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.406, 0.534, 250631}, -- The Abandoned
         {"boss", 0.424, 0.385, 256097}, -- Bjork
         {"boss", 0.463, 0.623, 250657}, -- Rath'mael
-        {"boss", 0.486, 0.719, 255699}, -- Lordaeron Captain
+        {"boss", 0.433, 0.269, 255699}, -- Lordaeron Captain
         {"item", 0.347, 0.207, 275521}, -- Crest of Lordaeron
         {"item", 0.376, 0.493, 275521}, -- Crest of Lordaeron
         {"item", 0.433, 0.290, 275521}, -- Crest of Lordaeron
