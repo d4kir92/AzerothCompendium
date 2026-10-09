@@ -4337,9 +4337,8 @@ function AzerothCompendium:CreateInstanceControls()
     continentControl:SetSize(190, 22)
     continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -14)
     function continentControl:Refresh()
-        local shown = (listKind == "dungeon" or listKind == "raid") and #AzerothCompendium:GetContinents() > 1
-        self:SetShown(shown)
-        if shown then AzerothCompendium:SetDropdownText(self, GetContinentText(AzerothCompendium:GetSelectedContinent())) end
+        self:Show()
+        AzerothCompendium:SetDropdownText(self, GetContinentText(AzerothCompendium:GetSelectedContinent()))
     end
 
     continentControl:HookScript("OnEnter", function(sel)
