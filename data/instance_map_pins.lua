@@ -490,7 +490,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.125, 0.080, 289},
     },
     [235] = { -- Dire Maul - Gordok Commons
-        {"level", 0.125, 0.080, 236},
+        {"level", 0.125, 0.080, 234},
         {"boss", 0.699, 0.752, 14326},
         {"boss", 0.620, 0.657, 14322},
         {"boss", 0.493, 0.816, 14321},
@@ -511,7 +511,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.190, 0.130, 11486},
     },
     [238] = { -- Dire Maul - Prison of Immol'Thar
-        {"level", 0.125, 0.080, 239},
+        {"level", 0.125, 0.080, 237},
         {"boss", 0.350, 0.576, 11496},
     },
     [239] = { -- Dire Maul - Warpwood Quarter

@@ -18,6 +18,7 @@ local WorldMap = {
         [2999] = {16611},
         [3065] = {16919},
         [189] = {189001, 189002, 189003, 189004},
+        [429] = {429003, 429002, 429001},
     },
     entranceMaps = {
         [16544] = 2959,
@@ -223,7 +224,8 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
 })
 
 function WorldMap.AddLocation(groups, kind, id, location)
-    local insts = WorldMap.GetInstances(location[4] or id)
+    local insts = WorldMap.GetInstances(id)
+    if #insts == 0 then insts = WorldMap.GetInstances(location[4] or id) end
     if #insts == 0 then return end
     if insts[1].forever and AzerothCompendium:IsFixedFlavorClient() then return end
     local mapID = location[1]
