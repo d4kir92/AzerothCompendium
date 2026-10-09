@@ -13347,27 +13347,27 @@ local lootByInstance = {
 	["The Hall of Thanes"] = {
 		{
 			[1] = 275892,
-			[2] = 1.66,
+			[2] = 0.98,
 			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Engineer",
 					["npcs"] = {263397},
-					["chance"] = 0.39,
+					["chance"] = 0.4,
 					["classification"] = 1,
 					["model"] = 3954,
 				},
 				{
 					["name"] = "Dark Iron Looter",
 					["npcs"] = {263396},
-					["chance"] = 0.49,
+					["chance"] = 0.61,
 					["classification"] = 1,
 					["model"] = 3452,
 				},
 				{
 					["name"] = "Dark Iron Summoner",
 					["npcs"] = {263438},
-					["chance"] = 1.66,
+					["chance"] = 0.98,
 					["classification"] = 1,
 					["model"] = 143713,
 				},
@@ -13375,27 +13375,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 275893,
-			[2] = 6.63,
+			[2] = 6.78,
 			["itemClass"] = 15,
 			["mobs"] = {
 				{
-					["name"] = "Dark Iron Summoner",
-					["npcs"] = {263438},
-					["chance"] = 4.15,
-					["classification"] = 1,
-					["model"] = 143713,
-				},
-				{
 					["name"] = "Dark Iron Engineer",
 					["npcs"] = {263397},
-					["chance"] = 4.63,
+					["chance"] = 4.36,
 					["classification"] = 1,
 					["model"] = 3954,
 				},
 				{
+					["name"] = "Dark Iron Summoner",
+					["npcs"] = {263438},
+					["chance"] = 5.66,
+					["classification"] = 1,
+					["model"] = 143713,
+				},
+				{
 					["name"] = "Dark Iron Looter",
 					["npcs"] = {263396},
-					["chance"] = 6.63,
+					["chance"] = 6.78,
 					["classification"] = 1,
 					["model"] = 3452,
 				},
