@@ -4337,6 +4337,8 @@ function AzerothCompendium:CreateInstanceControls()
     continentControl:SetSize(190, 22)
     continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -14)
     function continentControl:Refresh()
+        local border = compendium.NineSlice
+        self:SetFrameLevel(max(self:GetParent():GetFrameLevel() + 1, border and border:GetFrameLevel() + 2 or 0))
         self:Show()
         AzerothCompendium:SetDropdownText(self, GetContinentText(AzerothCompendium:GetSelectedContinent()))
     end
