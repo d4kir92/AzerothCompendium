@@ -882,14 +882,11 @@ AzerothCompendium.INSTANCES = {
 				["spells"] = {},
 			},
 			{
-				["name"] = "Mana Elemental",
-				["npcs"] = {240352},
-				["model"] = 14253,
-				["minLevel"] = 63,
-				["maxLevel"] = 63,
-				["level"] = 63,
+				["name"] = "Arcanic Enigma",
+				["npcs"] = {246016},
+				["model"] = 129900,
 				["loot"] = {},
-				["spells"] = {20311, 22356},
+				["spells"] = {},
 			},
 			{
 				["name"] = "Unstable Sentinel",

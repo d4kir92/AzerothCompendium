@@ -38,7 +38,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.565, 0.230, 246020}, -- Shade of the Archmage
         {"boss", 0.517, 0.551, 246003}, -- Fel Ancient
         {"boss", 0.613, 0.424, 246017}, -- Unstable Sentinel
-        {"boss", 0.668, 0.516, 240352}, -- Mana Elemental
+        {"boss", 0.668, 0.516, 246016}, -- Arcanic Enigma
         {"boss", 0.418, 0.729, 246008}, -- Mana Devourer
     },
     [2959002] = { -- City of Dalaran - Dalaran Sewers
