@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("koKR", "LID_QUESTVARIANTS", "이 퀘스트는 %d가�
 AzerothCompendium:AddTrans("koKR", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("koKR", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "직업 탭 표시 (TrainerSpells)")
 AzerothCompendium:AddTrans("koKR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "전문 기술 탭 표시 (TrainerSpells)")
+AzerothCompendium:AddTrans("koKR", "LID_DESIGN", "디자인")
+AzerothCompendium:AddTrans("koKR", "LID_DESIGNDEFAULT", "기본")
+AzerothCompendium:AddTrans("koKR", "LID_DESIGNMODERN", "모던")

@@ -73,6 +73,7 @@ core.lua
 wishliststars.lua
 questtree.lua
 itembrowser.lua
+theme.lua
 compendium.lua
 worldmap.lua
 settings.lua

@@ -3086,6 +3086,8 @@ local function AddFallbackChrome(frame)
     close:SetSize(28, 28)
     close:SetScript("OnClick", function() frame:Hide() end)
     if close.SetText and close.GetFontString and close:GetFontString() ~= nil then close:SetText("X") end
+    frame.fallbackBackground = background
+    frame.CloseButton = frame.CloseButton or close
 end
 
 function AzerothCompendium:ApplyCompendiumScale(frame, value)
@@ -3577,7 +3579,7 @@ function AzerothCompendium:CreateCompendiumDialog(name, title)
     frame:SetToplevel(true)
     frame:SetClampedToScreen(true)
     frame:EnableMouse(true)
-
+    self.Theme:RegisterRoot(frame)
     return frame
 end
 
@@ -4988,6 +4990,7 @@ local function CreateJournal()
     empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     empty:Hide()
     compendium.empty = empty
+    AzerothCompendium.Theme:RegisterRoot(compendium)
     return compendium
 end
 

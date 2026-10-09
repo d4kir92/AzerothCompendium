@@ -79,6 +79,7 @@ function AzerothCompendium:RefreshSettingsLanguage()
 
     if acoset and acoset.search and acoset.search.Hint then acoset.search.Hint:SetText(AzerothCompendium:Trans("LID_SEARCH")) end
     if acoset and acoset.language then acoset.language:SetValue(AzerothCompendium:GetLanguage()) end
+    if acoset and acoset.design then acoset.design:SetValue(AzerothCompendium:GetDesign()) end
     if acoset and acoset.scale then acoset.scale.Label:SetText(format("%s: %d%%", AzerothCompendium:Trans("LID_SCALE"), acoset.scale.value)) end
 end
 
@@ -164,6 +165,24 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
         ["func"] = function(value) AzerothCompendium:SetLanguage(value) end,
     })
     tinsert(labels, {acoset.language.Label, acoset.language.uiElement, "LID_LANGUAGE"})
+    acoset.design = acoset:AddDropdown({
+        ["label"] = "LID_DESIGN",
+        ["search"] = "DESIGN",
+        ["choices"] = {
+            {
+                label = "LID_DESIGNDEFAULT",
+                value = "default"
+            },
+            {
+                label = "LID_DESIGNMODERN",
+                value = "modern"
+            }
+        },
+        ["value"] = AzerothCompendium:GetDesign(),
+        ["added"] = "2026-10-09",
+        ["func"] = function(value) AzerothCompendium:SetDesign(value) end,
+    })
+    tinsert(labels, {acoset.design.Label, acoset.design.uiElement, "LID_DESIGN"})
     acoset.flavor = acoset:AddDropdown({
         ["label"] = "LID_FLAVOR",
         ["search"] = "FLAVOR",

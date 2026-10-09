@@ -218,3 +218,6 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTVARIANTS", "Diese Quest gibt es in 
 AzerothCompendium:AddTrans("deDE", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("deDE", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "Klassen-Tab anzeigen (TrainerSpells)")
 AzerothCompendium:AddTrans("deDE", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "Berufe-Tab anzeigen (TrainerSpells)")
+AzerothCompendium:AddTrans("deDE", "LID_DESIGN", "Design")
+AzerothCompendium:AddTrans("deDE", "LID_DESIGNDEFAULT", "Standard")
+AzerothCompendium:AddTrans("deDE", "LID_DESIGNMODERN", "Modern")

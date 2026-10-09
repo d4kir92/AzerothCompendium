@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("zhCN", "LID_QUESTVARIANTS", "此任务有%d个版本
 AzerothCompendium:AddTrans("zhCN", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("zhCN", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "显示职业标签 (TrainerSpells)")
 AzerothCompendium:AddTrans("zhCN", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "显示专业技能标签 (TrainerSpells)")
+AzerothCompendium:AddTrans("zhCN", "LID_DESIGN", "界面风格")
+AzerothCompendium:AddTrans("zhCN", "LID_DESIGNDEFAULT", "默认")
+AzerothCompendium:AddTrans("zhCN", "LID_DESIGNMODERN", "现代")

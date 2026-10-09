@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("ptBR", "LID_QUESTVARIANTS", "Esta missão tem %d var
 AzerothCompendium:AddTrans("ptBR", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("ptBR", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "Mostrar aba de classes (TrainerSpells)")
 AzerothCompendium:AddTrans("ptBR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "Mostrar aba de profissões (TrainerSpells)")
+AzerothCompendium:AddTrans("ptBR", "LID_DESIGN", "Design")
+AzerothCompendium:AddTrans("ptBR", "LID_DESIGNDEFAULT", "Padrão")
+AzerothCompendium:AddTrans("ptBR", "LID_DESIGNMODERN", "Moderno")

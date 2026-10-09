@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("ruRU", "LID_QUESTVARIANTS", "У этого зада�
 AzerothCompendium:AddTrans("ruRU", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("ruRU", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "Показывать вкладку классов (TrainerSpells)")
 AzerothCompendium:AddTrans("ruRU", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "Показывать вкладку профессий (TrainerSpells)")
+AzerothCompendium:AddTrans("ruRU", "LID_DESIGN", "Оформление")
+AzerothCompendium:AddTrans("ruRU", "LID_DESIGNDEFAULT", "Стандартное")
+AzerothCompendium:AddTrans("ruRU", "LID_DESIGNMODERN", "Современное")

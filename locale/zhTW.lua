@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("zhTW", "LID_QUESTVARIANTS", "此任務有%d個版本
 AzerothCompendium:AddTrans("zhTW", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("zhTW", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "顯示職業標籤 (TrainerSpells)")
 AzerothCompendium:AddTrans("zhTW", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "顯示專業技能標籤 (TrainerSpells)")
+AzerothCompendium:AddTrans("zhTW", "LID_DESIGN", "介面風格")
+AzerothCompendium:AddTrans("zhTW", "LID_DESIGNDEFAULT", "預設")
+AzerothCompendium:AddTrans("zhTW", "LID_DESIGNMODERN", "現代")

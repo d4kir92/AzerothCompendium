@@ -218,3 +218,6 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTVARIANTS", "This quest exists in %d
 AzerothCompendium:AddTrans("enUS", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("enUS", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "Show Classes tab (TrainerSpells)")
 AzerothCompendium:AddTrans("enUS", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "Show Professions tab (TrainerSpells)")
+AzerothCompendium:AddTrans("enUS", "LID_DESIGN", "Design")
+AzerothCompendium:AddTrans("enUS", "LID_DESIGNDEFAULT", "Default")
+AzerothCompendium:AddTrans("enUS", "LID_DESIGNMODERN", "Modern")

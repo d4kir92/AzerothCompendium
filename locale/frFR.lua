@@ -193,3 +193,6 @@ AzerothCompendium:AddTrans("frFR", "LID_QUESTVARIANTS", "Cette quête existe en 
 AzerothCompendium:AddTrans("frFR", "LID_TRAINERSPELLS", "TrainerSpells")
 AzerothCompendium:AddTrans("frFR", "LID_TRAINERSPELLS_COMPENDIUM_CLASS", "Afficher l'onglet Classes (TrainerSpells)")
 AzerothCompendium:AddTrans("frFR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "Afficher l'onglet Métiers (TrainerSpells)")
+AzerothCompendium:AddTrans("frFR", "LID_DESIGN", "Apparence")
+AzerothCompendium:AddTrans("frFR", "LID_DESIGNDEFAULT", "Par défaut")
+AzerothCompendium:AddTrans("frFR", "LID_DESIGNMODERN", "Moderne")
