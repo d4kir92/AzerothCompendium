@@ -192,12 +192,12 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [300] = { -- Razorfen Downs
         {"entrance", 0.237, 0.190},
-        {"boss", 0.500, 0.080, 7356}, -- Plaguemaw the Rotting
-        {"boss", 0.855, 0.450, 7357},
+        {"boss", 0.470, 0.200, 7356}, -- Plaguemaw the Rotting
+        {"boss", 0.857, 0.465, 7357},
         {"boss", 0.350, 0.670, 8567},
         {"boss", 0.529, 0.672, 7354},
         {"boss", 0.443, 0.596, 7358},
-        {"boss", 0.597, 0.275, 7355},
+        {"boss", 0.590, 0.339, 7355},
     },
     [280] = { -- Maraudon - Caverns of Maraudon
         {"entrance", 0.768, 0.657},
