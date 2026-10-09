@@ -545,6 +545,9 @@ AzerothCompendium.QUESTFOLLOWUPS = {
 	[8415] = {8414},
 	[1793] = {1649},
 	[1794] = {1649},
+	[92458] = {92459},
+	[96984] = {97287},
+	[92432] = {92458},
 }
 
 AzerothCompendium.QUESTSIDES = {
@@ -794,7 +797,7 @@ AzerothCompendium.QUESTSIDES = {
 	[1160] = 2,
 	[96800] = 1,
 	[92456] = 1,
-	[92457] = 0,
+	[92457] = 1,
 	[92458] = 1,
 	[92489] = 1,
 	[96984] = 2,
@@ -1355,6 +1358,7 @@ AzerothCompendium.QUESTSIDES = {
 	[8415] = 1,
 	[1793] = 1,
 	[1794] = 1,
+	[92459] = 1,
 }
 
 for questID, value in pairs({

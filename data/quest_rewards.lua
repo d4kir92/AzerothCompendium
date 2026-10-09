@@ -4442,6 +4442,10 @@ AzerothCompendium.QUESTREWARDS = {
 	[1794] = {
 		["items"] = {{6776, 1},},
 	},
+	[92459] = {
+		["xp"] = 265,
+		["rep"] = {{2740, 10},},
+	},
 }
 
 AzerothCompendium.QUESTTAGS = {
@@ -6168,6 +6172,14 @@ AzerothCompendium.QUESTINSIDE = {
 	[8415] = false,
 	[1793] = false,
 	[1794] = false,
+	[92456] = true,
+	[92457] = false,
+	[92458] = true,
+	[96984] = true,
+	[97287] = false,
+	[92432] = false,
+	[92459] = false,
+	[92434] = false,
 }
 
 AzerothCompendium.QUESTSTARTINSIDE = {
@@ -7012,6 +7024,14 @@ AzerothCompendium.QUESTSTARTINSIDE = {
 	[8415] = false,
 	[1793] = false,
 	[1794] = false,
+	[92456] = false,
+	[92457] = false,
+	[92458] = false,
+	[96984] = false,
+	[97287] = false,
+	[92432] = false,
+	[92459] = false,
+	[92434] = false,
 }
 
 AzerothCompendium.QUESTAFTERINSTANCE = {

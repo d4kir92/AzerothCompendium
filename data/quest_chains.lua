@@ -506,6 +506,7 @@ AzerothCompendium.QUESTCHAINS = {
 	[8414] = {8415, 8414},
 	[1649] = {1649},
 	[8415] = {8415},
+	[92459] = {92432, 92458, 92459},
 }
 
 AzerothCompendium.QUESTPREREQUISITES = {
@@ -1037,6 +1038,7 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[1958] = {1957},
 	[8414] = {8415},
 	[1649] = {1793, 1794},
+	[92459] = {92458},
 }
 
 AzerothCompendium.QUESTGIVERS = {
@@ -2063,6 +2065,14 @@ AzerothCompendium.QUESTGIVERS = {
 	[8415] = {1455, 23.4, 6.2, 5149, "Brandur Ironhammer"},
 	[1793] = {1453, 50.6, 47.6, 6171, "Duthorian Rall"},
 	[1794] = {1455, 27.4, 12, 6179, "Tiza Battleforge"},
+	[92456] = {1453, 31.4, 63, 5502, "Shylamiir"},
+	[92457] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92458] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[96984] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[97287] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[92432] = {1424, 48.3, 60.1, 247264, "Emissary Jacques"},
+	[92459] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92434] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -3183,6 +3193,7 @@ AzerothCompendium.QUESTNAMES = {
 	[8415] = "Chillwind Point",
 	[1793] = "The Tome of Valor",
 	[1794] = "The Tome of Valor",
+	[92459] = "Friend of the Kirin Tor",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4005,6 +4016,7 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[8415] = 50,
 	[1793] = 20,
 	[1794] = 20,
+	[92459] = 24,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -4827,6 +4839,7 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[8415] = 52,
 	[1793] = 20,
 	[1794] = 20,
+	[92459] = 33,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -5551,6 +5564,17 @@ AzerothCompendium.QUESTENDERS = {
 	[8415] = {1422, 42.8, 84, 10838, "Commander Ashlam Valorfist"},
 	[1793] = {1453, 50.6, 47.6, 6171, "Duthorian Rall"},
 	[1794] = {1455, 27.4, 12, 6179, "Tiza Battleforge"},
+	[92456] = {1453, 31.4, 63, 5502, "Shylamiir"},
+	[92457] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92458] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92489] = {1453, 48.8, 87.6, 5694, "High Sorcerer Andromath"},
+	[96984] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
+	[96986] = {1424, 62.6, 20.6, 2278, "Melisara"},
+	[96988] = {1458, 46.6, 74.4, 11044, "Doctor Martin Felben"},
+	[97287] = {1416, 14.2, 60, 252085, "Archmage Celindra"},
+	[92432] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92459] = {1416, 14.2, 60, 252085, "Archmage Celindra"},
+	[92434] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
 }
 
 AzerothCompendium.QUESTCLASSES = {
