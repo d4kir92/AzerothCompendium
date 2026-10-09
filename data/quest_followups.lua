@@ -1359,6 +1359,7 @@ AzerothCompendium.QUESTSIDES = {
 	[1793] = 1,
 	[1794] = 1,
 	[92459] = 1,
+	[92401] = 2,
 }
 
 for questID, value in pairs({

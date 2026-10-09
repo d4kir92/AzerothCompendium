@@ -4017,6 +4017,7 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[1793] = 20,
 	[1794] = 20,
 	[92459] = 24,
+	[92401] = 15,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -4840,6 +4841,7 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[1793] = 20,
 	[1794] = 20,
 	[92459] = 33,
+	[92401] = 22,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -4849,7 +4851,7 @@ AzerothCompendium.QUESTENDERS = {
 	[92415] = {1453, 56.2, 54.2, 14450, "Orphan Matron Nightingale"},
 	[92421] = {1458, 57.8, 89.8, 266484, "Morbin Lightbane"},
 	[92422] = {1420, 65.2, 60.2, 251001, "Deathguard Kristof"},
-	[95189] = {1453, 69.8, 28.6, 15991, "Lady Dena Kennedy"},
+	[95189] = {1453, 70.2, 29.8, 15991, "Lady Dena Kennedy"},
 	[95195] = {1453, 69, 82.8, 466, "General Marcus Jonathan"},
 	[95204] = {1458, 73.4, 32.4, 7825, "Oran Snakewrithe"},
 	[95216] = {1458, 46.6, 71.8, 11835, "Theodore Griffs"},
@@ -5575,6 +5577,7 @@ AzerothCompendium.QUESTENDERS = {
 	[92432] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
 	[92459] = {1416, 14.2, 60, 252085, "Archmage Celindra"},
 	[92434] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
+	[92401] = {1421, 44.4, 42.8, 250686, "Tabitha Heartweaver"},
 }
 
 AzerothCompendium.QUESTCLASSES = {

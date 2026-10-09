@@ -3643,6 +3643,7 @@ AzerothCompendium.QUESTREWARDS = {
 	},
 	[92422] = {
 		["choices"] = {{251533, 1}, {251534, 1},},
+		["xp"] = 2200,
 		["rep"] = {{68, 150},},
 	},
 	[92742] = {
@@ -7032,6 +7033,7 @@ AzerothCompendium.QUESTSTARTINSIDE = {
 	[92432] = false,
 	[92459] = false,
 	[92434] = false,
+	[92401] = false,
 }
 
 AzerothCompendium.QUESTAFTERINSTANCE = {
