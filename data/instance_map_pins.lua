@@ -219,9 +219,6 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.212, 0.248, 4854},
         {"boss", 0.360, 0.730, 7228},
     },
-    [234] = { -- Dire Maul - Dire Maul
-        {"level", 0.125, 0.080, 235},
-    },
     [219] = { -- Zul'Farrak
         {"entrance", 0.566, 0.901},
         {"boss", 0.690, 0.256, 8127},
@@ -490,7 +487,6 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [235] = { -- Dire Maul - Gordok Commons
         {"entrance", 0.718, 0.926},
-        {"level", 0.125, 0.080, 234},
         {"boss", 0.699, 0.752, 14326},
         {"boss", 0.620, 0.657, 14322},
         {"boss", 0.493, 0.816, 14321},
