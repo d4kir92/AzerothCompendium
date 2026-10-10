@@ -26,15 +26,17 @@ local INSTANCE_TYPE_TAGS = {
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
 local TAB_ICONS = {
     ["map"] = {
-        texture = "Interface\\Icons\\INV_Misc_Map_01"
+        texture = "Interface\\Icons\\INV_Misc_Map09"
     },
     ["bosses"] = {
         texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons",
-        texCoords = {0.75, 1, 0.25, 0.5}
+        texCoords = {0.75, 1, 0.25, 0.5},
+        scale = 0.75
     },
     ["quests"] = {
         texture = "Interface\\GossipFrame\\ActiveQuestIcon",
-        texCoords = {0, 1, 0, 1}
+        texCoords = {0, 1, 0, 1},
+        scale = 0.75
     },
     ["loot"] = {
         texture = "Interface\\Icons\\INV_Misc_Bag_08"
@@ -1625,9 +1627,9 @@ function MapPins.AddRowButton(row)
     if not AzerothCompendium:HasNativeWaypoints() and AzerothCompendium:SetAtlasOrFallback(button.icon, LOCATION_PIN_BADGE_ATLAS, false) then
         AzerothCompendium:SetAtlasOrFallback(button.highlight, LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS, false)
     else
-        button.icon:SetTexture(TAB_ICONS["map"].texture)
+        button.icon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
         button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-        button.highlight:SetTexture(TAB_ICONS["map"].texture)
+        button.highlight:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
         button.highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     end
     button:SetScript("OnClick", function(sel) MapPins.ShowBoss(sel:GetParent().entry) end)
@@ -2964,6 +2966,12 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
         button.Icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     end
 
+    if iconInfo.scale then
+        button.Icon:SetSize(button.Icon:GetWidth() * iconInfo.scale, button.Icon:GetHeight() * iconInfo.scale)
+        button.Icon:ClearAllPoints()
+        button.Icon:SetPoint("CENTER", button, "CENTER")
+    end
+
     button.Icon:Show()
     button.IconMask:Show()
     button.Text:Hide()
@@ -3008,7 +3016,7 @@ end
 local function CreateFlavorControl(parent)
     if AzerothCompendium:CheckTemplates("SettingsDropdownWithButtonsTemplate") then
         local control = CreateFrame("Frame", "AzerothCompendiumFlavorControl", parent, "SettingsDropdownWithButtonsTemplate")
-        control:SetPoint("LEFT", parent, "TOPLEFT", 59, -14)
+        control:SetPoint("LEFT", parent, "TOPLEFT", 59, -11)
         control:SetWidth(190)
         control.Dropdown:SetWidth(120)
         local function SelectFlavor(value)
@@ -3034,7 +3042,7 @@ local function CreateFlavorControl(parent)
     else
         local button = CreateTemplated("Button", "AzerothCompendiumFlavorDropdown", parent, {"UIPanelButtonTemplate"})
         button:SetSize(190, 22)
-        button:SetPoint("LEFT", parent, "TOPLEFT", 59, -14)
+        button:SetPoint("LEFT", parent, "TOPLEFT", 59, -11)
         button:SetScript("OnClick", function(sel) ShowFlavorMenu(sel) end)
         local arrow = button:CreateTexture(nil, "ARTWORK")
         arrow:SetSize(16, 16)
@@ -4041,7 +4049,7 @@ function AzerothCompendium:CreateInstanceControls()
     instances:EnableEmptyText()
     compendium.instances = instances
     local instanceControl = CreateTemplated("Frame", nil, compendium, {"SettingsDropdownWithButtonsTemplate"})
-    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 159, -42)
+    instanceControl:SetPoint("LEFT", compendium, "TOPLEFT", 169, -42)
     instanceControl:SetSize(INSTANCE_COL_W + 100, 22)
     local instanceDropdown = instanceControl.Dropdown
     if instanceDropdown == nil then
@@ -4335,7 +4343,7 @@ function AzerothCompendium:CreateInstanceControls()
     end
 
     continentControl:SetSize(190, 22)
-    continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -14)
+    continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -11)
     function continentControl:Refresh()
         local border = compendium.NineSlice
         self:SetFrameLevel(max(self:GetParent():GetFrameLevel() + 1, border and border:GetFrameLevel() + 2 or 0))
@@ -4351,7 +4359,7 @@ function AzerothCompendium:CreateInstanceControls()
     continentControl:HookScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.continentControl = continentControl
     local overviewButton = AzerothCompendium:CreateMenuButton(nil, instanceControl)
-    overviewButton:SetSize(92, 22)
+    overviewButton:SetSize(102, 22)
     overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
     overviewButton:SetText(AzerothCompendium:Trans("LID_OVERVIEW"))
     overviewButton:SetScript("OnClick", function()
@@ -4446,11 +4454,11 @@ function AzerothCompendium:CreateInstanceControls()
         local searchWidth = max(110, min(300, floor(available / 2) * 2))
         if listKind == "dungeon" or listKind == "raid" then
             local filterWidth = 8 + filterDropdown:GetWidth()
-            available = available - 159 - filterWidth
+            available = available - 169 - filterWidth
             dropdownWidth = max(110, min(300, floor(available / 4) * 2))
             searchWidth = dropdownWidth
         elseif listKind == "pvp" or listKind == "faction" then
-            searchWidth = max(110, min(300, floor((available - 159 - dropdownWidth) / 2) * 2))
+            searchWidth = max(110, min(300, floor((available - 169 - dropdownWidth) / 2) * 2))
         end
         self:SetWidth(dropdownWidth)
         instanceDropdown:SetWidth(dropdownWidth)
