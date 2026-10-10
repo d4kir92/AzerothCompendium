@@ -230,9 +230,13 @@ function Theme:SkinSideTab(tab)
     local record = self:NewRecord(tab)
     self:HideKeys(record, tab, {"Background", "SelectedTexture", "HighlightTexture"})
     local background = self:Solid(record, tab, "BACKGROUND", -8, self.colors.control)
-    background:SetPoint("TOPLEFT", tab.Icon, "TOPLEFT", -3, 3)
-    background:SetPoint("BOTTOMRIGHT", tab.Icon, "BOTTOMRIGHT", 3, -3)
-    local border = self:Border(record, tab, self.colors.border, background)
+    background:SetPoint("TOPLEFT", tab.Icon, "TOPLEFT", -1, 1)
+    background:SetPoint("BOTTOMRIGHT", tab.Icon, "BOTTOMRIGHT", 1, -1)
+    self:Border(record, tab, self.colors.border, background)
+    local accent = self:Solid(record, tab, "OVERLAY", 7, self.colors.accent)
+    accent:SetPoint("TOPLEFT", background, "TOPLEFT", 1, -1)
+    accent:SetPoint("BOTTOMLEFT", background, "BOTTOMLEFT", 1, 1)
+    accent:SetWidth(2)
     record.checked = tab.SelectedTexture ~= nil and tab.SelectedTexture:IsShown()
     record.update = function(modern)
         if tab.Mask and tab.Icon then
@@ -244,10 +248,11 @@ function Theme:SkinSideTab(tab)
         end
 
         if not modern then return end
-        Theme:SetColor(border, record.checked and Theme.colors.accent or Theme.colors.border)
+        accent:SetShown(record.checked)
+        background:SetColorTexture(unpack(record.checked and Theme.colors.hover or Theme.colors.control))
     end
 
-    self:AddHover(tab, background)
+    self:AddHover(tab, background, function() return record.checked end)
     hooksecurefunc(tab, "SetChecked", function(_, checked)
         record.checked = checked == true
         if Theme:IsModern() then record.update(true) end
