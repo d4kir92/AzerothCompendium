@@ -1518,7 +1518,7 @@ end
 local function UpdateTabs(tabs, active)
     for kind, button in pairs(tabs) do
         button:SetTabSelected(kind == active)
-        button.Icon:SetPoint("CENTER", button, "CENTER", button.questIcon and -2 or 0, button:GetIconYOffset(kind == active))
+        if not AzerothCompendium.Theme:IsModern() then button.Icon:SetPoint("CENTER", button, "CENTER", button.questIcon and -2 or 0, button:GetIconYOffset(kind == active)) end
     end
 end
 
@@ -2959,6 +2959,7 @@ local function CreateTabButton(parent, label, iconInfo, onClick)
     pcall(button.Icon.RemoveMaskTexture, button.Icon, button.IconMask)
     button.Icon:AddMaskTexture(button.IconMask)
     button.questIcon = iconInfo == TAB_ICONS.quests
+    button.iconScale = iconInfo.scale
     button.Icon:SetTexture(iconInfo.texture)
     if iconInfo.texCoords then
         button.Icon:SetTexCoord(unpack(iconInfo.texCoords))

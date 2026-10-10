@@ -197,8 +197,27 @@ function Theme:SkinTopTab(button)
     accent:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
     accent:SetHeight(2)
     local function IsSelected() return button.isSelected == true end
+    record.buttonWidth, record.buttonHeight = button:GetSize()
+    record.iconWidth, record.iconHeight = button.Icon:GetSize()
     record.update = function(modern)
-        if not modern then return end
+        if modern and not record.unmasked then
+            record.unmasked = pcall(button.Icon.RemoveMaskTexture, button.Icon, button.IconMask)
+        elseif not modern and record.unmasked then
+            record.unmasked = not pcall(button.Icon.AddMaskTexture, button.Icon, button.IconMask)
+        end
+
+        button.Icon:ClearAllPoints()
+        if not modern then
+            button:SetSize(record.buttonWidth, record.buttonHeight)
+            button.Icon:SetSize(record.iconWidth, record.iconHeight)
+            button.Icon:SetPoint("CENTER", button, "CENTER", button.questIcon and -2 or 0, button:GetIconYOffset(IsSelected()))
+            return
+        end
+
+        local inner = (record.buttonHeight - 2) * (button.iconScale or 1)
+        button:SetSize(record.buttonHeight, record.buttonHeight)
+        button.Icon:SetSize(inner, inner)
+        button.Icon:SetPoint("CENTER", button, "CENTER", 0, 0)
         accent:SetShown(IsSelected())
         background:SetColorTexture(unpack(IsSelected() and Theme.colors.hover or Theme.colors.control))
     end
