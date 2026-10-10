@@ -247,12 +247,18 @@ function Theme:SkinSideTab(tab)
             end
         end
 
-        if not modern then return end
+        if not modern then
+            if tab.UpdateIconInterior then tab:UpdateIconInterior() end
+            return
+        end
+
+        tab.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         accent:SetShown(record.checked)
         background:SetColorTexture(unpack(record.checked and Theme.colors.hover or Theme.colors.control))
     end
 
     self:AddHover(tab, background, function() return record.checked end)
+    if tab.UpdateIconInterior then hooksecurefunc(tab, "UpdateIconInterior", function() if Theme:IsModern() then tab.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92) end end) end
     hooksecurefunc(tab, "SetChecked", function(_, checked)
         record.checked = checked == true
         if Theme:IsModern() then record.update(true) end

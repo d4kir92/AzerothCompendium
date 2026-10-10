@@ -1627,9 +1627,9 @@ function MapPins.AddRowButton(row)
     if not AzerothCompendium:HasNativeWaypoints() and AzerothCompendium:SetAtlasOrFallback(button.icon, LOCATION_PIN_BADGE_ATLAS, false) then
         AzerothCompendium:SetAtlasOrFallback(button.highlight, LOCATION_PIN_BADGE_HIGHLIGHT_ATLAS, false)
     else
-        button.icon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
+        button.icon:SetTexture(TAB_ICONS["map"].texture)
         button.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-        button.highlight:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
+        button.highlight:SetTexture(TAB_ICONS["map"].texture)
         button.highlight:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     end
     button:SetScript("OnClick", function(sel) MapPins.ShowBoss(sel:GetParent().entry) end)
