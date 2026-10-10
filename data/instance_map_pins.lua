@@ -24,11 +24,11 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"item", 0.671, 0.493, 275521}, -- Crest of Lordaeron
     },
     [2998] = { -- Excavation Site: Wetlands
-        {"entrance", 0.080, 0.610},
-        {"boss", 0.340, 0.570, 260322}, -- Saltspine
-        {"boss", 0.635, 0.250, 260326}, -- Relic Guardian
-        {"boss", 0.715, 0.530, 260325}, -- Shadetooth
-        {"boss", 0.790, 0.280, 260808}, -- Highland Horror
+        {"entrance", 0.889, 0.258},
+        {"boss", 0.550, 0.360, 260322}, -- Saltspine
+        {"boss", 0.325, 0.700, 260326}, -- Relic Guardian
+        {"boss", 0.305, 0.480, 260325}, -- Shadetooth
+        {"boss", 0.770, 0.220, 260808}, -- Highland Horror
     },
     [2959] = { -- City of Dalaran
         {"level", 0.616, 0.542, 2959002},
@@ -43,7 +43,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [2959002] = { -- City of Dalaran - Dalaran Sewers
         {"entrance", 0.184, 0.840},
-        {"level", 0.645, 0.640, 2959, true},
+        {"level", 0.765, 0.570, 2959, true},
         {"boss", 0.545, 0.510, 247126}, -- Atrexis the Grave Knight
         {"boss", 0.680, 0.180, 247032}, -- Lyn the Ignored
     },
