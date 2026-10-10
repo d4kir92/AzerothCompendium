@@ -14,10 +14,11 @@ Theme.colors = {
     accent = {0.33, 0.82, 1, 1},
 }
 
+Theme.borderSize = 2
 Theme.FLATBACKDROP = {
     bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "Interface\\Buttons\\WHITE8X8",
-    edgeSize = 1,
+    edgeSize = Theme.borderSize,
 }
 
 Theme.WINDOWKEYS = {"NineSlice", "Bg", "TopTileStreaks", "TitleBg", "PortraitContainer", "portrait", "PortraitFrame", "TopLeftCorner", "TopRightCorner", "TopBorder", "LeftBorder", "RightBorder", "BottomBorder", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner", "BottomRightCorner", "BtnCornerLeft", "BtnCornerRight", "ButtonBottomBorder", "fallbackBackground"}
@@ -95,11 +96,11 @@ function Theme:Border(record, parent, color, anchor)
     for _, edge in ipairs({"TOP", "BOTTOM", "LEFT", "RIGHT"}) do
         local line = self:Solid(record, parent, "BORDER", 7, color)
         if edge == "TOP" or edge == "BOTTOM" then
-            line:SetHeight(1)
+            line:SetHeight(self.borderSize)
             line:SetPoint(edge .. "LEFT", anchor, edge .. "LEFT")
             line:SetPoint(edge .. "RIGHT", anchor, edge .. "RIGHT")
         else
-            line:SetWidth(1)
+            line:SetWidth(self.borderSize)
             line:SetPoint("TOP" .. edge, anchor, "TOP" .. edge)
             line:SetPoint("BOTTOM" .. edge, anchor, "BOTTOM" .. edge)
         end
@@ -193,8 +194,8 @@ function Theme:SkinTopTab(button)
     background:SetAllPoints(button)
     self:Border(record, parent, self.colors.border, button)
     local accent = self:Solid(record, parent, "OVERLAY", 7, self.colors.accent)
-    accent:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 1, 1)
-    accent:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+    accent:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", self.borderSize, self.borderSize)
+    accent:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -self.borderSize, self.borderSize)
     accent:SetHeight(2)
     local function IsSelected() return button.isSelected == true end
     record.buttonWidth, record.buttonHeight = button:GetSize()
@@ -214,7 +215,7 @@ function Theme:SkinTopTab(button)
             return
         end
 
-        local inner = (record.buttonHeight - 2) * (button.iconScale or 1)
+        local inner = (record.buttonHeight - Theme.borderSize * 2) * (button.iconScale or 1)
         button:SetSize(record.buttonHeight, record.buttonHeight)
         button.Icon:SetSize(inner, inner)
         button.Icon:SetPoint("CENTER", button, "CENTER", 0, 0)
@@ -230,12 +231,12 @@ function Theme:SkinSideTab(tab)
     local record = self:NewRecord(tab)
     self:HideKeys(record, tab, {"Background", "SelectedTexture", "HighlightTexture"})
     local background = self:Solid(record, tab, "BACKGROUND", -8, self.colors.control)
-    background:SetPoint("TOPLEFT", tab.Icon, "TOPLEFT", -1, 1)
-    background:SetPoint("BOTTOMRIGHT", tab.Icon, "BOTTOMRIGHT", 1, -1)
+    background:SetPoint("TOPLEFT", tab.Icon, "TOPLEFT", -self.borderSize, self.borderSize)
+    background:SetPoint("BOTTOMRIGHT", tab.Icon, "BOTTOMRIGHT", self.borderSize, -self.borderSize)
     self:Border(record, tab, self.colors.border, background)
     local accent = self:Solid(record, tab, "OVERLAY", 7, self.colors.accent)
-    accent:SetPoint("TOPLEFT", background, "TOPLEFT", 1, -1)
-    accent:SetPoint("BOTTOMLEFT", background, "BOTTOMLEFT", 1, 1)
+    accent:SetPoint("TOPLEFT", background, "TOPLEFT", self.borderSize, -self.borderSize)
+    accent:SetPoint("BOTTOMLEFT", background, "BOTTOMLEFT", self.borderSize, self.borderSize)
     accent:SetWidth(2)
     record.checked = tab.SelectedTexture ~= nil and tab.SelectedTexture:IsShown()
     record.update = function(modern)
