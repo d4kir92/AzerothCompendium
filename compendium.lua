@@ -1359,13 +1359,15 @@ local function GetLootList()
         end
 
         if mobs then
-            tinsert(shared, {
+            local sharedEntry = {
                 entry[1],
                 entry[2],
                 itemClass = entry.itemClass,
                 mobs = mobs,
                 sharedLoot = true
-            })
+            }
+            keys[sharedEntry] = keys[entry]
+            tinsert(shared, sharedEntry)
         else
             tinsert(own, entry)
         end
@@ -1373,37 +1375,39 @@ local function GetLootList()
 
     local grouped, group = {}, nil
     local getClassInfo = C_Item and C_Item.GetItemClassInfo or GetItemClassInfo
-    local function AddGroup(key, name, count)
+    local function AddGroup(key, name, count, indent)
         group = {
             lootHeader = true,
             rowHeight = 26,
             key = key,
             name = name,
             count = count or 0,
+            indent = indent,
             collapsed = ACOTABPC.LOOTGROUPS[key] == true and searchText == ""
         }
         tinsert(grouped, group)
     end
 
-    for _, entry in ipairs(own) do
-        local classID = keys[entry][2]
-        if group == nil or group.classID ~= classID then
-            local name = classID ~= 99 and getClassInfo and getClassInfo(classID) or nil
-            AddGroup("class:" .. classID, name or AzerothCompendium:Trans("LID_OTHER"))
-            group.classID = classID
-        end
+    local function AddClassGroups(entries, prefix, indent)
+        group = nil
+        for _, entry in ipairs(entries) do
+            local classID = keys[entry][2]
+            if group == nil or group.classID ~= classID then
+                local name = classID ~= 99 and getClassInfo and getClassInfo(classID) or nil
+                AddGroup(prefix .. classID, name or AzerothCompendium:Trans("LID_OTHER"), 0, indent)
+                group.classID = classID
+            end
 
-        group.count = group.count + 1
-        if not group.collapsed then tinsert(grouped, entry) end
+            group.count = group.count + 1
+            entry.indent = indent
+            if not group.collapsed then tinsert(grouped, entry) end
+        end
     end
 
+    AddClassGroups(own, "class:", nil)
     if #shared > 0 then
         AddGroup("shared", AzerothCompendium:Trans("LID_SHAREDLOOT"), #shared)
-        if not group.collapsed then
-            for _, entry in ipairs(shared) do
-                tinsert(grouped, entry)
-            end
-        end
+        if not group.collapsed then AddClassGroups(shared, "shared:class:", 1) end
     end
     return grouped, hidden, pending, #own + #shared
 end
@@ -2710,29 +2714,33 @@ local function CreateLootRow(scroller)
     end)
 
     row.mobFrame = CreateFrame("Frame", nil, row)
-    row.mobFrame:SetPoint("RIGHT", row.chance, "LEFT", -8, 0)
+    row.mobFrame:SetPoint("RIGHT", row.chance, "LEFT", -20, 0)
     row.mobs = {}
+    row.mobStepX = 50
+    row.mobStepY = 38
     function row:GetMobColumns(width)
-        return math.max(1, math.floor(width * 0.45 / 38))
+        return math.max(1, math.floor(width * 0.45 / self.mobStepX))
     end
     function row:GetRowHeight(entry, width, baseHeight)
         local lines = math.ceil(#(entry.mobs or {}) / self:GetMobColumns(width))
-        return math.max(baseHeight or LOOT_ROW_H + 6, lines * 38 + 6)
+        return math.max(baseHeight or LOOT_ROW_H + 6, lines * self.mobStepY + 6)
     end
     function row:LayoutMobs()
         local width = self:GetWidth()
         if not self.mobCount or width <= 0 then return end
+        local stepX, stepY = self.mobStepX, self.mobStepY
         local columns = self:GetMobColumns(width)
         local lines = math.ceil(self.mobCount / columns)
-        local frameWidth = math.min(self.mobCount, columns) * 38
-        self.mobFrame:SetSize(math.max(1, frameWidth), math.max(1, lines * 38))
+        local frameWidth = math.min(self.mobCount, columns) * stepX
+        self.mobFrame:SetSize(math.max(1, frameWidth), math.max(1, lines * stepY))
         for index = 1, self.mobCount do
             local line = math.floor((index - 1) / columns)
             local column = (index - 1) % columns
             local count = math.min(columns, self.mobCount - line * columns)
             local mob = self.mobs[index]
             mob:ClearAllPoints()
-            mob:SetPoint("CENTER", self.mobFrame, "TOPLEFT", frameWidth - count * 38 + column * 38 + 19, -line * 38 - 19)
+            mob:SetPoint("CENTER", self.mobFrame, "TOPLEFT", frameWidth - count * stepX + column * stepX + stepX / 2, -line * stepY - stepY / 2)
+            mob:SetFrameLevel(self.mobFrame:GetFrameLevel() + self.mobCount - index + 1)
         end
     end
     row:HookScript("OnSizeChanged", function(sel) sel:LayoutMobs() end)
@@ -2816,8 +2824,16 @@ local function CreateLootRow(scroller)
         self.name:ClearAllPoints()
         if header then
             self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+            self.collapseIcon:SetPoint("LEFT", self, "LEFT", 6 + (entry.indent or 0) * 16, 0)
             self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
+            if entry.indent then
+                self.name:SetFontObject("GameFontNormalSmall")
+            else
+                self.name:SetFontObject("GameFontNormal")
+            end
         else
+            self.icon:SetPoint("LEFT", self, "LEFT", 5 + (entry.indent or 0) * 16, 0)
+            self.name:SetFontObject("GameFontNormal")
             self.name:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 8, -1)
         end
 
@@ -2860,7 +2876,13 @@ local function CreateLootRow(scroller)
 
         self.slot:SetText(AzerothCompendium:GetItemSlotText(itemID))
         if chance ~= nil and AzerothCompendium:GetConfig("SHOWCHANCE", true) then
-            self.chance:SetText(format("%.1f%%", chance))
+            local pattern = "%.1f%%"
+            if chance > 0 and chance < 0.005 then
+                pattern = "%.3f%%"
+            elseif chance < 1 then
+                pattern = "%.2f%%"
+            end
+            self.chance:SetText(format(pattern, chance))
             if chance >= 50 then
                 self.chance:SetTextColor(0.4, 0.9, 0.4)
             elseif chance >= 10 then
