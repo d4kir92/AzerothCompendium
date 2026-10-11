@@ -1350,6 +1350,7 @@ local function GetLootList()
                         classification = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK,
                         chance = source.chance,
                         boss = boss,
+                        level = boss.level,
                         inst = source.inst,
                         kind = source.kind,
                         itemID = entry[1]
@@ -2740,7 +2741,8 @@ local function CreateLootRow(scroller)
             local mob = self.mobs[index]
             mob:ClearAllPoints()
             mob:SetPoint("CENTER", self.mobFrame, "TOPLEFT", frameWidth - count * stepX + column * stepX + stepX / 2, -line * stepY - stepY / 2)
-            mob:SetFrameLevel(self.mobFrame:GetFrameLevel() + self.mobCount - index + 1)
+            mob:SetFrameLevel(self.mobFrame:GetFrameLevel() + (self.mobCount - index + 1) * 2)
+            mob.levelBadge:SetFrameLevel(mob:GetFrameLevel() + 1)
         end
     end
     row:HookScript("OnSizeChanged", function(sel) sel:LayoutMobs() end)
@@ -2766,6 +2768,34 @@ local function CreateLootRow(scroller)
                 mob.dragon = mob:CreateTexture(nil, "OVERLAY", nil, 2)
                 mob.dragon:SetSize(104, 52)
                 mob.dragon:SetPoint("CENTER", mob, "CENTER", -21.94, -8.13)
+                local badgeSize = LEVEL_BADGE_SIZE * 26 / BOSS_PORTRAIT_SIZE
+                mob.levelBadge = CreateFrame("Frame", nil, mob)
+                mob.levelBadge:SetSize(badgeSize, badgeSize)
+                mob.levelBadge:SetPoint("CENTER", mob, "CENTER", 7.92, -8.94)
+                mob.levelRing = mob.levelBadge:CreateTexture(nil, "BORDER")
+                mob.levelRing:SetAllPoints(mob.levelBadge)
+                mob.levelFill = mob.levelBadge:CreateTexture(nil, "ARTWORK")
+                mob.levelFill:SetPoint("TOPLEFT", mob.levelBadge, "TOPLEFT", 1.5, -1.5)
+                mob.levelFill:SetPoint("BOTTOMRIGHT", mob.levelBadge, "BOTTOMRIGHT", -1.5, 1.5)
+                mob.levelFill:SetColorTexture(0.05, 0.04, 0.03, 0.95)
+                if mob.levelBadge.CreateMaskTexture and mob.levelRing.AddMaskTexture then
+                    for _, texture in ipairs({mob.levelRing, mob.levelFill}) do
+                        local mask = mob.levelBadge:CreateMaskTexture()
+                        mask:SetAllPoints(texture)
+                        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                        texture:AddMaskTexture(mask)
+                    end
+                end
+
+                mob.levelText = mob.levelBadge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                mob.levelText:SetPoint("CENTER", mob.levelBadge, "CENTER", 0.5, 0)
+                local fontFile, _, fontFlags = mob.levelText:GetFont()
+                if fontFile then mob.levelText:SetFont(fontFile, LEVEL_BADGE_FONT_SIZE - 2, fontFlags) end
+                mob.levelSkull = mob.levelBadge:CreateTexture(nil, "OVERLAY")
+                mob.levelSkull:SetSize(badgeSize - 4, badgeSize - 4)
+                mob.levelSkull:SetPoint("CENTER", mob.levelBadge, "CENTER", 0, 0)
+                mob.levelSkull:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Skull")
+                mob.levelBadge:Hide()
                 mob:SetScript("OnEnter", function(sel)
                     local tooltip = GameTooltip
                     tooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -2803,6 +2833,19 @@ local function CreateLootRow(scroller)
             if style.dragon then
                 mob.dragon:SetTexture(MEDIA_PATH .. style.dragon)
                 mob.dragon:Show()
+            end
+
+            local level = mob.source.level
+            local isSkull = mob.source.classification == 3 or level ~= nil and level >= LEVEL_SKULL_MIN
+            mob.levelBadge:SetShown(level ~= nil or isSkull)
+            if level ~= nil or isSkull then
+                mob.levelRing:SetColorTexture(style.ring[1], style.ring[2], style.ring[3], 1)
+                mob.levelSkull:SetShown(isSkull)
+                mob.levelText:SetShown(not isSkull)
+                if not isSkull then
+                    mob.levelText:SetText(level)
+                    mob.levelText:SetTextColor(AzerothCompendium:GetLevelDifficultyColor(level))
+                end
             end
             mob:Show()
         end
