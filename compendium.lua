@@ -3921,8 +3921,8 @@ local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
     compendium.foreverNotice:Hide()
-    compendium.search:SetShown(mode ~= "allitems")
-    compendium.searchLabel:SetShown(mode ~= "allitems")
+    compendium.search:SetShown(mode ~= "allitems" and mode ~= "settings")
+    compendium.searchLabel:SetShown(mode ~= "allitems" and mode ~= "settings")
     if compendium.overview then compendium.overview:Hide() end
     if enabled then compendium.overviewActive = false end
     if compendium.instancePopup then compendium.instancePopup:Hide() end
@@ -4684,6 +4684,9 @@ function AzerothCompendium:CreateInstanceControls()
     overviewButton:SetSize(102, 22)
     overviewButton:ClearAllPoints()
     overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
+    overviewControl:ClearAllPoints()
+    overviewControl:SetAllPoints(overviewButton)
+    overviewControl:EnableMouse(false)
     AzerothCompendium:SetDropdownText(overviewButton, AzerothCompendium:Trans("LID_OVERVIEW"))
     overviewButton:SetScript("OnClick", function()
         compendium.overviewActive = true

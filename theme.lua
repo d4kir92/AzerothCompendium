@@ -215,9 +215,25 @@ function Theme:AddHover(frame, shape, isActive, idle)
     end)
 end
 
+function Theme:HideFrames(record, frame, keys)
+    record.frames = record.frames or {}
+    record.shown = record.shown or {}
+    for _, key in ipairs(keys) do
+        local region = self:Child(frame, key)
+        if region and region.IsObjectType and region:IsObjectType("Frame") and record.shown[region] == nil then
+            record.shown[region] = region:IsShown()
+            tinsert(record.frames, region)
+        end
+    end
+end
+
 function Theme:ApplyRecord(record, modern)
     for _, region in ipairs(record.hide) do
         region:SetAlpha(modern and 0 or record.alpha[region])
+    end
+
+    for _, region in ipairs(record.frames or {}) do
+        region:SetShown(not modern and record.shown[region])
     end
 
     for _, region in ipairs(record.show) do
@@ -268,8 +284,12 @@ end
 function Theme:SkinWindow(frame)
     local record = self:NewRecord(frame)
     self:HideKeys(record, frame, self.WINDOWKEYS)
+    self:HideFrames(record, frame, self.WINDOWKEYS)
     local inset = self:Child(frame, "Inset")
-    if inset then self:HideKeys(record, inset, self.INSETKEYS) end
+    if inset then
+        self:HideKeys(record, inset, self.INSETKEYS)
+        self:HideFrames(record, inset, self.INSETKEYS)
+    end
     self:Round(record, frame, "BACKGROUND", -8, self.colors.edge, self.radius.window)
     self:Round(record, frame, "BACKGROUND", -7, self.colors.window, self.radius.window - 1, frame, 1)
     local icon = frame:CreateTexture(nil, "ARTWORK")
@@ -660,18 +680,16 @@ function Theme:SkinCategory(header)
     local background = self:Round(record, header, "BACKGROUND", -8, self.colors.control, self.radius.control)
     local chevron = self:Piece(record, header, "OVERLAY", 7, self.MEDIA .. "chevron")
     chevron:SetSize(16, 16)
-    chevron:SetPoint("LEFT", header, "LEFT", 10, 0)
+    chevron:SetPoint("CENTER", header.Icon, "CENTER", 0, 0)
     chevron:SetVertexColor(unpack(self.colors.muted))
     local collapsed = self:IsTexture(header.Icon, "Interface\\Buttons\\UI-PlusButton-Up")
-    record.labelPoints = header.Label and self:SavePoints(header.Label)
+    record.iconPoints = self:SavePoints(header.Icon)
     record.update = function(modern)
-        if header.Label then
-            if modern then
-                header.Label:ClearAllPoints()
-                header.Label:SetPoint("LEFT", chevron, "RIGHT", 8, 0)
-            else
-                Theme:RestorePoints(header.Label, record.labelPoints)
-            end
+        if modern then
+            header.Icon:ClearAllPoints()
+            header.Icon:SetPoint("LEFT", header, "LEFT", 10, 0)
+        else
+            Theme:RestorePoints(header.Icon, record.iconPoints)
         end
 
         if modern then pcall(chevron.SetRotation, chevron, collapsed and math.pi / 2 or 0) end
