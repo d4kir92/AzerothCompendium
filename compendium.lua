@@ -122,25 +122,72 @@ AzerothCompendium.ContentLayout = {
     searchHeight = 20
 }
 
-function AzerothCompendium:AnchorContent(frame, leftAnchor)
-    local layout = self.ContentLayout
-    frame:ClearAllPoints()
-    if leftAnchor then
-        frame:SetPoint("TOPLEFT", leftAnchor, "TOPRIGHT", layout.columnGap, 0)
-    else
-        frame:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top)
+AzerothCompendium.ContentLayoutModern = setmetatable({
+    left = 16,
+    right = 66,
+    top = 120,
+    bottom = 30,
+    tabGap = 4,
+    tabOffset = 4,
+    railLeft = 16,
+    sideRight = 8,
+    sideTop = 84,
+    headerY = -56,
+    headerHeight = 28,
+    continentWidth = 220,
+    searchTop = 42,
+    searchRight = 10,
+    searchHeight = 28,
+    searchWidth = 260
+}, {
+    __index = AzerothCompendium.ContentLayout
+})
+
+AzerothCompendium.LayoutEntries = {}
+function AzerothCompendium:GetContentLayout()
+    return self.Theme:IsModern() and self.ContentLayoutModern or self.ContentLayout
+end
+
+function AzerothCompendium:AddLayout(region, apply)
+    self.LayoutEntries[region] = apply
+    apply(self.Theme:IsModern())
+end
+
+function AzerothCompendium:ApplyCompendiumLayout()
+    local modern = self.Theme:IsModern()
+    for _, apply in pairs(self.LayoutEntries) do
+        apply(modern)
     end
 
-    frame:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
+    if compendium == nil then return end
+    self:RefreshModuleTabs()
+    if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
+end
+
+function AzerothCompendium:AnchorContent(frame, leftAnchor)
+    self:AddLayout(frame, function(modern)
+        local layout = modern and self.ContentLayoutModern or self.ContentLayout
+        frame:ClearAllPoints()
+        if leftAnchor then
+            frame:SetPoint("TOPLEFT", leftAnchor, "TOPRIGHT", layout.columnGap, 0)
+        else
+            frame:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top)
+        end
+
+        frame:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
+    end)
 end
 
 function AzerothCompendium:AnchorContentTab(tab, content, previous)
-    tab:ClearAllPoints()
-    if previous then
-        tab:SetPoint("LEFT", previous, "RIGHT", self.ContentLayout.tabGap, 0)
-    else
-        tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", 0, self.ContentLayout.tabOffset)
-    end
+    self:AddLayout(tab, function(modern)
+        local layout = modern and self.ContentLayoutModern or self.ContentLayout
+        tab:ClearAllPoints()
+        if previous then
+            tab:SetPoint("LEFT", previous, "RIGHT", layout.tabGap, 0)
+        else
+            tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", 0, layout.tabOffset)
+        end
+    end)
 end
 
 local selectedInstance = nil
@@ -2866,7 +2913,7 @@ local function CreateLootRow(scroller)
         self.collapseIcon:SetShown(header)
         self.name:ClearAllPoints()
         if header then
-            self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+            AzerothCompendium.Theme:SetCollapseIcon(self.collapseIcon, entry.collapsed)
             self.collapseIcon:SetPoint("LEFT", self, "LEFT", 6 + (entry.indent or 0) * 16, 0)
             self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
             if entry.indent then
@@ -2992,7 +3039,7 @@ local function CreateWishlistRow(scroller)
         self.name:ClearAllPoints()
         if entry.wishlistCategory then
             self.selected:Hide()
-            self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+            AzerothCompendium.Theme:SetCollapseIcon(self.collapseIcon, entry.collapsed)
             self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
             self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
             self.name:SetText(entry.name .. " (" .. entry.count .. ")")
@@ -3519,12 +3566,34 @@ function AzerothCompendiumAPI.PositionContentTab(tab, content, previous)
     AzerothCompendium:AnchorContentTab(tab, content, previous)
 end
 
+AzerothCompendium.HeaderSliders = {}
+function AzerothCompendium:HasHeaderSlider()
+    for slider in pairs(self.HeaderSliders) do
+        local region = slider
+        while region and region ~= compendium and region:IsShown() do
+            region = region:GetParent()
+        end
+
+        if region == compendium then return true end
+    end
+    return false
+end
+
 function AzerothCompendiumAPI.PositionHeaderSlider(slider)
-    local scale = slider:GetScale()
-    slider:ClearAllPoints()
-    local layout = AzerothCompendium.ContentLayout
-    slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.left / scale + 50, -(layout.searchTop + layout.searchHeight / 2) / scale)
-    slider:SetWidth(168 / scale)
+    AzerothCompendium.HeaderSliders[slider] = true
+    AzerothCompendium:AddLayout(slider, function(modern)
+        local scale = slider:GetScale()
+        slider:ClearAllPoints()
+        local layout = AzerothCompendium.ContentLayout
+        if modern then
+            layout = AzerothCompendium.ContentLayoutModern
+            slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft / scale + 50, layout.headerY / scale)
+        else
+            slider:SetPoint("LEFT", compendium, "TOPLEFT", layout.left / scale + 50, -(layout.searchTop + layout.searchHeight / 2) / scale)
+        end
+
+        slider:SetWidth(168 / scale)
+    end)
 end
 
 function AzerothCompendium:UpdateMinimumHeight()
@@ -3550,7 +3619,15 @@ function AzerothCompendium:UpdateMinimumHeight()
 
     firstHeight = firstHeight + max(0, firstCount - 1) * SIDE_TAB_GAP
     secondHeight = secondHeight + max(0, secondCount - 1) * SIDE_TAB_GAP
-    local availableHeight = max(1, compendium:GetHeight() - SIDE_TAB_TOP - self.ContentLayout.bottom)
+    local modern = self.Theme:IsModern()
+    local layout = self:GetContentLayout()
+    local sideTop = modern and layout.sideTop or SIDE_TAB_TOP
+    if modern then
+        firstHeight = firstHeight + secondHeight + (secondCount > 0 and SIDE_TAB_GAP or 0)
+        secondHeight = 0
+    end
+
+    local availableHeight = max(1, compendium:GetHeight() - sideTop - layout.bottom)
     local scale = min(1, availableHeight / max(1, firstHeight, secondHeight))
     for _, tab in pairs(compendium.kindTabs) do
         tab:SetScale(scale)
@@ -3561,7 +3638,11 @@ function AzerothCompendium:UpdateMinimumHeight()
     end
 
     compendium.kindTabs.dungeon:ClearAllPoints()
-    compendium.kindTabs.dungeon:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
+    if modern then
+        compendium.kindTabs.dungeon:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.sideRight / scale, -sideTop / scale)
+    else
+        compendium.kindTabs.dungeon:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
+    end
     compendium.minimumHeight = MIN_HEIGHT
     if compendium.SetResizeBounds then
         compendium:SetResizeBounds(MIN_WIDTH, compendium.minimumHeight, 0, 0)
@@ -3606,7 +3687,9 @@ function AzerothCompendium:RefreshModuleTabs()
             tab:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
             beforeWishlist = tab
         else
-            if previous == nil then
+            if previous == nil and self.Theme:IsModern() then
+                tab:SetPoint("TOPLEFT", compendium.kindTabs.settings, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+            elseif previous == nil then
                 tab:SetPoint("TOPLEFT", compendium.kindTabs.dungeon, "TOPRIGHT", 4, 0)
             else
                 tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
@@ -3907,6 +3990,8 @@ local function SetSpecialMode(mode)
             compendium.worldQuestItemsEmpty:Hide()
         end
     end
+
+    if compendium.instanceControl then compendium.instanceControl:UpdateDropdownWidth() end
 end
 
 function AzerothCompendium:RefreshModuleView()
@@ -4257,7 +4342,7 @@ function AzerothCompendium:CreateInstanceControls()
                 self.selected:Hide()
                 self.text:ClearAllPoints()
                 self.info:ClearAllPoints()
-                self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+                AzerothCompendium.Theme:SetCollapseIcon(self.collapseIcon, entry.collapsed)
                 self.collapseIcon:Show()
                 self.text:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
                 self.text:SetPoint("RIGHT", self, "RIGHT", -30, 0)
@@ -4466,6 +4551,7 @@ function AzerothCompendium:CreateInstanceControls()
         if self.SetText then self:SetText(text) end
         local fontString = self.GetFontString and self:GetFontString() or self.Text
         local width = max(150, fontString and fontString:GetStringWidth() + 40 or 150)
+        if AzerothCompendium.Theme:IsModern() then width = max(70, fontString and fontString:GetStringWidth() + 28 or 70) end
         self:SetWidth(width)
         filterControl:SetWidth(width)
         filterControl:SetShown(listKind == "dungeon" or listKind == "raid")
@@ -4579,7 +4665,7 @@ function AzerothCompendium:CreateInstanceControls()
     function continentControl:Refresh()
         local border = compendium.NineSlice
         self:SetFrameLevel(max(self:GetParent():GetFrameLevel() + 1, border and border:GetFrameLevel() + 2 or 0))
-        self:Show()
+        self:SetShown(not AzerothCompendium.Theme:IsModern() or listKind == "dungeon" or listKind == "raid")
         AzerothCompendium:SetDropdownText(self, GetContinentText(AzerothCompendium:GetSelectedContinent()))
     end
 
@@ -4590,10 +4676,15 @@ function AzerothCompendium:CreateInstanceControls()
     end)
     continentControl:HookScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.continentControl = continentControl
-    local overviewButton = AzerothCompendium:CreateMenuButton(nil, instanceControl)
+    local overviewControl = CreateTemplated("Frame", nil, instanceControl, {"SettingsDropdownWithButtonsTemplate"})
+    overviewControl:SetSize(102, 22)
+    if overviewControl.DecrementButton then overviewControl.DecrementButton:Hide() end
+    if overviewControl.IncrementButton then overviewControl.IncrementButton:Hide() end
+    local overviewButton = overviewControl.Dropdown or AzerothCompendium:CreateMenuButton(nil, overviewControl)
     overviewButton:SetSize(102, 22)
+    overviewButton:ClearAllPoints()
     overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
-    overviewButton:SetText(AzerothCompendium:Trans("LID_OVERVIEW"))
+    AzerothCompendium:SetDropdownText(overviewButton, AzerothCompendium:Trans("LID_OVERVIEW"))
     overviewButton:SetScript("OnClick", function()
         compendium.overviewActive = true
         instancePopup:Hide()
@@ -4602,6 +4693,58 @@ function AzerothCompendium:CreateInstanceControls()
         SaveNavigationState()
     end)
     compendium.overviewButton = overviewButton
+    overviewButton.acoSegment = function() return compendium.overviewActive == true end
+    instanceDropdown.acoSegment = function() return not compendium.overviewActive or not overviewButton:IsShown() end
+    filterDropdown.acoSegment = function() return filterPopup:IsShown() end
+    local segmentGroup = CreateFrame("Frame", nil, instanceControl)
+    segmentGroup:SetFrameLevel(instanceControl:GetFrameLevel())
+    segmentGroup.acoSegmentGroup = true
+    segmentGroup:Hide()
+    filterPopup:HookScript("OnShow", function() AzerothCompendium.Theme:UpdateFrame(filterDropdown) end)
+    filterPopup:HookScript("OnHide", function() AzerothCompendium.Theme:UpdateFrame(filterDropdown) end)
+    function instanceControl:ApplyHeaderLayout()
+        self:ClearAllPoints()
+        overviewButton:ClearAllPoints()
+        continentControl:ClearAllPoints()
+        filterControl:ClearAllPoints()
+        segmentGroup:ClearAllPoints()
+        if not AzerothCompendium.Theme:IsModern() then
+            self:SetPoint("LEFT", compendium, "TOPLEFT", 169, -42)
+            overviewButton:SetSize(102, 22)
+            overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
+            continentControl:SetSize(190, 22)
+            continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -11)
+            filterControl:SetPoint("LEFT", instanceDropdown, "RIGHT", 8, 0)
+            instanceDropdown:SetHeight(22)
+            filterDropdown:SetHeight(22)
+            segmentGroup:Hide()
+            return
+        end
+
+        local layout = AzerothCompendium.ContentLayoutModern
+        local grouped = listKind == "dungeon" or listKind == "raid"
+        local overviewText = overviewButton.Text or (overviewButton.GetFontString and overviewButton:GetFontString())
+        continentControl:SetSize(layout.continentWidth, layout.headerHeight)
+        continentControl:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft, layout.headerY)
+        overviewButton:SetSize(max(80, (overviewText and overviewText:GetStringWidth() or 60) + 28), layout.headerHeight - 6)
+        instanceDropdown:SetHeight(layout.headerHeight - 6)
+        filterDropdown:SetHeight(layout.headerHeight - 6)
+        if grouped then
+            overviewButton:SetPoint("LEFT", continentControl, "RIGHT", 19, 0)
+            self:SetPoint("LEFT", overviewButton, "RIGHT", 2, 0)
+        else
+            self:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft + 3, layout.headerY)
+        end
+
+        filterControl:SetPoint("LEFT", instanceDropdown, "RIGHT", 2, 0)
+        segmentGroup:SetPoint("TOPLEFT", grouped and overviewButton or instanceDropdown, "TOPLEFT", -3, 3)
+        segmentGroup:SetPoint("BOTTOMRIGHT", filterControl:IsShown() and filterDropdown or instanceDropdown, "BOTTOMRIGHT", 3, -3)
+        segmentGroup:Show()
+        for _, segment in ipairs({overviewButton, instanceDropdown, filterDropdown}) do
+            AzerothCompendium.Theme:UpdateFrame(segment)
+        end
+    end
+
     local overview = CreateScroller(compendium, 116, function(scroller)
         local row = CreateFrame("Frame", nil, scroller)
         row.tiles = {}
@@ -4680,6 +4823,24 @@ function AzerothCompendium:CreateInstanceControls()
     compendium.instanceControl = instanceControl
     compendium.instancePopup = instancePopup
     function instanceControl:UpdateDropdownWidth()
+        if AzerothCompendium.Theme:IsModern() then
+            local layout = AzerothCompendium.ContentLayoutModern
+            local text = instanceDropdown.Text or (instanceDropdown.GetFontString and instanceDropdown:GetFontString())
+            local textWidth = text and (text.GetUnboundedStringWidth and text:GetUnboundedStringWidth() or text:GetStringWidth()) or 120
+            local width = min(260, max(90, floor(textWidth + 28)))
+            local grouped = listKind == "dungeon" or listKind == "raid"
+            local used = layout.railLeft + 3 + width + 3
+            if grouped then used = used + layout.continentWidth + 16 + overviewButton:GetWidth() + 2 + filterDropdown:GetWidth() + 2 end
+            self:SetWidth(width)
+            instanceDropdown:SetWidth(width)
+            if not self:IsShown() and not AzerothCompendium:HasHeaderSlider() then
+                compendium.search:SetWidth(max(120, compendium:GetWidth() - layout.railLeft - layout.searchRight))
+            else
+                compendium.search:SetWidth(max(120, min(layout.searchWidth, compendium:GetWidth() - layout.searchRight - used - 16)))
+            end
+            return
+        end
+
         local labelWidth = compendium.searchLabel and compendium.searchLabel:GetStringWidth() or 0
         local available = compendium:GetWidth() - AzerothCompendium.ContentLayout.searchRight - labelWidth - 6 - 16
         local dropdownWidth = 300
@@ -4705,7 +4866,8 @@ function AzerothCompendium:CreateInstanceControls()
         local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
         if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
         if instanceDropdown.SetText then instanceDropdown:SetText(text) end
-
+        if AzerothCompendium.Theme:IsModern() then instanceControl:UpdateDropdownWidth() end
+        instanceControl:ApplyHeaderLayout()
     end
 
     instanceControl:HookScript("OnShow", function() compendium.updateInstanceSelection() end)
@@ -4759,8 +4921,7 @@ local function CreateJournal()
     compendium.version = compendium:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
-    compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
-    compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
+    compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())    compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
     compendium.foreverNotice:SetHeight(24)
     compendium.foreverNotice:EnableMouse(false)
     for _, edge in ipairs({"TOP", "BOTTOM", "LEFT", "RIGHT"}) do
@@ -4806,8 +4967,16 @@ local function CreateJournal()
     end)
     if type(UISpecialFrames) == "table" then tinsert(UISpecialFrames, "AzerothCompendiumFrame") end
     local search = CreateTemplated("EditBox", "AzerothCompendiumSearchBox", compendium, {"InputBoxTemplate", "SearchBoxTemplate"})
-    search:SetSize(180, AzerothCompendium.ContentLayout.searchHeight)
-    search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -AzerothCompendium.ContentLayout.searchRight, -AzerothCompendium.ContentLayout.searchTop)
+    search:SetWidth(180)
+    search.acoSearch = true
+    search.acoPlaceholder = function() return AzerothCompendium:Trans("LID_SEARCH") end
+    AzerothCompendium:AddLayout(search, function(modern)
+        local layout = modern and AzerothCompendium.ContentLayoutModern or AzerothCompendium.ContentLayout
+        search:ClearAllPoints()
+        search:SetHeight(layout.searchHeight)
+        search:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.searchRight, -layout.searchTop)
+        if compendium.searchLabel then compendium.searchLabel:SetAlpha(modern and 0 or 1) end
+    end)
     search:SetFontObject("ChatFontNormal")
     search:SetAutoFocus(false)
     search:SetText(savedSearchText)
@@ -4865,7 +5034,6 @@ local function CreateJournal()
     AzerothCompendium:RefreshModuleTabs()
     AzerothCompendium:CreateInstanceControls()
     local bossTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", AzerothCompendium.ContentLayout.left, -AzerothCompendium.ContentLayout.top + 20)
     bossTitle:SetWidth(MIDDLE_COL_W)
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
@@ -4881,8 +5049,14 @@ local function CreateJournal()
         return row
     end)
 
-    bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", AzerothCompendium.ContentLayout.left, -AzerothCompendium.ContentLayout.top)
-    bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", AzerothCompendium.ContentLayout.left, AzerothCompendium.ContentLayout.bottom)
+    AzerothCompendium:AddLayout(bosses, function(modern)
+        local layout = modern and AzerothCompendium.ContentLayoutModern or AzerothCompendium.ContentLayout
+        bossTitle:ClearAllPoints()
+        bossTitle:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top + 20)
+        bosses:ClearAllPoints()
+        bosses:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top)
+        bosses:SetPoint("BOTTOMLEFT", compendium, "BOTTOMLEFT", layout.left, layout.bottom)
+    end)
     bosses:SetWidth(MIDDLE_COL_W)
     bosses:EnableEmptyText()
     compendium.bosses = bosses
@@ -5099,7 +5273,10 @@ local function CreateJournal()
     compendium.wishlistTitle = wishlistTitle
     AzerothCompendium:CreateWishlistHelp()
     local wishlistCount = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    wishlistCount:SetPoint("RIGHT", compendium, "TOPRIGHT", -16, -92)
+    AzerothCompendium:AddLayout(wishlistCount, function(modern)
+        wishlistCount:ClearAllPoints()
+        wishlistCount:SetPoint("RIGHT", compendium, "TOPRIGHT", modern and -AzerothCompendium.ContentLayoutModern.right or -16, modern and -100 or -92)
+    end)
     wishlistCount:SetJustifyH("RIGHT")
     wishlistCount:Hide()
     compendium.wishlistCount = wishlistCount
@@ -5176,14 +5353,20 @@ local function CreateJournal()
     detailCount:SetJustifyH("RIGHT")
     compendium.detailCount = detailCount
     local detailTitle = compendium:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    detailTitle:SetPoint("BOTTOMLEFT", lastDetailTab, "BOTTOMRIGHT", 8, 8)
-    detailTitle:SetPoint("RIGHT", detailCount, "LEFT", 0, 0)
+    AzerothCompendium:AddLayout(detailTitle, function(modern)
+        detailTitle:ClearAllPoints()
+        detailTitle:SetPoint("BOTTOMLEFT", lastDetailTab, "BOTTOMRIGHT", 8, modern and 0 or 8)
+        detailTitle:SetPoint("RIGHT", detailCount, "LEFT", 0, 0)
+    end)
     detailTitle:SetWordWrap(false)
     detailTitle:SetJustifyH("RIGHT")
     compendium.detailTitle = detailTitle
     local classFilter = CreateTemplated("CheckButton", "AzerothCompendiumClassFilter", compendium, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
     classFilter:SetSize(24, 24)
-    classFilter:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 2, 19)
+    AzerothCompendium:AddLayout(classFilter, function(modern)
+        classFilter:ClearAllPoints()
+        classFilter:SetPoint("BOTTOMRIGHT", loot, "TOPRIGHT", 2, modern and 22 or 19)
+    end)
     classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
     local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", AzerothCompendium:GetConfig("CLASSFILTER", false) == true and "GameFontNormalSmall" or "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
@@ -5209,7 +5392,7 @@ local function CreateJournal()
     AzerothCompendium:OnLanguage(function()
         searchLabel:SetText(AzerothCompendium:Trans("LID_SEARCH"))
     compendium.searchLabel = searchLabel
-        compendium.overviewButton:SetText(AzerothCompendium:Trans("LID_OVERVIEW"))
+        AzerothCompendium:SetDropdownText(compendium.overviewButton, AzerothCompendium:Trans("LID_OVERVIEW"))
         compendium.relevantLabel:SetText(AzerothCompendium:Trans("LID_ONLYRELEVANT"))
         compendium.hideForeverLabel:SetText(AzerothCompendium:Trans("LID_HIDENEWFOREVER"))
         compendium.hideCompletedLabel:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETED"))

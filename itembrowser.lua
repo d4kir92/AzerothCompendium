@@ -412,7 +412,7 @@ function Browser:Create(parent)
             self.offset = 0
             self:Refresh()
         end)
-        if key then self.inputs[key] = input else self.search = input end
+        if key then self.inputs[key] = input else self.search, self.searchY = input, y end
         if bound == "min" then
             local separator = inputParent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
             separator:SetPoint("TOPLEFT", 84, y - 4)
@@ -427,6 +427,29 @@ function Browser:Create(parent)
     Input("maxLevel", AC:Trans("LID_MAXLEVEL"), true)
     Input("itemLevel", AC:Trans("LID_MINITEMLEVEL"), true)
     general:SetHeight(-y)
+    self.search.acoSearch = true
+    self.search.acoPlaceholder = function() return AC:Trans("LID_ITEMSEARCHPLACEHOLDER") end
+    AC:AddLayout(self.search, function(modern)
+        local search = self.search
+        local layout = AC.ContentLayoutModern
+        self.generalShift = modern and (34 - 12 - self.searchY) or 0
+        general:ClearAllPoints()
+        general:SetPoint("TOPLEFT", 0, self.generalShift)
+        search:ClearAllPoints()
+        search.placeholder:SetAlpha(modern and 0 or 1)
+        if modern then
+            search:SetParent(panel)
+            search:SetHeight(layout.searchHeight)
+            search:SetPoint("TOPLEFT", parent, "TOPLEFT", layout.railLeft, -layout.searchTop)
+            search:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -layout.searchRight, -layout.searchTop)
+        else
+            search:SetParent(general)
+            search:SetSize(168, 22)
+            search:SetPoint("TOPLEFT", 8, self.searchY)
+        end
+
+        if self.SelectFilterPage then self:SelectFilterPage(self.filterPage or 1) end
+    end)
     for _, primary in ipairs({true, false}) do
         local page = CreateFrame("Frame", nil, content)
         page:SetPoint("TOPLEFT")
@@ -457,7 +480,7 @@ function Browser:Create(parent)
         for _, input in pairs(self.inputs) do input:ClearFocus() end
         for pageIndex, page in ipairs(self.filterPages) do page:SetShown(pageIndex == index) end
         for tabIndex, tab in ipairs(self.filterTabs) do tab:SetTabSelected(tabIndex == index) end
-        local height = self.filterPages[index]:GetHeight()
+        local height = self.filterPages[index]:GetHeight() - (index == 1 and self.generalShift or 0)
         reset:ClearAllPoints()
         reset:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -height - 6)
         content:SetHeight(height + 40)
