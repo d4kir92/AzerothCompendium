@@ -303,18 +303,18 @@ local SPLITS = {
 							["model"] = 2524,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.03,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 10255,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.04,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Conjuror",
@@ -632,18 +632,18 @@ local SPLITS = {
 							["model"] = 10255,
 						},
 						{
-							["name"] = "Haunting Phantasm",
-							["npcs"] = {6427},
-							["chance"] = 0.02,
-							["classification"] = 1,
-							["model"] = 4629,
-						},
-						{
 							["name"] = "Scarlet Monk",
 							["npcs"] = {4540},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 2603,
+						},
+						{
+							["name"] = "Haunting Phantasm",
+							["npcs"] = {6427},
+							["chance"] = 0.03,
+							["classification"] = 1,
+							["model"] = 4629,
 						},
 						{
 							["name"] = "Scarlet Gallant",
@@ -2193,18 +2193,18 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 						{
-							["name"] = "Scarlet Sentry",
-							["npcs"] = {4283},
-							["chance"] = 0.04,
-							["classification"] = 1,
-							["model"] = 2520,
-						},
-						{
 							["name"] = "Scarlet Torturer",
 							["npcs"] = {4306},
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 2607,
+						},
+						{
+							["name"] = "Scarlet Sentry",
+							["npcs"] = {4283},
+							["chance"] = 0.05,
+							["classification"] = 1,
+							["model"] = 2520,
 						},
 						{
 							["name"] = "Scarlet Scryer",
@@ -2904,18 +2904,18 @@ local SPLITS = {
 							["model"] = 2524,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.03,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 10255,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.04,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Conjuror",
@@ -3233,18 +3233,18 @@ local SPLITS = {
 							["model"] = 10255,
 						},
 						{
-							["name"] = "Haunting Phantasm",
-							["npcs"] = {6427},
-							["chance"] = 0.02,
-							["classification"] = 1,
-							["model"] = 4629,
-						},
-						{
 							["name"] = "Scarlet Monk",
 							["npcs"] = {4540},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 2603,
+						},
+						{
+							["name"] = "Haunting Phantasm",
+							["npcs"] = {6427},
+							["chance"] = 0.03,
+							["classification"] = 1,
+							["model"] = 4629,
 						},
 						{
 							["name"] = "Scarlet Gallant",
@@ -4595,6 +4595,7 @@ local SPLITS = {
 				},
 				{
 					[1] = 7760,
+					[2] = 0.39,
 					["itemClass"] = 4,
 					["mobs"] = {
 						{
@@ -4675,7 +4676,6 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
-					[2] = 0.39,
 				},
 				{
 					[1] = 7761,
@@ -5474,18 +5474,18 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 						{
-							["name"] = "Scarlet Sentry",
-							["npcs"] = {4283},
-							["chance"] = 0.04,
-							["classification"] = 1,
-							["model"] = 2520,
-						},
-						{
 							["name"] = "Scarlet Torturer",
 							["npcs"] = {4306},
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 2607,
+						},
+						{
+							["name"] = "Scarlet Sentry",
+							["npcs"] = {4283},
+							["chance"] = 0.05,
+							["classification"] = 1,
+							["model"] = 2520,
 						},
 						{
 							["name"] = "Scarlet Scryer",
@@ -6185,18 +6185,18 @@ local SPLITS = {
 							["model"] = 2524,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.03,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 10255,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.04,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Conjuror",
@@ -6514,18 +6514,18 @@ local SPLITS = {
 							["model"] = 10255,
 						},
 						{
-							["name"] = "Haunting Phantasm",
-							["npcs"] = {6427},
-							["chance"] = 0.02,
-							["classification"] = 1,
-							["model"] = 4629,
-						},
-						{
 							["name"] = "Scarlet Monk",
 							["npcs"] = {4540},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 2603,
+						},
+						{
+							["name"] = "Haunting Phantasm",
+							["npcs"] = {6427},
+							["chance"] = 0.03,
+							["classification"] = 1,
+							["model"] = 4629,
 						},
 						{
 							["name"] = "Scarlet Gallant",
@@ -8670,18 +8670,18 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 						{
-							["name"] = "Scarlet Sentry",
-							["npcs"] = {4283},
-							["chance"] = 0.04,
-							["classification"] = 1,
-							["model"] = 2520,
-						},
-						{
 							["name"] = "Scarlet Torturer",
 							["npcs"] = {4306},
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 2607,
+						},
+						{
+							["name"] = "Scarlet Sentry",
+							["npcs"] = {4283},
+							["chance"] = 0.05,
+							["classification"] = 1,
+							["model"] = 2520,
 						},
 						{
 							["name"] = "Scarlet Scryer",
@@ -9424,18 +9424,18 @@ local SPLITS = {
 							["model"] = 2524,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.03,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 10255,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.04,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Conjuror",
@@ -9753,18 +9753,18 @@ local SPLITS = {
 							["model"] = 10255,
 						},
 						{
-							["name"] = "Haunting Phantasm",
-							["npcs"] = {6427},
-							["chance"] = 0.02,
-							["classification"] = 1,
-							["model"] = 4629,
-						},
-						{
 							["name"] = "Scarlet Monk",
 							["npcs"] = {4540},
 							["chance"] = 0.03,
 							["classification"] = 1,
 							["model"] = 2603,
+						},
+						{
+							["name"] = "Haunting Phantasm",
+							["npcs"] = {6427},
+							["chance"] = 0.03,
+							["classification"] = 1,
+							["model"] = 4629,
 						},
 						{
 							["name"] = "Scarlet Gallant",
@@ -11115,6 +11115,7 @@ local SPLITS = {
 				},
 				{
 					[1] = 7760,
+					[2] = 0.39,
 					["itemClass"] = 4,
 					["mobs"] = {
 						{
@@ -11195,7 +11196,6 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
-					[2] = 0.39,
 				},
 				{
 					[1] = 7761,
@@ -11994,18 +11994,18 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 						{
-							["name"] = "Scarlet Sentry",
-							["npcs"] = {4283},
-							["chance"] = 0.04,
-							["classification"] = 1,
-							["model"] = 2520,
-						},
-						{
 							["name"] = "Scarlet Torturer",
 							["npcs"] = {4306},
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 2607,
+						},
+						{
+							["name"] = "Scarlet Sentry",
+							["npcs"] = {4283},
+							["chance"] = 0.05,
+							["classification"] = 1,
+							["model"] = 2520,
 						},
 						{
 							["name"] = "Scarlet Scryer",
