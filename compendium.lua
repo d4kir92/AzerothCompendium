@@ -263,6 +263,38 @@ local function IsInstanceVisible(inst)
     return false
 end
 
+local sharedLootIndex = nil
+local function GetSharedLootSources(itemID)
+    if sharedLootIndex == nil then
+        sharedLootIndex = {}
+        for _, kind in ipairs({"dungeon", "raid"}) do
+            for _, inst in ipairs(AzerothCompendium:GetInstances(kind)) do
+                if not inst.vendor and IsInstanceVisible(inst) then
+                    for _, boss in ipairs(inst.bosses or {}) do
+                        if not boss.trash then
+                            local seen = {}
+                            for _, drop in ipairs(boss.loot or {}) do
+                                local id = drop[1]
+                                if not seen[id] then
+                                    seen[id] = true
+                                    sharedLootIndex[id] = sharedLootIndex[id] or {}
+                                    tinsert(sharedLootIndex[id], {
+                                        kind = kind,
+                                        inst = inst,
+                                        boss = boss,
+                                        chance = drop[2]
+                                    })
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return sharedLootIndex[itemID] or {}
+end
+
 local function BossMatches(boss)
     if searchText == "" then return true end
     if Matches(AzerothCompendium:GetBossName(boss)) then return true end
@@ -1295,7 +1327,85 @@ local function GetLootList()
         if keyA[2] ~= keyB[2] then return keyA[2] < keyB[2] end
         return keyA[3] < keyB[3]
     end)
-    return list, hidden
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.LOOTGROUPS = ACOTABPC.LOOTGROUPS or {}
+    if selectedInstance == nil or selectedInstance.vendor or selectedBoss.all then return list, hidden end
+    local own, shared, pending = {}, {}, false
+    for _, entry in ipairs(list) do
+        local quality = nil
+        if not selectedBoss.trash then quality = select(3, AzerothCompendium:GetItemDisplay(entry[1])) end
+        local mobs = nil
+        if quality == nil then
+            pending = pending or not selectedBoss.trash
+        elseif quality >= 3 then
+            for _, source in ipairs(GetSharedLootSources(entry[1])) do
+                local boss = source.boss
+                if boss ~= selectedBoss then
+                    local npcID = boss.npcs and boss.npcs[1]
+                    mobs = mobs or {}
+                    tinsert(mobs, {
+                        name = boss.name,
+                        npcs = boss.npcs or {},
+                        model = boss.model,
+                        classification = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK,
+                        chance = source.chance,
+                        boss = boss,
+                        inst = source.inst,
+                        kind = source.kind,
+                        itemID = entry[1]
+                    })
+                end
+            end
+        end
+
+        if mobs then
+            tinsert(shared, {
+                entry[1],
+                entry[2],
+                itemClass = entry.itemClass,
+                mobs = mobs,
+                sharedLoot = true
+            })
+        else
+            tinsert(own, entry)
+        end
+    end
+
+    local grouped, group = {}, nil
+    local getClassInfo = C_Item and C_Item.GetItemClassInfo or GetItemClassInfo
+    local function AddGroup(key, name, count)
+        group = {
+            lootHeader = true,
+            rowHeight = 26,
+            key = key,
+            name = name,
+            count = count or 0,
+            collapsed = ACOTABPC.LOOTGROUPS[key] == true and searchText == ""
+        }
+        tinsert(grouped, group)
+    end
+
+    for _, entry in ipairs(own) do
+        local classID = keys[entry][2]
+        if group == nil or group.classID ~= classID then
+            local name = classID ~= 99 and getClassInfo and getClassInfo(classID) or nil
+            AddGroup("class:" .. classID, name or AzerothCompendium:Trans("LID_OTHER"))
+            group.classID = classID
+        end
+
+        group.count = group.count + 1
+        if not group.collapsed then tinsert(grouped, entry) end
+    end
+
+    if #shared > 0 then
+        AddGroup("shared", AzerothCompendium:Trans("LID_SHAREDLOOT"), #shared)
+        if not group.collapsed then
+            for _, entry in ipairs(shared) do
+                tinsert(grouped, entry)
+            end
+        end
+    end
+    return grouped, hidden, pending, #own + #shared
 end
 
 local function GetSpellList()
@@ -2147,7 +2257,8 @@ local function RefreshDetail()
     end
 
     if detailKind == "loot" then
-        local lootList, hidden = GetLootList()
+        local lootList, hidden, pending, itemCount = GetLootList()
+        compendium.loot.sharedPending = pending
         if AzerothCompendium:GetConfig("CLASSFILTER", false) then
             compendium.loot:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. AzerothCompendium:Trans("LID_CLASSFILTER"), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden), function() AzerothCompendium:SetClassFilter(false) end)
         else
@@ -2158,7 +2269,7 @@ local function RefreshDetail()
         compendium.loot:Show()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
-        count = #compendium.loot.data
+        count = itemCount or #compendium.loot.data
         showCount = true
         compendium.detailCount:SetText("")
         compendium.classFilter:Show()
@@ -2541,6 +2652,7 @@ function AzerothCompendium:ShowItemWishlistMenu(owner, itemID)
     ShowWishlistMenu(owner, itemID, source)
 end
 
+local NavigateToWishlistItem = nil
 local function CreateLootRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
@@ -2561,9 +2673,23 @@ local function CreateLootRow(scroller)
     row.slot:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 1)
     row.slot:SetPoint("RIGHT", row.chance, "LEFT", -6, 0)
     row.slot:SetJustifyH("LEFT")
+    row.collapseIcon = row:CreateTexture(nil, "OVERLAY")
+    row.collapseIcon:SetSize(16, 16)
+    row.collapseIcon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    row.collapseIcon:Hide()
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button)
+        if sel.lootHeader then
+            if button ~= "LeftButton" then return end
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.LOOTGROUPS = ACOTABPC.LOOTGROUPS or {}
+            ACOTABPC.LOOTGROUPS[sel.lootGroup] = not ACOTABPC.LOOTGROUPS[sel.lootGroup]
+            compendium.loot.data = GetLootList()
+            compendium.loot:Refresh()
+            return
+        end
+
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, sel.wishlistSource)
             return
@@ -2636,10 +2762,28 @@ local function CreateLootRow(scroller)
                     local tooltip = GameTooltip
                     tooltip:SetOwner(sel, "ANCHOR_RIGHT")
                     tooltip:SetText(AzerothCompendium:GetBossName(sel.source))
+                    if sel.source.inst ~= nil and sel.source.inst ~= selectedInstance then tooltip:AddLine(AzerothCompendium:GetInstanceName(sel.source.inst), 0.9, 0.9, 0.9) end
                     if sel.source.chance ~= nil then tooltip:AddLine(format("%.2f%%", sel.source.chance), 1, 0.82, 0) end
+                    if sel.source.boss ~= nil then tooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_GOTOSOURCE"), 0.9, 0.9, 0.9, 1, 0.82, 0) end
                     tooltip:Show()
                 end)
                 mob:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+                mob:SetScript("OnMouseUp", function(sel, button)
+                    if button ~= "LeftButton" or sel.source == nil or sel.source.boss == nil then return end
+                    AzerothCompendium:HideGameTooltip()
+                    if sel.source.inst == nil or sel.source.inst == selectedInstance then
+                        OnBossClick(sel.source.boss)
+                    elseif NavigateToWishlistItem then
+                        NavigateToWishlistItem({
+                            itemID = sel.source.itemID,
+                            source = {
+                                kind = sel.source.kind,
+                                instance = GetInstanceKey(sel.source.inst),
+                                boss = GetBossKey(sel.source.boss)
+                            }
+                        })
+                    end
+                end)
                 self.mobs[index] = mob
             end
             mob.source = sources[index]
@@ -2662,10 +2806,39 @@ local function CreateLootRow(scroller)
     end
 
     function row:Update(entry)
+        local header = entry.lootHeader == true
+        self.lootHeader = header
+        self.lootGroup = entry.key
+        self.icon:SetShown(not header)
+        self.iconRing:SetShown(not header)
+        self.slot:SetShown(not header)
+        self.collapseIcon:SetShown(header)
+        self.name:ClearAllPoints()
+        if header then
+            self.collapseIcon:SetTexture(entry.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+            self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
+        else
+            self.name:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 8, -1)
+        end
+
+        if header then
+            self:UpdateMobs(entry)
+            self.itemID = nil
+            self.link = nil
+            self.boss = nil
+            self.jumpBoss = nil
+            self.wishlistSource = nil
+            AzerothCompendium:UpdateWishlistStar(self, self.icon, nil)
+            self.name:SetText(entry.name .. " (" .. entry.count .. ")")
+            self.name:SetTextColor(1, 0.82, 0)
+            self.chance:SetText("")
+            return
+        end
+
         local itemID = entry[1]
         local chance = entry[2]
         for _, mob in ipairs(entry.mobs or {}) do
-            if mob.chance ~= nil and (chance == nil or mob.chance > chance) then chance = mob.chance end
+            if not entry.sharedLoot and mob.chance ~= nil and (chance == nil or mob.chance > chance) then chance = mob.chance end
         end
         self:UpdateMobs(entry)
         self.itemID = itemID
@@ -2705,7 +2878,6 @@ local function CreateLootRow(scroller)
     return row
 end
 
-local NavigateToWishlistItem = nil
 local function CreateWishlistRow(scroller)
     local row = CreateFrame("Button", nil, scroller)
     row.isWishlist = true
@@ -5892,6 +6064,11 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
             else
                 compendium.instances:Refresh()
                 compendium.bosses:Refresh()
+                if compendium.loot.sharedPending and compendium.loot:IsShown() then
+                    local lootList, _, pending = GetLootList()
+                    compendium.loot.data = lootList
+                    compendium.loot.sharedPending = pending
+                end
                 compendium.loot:Refresh()
                 compendium.questTree:Refresh()
                 if compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
