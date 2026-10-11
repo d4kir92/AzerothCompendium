@@ -151,6 +151,32 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     acoset:SuspendLayout()
     acoset:AddSearch()
+    acoset.search.acoSearch = true
+    acoset.search.acoPlaceholder = function() return AzerothCompendium:Trans("LID_SEARCH") end
+    acoset.baseHeaderHeight = acoset.headerHeight
+    acoset.baseSearchHeight = acoset.search:GetHeight()
+    AzerothCompendium:AddLayout(acoset.search, function(modern)
+        local search = acoset.search
+        local layout = AzerothCompendium.ContentLayoutModern
+        search:ClearAllPoints()
+        search.Hint:SetAlpha(modern and 0 or 1)
+        if modern then
+            search:SetParent(parent)
+            search:SetHeight(layout.searchHeight)
+            search:SetPoint("TOPLEFT", target, "TOPLEFT", layout.railLeft, -layout.searchTop)
+            search:SetPoint("TOPRIGHT", target, "TOPRIGHT", -layout.searchRight, -layout.searchTop)
+        else
+            search:SetParent(acoset.header)
+            search:SetHeight(acoset.baseSearchHeight)
+            search:SetPoint("LEFT", acoset.header, "LEFT", 9, 1)
+            search:SetPoint("RIGHT", acoset.header, "RIGHT", -3, 1)
+        end
+
+        acoset.header:SetShown(not modern)
+        acoset.headerHeight = modern and 0 or acoset.baseHeaderHeight
+        acoset:UpdateBodyLayout()
+    end)
+
     AddCategory("GENERAL")
     local languageChoices = {}
     for _, info in ipairs(AzerothCompendium.LANGUAGES) do
