@@ -843,6 +843,27 @@ function Theme:Refresh()
         self.layoutModern = modern
         if type(AzerothCompendium.ApplyCompendiumLayout) == "function" then AzerothCompendium:ApplyCompendiumLayout() end
     end
+
+    if modern then
+        for _, root in ipairs(self.roots) do
+            self:Nudge(root)
+        end
+    end
+end
+
+function Theme:Nudge(frame)
+    if frame.acoNudging or not frame:IsShown() or frame:GetNumPoints() == 0 then return end
+    local points = self:SavePoints(frame)
+    frame.acoNudging = true
+    frame:ClearAllPoints()
+    for _, point in ipairs(points) do
+        frame:SetPoint(point[1], point[2], point[3], (point[4] or 0) + 0.01, point[5] or 0)
+    end
+
+    C_Timer.After(0, function()
+        frame.acoNudging = nil
+        Theme:RestorePoints(frame, points)
+    end)
 end
 
 function Theme:QueueRefresh()
