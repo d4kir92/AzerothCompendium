@@ -436,6 +436,43 @@ local function CreateBorder(frame, layer, sublevel)
     return edges
 end
 
+local ModernStyle = {
+    box = {0.11, 0.115, 0.133, 1},
+    node = {0.175, 0.183, 0.212, 1},
+    hover = {1, 1, 1, 0.06},
+}
+
+function ModernStyle.Skin(frame, background, border, color, radius)
+    local Theme = AzerothCompendium.Theme
+    local record = Theme:NewRecord(frame)
+    Theme:Hide(record, background)
+    for _, edge in ipairs(border) do
+        Theme:Hide(record, edge)
+    end
+
+    Theme:Round(record, frame, "BACKGROUND", -8, color, radius)
+    return record
+end
+
+function ModernStyle.SkinNode(node, highlight)
+    local Theme = AzerothCompendium.Theme
+    local record = ModernStyle.Skin(node, node.background, node.border, ModernStyle.node, Theme.radius.control)
+    Theme:Hide(record, highlight)
+    Theme:Round(record, node, "HIGHLIGHT", 0, ModernStyle.hover, Theme.radius.control)
+    local anchor = Theme:Anchor(node)
+    anchor:SetWidth(3)
+    anchor:SetPoint("TOPLEFT", node, "TOPLEFT", 0, -6)
+    anchor:SetPoint("BOTTOMLEFT", node, "BOTTOMLEFT", 0, 6)
+    node.accent = Theme:Round(record, node, "BORDER", 0, Theme.colors.muted, 1.5, anchor)
+    Theme:ApplyRecord(record, Theme:IsModern())
+end
+
+function ModernStyle.SkinPanel(frame)
+    local Theme = AzerothCompendium.Theme
+    local record = ModernStyle.Skin(frame, frame.background, frame.border, ModernStyle.box, Theme.radius.panel)
+    Theme:ApplyRecord(record, Theme:IsModern())
+end
+
 local function CreateRewardIcon(node)
     local button = CreateFrame("Button", nil, node)
     button:SetSize(ICON_SIZE, ICON_SIZE)
@@ -530,6 +567,7 @@ local function CreateNode(canvas, tree)
     node.providedName = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     node.providedName:SetJustifyH("LEFT")
     node.providedName:SetWordWrap(false)
+    ModernStyle.SkinNode(node, highlight)
     node:SetScript("OnEnter", function(sel)
         sel.tree:SetQuestHighlight(sel.node and sel.node.id)
         ShowNodeTooltip(sel)
@@ -694,6 +732,7 @@ local function UpdateNode(button, node, width)
     button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
     local border = STATUS_BORDER[status]
     button.border:SetColor(border[1], border[2], border[3], border[4])
+    AzerothCompendium.Theme:Paint(button.accent, border)
     local y = NODE_PAD_TOP + TITLE_H
     local requiredLevel = GetNodeRequiredLevel(node)
     local classText = AzerothCompendium:GetQuestClassText(node.id)
@@ -1003,6 +1042,7 @@ local function CreateBox(canvas, titleText)
     box.empty = box:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     box.empty:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -HEADER_H - 2)
     box.empty:Hide()
+    ModernStyle.SkinPanel(box)
 
     return box
 end
@@ -1622,6 +1662,8 @@ local function CreateViewSwitch(tree, onChange)
     switch:SetSize(2 * VIEW_BUTTON_W, BOTTOM_H - 2)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
     switch.buttons = {}
+    switch.acoSegmentGroup = true
+    switch.acoSegmentColor = AzerothCompendium.Theme.colors.control
     for index, mode in ipairs({"tree", "list"}) do
         local button = AzerothCompendium:CreateMenuButton(nil, switch)
         button:SetSize(VIEW_BUTTON_W, BOTTOM_H - 2)
@@ -1629,20 +1671,39 @@ local function CreateViewSwitch(tree, onChange)
         button:SetNormalFontObject("GameFontNormalSmall")
         button:SetHighlightFontObject("GameFontHighlightSmall")
         button:SetScript("OnClick", function() onChange(mode) end)
+        button.acoSegment = function() return switch.mode == mode end
         switch.buttons[mode] = button
     end
 
     function switch:SetMode(mode)
+        self.mode = mode
+        local modern = AzerothCompendium.Theme:IsModern()
         for key, button in pairs(self.buttons) do
             if key == mode then
                 button:LockHighlight()
                 button:SetNormalFontObject("GameFontHighlightSmall")
             else
                 button:UnlockHighlight()
-                button:SetNormalFontObject("GameFontNormalSmall")
+                button:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
             end
+
+            AzerothCompendium.Theme:UpdateFrame(button)
         end
     end
+
+    AzerothCompendium:AddLayout(switch, function(modern)
+        local inset = modern and 3 or 0
+        switch:SetSize(2 * VIEW_BUTTON_W + 2 * inset, BOTTOM_H - 2 + 2 * inset)
+        switch:ClearAllPoints()
+        switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2 + inset)
+        for index, mode in ipairs({"tree", "list"}) do
+            local button = switch.buttons[mode]
+            button:ClearAllPoints()
+            button:SetPoint("LEFT", switch, "LEFT", inset + (index - 1) * VIEW_BUTTON_W, 0)
+        end
+
+        if switch.mode then switch:SetMode(switch.mode) end
+    end)
 
     local function UpdateTexts()
         switch.buttons.tree:SetText(AzerothCompendium:Trans("LID_QUESTVIEWTREE"))
@@ -1774,6 +1835,7 @@ local function CreateQuestDetail(tree)
     panel.background:SetColorTexture(0, 0, 0, 0.3)
     panel.border = CreateBorder(panel, "BACKGROUND", -6)
     panel.border:SetColor(0.75, 0.6, 0.25, 0.7)
+    ModernStyle.SkinPanel(panel)
     local scroll = CreateFrame("ScrollFrame", nil, panel)
     scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", DETAIL_PAD, -DETAIL_PAD)
     scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -DETAIL_PAD, DETAIL_PAD)
@@ -2296,8 +2358,19 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.empty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
     tree.empty:Hide()
     tree.hint = tree:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    tree.hint:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMRIGHT", -4, 4)
     tree.hint:Hide()
+    AzerothCompendium:AddLayout(tree.hint, function(modern)
+        tree.hint:ClearAllPoints()
+        hbar:ClearAllPoints()
+        hbar:SetPoint("LEFT", viewSwitch, "RIGHT", 10, 0)
+        if modern then
+            tree.hint:SetPoint("RIGHT", legendButton, "LEFT", -12, 0)
+            hbar:SetPoint("RIGHT", tree.hint, "LEFT", -10, 0)
+        else
+            tree.hint:SetPoint("BOTTOMRIGHT", scroll, "BOTTOMRIGHT", -4, 4)
+            hbar:SetPoint("RIGHT", legendButton, "LEFT", -10, 0)
+        end
+    end)
     AzerothCompendium:OnLanguage(function()
         for section = 1, SECTION_COUNT do
             tree.boxes[section].title:SetText(AzerothCompendium:Trans(SECTION_TITLES[section]))

@@ -571,7 +571,7 @@ end
 
 function Theme:SkinSegmentGroup(frame)
     local record = self:NewRecord(frame)
-    self:Round(record, frame, "BACKGROUND", -8, self.colors.panel, self.radius.panel)
+    self:Round(record, frame, "BACKGROUND", -8, frame.acoSegmentColor or self.colors.panel, self.radius.panel)
 end
 
 function Theme:SkinScrollBar(bar)
@@ -588,9 +588,15 @@ function Theme:SkinScrollBar(bar)
         end
 
         local holder = self:Anchor(thumb)
-        holder:SetWidth(6)
-        holder:SetPoint("TOP", thumb, "TOP", 0, 0)
-        holder:SetPoint("BOTTOM", thumb, "BOTTOM", 0, 0)
+        if thumb.isHorizontal or bar.isHorizontal then
+            holder:SetHeight(6)
+            holder:SetPoint("LEFT", thumb, "LEFT", 0, 0)
+            holder:SetPoint("RIGHT", thumb, "RIGHT", 0, 0)
+        else
+            holder:SetWidth(6)
+            holder:SetPoint("TOP", thumb, "TOP", 0, 0)
+            holder:SetPoint("BOTTOM", thumb, "BOTTOM", 0, 0)
+        end
         local fill = self:Round(record, thumb, "ARTWORK", 0, self.colors.thumb, 3, holder)
         if thumb.HookScript then
             thumb:HookScript("OnEnter", function() Theme:Paint(fill, Theme.colors.accent) end)
