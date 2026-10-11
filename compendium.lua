@@ -2876,13 +2876,7 @@ local function CreateLootRow(scroller)
 
         self.slot:SetText(AzerothCompendium:GetItemSlotText(itemID))
         if chance ~= nil and AzerothCompendium:GetConfig("SHOWCHANCE", true) then
-            local pattern = "%.1f%%"
-            if chance > 0 and chance < 0.005 then
-                pattern = "%.3f%%"
-            elseif chance < 1 then
-                pattern = "%.2f%%"
-            end
-            self.chance:SetText(format(pattern, chance))
+            self.chance:SetText(format("%.2f%%", chance))
             if chance >= 50 then
                 self.chance:SetTextColor(0.4, 0.9, 0.4)
             elseif chance >= 10 then
