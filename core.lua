@@ -1,7 +1,7 @@
 local _, AzerothCompendium = ...
 local ADDON = "AzerothCompendium"
-local ICON = 133737
-AzerothCompendium:SetAddonOutput(ADDON, ICON)
+local ICON = AzerothCompendium:GetAddonIcon()
+AzerothCompendium:SetAddonOutput()
 local byType = nil
 local preloaded = false
 local questsByID = nil
@@ -38,12 +38,6 @@ local function IsOpposingQuestSide(side)
     return side == 1 and faction == "Horde" or side == 2 and faction == "Alliance"
 end
 
-function AzerothCompendium:GetAddonVersion()
-    if C_AddOns and C_AddOns.GetAddOnMetadata then return C_AddOns.GetAddOnMetadata(ADDON, "Version") end
-    if GetAddOnMetadata then return GetAddOnMetadata(ADDON, "Version") end
-
-    return "0.0.0"
-end
 local FOREVER_ITEM_MIN = 200000
 local FLAVOR_FOREVER = "forever"
 local FLAVOR_CLASSIC_ERA = "classic_era"

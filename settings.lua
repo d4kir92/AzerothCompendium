@@ -1,5 +1,5 @@
 local _, AzerothCompendium = ...
-local ICON = 133737
+local ICON = AzerothCompendium:GetAddonIcon()
 local acoset = nil
 local classFilterSetting = nil
 function AzerothCompendium:ToggleSettings()
@@ -280,7 +280,7 @@ function AzerothCompendium:InitSetting()
     if AzerothCompendium.settingsInitialized then return end
     AzerothCompendium.settingsInitialized = true
     ACOTAB = ACOTAB or {}
-    AzerothCompendium:SetVersion(ICON, AzerothCompendium:GetAddonVersion())
+    AzerothCompendium:SetVersion()
     AzerothCompendium:SetAppendTab(ACOTAB)
     AzerothCompendium:RefreshSettingsLanguage()
     AzerothCompendium:OnLanguage(function() AzerothCompendium:RefreshSettingsLanguage() end)
