@@ -64,9 +64,9 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [292] = { -- The Deadmines - Ironclad Cove
         {"level", 0.123, 0.883, 291, true},
-        {"boss", 0.561, 0.265, 646},
-        {"boss", 0.632, 0.389, 647},
-        {"boss", 0.603, 0.455, 639},
+        {"boss", 0.531, 0.175, 646},
+        {"boss", 0.604, 0.375, 647},
+        {"boss", 0.604, 0.448, 639},
         {"boss", 0.668, 0.398, 645},
     },
     [279] = { -- Wailing Caverns
@@ -136,18 +136,18 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.329, 0.602, 4887},
         {"boss", 0.101, 0.360, 4831},
         {"boss", 0.536, 0.568, 6243},
-        {"boss", 0.614, 0.625, 12902},
     },
     [222] = { -- Blackfathom Deeps 2
         {"level", 0.477, 0.707, 223},
         {"level", 0.350, 0.290, 221},
         {"boss", 0.519, 0.816, 4832},
         {"boss", 0.856, 0.866, 4829},
+        {"boss", 0.334, 0.695, 12902},
+        {"boss", 0.407, 0.720, 12876},
     },
     [223] = { -- Blackfathom Deeps 3
         {"level", 0.300, 0.612, 222, true},
         {"boss", 0.606, 0.312, 4830},
-        {"boss", 0.234, 0.498, 12876},
     },
     [226] = { -- Gnomeregan - The Hall of Gears
         {"entrance", 0.644, 0.275},
@@ -417,6 +417,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.430, 0.830, 226, true},
         {"level", 0.640, 0.580, 226, true},
         {"boss", 0.755, 0.450, 7079},
+        {"boss", 0.242, 0.678, 6235},
     },
     [228] = { -- Gnomeregan - Launch Bay
         {"entrance", 0.870, 0.480},
@@ -428,8 +429,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [229] = { -- Gnomeregan - Tinkers' Court
         {"level", 0.481, 0.540, 228, true},
         {"level", 0.710, 0.773, 228, true},
-        {"boss", 0.508, 0.331, 6235},
-        {"boss", 0.295, 0.540, 6228},
+        {"boss", 0.465, 0.640, 6228},
         {"boss", 0.313, 0.300, 7800},
     },
     [231] = { -- Uldaman - Khaz'Goroth's Seat
