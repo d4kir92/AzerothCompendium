@@ -373,7 +373,37 @@ local lootByInstance = {
 			},
 		},
 	},
-	["City of Dalaran"] = {{273045},},
+	["City of Dalaran"] = {
+		{273045},
+		{
+			[1] = 286987,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286988,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286989,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286991,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286992,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286994,
+			["itemClass"] = 4,
+		},
+		{
+			[1] = 286995,
+			["itemClass"] = 4,
+		},
+	},
 	["Wailing Caverns"] = {
 		{
 			[1] = 2924,
