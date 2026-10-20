@@ -66,6 +66,7 @@ data\trash.lua
 data\boss_ranks.lua
 data\vendors.lua
 data\loadingscreens.lua
+data\vendor_locations.lua
 data\instance_wings.lua
 data\continents.lua
 

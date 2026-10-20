@@ -66,6 +66,7 @@ data\tbc\trash.lua
 data\tbc\boss_ranks.lua
 data\vendors.lua
 data\loadingscreens.lua
+data\vendor_locations.lua
 data\tbc\instance_wings.lua
 data\continents.lua
 

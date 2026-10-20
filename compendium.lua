@@ -698,7 +698,92 @@ local function UsesLoadingScreens()
     return listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
 end
 
+local VENDOR_MAP = {zoom = 1.6, cache = {}}
+
+function VENDOR_MAP.GetArt(uiMapID)
+    if VENDOR_MAP.cache[uiMapID] ~= nil then return VENDOR_MAP.cache[uiMapID] or nil end
+    local art = false
+    if C_Map and C_Map.GetMapArtLayers and C_Map.GetMapArtLayerTextures then
+        local layers = C_Map.GetMapArtLayers(uiMapID)
+        local layer = layers and layers[1]
+        local textures = C_Map.GetMapArtLayerTextures(uiMapID, 1)
+        if layer and textures and #textures > 0 and layer.layerWidth > 0 and layer.layerHeight > 0 and layer.tileWidth > 0 and layer.tileHeight > 0 then
+            art = {
+                width = layer.layerWidth,
+                height = layer.layerHeight,
+                tileWidth = layer.tileWidth,
+                tileHeight = layer.tileHeight,
+                cols = ceil(layer.layerWidth / layer.tileWidth),
+                textures = textures,
+            }
+        end
+    end
+
+    VENDOR_MAP.cache[uiMapID] = art
+    return art or nil
+end
+
+function VENDOR_MAP.Hide(row)
+    row.vendorMap = nil
+    for _, tile in ipairs(row.vendorMapTiles or {}) do
+        tile:Hide()
+    end
+end
+
+function VENDOR_MAP.Update(row)
+    local map = row.vendorMap
+    if map == nil then return end
+    local width, height = row:GetWidth(), row:GetHeight() - 2
+    if width <= 0 or height <= 0 then return end
+    local art = map.art
+    local scale = max(width / art.width, height / art.height) * VENDOR_MAP.zoom
+    local viewWidth, viewHeight = width / scale, height / scale
+    local left = min(max(map.x * art.width - viewWidth / 2, 0), art.width - viewWidth)
+    local top = min(max(map.y * art.height - viewHeight / 2, 0), art.height - viewHeight)
+    row.vendorMapTiles = row.vendorMapTiles or {}
+    for index, fileID in ipairs(art.textures) do
+        local tile = row.vendorMapTiles[index]
+        if tile == nil then
+            tile = row:CreateTexture(nil, "BACKGROUND", nil, -8)
+            row.vendorMapTiles[index] = tile
+        end
+
+        local tileX = ((index - 1) % art.cols) * art.tileWidth
+        local tileY = floor((index - 1) / art.cols) * art.tileHeight
+        local x0, x1 = max(tileX, left), min(tileX + art.tileWidth, left + viewWidth)
+        local y0, y1 = max(tileY, top), min(tileY + art.tileHeight, top + viewHeight)
+        if x1 > x0 and y1 > y0 then
+            tile:SetTexture(fileID)
+            tile:SetTexCoord((x0 - tileX) / art.tileWidth, (x1 - tileX) / art.tileWidth, (y0 - tileY) / art.tileHeight, (y1 - tileY) / art.tileHeight)
+            tile:ClearAllPoints()
+            tile:SetPoint("TOPLEFT", row, "TOPLEFT", (x0 - left) * scale, -1 - (y0 - top) * scale)
+            tile:SetSize((x1 - x0) * scale, (y1 - y0) * scale)
+            tile:Show()
+        else
+            tile:Hide()
+        end
+    end
+
+    for index = #art.textures + 1, #row.vendorMapTiles do
+        row.vendorMapTiles[index]:Hide()
+    end
+end
+
+function VENDOR_MAP.Show(row, inst)
+    local location = listKind == "faction" and inst.factionID and AzerothCompendium.VENDORLOCATIONS and AzerothCompendium.VENDORLOCATIONS[inst.id]
+    local art = location and VENDOR_MAP.GetArt(location[1])
+    if art == nil then
+        VENDOR_MAP.Hide(row)
+        return false
+    end
+
+    row.vendorMap = {art = art, x = location[2] / 100, y = location[3] / 100}
+    VENDOR_MAP.Update(row)
+    return true
+end
+
 local function UpdateLoadingScreenCrop(row)
+    VENDOR_MAP.Update(row)
     local width, height = row:GetWidth(), row:GetHeight()
     if width <= 0 or height <= 0 then return end
     local layout = row.loadingLayout or LOADSCREEN_CLASSIC
@@ -872,7 +957,10 @@ local function UpdateInstanceBackground(row, inst)
     local fileID, layout = nil, nil
     if UsesLoadingScreens() and not inst.levelGroup then fileID, layout = GetLoadingScreen(inst) end
     if row.factionEmblem then row.factionEmblem:Hide() end
-    if fileID ~= nil then
+    VENDOR_MAP.Hide(row)
+    if UsesLoadingScreens() and not inst.levelGroup and VENDOR_MAP.Show(row, inst) then
+        row.loadingScreen:Hide()
+    elseif fileID ~= nil then
         row.loadingLayout = layout
         row.loadingScreen:SetTexture(fileID)
         UpdateLoadingScreenCrop(row)
