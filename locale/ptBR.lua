@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("ptBR", "LID_SETMEETINGSTONEWAYPOINT", "Marcar a pedr
 AzerothCompendium:AddTrans("ptBR", "LID_SHOWINSTANCEMAP", "Mostrar mapa da masmorra")
 AzerothCompendium:AddTrans("ptBR", "LID_ENTRANCE", "Entrada da instância")
 AzerothCompendium:AddTrans("ptBR", "LID_MEETINGSTONE", "Pedra de encontro")
+AzerothCompendium:AddTrans("ptBR", "LID_SETVENDORWAYPOINT", "Marcar o vendedor")
+AzerothCompendium:AddTrans("ptBR", "LID_VENDOR", "Vendedor")
 AzerothCompendium:AddTrans("ptBR", "LID_WORLDMAPWAYPOINTHINT", "Clique: marcar ponto de rota no mapa-múndi")
 AzerothCompendium:AddTrans("ptBR", "LID_SHOWBOSSPINS", "Mostrar marcadores de chefes")
 AzerothCompendium:AddTrans("ptBR", "LID_HIDEBOSSPINS", "Ocultar marcadores de chefes")

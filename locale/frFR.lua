@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("frFR", "LID_SETMEETINGSTONEWAYPOINT", "Placer un rep
 AzerothCompendium:AddTrans("frFR", "LID_SHOWINSTANCEMAP", "Afficher la carte du donjon")
 AzerothCompendium:AddTrans("frFR", "LID_ENTRANCE", "Entrée de l'instance")
 AzerothCompendium:AddTrans("frFR", "LID_MEETINGSTONE", "Pierre de rencontre")
+AzerothCompendium:AddTrans("frFR", "LID_SETVENDORWAYPOINT", "Placer un repère vers le marchand")
+AzerothCompendium:AddTrans("frFR", "LID_VENDOR", "Marchand")
 AzerothCompendium:AddTrans("frFR", "LID_WORLDMAPWAYPOINTHINT", "Clic : placer un repère sur la carte du monde")
 AzerothCompendium:AddTrans("frFR", "LID_SHOWBOSSPINS", "Afficher les repères de boss")
 AzerothCompendium:AddTrans("frFR", "LID_HIDEBOSSPINS", "Masquer les repères de boss")

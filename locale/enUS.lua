@@ -110,6 +110,8 @@ AzerothCompendium:AddTrans("enUS", "LID_SETMEETINGSTONEWAYPOINT", "Set waypoint 
 AzerothCompendium:AddTrans("enUS", "LID_SHOWINSTANCEMAP", "Show dungeon map")
 AzerothCompendium:AddTrans("enUS", "LID_ENTRANCE", "Instance entrance")
 AzerothCompendium:AddTrans("enUS", "LID_MEETINGSTONE", "Meeting stone")
+AzerothCompendium:AddTrans("enUS", "LID_SETVENDORWAYPOINT", "Set waypoint to the vendor")
+AzerothCompendium:AddTrans("enUS", "LID_VENDOR", "Vendor")
 AzerothCompendium:AddTrans("enUS", "LID_WORLDMAPWAYPOINTHINT", "Click: set world map waypoint")
 AzerothCompendium:AddTrans("enUS", "LID_WING_GRAVEYARD", "Graveyard")
 AzerothCompendium:AddTrans("enUS", "LID_WING_LIBRARY", "Library")

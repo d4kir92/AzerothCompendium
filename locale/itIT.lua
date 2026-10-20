@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("itIT", "LID_SETMEETINGSTONEWAYPOINT", "Imposta un pu
 AzerothCompendium:AddTrans("itIT", "LID_SHOWINSTANCEMAP", "Mostra la mappa del dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_ENTRANCE", "Ingresso dell'istanza")
 AzerothCompendium:AddTrans("itIT", "LID_MEETINGSTONE", "Pietra dell'incontro")
+AzerothCompendium:AddTrans("itIT", "LID_SETVENDORWAYPOINT", "Imposta un punto al mercante")
+AzerothCompendium:AddTrans("itIT", "LID_VENDOR", "Mercante")
 AzerothCompendium:AddTrans("itIT", "LID_WORLDMAPWAYPOINTHINT", "Clic: imposta un punto sulla mappa del mondo")
 AzerothCompendium:AddTrans("itIT", "LID_SHOWBOSSPINS", "Mostra i segnalini dei boss")
 AzerothCompendium:AddTrans("itIT", "LID_HIDEBOSSPINS", "Nascondi i segnalini dei boss")

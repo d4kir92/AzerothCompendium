@@ -1911,6 +1911,22 @@ function AzerothCompendium:SetInstanceMeetingStoneWaypoint(inst)
     return SetLocationWaypoint(AzerothCompendium:GetInstanceMeetingStone(inst))
 end
 
+function AzerothCompendium:GetVendorLocation(inst)
+    local location = inst and inst.vendor and AzerothCompendium.VENDORLOCATIONS and AzerothCompendium.VENDORLOCATIONS[inst.id]
+    if location and type(location[1]) == "table" then location = location[AzerothCompendium:IsQuestSideVisible(2) and 2 or 1] end
+    if location == nil or location[2] == nil or location[3] == nil then return nil end
+
+    return location
+end
+
+function AzerothCompendium:GetVendorZoneName(inst)
+    return GetLocationZoneName(AzerothCompendium:GetVendorLocation(inst))
+end
+
+function AzerothCompendium:SetVendorWaypoint(inst)
+    return SetLocationWaypoint(AzerothCompendium:GetVendorLocation(inst))
+end
+
 function AzerothCompendium:SetMapWaypoint(mapID, x, y)
     if mapID == nil then return false end
     if InCombatLockdown and InCombatLockdown() then return false, "combat" end

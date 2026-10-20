@@ -110,6 +110,8 @@ AzerothCompendium:AddTrans("deDE", "LID_SETMEETINGSTONEWAYPOINT", "Wegpunkt zum 
 AzerothCompendium:AddTrans("deDE", "LID_SHOWINSTANCEMAP", "Dungeonkarte anzeigen")
 AzerothCompendium:AddTrans("deDE", "LID_ENTRANCE", "Instanzeingang")
 AzerothCompendium:AddTrans("deDE", "LID_MEETINGSTONE", "Versammlungsstein")
+AzerothCompendium:AddTrans("deDE", "LID_SETVENDORWAYPOINT", "Wegpunkt zum Händler setzen")
+AzerothCompendium:AddTrans("deDE", "LID_VENDOR", "Händler")
 AzerothCompendium:AddTrans("deDE", "LID_WORLDMAPWAYPOINTHINT", "Klick: Wegpunkt auf der Weltkarte setzen")
 AzerothCompendium:AddTrans("deDE", "LID_WING_GRAVEYARD", "Friedhof")
 AzerothCompendium:AddTrans("deDE", "LID_WING_LIBRARY", "Bibliothek")

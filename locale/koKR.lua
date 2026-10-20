@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("koKR", "LID_SETMEETINGSTONEWAYPOINT", "만남의 돌
 AzerothCompendium:AddTrans("koKR", "LID_SHOWINSTANCEMAP", "던전 지도 보기")
 AzerothCompendium:AddTrans("koKR", "LID_ENTRANCE", "인스턴스 입구")
 AzerothCompendium:AddTrans("koKR", "LID_MEETINGSTONE", "만남의 돌")
+AzerothCompendium:AddTrans("koKR", "LID_SETVENDORWAYPOINT", "상인에게 경로 설정")
+AzerothCompendium:AddTrans("koKR", "LID_VENDOR", "상인")
 AzerothCompendium:AddTrans("koKR", "LID_WORLDMAPWAYPOINTHINT", "클릭: 세계 지도에 경로 설정")
 AzerothCompendium:AddTrans("koKR", "LID_SHOWBOSSPINS", "우두머리 핀 표시")
 AzerothCompendium:AddTrans("koKR", "LID_HIDEBOSSPINS", "우두머리 핀 숨기기")

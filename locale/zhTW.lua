@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("zhTW", "LID_SETMEETINGSTONEWAYPOINT", "為集合石�
 AzerothCompendium:AddTrans("zhTW", "LID_SHOWINSTANCEMAP", "顯示地城地圖")
 AzerothCompendium:AddTrans("zhTW", "LID_ENTRANCE", "副本入口")
 AzerothCompendium:AddTrans("zhTW", "LID_MEETINGSTONE", "集合石")
+AzerothCompendium:AddTrans("zhTW", "LID_SETVENDORWAYPOINT", "為商人設定路點")
+AzerothCompendium:AddTrans("zhTW", "LID_VENDOR", "商人")
 AzerothCompendium:AddTrans("zhTW", "LID_WORLDMAPWAYPOINTHINT", "點擊：在世界地圖上設定路點")
 AzerothCompendium:AddTrans("zhTW", "LID_SHOWBOSSPINS", "顯示首領標記")
 AzerothCompendium:AddTrans("zhTW", "LID_HIDEBOSSPINS", "隱藏首領標記")

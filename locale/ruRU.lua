@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_SETMEETINGSTONEWAYPOINT", "Постав�
 AzerothCompendium:AddTrans("ruRU", "LID_SHOWINSTANCEMAP", "Показать карту подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_ENTRANCE", "Вход в подземелье")
 AzerothCompendium:AddTrans("ruRU", "LID_MEETINGSTONE", "Камень встреч")
+AzerothCompendium:AddTrans("ruRU", "LID_SETVENDORWAYPOINT", "Поставить метку у торговца")
+AzerothCompendium:AddTrans("ruRU", "LID_VENDOR", "Торговец")
 AzerothCompendium:AddTrans("ruRU", "LID_WORLDMAPWAYPOINTHINT", "Клик: поставить метку на карте мира")
 AzerothCompendium:AddTrans("ruRU", "LID_SHOWBOSSPINS", "Показать метки боссов")
 AzerothCompendium:AddTrans("ruRU", "LID_HIDEBOSSPINS", "Скрыть метки боссов")

@@ -777,7 +777,7 @@ function VENDOR_MAP.Show(row, inst)
         return false
     end
 
-    row.vendorMap = {art = art, x = location[2] / 100, y = location[3] / 100}
+    row.vendorMap = {art = art, x = (location[2] or 50) / 100, y = (location[3] or 50) / 100}
     VENDOR_MAP.Update(row)
     return true
 end
@@ -883,6 +883,14 @@ local LOCATION_PINS = {
         title = "LID_SETMEETINGSTONEWAYPOINT",
         label = "LID_MEETINGSTONE",
     },
+    vendor = {
+        getIcon = function() return {"Interface\\GossipFrame\\VendorGossipIcon", false, true, 2} end,
+        get = function(inst) return AzerothCompendium:GetVendorLocation(inst) end,
+        getZone = function(inst) return AzerothCompendium:GetVendorZoneName(inst) end,
+        setWaypoint = function(inst) return AzerothCompendium:SetVendorWaypoint(inst) end,
+        title = "LID_SETVENDORWAYPOINT",
+        label = "LID_VENDOR",
+    },
 }
 
 local function CreateLocationPin(row, def)
@@ -934,6 +942,21 @@ local function CreateLocationPin(row, def)
     return pin
 end
 
+local function AddIconRing(parent, icon, size, round)
+    local ring = parent:CreateTexture(nil, "OVERLAY", nil, 1)
+    ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    ring:SetTexCoord(0, 0.6, 0, 0.6)
+    ring:SetSize(size * 1.55, size * 1.55)
+    ring:SetPoint("CENTER", icon, "CENTER", 0, 0)
+    if round and parent.CreateMaskTexture and icon.AddMaskTexture then
+        local mask = parent:CreateMaskTexture()
+        mask:SetAllPoints(icon)
+        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        icon:AddMaskTexture(mask)
+    end
+    return ring
+end
+
 local function UpdateLocationPins(row, inst)
     local right = -4
     for _, pin in ipairs(row.locationPins) do
@@ -945,6 +968,37 @@ local function UpdateLocationPins(row, inst)
             pin:ClearAllPoints()
             pin:SetPoint("TOPRIGHT", row, "TOPRIGHT", right, -INSTANCE_TYPE_ICON_OFFSET - (INSTANCE_TYPE_ICON_SIZE - LOCATION_PIN_SIZE) / 2)
             pin:Show()
+            right = right - LOCATION_PIN_SIZE - LOCATION_PIN_SPACING
+        end
+    end
+
+    row.sideIcons = row.sideIcons or {}
+    local vendorSide = listKind == "faction" and inst.vendor and (AzerothCompendium.VENDORSIDES and AzerothCompendium.VENDORSIDES[inst.id] or 0)
+    for side = 2, 1, -1 do
+        local icon = row.sideIcons[side]
+        if icon then icon:Hide() end
+        if vendorSide and (vendorSide == 0 or vendorSide == side) then
+            if icon == nil then
+                icon = CreateFrame("Frame", nil, row)
+                icon:SetSize(LOCATION_PIN_SIZE, LOCATION_PIN_SIZE)
+                icon:SetFrameLevel(row:GetFrameLevel() + 2)
+                icon.texture = icon:CreateTexture(nil, "ARTWORK")
+                icon.texture:SetPoint("TOPLEFT", 3, -3)
+                icon.texture:SetPoint("BOTTOMRIGHT", -3, 3)
+                icon.texture:SetTexture(side == 1 and "Interface\\Icons\\INV_BannerPVP_02" or "Interface\\Icons\\INV_BannerPVP_01")
+                icon.ring = AddIconRing(icon, icon.texture, LOCATION_PIN_SIZE - 6, true)
+                icon:SetScript("OnEnter", function(sel)
+                    GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                    GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(side == 1 and FACTION_ALLIANCE or FACTION_HORDE))
+                    GameTooltip:Show()
+                end)
+                icon:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+                row.sideIcons[side] = icon
+            end
+
+            icon:ClearAllPoints()
+            icon:SetPoint("TOPRIGHT", row, "TOPRIGHT", right, -INSTANCE_TYPE_ICON_OFFSET - (INSTANCE_TYPE_ICON_SIZE - LOCATION_PIN_SIZE) / 2)
+            icon:Show()
             right = right - LOCATION_PIN_SIZE - LOCATION_PIN_SPACING
         end
     end
@@ -966,7 +1020,7 @@ local function UpdateInstanceBackground(row, inst)
         UpdateLoadingScreenCrop(row)
         row.loadingScreen:Show()
     elseif UsesLoadingScreens() and not inst.levelGroup and inst.honor then
-        local horde = UnitFactionGroup and UnitFactionGroup("player") == "Horde"
+        local horde = AzerothCompendium:IsQuestSideVisible(2)
         if row.factionEmblem == nil then
             row.factionEmblem = row:CreateTexture(nil, "BORDER")
             row.factionEmblem:SetPoint("TOP", row, "TOP", 0, -2)
@@ -1033,7 +1087,7 @@ local function UpdateInstanceBackground(row, inst)
             AzerothCompendium:HideGameTooltip()
         end)
 
-        row.locationPins = {CreateLocationPin(row, LOCATION_PINS.entrance), CreateLocationPin(row, LOCATION_PINS.meetingStone)}
+        row.locationPins = {CreateLocationPin(row, LOCATION_PINS.entrance), CreateLocationPin(row, LOCATION_PINS.meetingStone), CreateLocationPin(row, LOCATION_PINS.vendor)}
         row.attuneIcon = CreateFrame("Frame", nil, row)
         row.attuneIcon:SetSize(16, 16)
         row.attuneIcon:SetPoint("RIGHT", row.questCount, "LEFT", -6, 0)
@@ -1080,6 +1134,9 @@ local function UpdateInstanceBackground(row, inst)
     row.attuneIcon:Hide()
     for _, pin in ipairs(row.locationPins) do
         pin:Hide()
+    end
+    for _, icon in pairs(row.sideIcons or {}) do
+        icon:Hide()
     end
 
     if UsesLoadingScreens() and not inst.levelGroup then
@@ -1263,21 +1320,6 @@ end
 
 local function UsesBossPortraits()
     return selectedInstance ~= nil and selectedInstance.vendor ~= true
-end
-
-local function AddIconRing(parent, icon, size, round)
-    local ring = parent:CreateTexture(nil, "OVERLAY", nil, 1)
-    ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-    ring:SetTexCoord(0, 0.6, 0, 0.6)
-    ring:SetSize(size * 1.55, size * 1.55)
-    ring:SetPoint("CENTER", icon, "CENTER", 0, 0)
-    if round and parent.CreateMaskTexture and icon.AddMaskTexture then
-        local mask = parent:CreateMaskTexture()
-        mask:SetAllPoints(icon)
-        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-        icon:AddMaskTexture(mask)
-    end
-    return ring
 end
 
 local function AddBossPortrait(row)

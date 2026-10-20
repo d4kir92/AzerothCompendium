@@ -115,6 +115,8 @@ AzerothCompendium:AddTrans("esMX", "LID_SETMEETINGSTONEWAYPOINT", "Marcar la pie
 AzerothCompendium:AddTrans("esMX", "LID_SHOWINSTANCEMAP", "Mostrar mapa del calabozo")
 AzerothCompendium:AddTrans("esMX", "LID_ENTRANCE", "Entrada de la instancia")
 AzerothCompendium:AddTrans("esMX", "LID_MEETINGSTONE", "Piedra de encuentro")
+AzerothCompendium:AddTrans("esMX", "LID_SETVENDORWAYPOINT", "Marcar al vendedor")
+AzerothCompendium:AddTrans("esMX", "LID_VENDOR", "Vendedor")
 AzerothCompendium:AddTrans("esMX", "LID_WORLDMAPWAYPOINTHINT", "Clic: marcar punto de ruta en el mapa del mundo")
 AzerothCompendium:AddTrans("esMX", "LID_SHOWBOSSPINS", "Mostrar marcadores de jefes")
 AzerothCompendium:AddTrans("esMX", "LID_HIDEBOSSPINS", "Ocultar marcadores de jefes")
