@@ -186,6 +186,7 @@ AzerothCompendium:AddTrans("koKR", "LID_LEGENDLOCKED", "선행 퀘스트 필요"
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDACTIVE", "수락함, 목표 진행 중")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDREADY", "목표 완료, 퀘스트 보고")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDCOMPLETE", "완료")
+AzerothCompendium:AddTrans("koKR", "LID_NOTCOMPLETED", "미완료")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDTAG", "던전 또는 공격대 퀘스트")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDPHASES", "같은 퀘스트의 단계: 수락, 수행, 보고")
 AzerothCompendium:AddTrans("koKR", "LID_LEGENDCHAIN", "연계 퀘스트 (선행 퀘스트 완료 시 초록색)")

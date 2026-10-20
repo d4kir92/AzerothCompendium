@@ -186,6 +186,7 @@ AzerothCompendium:AddTrans("itIT", "LID_LEGENDLOCKED", "Manca la missione preced
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDACTIVE", "Accettata, obiettivi in corso")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDREADY", "Obiettivi completati, consegna la missione")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDCOMPLETE", "Completata")
+AzerothCompendium:AddTrans("itIT", "LID_NOTCOMPLETED", "Non completate")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDTAG", "Missione di spedizione o incursione")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDPHASES", "Passi della stessa missione: accetta, completa, consegna")
 AzerothCompendium:AddTrans("itIT", "LID_LEGENDCHAIN", "Catena di missioni (verde quando la precedente è completata)")

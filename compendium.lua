@@ -285,15 +285,44 @@ local function GetAllLoot(inst)
     for _, boss in ipairs(inst.bosses or {}) do
         for _, entry in ipairs(boss.loot or {}) do
             local itemID = entry[1]
-            if not seen[itemID] and IsItemVisible(itemID) then
-                seen[itemID] = true
-                tinsert(list, {
-                    itemID,
-                    entry[2],
-                    mobs = entry.mobs,
-                    itemClass = entry.itemClass,
-                    source = boss
-                })
+            if IsItemVisible(itemID) then
+                local row = seen[itemID]
+                if row == nil then
+                    row = {
+                        itemID,
+                        entry[2],
+                        mobs = {},
+                        itemClass = entry.itemClass,
+                        source = boss
+                    }
+                    seen[itemID] = row
+                    tinsert(list, row)
+                end
+
+                if boss.trash and entry.mobs and #entry.mobs > 0 then
+                    for _, mob in ipairs(entry.mobs) do
+                        tinsert(row.mobs, {
+                            name = mob.name,
+                            npcs = mob.npcs or {},
+                            model = mob.model,
+                            classification = mob.classification,
+                            chance = mob.chance,
+                            level = mob.level,
+                            boss = boss
+                        })
+                    end
+                else
+                    local npcID = boss.npcs and boss.npcs[1]
+                    tinsert(row.mobs, {
+                        name = AzerothCompendium:GetBossName(boss),
+                        npcs = boss.npcs or {},
+                        model = boss.model,
+                        classification = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or (not boss.trash and DEFAULT_BOSS_RANK or nil),
+                        chance = entry[2],
+                        level = boss.level,
+                        boss = boss
+                    })
+                end
             end
         end
     end
@@ -1687,7 +1716,9 @@ local function GetWorldQuestItemList()
             local source = entry.source or AzerothCompendium:Trans("LID_WORLDDROPUNKNOWN")
             local sourceText = source
             if entry.zone ~= nil then sourceText = sourceText .. " - " .. entry.zone end
-            if Matches(itemName) or Matches(entry.itemName) or Matches(questName) or Matches(sourceText) or Matches(entry.description) then
+            local quest = AzerothCompendium:GetQuestDataByID(entry.questID)
+            local side = quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[entry.questID]
+            if AzerothCompendium:IsQuestSideVisible(side) and (Matches(itemName) or Matches(entry.itemName) or Matches(questName) or Matches(sourceText) or Matches(entry.description)) then
                 tinsert(list, {
                     itemID = entry.itemID,
                     questID = entry.questID,
@@ -1706,7 +1737,33 @@ local function GetWorldQuestItemList()
         if aName == bName then return a.itemID < b.itemID end
         return aName < bName
     end)
-    return list
+    local groups = {{key = "open", label = "LID_NOTCOMPLETED", entries = {}}, {key = "done", label = "LID_LEGENDCOMPLETE", entries = {}}}
+    for _, entry in ipairs(list) do
+        tinsert(groups[AzerothCompendium:IsQuestCompleted(entry.questID) and 2 or 1].entries, entry)
+    end
+
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.WORLDQUESTITEMGROUPS = ACOTABPC.WORLDQUESTITEMGROUPS or {}
+    local grouped = {}
+    for _, group in ipairs(groups) do
+        if #group.entries > 0 then
+            local collapsed = ACOTABPC.WORLDQUESTITEMGROUPS[group.key] == true and searchText == ""
+            tinsert(grouped, {
+                worldQuestHeader = true,
+                rowHeight = 26,
+                key = group.key,
+                name = AzerothCompendium:Trans(group.label),
+                count = #group.entries,
+                collapsed = collapsed
+            })
+            if not collapsed then
+                for _, entry in ipairs(group.entries) do
+                    tinsert(grouped, entry)
+                end
+            end
+        end
+    end
+    return grouped, #list
 end
 
 local function UpdateTabs(tabs, active)
@@ -3154,7 +3211,20 @@ local function CreateWorldQuestItemRow(scroller)
     row.detail:SetWordWrap(false)
     row:SetScript("OnEnter", function(sel) ShowItemTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    row.collapseIcon = row:CreateTexture(nil, "OVERLAY")
+    row.collapseIcon:SetSize(16, 16)
+    row.collapseIcon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    row.collapseIcon:Hide()
     row:SetScript("OnClick", function(sel, button)
+        if sel.worldQuestHeader then
+            if button ~= "LeftButton" then return end
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.WORLDQUESTITEMGROUPS = ACOTABPC.WORLDQUESTITEMGROUPS or {}
+            ACOTABPC.WORLDQUESTITEMGROUPS[sel.worldQuestGroup] = not ACOTABPC.WORLDQUESTITEMGROUPS[sel.worldQuestGroup]
+            AzerothCompendium:RefreshCompendium()
+            return
+        end
+
         if button == "RightButton" then
             ShowWishlistMenu(sel, sel.itemID, {
                 kind = "worldquestitems"
@@ -3201,6 +3271,29 @@ local function CreateWorldQuestItemRow(scroller)
     end)
 
     function row:Update(entry)
+        local header = entry.worldQuestHeader == true
+        self.worldQuestHeader = header
+        self.worldQuestGroup = entry.key
+        self.icon:SetShown(not header)
+        self.iconRing:SetShown(not header)
+        self.detail:SetShown(not header)
+        self.collapseIcon:SetShown(header)
+        self.name:ClearAllPoints()
+        if header then
+            self.worldQuestItem = nil
+            self.itemID = nil
+            self.link = nil
+            self.pin:Hide()
+            AzerothCompendium:UpdateWishlistStar(self, self.icon, nil)
+            AzerothCompendium.Theme:SetCollapseIcon(self.collapseIcon, entry.collapsed)
+            self.name:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
+            self.name:SetPoint("RIGHT", self, "RIGHT", -8, 0)
+            self.name:SetText(entry.name .. " (" .. entry.count .. ")")
+            self.name:SetTextColor(1, 0.82, 0)
+            return
+        end
+
+        self.name:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 8, -1)
         self.worldQuestItem = entry
         self.itemID = entry.itemID
         AzerothCompendium:UpdateWishlistStar(self, self.icon, entry.itemID)
@@ -4216,13 +4309,13 @@ end
 local function RefreshWorldQuestItemsView()
     if compendium == nil or compendium.worldQuestItems == nil then return end
     SetSpecialMode("worldquestitems")
-    local list = GetWorldQuestItemList()
+    local list, total = GetWorldQuestItemList()
     local scroller = compendium.worldQuestItems
     local sameEntries = #list == #scroller.data
     if sameEntries then
         for index, entry in ipairs(list) do
             local previous = scroller.data[index]
-            if entry.itemID ~= previous.itemID or entry.questID ~= previous.questID then
+            if entry.itemID ~= previous.itemID or entry.questID ~= previous.questID or entry.key ~= previous.key or entry.count ~= previous.count then
                 sameEntries = false
                 break
             end
@@ -4236,8 +4329,24 @@ local function RefreshWorldQuestItemsView()
         scroller:SetData(list)
     end
 
-    compendium.worldQuestItemsCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, #list))
-    if #list == 0 then
+    compendium.worldQuestItemsCount:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, total))
+    local toggle = compendium.factionToggle
+    toggle:ClearAllPoints()
+    toggle:SetPoint("BOTTOMRIGHT", scroller, "TOPRIGHT", -2, 4)
+    toggle:Show()
+    toggle.classHeader:Hide()
+    toggle.completedFilter:Hide()
+    for side, button in ipairs(toggle.buttons) do
+        local enabled = AzerothCompendium:IsQuestSideVisible(side)
+        button.ring:Show()
+        button.ring:SetDesaturated(not enabled)
+        button.ring:SetAlpha(enabled and 1 or 0.45)
+        button.icon:SetDesaturated(not enabled)
+        button.icon:SetAlpha(enabled and 1 or 0.45)
+    end
+    compendium.worldQuestItemsCount:ClearAllPoints()
+    compendium.worldQuestItemsCount:SetPoint("RIGHT", toggle, "LEFT", -12, 0)
+    if total == 0 then
         compendium.worldQuestItemsEmpty:Show()
     else
         compendium.worldQuestItemsEmpty:Hide()

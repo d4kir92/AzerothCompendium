@@ -186,6 +186,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_LEGENDLOCKED", "Falta a missão anterior
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDACTIVE", "Aceita, objetivos pendentes")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDREADY", "Objetivos concluídos, entregue a missão")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDCOMPLETE", "Concluída")
+AzerothCompendium:AddTrans("ptBR", "LID_NOTCOMPLETED", "Não concluídas")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDTAG", "Missão de masmorra ou raide")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDPHASES", "Etapas da mesma missão: aceitar, cumprir, entregar")
 AzerothCompendium:AddTrans("ptBR", "LID_LEGENDCHAIN", "Cadeia de missões (verde ao concluir a anterior)")

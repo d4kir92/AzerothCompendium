@@ -186,6 +186,7 @@ AzerothCompendium:AddTrans("frFR", "LID_LEGENDLOCKED", "Quête précédente manq
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDACTIVE", "Acceptée, objectifs en cours")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDREADY", "Objectifs terminés, rendez la quête")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDCOMPLETE", "Terminée")
+AzerothCompendium:AddTrans("frFR", "LID_NOTCOMPLETED", "Non terminées")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDTAG", "Quête de donjon ou de raid")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDPHASES", "Étapes d'une même quête : accepter, accomplir, rendre")
 AzerothCompendium:AddTrans("frFR", "LID_LEGENDCHAIN", "Suite de quêtes (verte une fois la quête précédente terminée)")

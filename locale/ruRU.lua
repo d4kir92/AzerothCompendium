@@ -186,6 +186,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_LEGENDLOCKED", "Не выполнено 
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDACTIVE", "Взято, цели не выполнены")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDREADY", "Цели выполнены, сдайте задание")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDCOMPLETE", "Выполнено")
+AzerothCompendium:AddTrans("ruRU", "LID_NOTCOMPLETED", "Не выполнено")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDTAG", "Задание подземелья или рейда")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDPHASES", "Этапы одного задания: взять, выполнить, сдать")
 AzerothCompendium:AddTrans("ruRU", "LID_LEGENDCHAIN", "Цепочка заданий (зелёная после выполнения предыдущего)")
