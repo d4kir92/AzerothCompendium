@@ -149,6 +149,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_HIDECOMPLETED", "Скрыть завер
 AzerothCompendium:AddTrans("ruRU", "LID_HIDECOMPLETEDHINT", "Скрывает подземелья, где этот персонаж выполнил все показанные задания, например 6/6. Подземелья без заданий остаются видимыми. Снимите флажок, чтобы снова показать завершённые подземелья. Сохраняется для этого персонажа.")
 AzerothCompendium:AddTrans("ruRU", "LID_SPOILERFREE", "Без спойлеров")
 AzerothCompendium:AddTrans("ruRU", "LID_SPOILERFREEHINT", "Показывает только добычу, которую вы уже видели на любом персонаже этой учётной записи. Сохраняется для этого персонажа.")
+AzerothCompendium:AddTrans("ruRU", "LID_BOSSESFOUND", "Найдено боссов: %d/%d")
+AzerothCompendium:AddTrans("ruRU", "LID_SPOILERFREEMAP", "Без спойлеров: скрыто мест боссов, которых вы ещё не нашли: %d.")
 AzerothCompendium:AddTrans("ruRU", "LID_CONTINENT", "Континент")
 AzerothCompendium:AddTrans("ruRU", "LID_ALLCONTINENTS", "Все континенты")
 AzerothCompendium:AddTrans("ruRU", "LID_CONTINENT_KALIMDOR", "Калимдор")

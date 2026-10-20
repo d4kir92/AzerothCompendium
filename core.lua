@@ -282,6 +282,27 @@ function AzerothCompendium:MarkLootSeen(link)
     ACOTAB.SEENLOOT[itemID] = true
 end
 
+function AzerothCompendium:MarkUnitSeen(unit)
+    local guid = unit and UnitGUID and UnitGUID(unit)
+    if type(guid) ~= "string" or (AzerothCompendium.IsSecret and AzerothCompendium:IsSecret(guid)) then return end
+    local unitType, _, _, _, _, npcID = strsplit("-", guid)
+    npcID = tonumber(npcID)
+    if (unitType ~= "Creature" and unitType ~= "Vehicle") or npcID == nil then return end
+    ACOTAB = ACOTAB or {}
+    ACOTAB.SEENNPCS = ACOTAB.SEENNPCS or {}
+    ACOTAB.SEENNPCS[npcID] = true
+end
+
+function AzerothCompendium:IsBossFound(boss)
+    if boss == nil or boss.trash or boss.all or type(boss.npcs) ~= "table" or #boss.npcs == 0 then return true end
+    local seen = type(ACOTAB) == "table" and ACOTAB.SEENNPCS
+    if type(seen) ~= "table" then return false end
+    for _, npcID in ipairs(boss.npcs) do
+        if seen[npcID] then return true end
+    end
+    return false
+end
+
 function AzerothCompendium:IsLootSeen(itemID)
     return type(ACOTAB) == "table" and type(ACOTAB.SEENLOOT) == "table" and ACOTAB.SEENLOOT[itemID] == true
 end

@@ -149,6 +149,8 @@ AzerothCompendium:AddTrans("koKR", "LID_HIDECOMPLETED", "완료한 던전 숨기
 AzerothCompendium:AddTrans("koKR", "LID_HIDECOMPLETEDHINT", "이 캐릭터가 표시된 모든 퀘스트를 완료한 던전(예: 6/6)을 숨깁니다. 퀘스트가 없는 던전은 계속 표시됩니다. 체크를 해제하면 다시 표시됩니다. 이 캐릭터에 저장됩니다.")
 AzerothCompendium:AddTrans("koKR", "LID_SPOILERFREE", "스포일러 방지")
 AzerothCompendium:AddTrans("koKR", "LID_SPOILERFREEHINT", "이 계정의 캐릭터로 이미 획득하는 것을 본 전리품만 표시합니다. 이 캐릭터에 저장됩니다.")
+AzerothCompendium:AddTrans("koKR", "LID_BOSSESFOUND", "보스 %d/%d 발견")
+AzerothCompendium:AddTrans("koKR", "LID_SPOILERFREEMAP", "스포일러 방지: 아직 찾지 못한 보스 위치 %d곳이 숨겨집니다.")
 AzerothCompendium:AddTrans("koKR", "LID_CONTINENT", "대륙")
 AzerothCompendium:AddTrans("koKR", "LID_ALLCONTINENTS", "모든 대륙")
 AzerothCompendium:AddTrans("koKR", "LID_CONTINENT_KALIMDOR", "칼림도어")

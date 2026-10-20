@@ -149,6 +149,8 @@ AzerothCompendium:AddTrans("frFR", "LID_HIDECOMPLETED", "Masquer les donjons ter
 AzerothCompendium:AddTrans("frFR", "LID_HIDECOMPLETEDHINT", "Masque les donjons dont ce personnage a terminé toutes les quêtes affichées, par exemple 6/6. Les donjons sans quêtes restent visibles. Décochez pour les afficher à nouveau. Enregistré pour ce personnage.")
 AzerothCompendium:AddTrans("frFR", "LID_SPOILERFREE", "Sans spoiler")
 AzerothCompendium:AddTrans("frFR", "LID_SPOILERFREEHINT", "N'affiche que le butin que vous avez déjà vu tomber, sur n'importe quel personnage de ce compte. Enregistré pour ce personnage.")
+AzerothCompendium:AddTrans("frFR", "LID_BOSSESFOUND", "%d/%d boss trouvés")
+AzerothCompendium:AddTrans("frFR", "LID_SPOILERFREEMAP", "Sans spoiler : %d emplacements de boss pas encore trouvés sont masqués.")
 AzerothCompendium:AddTrans("frFR", "LID_CONTINENT", "Continent")
 AzerothCompendium:AddTrans("frFR", "LID_ALLCONTINENTS", "Tous les continents")
 AzerothCompendium:AddTrans("frFR", "LID_CONTINENT_KALIMDOR", "Kalimdor")

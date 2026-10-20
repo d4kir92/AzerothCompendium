@@ -695,7 +695,7 @@ local function CreateTextRow(scroller, onClick)
 end
 
 local function UsesLoadingScreens()
-    return listKind == "dungeon" or listKind == "raid"
+    return listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
 end
 
 local function UpdateLoadingScreenCrop(row)
@@ -713,6 +713,11 @@ local function UpdateLoadingScreenCrop(row)
 end
 
 local function GetLoadingScreen(inst)
+    if inst.vendor then
+        local fileID = AzerothCompendium.LOADINGSCREENS_VENDOR and AzerothCompendium.LOADINGSCREENS_VENDOR[inst.id]
+        if fileID then return fileID, LOADSCREEN_CLASSIC end
+        return nil, nil
+    end
     if AzerothCompendium.LOADINGSCREENS_WIDE and AzerothCompendium.LOADINGSCREENS_WIDE[inst.id] then return AzerothCompendium.LOADINGSCREENS_WIDE[inst.id], LOADSCREEN_WIDE end
     if AzerothCompendium.LOADINGSCREENS and AzerothCompendium.LOADINGSCREENS[inst.id] then return AzerothCompendium.LOADINGSCREENS[inst.id], LOADSCREEN_CLASSIC end
     return nil, nil
@@ -1017,6 +1022,42 @@ local function UpdateInstanceBackground(row, inst)
     end
 end
 
+function AzerothCompendium:UpdateReputationBar(row, inst)
+    local factionID = UsesLoadingScreens() and not inst.levelGroup and inst.factionID
+    local name, standing, barMin, barMax, value = nil, nil, nil, nil, nil
+    if factionID and GetFactionInfoByID then
+        local info = {pcall(GetFactionInfoByID, factionID)}
+        if info[1] then name, standing, barMin, barMax, value = info[2], info[4], info[5], info[6], info[7] end
+    end
+    if type(name) ~= "string" or type(standing) ~= "number" or type(barMin) ~= "number" or type(barMax) ~= "number" or type(value) ~= "number" then
+        if row.repBar then row.repBar:Hide() end
+        return
+    end
+
+    if row.repBar == nil then
+        row.repBar = CreateFrame("StatusBar", nil, row)
+        row.repBar:SetHeight(14)
+        row.repBar:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 6, 6)
+        row.repBar:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
+        row.repBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        row.repBar.background = row.repBar:CreateTexture(nil, "BACKGROUND")
+        row.repBar.background:SetAllPoints(row.repBar)
+        row.repBar.background:SetColorTexture(0, 0, 0, 0.6)
+        row.repBar.text = row.repBar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.repBar.text:SetPoint("CENTER", row.repBar, "CENTER", 0, 0)
+    end
+
+    local color = FACTION_BAR_COLORS and FACTION_BAR_COLORS[standing] or {r = 0, g = 0.6, b = 0.1}
+    local maxValue = max(1, barMax - barMin)
+    row.repBar:SetStatusBarColor(color.r, color.g, color.b)
+    row.repBar:SetMinMaxValues(0, maxValue)
+    row.repBar:SetValue(min(maxValue, max(0, value - barMin)))
+    local label = _G["FACTION_STANDING_LABEL" .. standing] or ""
+    row.repBar.text:SetText(standing >= 8 and label or format("%s %d/%d", label, value - barMin, maxValue))
+    row.repBar:SetFrameLevel(row:GetFrameLevel() + 2)
+    row.repBar:Show()
+end
+
 local function UpdateInstanceRow(row, inst)
     row.entry = inst
     UpdateInstanceBackground(row, inst)
@@ -1037,7 +1078,8 @@ local function UpdateInstanceRow(row, inst)
         row.info:SetText("")
     end
 
-    if UsesLoadingScreens() then
+    AzerothCompendium:UpdateReputationBar(row, inst)
+    if listKind == "dungeon" or listKind == "raid" then
         local quests = AzerothCompendium:GetInstanceQuests(inst)
         local done = 0
         for _, quest in ipairs(quests) do
@@ -1260,6 +1302,10 @@ function AzerothCompendium:IsSpoilerFree()
     return (listKind == "dungeon" or listKind == "raid") and type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
 end
 
+function AzerothCompendium:IsBossSpoilerHidden(boss)
+    return self:IsSpoilerFree() and selectedInstance ~= nil and not selectedInstance.vendor and not self:IsBossFound(boss)
+end
+
 function AzerothCompendium:GetLevelFilterMode()
     if listKind ~= "dungeon" and listKind ~= "raid" or type(ACOTABPC) ~= "table" then return "all" end
     if ACOTABPC.ONLYMAXLEVEL == true then return "max" end
@@ -1347,10 +1393,16 @@ local function GetBossList()
     local list = {}
     if selectedInstance == nil then return list end
     local order = {}
+    local found, total = 0, 0
     for index, boss in ipairs(selectedInstance.bosses or {}) do
         order[boss] = index
-        if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) then tinsert(list, boss) end
+        if not selectedInstance.vendor and not boss.trash then
+            total = total + 1
+            if AzerothCompendium:IsBossFound(boss) then found = found + 1 end
+        end
+        if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) and not AzerothCompendium:IsBossSpoilerHidden(boss) then tinsert(list, boss) end
     end
+    compendium.bossesFound, compendium.bossesTotal = found, total
 
     if not selectedInstance.vendor and (listKind == "dungeon" or listKind == "raid") then
         table.sort(list, function(a, b)
@@ -2143,6 +2195,35 @@ function MapPins.UpdateToggle(view)
     end
 
     local last = view.pinToggles[#MapPins.types]
+    if last and view.spoilerToggle == nil then
+        view.spoilerToggle = CreateFrame("CheckButton", nil, view, "UICheckButtonTemplate")
+        view.spoilerToggle:SetSize(24, 24)
+        view.spoilerToggle.label = view.spoilerToggle:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+        view.spoilerToggle.label:SetPoint("RIGHT", view.spoilerToggle, "LEFT", 0, 0)
+        view.spoilerToggle:SetScript("OnClick", function(sel)
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.SPOILERFREE = sel:GetChecked() == true
+            AzerothCompendium:RefreshCompendium()
+        end)
+        view.spoilerToggle:SetScript("OnEnter", function(sel)
+            GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+            GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREE")))
+            GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREEHINT")), 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        view.spoilerToggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end
+    local spoilerToggle = view.spoilerToggle
+    if spoilerToggle then
+        spoilerToggle:ClearAllPoints()
+        spoilerToggle:SetPoint("RIGHT", last, "LEFT", -6, 0)
+        spoilerToggle.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
+        spoilerToggle.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontDisableSmall)
+        spoilerToggle:SetChecked(AzerothCompendium:IsSpoilerFree())
+        spoilerToggle:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
+        spoilerToggle:SetShown(view.info ~= nil and (listKind == "dungeon" or listKind == "raid"))
+        if spoilerToggle:IsShown() then last = spoilerToggle.label end
+    end
     if last and compendium.detailCount and view:IsShown() then
         compendium.detailCount:ClearAllPoints()
         compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, 0)
@@ -2164,12 +2245,17 @@ function MapPins.Update(view)
     local data = info and AzerothCompendium.INSTANCEMAPPINS and AzerothCompendium.INSTANCEMAPPINS[info.id] or nil
     local maps = GetInstanceMaps()
     local count = 0
+    local spoilerHidden = 0
     for _, entry in ipairs(data or {}) do
         local kind = entry[1]
         local boss = nil
         local level = nil
         if kind == "boss" then
             boss = MapPins.FindBoss(entry[4])
+            if boss ~= nil and AzerothCompendium:IsBossSpoilerHidden(boss) then
+                boss = nil
+                spoilerHidden = spoilerHidden + 1
+            end
         elseif kind == "level" then
             level = MapPins.FindLevel(maps, entry[4])
         end
@@ -2203,6 +2289,22 @@ function MapPins.Update(view)
         MapPins.pool[i]:Hide()
     end
 
+    if view.spoilerNotice == nil then
+        view.spoilerNotice = CreateFrame("Frame", nil, view)
+        view.spoilerNotice:SetHeight(24)
+        view.spoilerNotice:SetPoint("BOTTOMLEFT", view, "BOTTOMLEFT", 8, 8)
+        view.spoilerNotice:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", -8, 8)
+        view.spoilerNotice.background = view.spoilerNotice:CreateTexture(nil, "BACKGROUND")
+        view.spoilerNotice.background:SetAllPoints(view.spoilerNotice)
+        view.spoilerNotice.background:SetColorTexture(0, 0, 0, 0.7)
+        view.spoilerNotice.text = view.spoilerNotice:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        view.spoilerNotice.text:SetPoint("LEFT", view.spoilerNotice, "LEFT", 8, 0)
+        view.spoilerNotice.text:SetPoint("RIGHT", view.spoilerNotice, "RIGHT", -8, 0)
+        view.spoilerNotice.text:SetWordWrap(false)
+    end
+    view.spoilerNotice:SetFrameLevel(view.viewport:GetFrameLevel() + 8 + #(data or {}) * 6)
+    view.spoilerNotice.text:SetText(AzerothCompendium:Trans("LID_SPOILERFREEMAP", nil, spoilerHidden))
+    view.spoilerNotice:SetShown(spoilerHidden > 0 and view.info ~= nil)
     view.pinTopLevel = view.viewport:GetFrameLevel() + 4 + #(data or {}) * 6
     MapPins.UpdateToggle(view)
     MapPins.Layout(view)
@@ -2463,8 +2565,13 @@ local function RefreshDetail()
         local y = AzerothCompendium.Theme:IsModern() and 11 or 13
         compendium.classFilter:ClearAllPoints()
         compendium.classFilter:SetPoint("RIGHT", compendium.loot, "TOPRIGHT", 2, y)
+        local spoiler = compendium.spoilerLootFilter
+        local grouped = listKind == "dungeon" or listKind == "raid"
+        spoiler:SetShown(grouped)
+        spoiler:SetChecked(AzerothCompendium:IsSpoilerFree())
+        spoiler.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontDisableSmall)
         compendium.detailTitle:ClearAllPoints()
-        compendium.detailTitle:SetPoint("RIGHT", compendium.classFilterLabel, "LEFT", -12, 0)
+        compendium.detailTitle:SetPoint("RIGHT", grouped and spoiler.label or compendium.classFilterLabel, "LEFT", -12, 0)
         compendium.detailTitle:SetJustifyH("RIGHT")
     elseif AzerothCompendium.LayoutEntries[compendium.detailTitle] then
         AzerothCompendium.LayoutEntries[compendium.detailTitle](AzerothCompendium.Theme:IsModern())
@@ -2507,7 +2614,7 @@ local function RefreshBosses()
         button.icon:SetDesaturated(not enabled)
         button.icon:SetAlpha(enabled and 1 or 0.45)
     end
-    if compendium.overviewActive and (listKind == "dungeon" or listKind == "raid") then
+    if compendium.overviewActive and (listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction") then
         for _, frame in ipairs({compendium.bosses, compendium.bossTitle, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}) do frame:Hide() end
         if compendium.model then compendium.model:Hide() end
         for _, tab in pairs(compendium.middleTabs) do tab:Hide() end
@@ -2554,6 +2661,16 @@ local function RefreshBosses()
         compendium.bosses:SetRowHeight(BOSS_ROW_H)
     else
         compendium.bosses:SetRowHeight(ROW_H)
+    end
+
+    if AzerothCompendium:IsSpoilerFree() and selectedInstance ~= nil and not selectedInstance.vendor then
+        compendium.bosses:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. AzerothCompendium:Trans("LID_SPOILERFREE"), AzerothCompendium:Trans("LID_BOSSESFOUND", nil, compendium.bossesFound or 0, compendium.bossesTotal or 0), function()
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.SPOILERFREE = false
+            AzerothCompendium:RefreshCompendium()
+        end)
+    else
+        compendium.bosses:SetBanner(nil)
     end
 
     compendium.bosses:SetData(list)
@@ -5029,7 +5146,7 @@ function AzerothCompendium:CreateInstanceControls()
         end
 
         local layout = AzerothCompendium.ContentLayoutModern
-        local grouped = listKind == "dungeon" or listKind == "raid"
+        local grouped = listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
         local overviewText = overviewButton.Text or (overviewButton.GetFontString and overviewButton:GetFontString())
         overviewButton:SetSize(max(80, (overviewText and overviewText:GetStringWidth() or 60) + 28), layout.headerHeight - 6)
         instanceDropdown:SetHeight(layout.headerHeight - 6)
@@ -5142,7 +5259,7 @@ function AzerothCompendium:CreateInstanceControls()
             local text = instanceDropdown.Text or (instanceDropdown.GetFontString and instanceDropdown:GetFontString())
             local textWidth = text and (text.GetUnboundedStringWidth and text:GetUnboundedStringWidth() or text:GetStringWidth()) or 120
             local width = min(276, max(90, floor(textWidth + 44)))
-            local grouped = listKind == "dungeon" or listKind == "raid"
+            local grouped = listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
             local used = layout.railLeft + 3 + 3
             if grouped then used = used + overviewButton:GetWidth() + 2 end
             if filterControl:IsShown() then used = used + filterDropdown:GetWidth() + 2 end
@@ -5179,7 +5296,7 @@ function AzerothCompendium:CreateInstanceControls()
         filterDropdown:Refresh()
         continentControl:Refresh()
         instanceControl:UpdateDropdownWidth()
-        overviewButton:SetShown(listKind == "dungeon" or listKind == "raid")
+        overviewButton:SetShown(listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction")
         local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
         if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
         if instanceDropdown.SetText then instanceDropdown:SetText(text) end
@@ -5697,6 +5814,24 @@ local function CreateJournal()
     classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetClassFilter(sel:GetChecked() == true) end)
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
+    compendium.spoilerLootFilter = CreateTemplated("CheckButton", "AzerothCompendiumSpoilerLootFilter", classFilter, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
+    compendium.spoilerLootFilter:SetSize(24, 24)
+    compendium.spoilerLootFilter:SetPoint("RIGHT", classFilterLabel, "LEFT", -12, 0)
+    compendium.spoilerLootFilter.label = compendium.spoilerLootFilter:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    compendium.spoilerLootFilter.label:SetPoint("RIGHT", compendium.spoilerLootFilter, "LEFT", 0, 0)
+    compendium.spoilerLootFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
+    compendium.spoilerLootFilter:SetScript("OnClick", function(sel)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.SPOILERFREE = sel:GetChecked() == true
+        AzerothCompendium:RefreshCompendium()
+    end)
+    compendium.spoilerLootFilter:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREE")))
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREEHINT")), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    compendium.spoilerLootFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     CreateSettingsPanel()
     compendium.specialTabs = {}
     for _, info in ipairs({{"settings", "LID_SETTINGS", compendium.settingsPanel}, {"worldquestitems", "LID_WORLDQUESTITEMS", worldQuestItems}}) do
@@ -5728,6 +5863,7 @@ local function CreateJournal()
         worldQuestItemsTitle:SetText(AzerothCompendium:Trans("LID_WORLDQUESTITEMS"))
         worldQuestItemsEmpty:SetText(AzerothCompendium:Trans("LID_NOENTRIES"))
         classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
+        compendium.spoilerLootFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
         compendium.factionToggle.classFilter.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
         compendium.factionToggle.classHeader.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
         compendium.factionToggle.completedFilter.label:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTS"))
@@ -6578,7 +6714,15 @@ AzerothCompendium:RegisterEvent(loader, "GLOBAL_MOUSE_DOWN")
 AzerothCompendium:RegisterEvent(loader, "LOOT_OPENED")
 AzerothCompendium:RegisterEvent(loader, "START_LOOT_ROLL")
 AzerothCompendium:RegisterEvent(loader, "CHAT_MSG_LOOT")
+AzerothCompendium:RegisterEvent(loader, "PLAYER_TARGET_CHANGED")
+AzerothCompendium:RegisterEvent(loader, "UPDATE_MOUSEOVER_UNIT")
+AzerothCompendium:RegisterEvent(loader, "NAME_PLATE_UNIT_ADDED")
 loader:SetScript("OnEvent", function(sel, event, itemID, success)
+    if event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT" or event == "NAME_PLATE_UNIT_ADDED" then
+        AzerothCompendium:MarkUnitSeen(event == "PLAYER_TARGET_CHANGED" and "target" or event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or itemID)
+        return
+    end
+
     if event == "LOOT_OPENED" then
         for slot = 1, GetNumLootItems and GetNumLootItems() or 0 do
             AzerothCompendium:MarkLootSeen(GetLootSlotLink(slot))
