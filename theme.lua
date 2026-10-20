@@ -40,12 +40,12 @@ Theme.BUTTONKEYS = {"Left", "Middle", "Right", "Center", "Background"}
 Theme.TEXTUREGETTERS = {"GetNormalTexture", "GetPushedTexture", "GetHighlightTexture", "GetDisabledTexture"}
 
 function AzerothCompendium:GetDesign()
-    if self:GetConfig("DESIGN", "default") == "modern" then return "modern" end
-    return "default"
+    if self:GetConfig("DESIGN", "modern") == "forever" then return "forever" end
+    return "modern"
 end
 
 function AzerothCompendium:SetDesign(value)
-    self:SetConfig("DESIGN", value == "modern" and "modern" or "default")
+    self:SetConfig("DESIGN", value == "forever" and "forever" or "modern")
     Theme:Refresh()
 end
 
@@ -550,8 +550,27 @@ function Theme:SkinSegment(button)
     self:HideButtonTextures(record, button)
     local pill = self:Round(record, button, "BACKGROUND", -6, self.colors.selected, self.radius.control)
     local hovered = false
+    local chevron, text = nil, nil
+    if button.acoDropdown then
+        chevron = self:Piece(record, button, "OVERLAY", 0, self.MEDIA .. "chevron")
+        chevron:SetSize(14, 14)
+        chevron:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+        chevron:SetVertexColor(unpack(self.colors.muted))
+        text = button.Text or (button.GetFontString and button:GetFontString())
+        if text then record.textPoints = self:SavePoints(text) end
+    end
+
     local function Selected() return button.acoSegment() == true end
     record.update = function(modern)
+        if text then
+            if modern then
+                text:ClearAllPoints()
+                text:SetPoint("LEFT", button, "LEFT", 8, 0)
+                text:SetPoint("RIGHT", chevron, "LEFT", -2, 0)
+            else
+                Theme:RestorePoints(text, record.textPoints)
+            end
+        end
         if not modern then return end
         local selected = Selected()
         Theme:ShowShape(pill, selected or hovered)

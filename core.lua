@@ -717,7 +717,7 @@ end
 
 function AzerothCompendium:GetInstanceQuests(inst)
     if inst == nil or inst.id == nil then return {} end
-    local onlyOwnClass = AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) == true
+    local onlyOwnClass = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
     local alliance, horde = AzerothCompendium:IsQuestSideVisible(1), AzerothCompendium:IsQuestSideVisible(2)
     local flavor = AzerothCompendium:GetFlavor()
     if instanceQuestCache.key ~= true or instanceQuestCache.flavor ~= flavor or instanceQuestCache.alliance ~= alliance or instanceQuestCache.horde ~= horde or instanceQuestCache.onlyOwnClass ~= onlyOwnClass then
@@ -1175,7 +1175,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     local nodes = {}
     local list = {}
     local inInstance = {}
-    local onlyOwnClass = AzerothCompendium:GetConfig("QUESTONLYOWNCLASS", true) == true
+    local onlyOwnClass = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
     local function IsHidden(questID)
         return IsQuestHidden(questID) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
     end

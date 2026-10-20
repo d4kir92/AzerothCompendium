@@ -196,12 +196,12 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
         ["search"] = "DESIGN",
         ["choices"] = {
             {
-                label = "LID_DESIGNDEFAULT",
-                value = "default"
-            },
-            {
                 label = "LID_DESIGNMODERN",
                 value = "modern"
+            },
+            {
+                label = "LID_DESIGNFOREVER",
+                value = "forever"
             }
         },
         ["value"] = AzerothCompendium:GetDesign(),
@@ -241,6 +241,8 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
             AzerothCompendium:HideMMBtn("AzerothCompendium")
         end
     end)
+
+    AddCheckbox("REMEMBERNAVIGATION", true, nil, nil, "2026-10-20")
 
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
     AddCheckbox("WISHLISTENABLED", true, function()
