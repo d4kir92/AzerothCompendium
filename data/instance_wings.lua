@@ -13,7 +13,6 @@ local SPLITS = {
 				{
 					[1] = 2262,
 					[2] = 0.02,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -149,11 +148,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 5819,
 					[2] = 0.66,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Guardsman",
@@ -324,11 +323,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7727,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -499,11 +498,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7728,
 					[2] = 0.32,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -667,11 +666,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7729,
 					[2] = 0.04,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -849,11 +848,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7730,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -1017,11 +1016,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7752,
 					[2] = 0.05,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -1192,11 +1191,11 @@ local SPLITS = {
 							["model"] = 2497,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7753,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -1374,11 +1373,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7754,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Beastmaster",
@@ -1549,11 +1548,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7761,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -1689,11 +1688,11 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7786,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -1864,11 +1863,11 @@ local SPLITS = {
 							["model"] = 2520,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7787,
 					[2] = 0.15,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -2046,11 +2045,11 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 8226,
 					[2] = 0.07,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -2228,11 +2227,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 10332,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -2382,6 +2381,7 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 			},
 		},
@@ -2397,7 +2397,6 @@ local SPLITS = {
 				{
 					[1] = 1992,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -2498,11 +2497,11 @@ local SPLITS = {
 							["model"] = 2476,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 2262,
 					[2] = 0.02,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -2638,11 +2637,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 5756,
 					[2] = 0.02,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -2750,11 +2749,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 5819,
 					[2] = 0.66,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Guardsman",
@@ -2925,11 +2924,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7727,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -3100,11 +3099,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7728,
 					[2] = 0.32,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -3268,11 +3267,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7729,
 					[2] = 0.04,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -3450,11 +3449,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7730,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -3618,11 +3617,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7736,
 					[2] = 0.4,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -3716,11 +3715,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7752,
 					[2] = 0.05,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -3891,11 +3890,11 @@ local SPLITS = {
 							["model"] = 2497,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7753,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -4073,11 +4072,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7754,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Beastmaster",
@@ -4248,11 +4247,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7755,
 					[2] = 0.01,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -4353,11 +4352,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7757,
 					[2] = 0.17,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -4486,12 +4485,12 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{7758},
 				{
 					[1] = 7759,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -4592,11 +4591,11 @@ local SPLITS = {
 							["model"] = 2501,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7760,
 					[2] = 0.39,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -4676,11 +4675,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7761,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -4816,11 +4815,11 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7786,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -4991,11 +4990,11 @@ local SPLITS = {
 							["model"] = 2520,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7787,
 					[2] = 0.15,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -5173,11 +5172,11 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 8225,
 					[2] = 0.26,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -5327,11 +5326,11 @@ local SPLITS = {
 							["model"] = 2509,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 8226,
 					[2] = 0.07,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -5509,11 +5508,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 10332,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -5663,6 +5662,7 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 			},
 		},
@@ -5678,7 +5678,6 @@ local SPLITS = {
 				{
 					[1] = 1992,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -5779,11 +5778,11 @@ local SPLITS = {
 							["model"] = 2476,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 2262,
 					[2] = 0.02,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -5919,11 +5918,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 5756,
 					[2] = 0.02,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -6031,11 +6030,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 5819,
 					[2] = 0.66,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Guardsman",
@@ -6206,11 +6205,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7727,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -6381,11 +6380,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7728,
 					[2] = 0.32,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -6549,11 +6548,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7729,
 					[2] = 0.04,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -6731,11 +6730,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7730,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -6899,11 +6898,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7736,
 					[2] = 0.4,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -6997,11 +6996,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7752,
 					[2] = 0.05,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -7172,11 +7171,11 @@ local SPLITS = {
 							["model"] = 2497,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7753,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -7354,11 +7353,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7754,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Beastmaster",
@@ -7529,11 +7528,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7755,
 					[2] = 0.01,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -7634,11 +7633,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7757,
 					[2] = 0.17,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -7767,11 +7766,11 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7759,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -7872,11 +7871,11 @@ local SPLITS = {
 							["model"] = 2501,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7761,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -8012,11 +8011,11 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7786,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -8187,11 +8186,11 @@ local SPLITS = {
 							["model"] = 2520,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7787,
 					[2] = 0.15,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -8369,11 +8368,11 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 8225,
 					[2] = 0.26,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -8523,11 +8522,11 @@ local SPLITS = {
 							["model"] = 2509,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 8226,
 					[2] = 0.07,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -8705,11 +8704,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 10329,
 					[2] = 2.58,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Myrmidon",
@@ -8726,11 +8725,11 @@ local SPLITS = {
 							["model"] = 2462,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 10332,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -8880,11 +8879,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 10333,
 					[2] = 2.65,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -8901,6 +8900,7 @@ local SPLITS = {
 							["model"] = 2511,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{23192},
 			},
@@ -8917,7 +8917,6 @@ local SPLITS = {
 				{
 					[1] = 1992,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -9018,11 +9017,11 @@ local SPLITS = {
 							["model"] = 2476,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 2262,
 					[2] = 0.02,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -9158,11 +9157,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 5756,
 					[2] = 0.02,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -9270,11 +9269,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 5819,
 					[2] = 0.66,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Guardsman",
@@ -9445,11 +9444,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7727,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -9620,11 +9619,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7728,
 					[2] = 0.32,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -9788,11 +9787,11 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7729,
 					[2] = 0.04,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -9970,11 +9969,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7730,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Tracking Hound",
@@ -10138,11 +10137,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7736,
 					[2] = 0.4,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -10236,11 +10235,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7752,
 					[2] = 0.05,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Abbot",
@@ -10411,11 +10410,11 @@ local SPLITS = {
 							["model"] = 2497,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7753,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -10593,11 +10592,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7754,
 					[2] = 0.07,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Beastmaster",
@@ -10768,11 +10767,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7755,
 					[2] = 0.01,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Diviner",
@@ -10873,11 +10872,11 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7757,
 					[2] = 0.17,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -11006,12 +11005,12 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{7758},
 				{
 					[1] = 7759,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Protector",
@@ -11112,11 +11111,11 @@ local SPLITS = {
 							["model"] = 2501,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7760,
 					[2] = 0.39,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Sorcerer",
@@ -11196,11 +11195,11 @@ local SPLITS = {
 							["model"] = 2492,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 7761,
 					[2] = 0.03,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Evoker",
@@ -11336,11 +11335,11 @@ local SPLITS = {
 							["model"] = 4629,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7786,
 					[2] = 0.06,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -11511,11 +11510,11 @@ local SPLITS = {
 							["model"] = 2520,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 7787,
 					[2] = 0.15,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -11693,11 +11692,11 @@ local SPLITS = {
 							["model"] = 5726,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 8225,
 					[2] = 0.26,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Gallant",
@@ -11847,11 +11846,11 @@ local SPLITS = {
 							["model"] = 2509,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 8226,
 					[2] = 0.07,
-					["itemClass"] = 2,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -12029,11 +12028,11 @@ local SPLITS = {
 							["model"] = 5430,
 						},
 					},
+					["itemClass"] = 2,
 				},
 				{
 					[1] = 10328,
 					[2] = 0.3,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Champion",
@@ -12043,11 +12042,11 @@ local SPLITS = {
 							["model"] = 2460,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 10329,
 					[2] = 2.58,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Myrmidon",
@@ -12064,11 +12063,11 @@ local SPLITS = {
 							["model"] = 2462,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 10331,
 					[2] = 2.18,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Centurion",
@@ -12078,11 +12077,11 @@ local SPLITS = {
 							["model"] = 2499,
 						},
 					},
+					["itemClass"] = 4,
 				},
 				{
 					[1] = 10332,
 					[2] = 0.03,
-					["itemClass"] = 4,
 					["mobs"] = {
 						{
 							["name"] = "Scarlet Soldier",
@@ -12232,6 +12231,7 @@ local SPLITS = {
 							["model"] = 2603,
 						},
 					},
+					["itemClass"] = 4,
 				},
 			},
 		},

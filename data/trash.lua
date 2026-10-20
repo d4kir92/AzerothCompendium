@@ -4,7 +4,6 @@ local lootByInstance = {
 		{
 			[1] = 268535,
 			[2] = 12.34,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Skeleton",
@@ -84,11 +83,11 @@ local lootByInstance = {
 					["model"] = 10433,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 268540,
 			[2] = 23.62,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Plague Ghoul",
@@ -168,11 +167,11 @@ local lootByInstance = {
 					["model"] = 9784,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 268580,
 			[2] = 29.31,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Ragged Ghoul",
@@ -252,11 +251,11 @@ local lootByInstance = {
 					["model"] = 9785,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 286977,
 			[2] = 2.59,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Ragged Ghoul",
@@ -280,6 +279,7 @@ local lootByInstance = {
 					["model"] = 1065,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 286978,
@@ -340,7 +340,6 @@ local lootByInstance = {
 		{
 			[1] = 286981,
 			[2] = 3.23,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Skeletal Mage",
@@ -371,6 +370,7 @@ local lootByInstance = {
 					["model"] = 9785,
 				},
 			},
+			["itemClass"] = 4,
 		},
 	},
 	["City of Dalaran"] = {
@@ -408,7 +408,6 @@ local lootByInstance = {
 		{
 			[1] = 2924,
 			[2] = 29.51,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Deviate Crocolisk",
@@ -418,10 +417,10 @@ local lootByInstance = {
 					["model"] = 2996,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 5339,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Disciple of Naralex",
@@ -430,11 +429,11 @@ local lootByInstance = {
 					["model"] = 1941,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 6464,
 			[2] = 29,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Nightmare Ectoplasm",
@@ -451,11 +450,11 @@ local lootByInstance = {
 					["model"] = 1751,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 10413,
 			[2] = 2.5,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Druid of the Fang",
@@ -465,11 +464,11 @@ local lootByInstance = {
 					["model"] = 4211,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 12989,
 			[2] = 1.85,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Deviate Moccasin",
@@ -479,10 +478,10 @@ local lootByInstance = {
 					["model"] = 4305,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 16746,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Disciple of Naralex",
@@ -491,13 +490,13 @@ local lootByInstance = {
 					["model"] = 1941,
 				},
 			},
+			["itemClass"] = 12,
 		},
 	},
 	["The Deadmines"] = {
 		{
 			[1] = 915,
 			[2] = 11.24,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Defias Squallshaper",
@@ -570,11 +569,11 @@ local lootByInstance = {
 					["model"] = 308,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 1925,
 			[2] = 6.92,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Defias Watchman",
@@ -584,11 +583,11 @@ local lootByInstance = {
 					["model"] = 184,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1929,
 			[2] = 6.07,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Wizard",
@@ -605,11 +604,11 @@ local lootByInstance = {
 					["model"] = 2318,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1930,
 			[2] = 2.67,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Miner",
@@ -619,11 +618,11 @@ local lootByInstance = {
 					["model"] = 308,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1934,
 			[2] = 5.78,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Blackguard",
@@ -633,11 +632,11 @@ local lootByInstance = {
 					["model"] = 2314,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1936,
 			[2] = 5.76,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Engineer",
@@ -647,11 +646,11 @@ local lootByInstance = {
 					["model"] = 7109,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1943,
 			[2] = 6.5,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Shipbuilder",
@@ -661,11 +660,11 @@ local lootByInstance = {
 					["model"] = 7112,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1944,
 			[2] = 5.35,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Craftsman",
@@ -675,11 +674,11 @@ local lootByInstance = {
 					["model"] = 7110,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1945,
 			[2] = 6.84,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Woodcarver",
@@ -689,11 +688,11 @@ local lootByInstance = {
 					["model"] = 7111,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1951,
 			[2] = 6.32,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Defias Pirate",
@@ -710,11 +709,11 @@ local lootByInstance = {
 					["model"] = 2349,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 4359,
 			[2] = 4.08,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Craftsman",
@@ -731,11 +730,11 @@ local lootByInstance = {
 					["model"] = 7109,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 4361,
 			[2] = 1.22,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Craftsman",
@@ -752,11 +751,11 @@ local lootByInstance = {
 					["model"] = 7109,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 5786,
 			[2] = 1.28,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Defias Squallshaper",
@@ -766,11 +765,11 @@ local lootByInstance = {
 					["model"] = 2349,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 5787,
 			[2] = 1.3,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Defias Pirate",
@@ -780,11 +779,11 @@ local lootByInstance = {
 					["model"] = 2347,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 6994,
 			[2] = 1.63,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Woodcarver",
@@ -794,11 +793,11 @@ local lootByInstance = {
 					["model"] = 7111,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 8492,
 			[2] = 2.66,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Defias Pirate",
@@ -808,11 +807,11 @@ local lootByInstance = {
 					["model"] = 2347,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 10400,
 			[2] = 3.57,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Taskmaster",
@@ -829,11 +828,11 @@ local lootByInstance = {
 					["model"] = 2316,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10401,
 			[2] = 3.43,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Overseer",
@@ -850,11 +849,11 @@ local lootByInstance = {
 					["model"] = 2440,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10402,
 			[2] = 2.9,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Strip Miner",
@@ -864,13 +863,13 @@ local lootByInstance = {
 					["model"] = 2438,
 				},
 			},
+			["itemClass"] = 4,
 		},
 	},
 	["Shadowfang Keep"] = {
 		{
 			[1] = 932,
 			[2] = 17.45,
-			["itemClass"] = 1,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -880,11 +879,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 1,
 		},
 		{
 			[1] = 1015,
 			[2] = 32.83,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Slavering Worg",
@@ -908,11 +907,11 @@ local lootByInstance = {
 					["model"] = 2446,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 1318,
 			[2] = 0.06,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Moonwalker",
@@ -999,11 +998,11 @@ local lootByInstance = {
 					["model"] = 138628,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1482,
 			[2] = 1.67,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Darksoul",
@@ -1069,11 +1068,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1483,
 			[2] = 0.76,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Bleak Worg",
@@ -1202,11 +1201,11 @@ local lootByInstance = {
 					["model"] = 1955,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1484,
 			[2] = 1.3,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Slavering Worg",
@@ -1307,11 +1306,11 @@ local lootByInstance = {
 					["model"] = 203,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1489,
 			[2] = 0.06,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Wailing Guardsman",
@@ -1356,11 +1355,11 @@ local lootByInstance = {
 					["model"] = 1098,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1935,
 			[2] = 0.07,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Darksoul",
@@ -1440,11 +1439,11 @@ local lootByInstance = {
 					["model"] = 1955,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1974,
 			[2] = 0.52,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Bleak Worg",
@@ -1545,11 +1544,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2205,
 			[2] = 0.08,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Vile Bat",
@@ -1601,11 +1600,11 @@ local lootByInstance = {
 					["model"] = 202,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 2292,
 			[2] = 0.04,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Wailing Guardsman",
@@ -1650,11 +1649,11 @@ local lootByInstance = {
 					["model"] = 1098,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2807,
 			[2] = 1.79,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Moonwalker",
@@ -1734,11 +1733,11 @@ local lootByInstance = {
 					["model"] = 1955,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 3194,
 			[2] = 7.69,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -1853,10 +1852,10 @@ local lootByInstance = {
 					["model"] = 203,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 5442,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Arugal",
@@ -1865,11 +1864,11 @@ local lootByInstance = {
 					["model"] = 2353,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 5943,
 			[2] = 2.47,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Arugal's Voidwalker",
@@ -1879,11 +1878,11 @@ local lootByInstance = {
 					["model"] = 1131,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 6341,
 			[2] = 6.99,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -1893,11 +1892,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 6915,
 			[2] = 0.93,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Darksoul",
@@ -1907,11 +1906,11 @@ local lootByInstance = {
 					["model"] = 657,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 23173,
 			[2] = 51.45,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Sever",
@@ -1921,11 +1920,11 @@ local lootByInstance = {
 					["model"] = 1061,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 210213,
 			[2] = 100,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Gemela",
@@ -1935,11 +1934,11 @@ local lootByInstance = {
 					["model"] = 114452,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 251341,
 			[2] = 0.07,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -1956,11 +1955,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251360,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -1977,11 +1976,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251361,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -1998,11 +1997,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251362,
 			[2] = 0.06,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2019,11 +2018,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251363,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2033,11 +2032,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251364,
 			[2] = 0.05,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2047,11 +2046,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251380,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2061,11 +2060,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251381,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2075,11 +2074,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 251382,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2089,11 +2088,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252777,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2110,11 +2109,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252778,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2131,11 +2130,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252779,
 			[2] = 0.06,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2152,11 +2151,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252780,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2166,11 +2165,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252781,
 			[2] = 0.08,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2180,11 +2179,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252782,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2194,11 +2193,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252798,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2208,11 +2207,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252799,
 			[2] = 0.05,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2222,11 +2221,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252800,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2236,11 +2235,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252801,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2250,11 +2249,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252802,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2264,11 +2263,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 252803,
 			[2] = 0.07,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2278,11 +2277,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253902,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2292,11 +2291,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253904,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2306,11 +2305,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253906,
 			[2] = 0.08,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2327,11 +2326,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253908,
 			[2] = 0.06,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2348,11 +2347,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253910,
 			[2] = 0.11,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2369,11 +2368,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253912,
 			[2] = 0.05,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Fel Steed",
@@ -2383,11 +2382,11 @@ local lootByInstance = {
 					["model"] = 1951,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253940,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2397,11 +2396,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253942,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2411,11 +2410,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253946,
 			[2] = 0.07,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2425,11 +2424,11 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 253948,
 			[2] = 0.07,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Shadow Charger",
@@ -2439,13 +2438,13 @@ local lootByInstance = {
 					["model"] = 1952,
 				},
 			},
+			["itemClass"] = 9,
 		},
 	},
 	["Blackfathom Deeps"] = {
 		{
 			[1] = 1454,
 			[2] = 0.42,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Shadowmage",
@@ -2581,11 +2580,11 @@ local lootByInstance = {
 					["model"] = 11293,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1470,
 			[2] = 2.31,
-			["itemClass"] = 1,
 			["mobs"] = {
 				{
 					["name"] = "Gelihast",
@@ -2595,11 +2594,11 @@ local lootByInstance = {
 					["model"] = 5243,
 				},
 			},
+			["itemClass"] = 1,
 		},
 		{
 			[1] = 1481,
 			[2] = 0.21,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Aquamancer",
@@ -2735,11 +2734,11 @@ local lootByInstance = {
 					["model"] = 5052,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1486,
 			[2] = 0.33,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Blackfathom Myrmidon",
@@ -2889,11 +2888,11 @@ local lootByInstance = {
 					["model"] = 112105,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1491,
 			[2] = 1.82,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Aku'mai Snapjaw",
@@ -3050,11 +3049,11 @@ local lootByInstance = {
 					["model"] = 1244,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2034,
 			[2] = 2.12,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Acolyte",
@@ -3099,11 +3098,11 @@ local lootByInstance = {
 					["model"] = 2890,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2271,
 			[2] = 0.22,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Blindlight Muckdweller",
@@ -3260,11 +3259,11 @@ local lootByInstance = {
 					["model"] = 112105,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 2567,
 			[2] = 0.17,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Acolyte",
@@ -3407,11 +3406,11 @@ local lootByInstance = {
 					["model"] = 981,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 2674,
 			[2] = 42.55,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Skittering Crustacean",
@@ -3435,11 +3434,11 @@ local lootByInstance = {
 					["model"] = 1001,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 2675,
 			[2] = 41.74,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Snapping Crustacean",
@@ -3463,11 +3462,11 @@ local lootByInstance = {
 					["model"] = 981,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 3413,
 			[2] = 0.35,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Blackfathom Myrmidon",
@@ -3617,11 +3616,11 @@ local lootByInstance = {
 					["model"] = 1001,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 3414,
 			[2] = 0.22,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Blackfathom Sea Witch",
@@ -3756,11 +3755,11 @@ local lootByInstance = {
 					["model"] = 112105,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 3415,
 			[2] = 0.27,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Blindlight Oracle",
@@ -3910,11 +3909,11 @@ local lootByInstance = {
 					["model"] = 112105,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 3416,
 			[2] = 0.45,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Fallenroot Shadowstalker",
@@ -4057,11 +4056,11 @@ local lootByInstance = {
 					["model"] = 1001,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 3417,
 			[2] = 6.67,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Blackfathom Myrmidon",
@@ -4204,11 +4203,11 @@ local lootByInstance = {
 					["model"] = 1001,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 5879,
 			[2] = 35.56,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Shadowmage",
@@ -4253,10 +4252,10 @@ local lootByInstance = {
 					["model"] = 2898,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 5881,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Lord Kelris",
@@ -4265,11 +4264,11 @@ local lootByInstance = {
 					["model"] = 4939,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 5952,
 			[2] = 10.67,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Lady Sarevess",
@@ -4312,11 +4311,11 @@ local lootByInstance = {
 					["model"] = 2021,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 6914,
 			[2] = 8.9,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Acolyte",
@@ -4326,11 +4325,11 @@ local lootByInstance = {
 					["model"] = 2882,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 6995,
 			[2] = 0.12,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Blackfathom Sea Witch",
@@ -4340,11 +4339,11 @@ local lootByInstance = {
 					["model"] = 4982,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 7072,
 			[2] = 0.43,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Lady Sarevess",
@@ -4354,13 +4353,13 @@ local lootByInstance = {
 					["model"] = 112103,
 				},
 			},
+			["itemClass"] = 7,
 		},
 	},
 	["The Stockade"] = {
 		{
 			[1] = 1076,
 			[2] = 1.06,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Insurgent",
@@ -4398,11 +4397,11 @@ local lootByInstance = {
 					["model"] = 2144,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2909,
 			[2] = 8.21,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Defias Insurgent",
@@ -4440,6 +4439,7 @@ local lootByInstance = {
 					["model"] = 2144,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 274092,
@@ -4488,7 +4488,6 @@ local lootByInstance = {
 		{
 			[1] = 4371,
 			[2] = 2.14,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Blastmaster Emi Shortfuse",
@@ -4546,11 +4545,11 @@ local lootByInstance = {
 					["model"] = 5926,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 4382,
 			[2] = 1.71,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4602,10 +4601,10 @@ local lootByInstance = {
 					["model"] = 6890,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 4405,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Blastmaster Emi Shortfuse",
@@ -4614,11 +4613,11 @@ local lootByInstance = {
 					["model"] = 7138,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 4411,
 			[2] = 0.38,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4635,11 +4634,11 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 4413,
 			[2] = 0.52,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4656,10 +4655,10 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 5740,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Blastmaster Emi Shortfuse",
@@ -4668,11 +4667,11 @@ local lootByInstance = {
 					["model"] = 7138,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 6672,
 			[2] = 0.55,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Mekgineer Thermaplugg",
@@ -4689,11 +4688,11 @@ local lootByInstance = {
 					["model"] = 117365,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 7191,
 			[2] = 17.51,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Crowd Pummeler 9-60",
@@ -4759,11 +4758,11 @@ local lootByInstance = {
 					["model"] = 8369,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 7192,
 			[2] = 0.26,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Mekgineer Thermaplugg",
@@ -4780,11 +4779,11 @@ local lootByInstance = {
 					["model"] = 117365,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 7560,
 			[2] = 0.07,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4801,11 +4800,11 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 7561,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4815,11 +4814,11 @@ local lootByInstance = {
 					["model"] = 117365,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 7742,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "STX-04/BD",
@@ -4836,10 +4835,10 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 9299,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Mekgineer Thermaplugg",
@@ -4848,11 +4847,11 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 9308,
 			[2] = 48.78,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Grubbis",
@@ -4939,11 +4938,11 @@ local lootByInstance = {
 					["model"] = 6936,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 9326,
 			[2] = 15.03,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Agent",
@@ -4953,11 +4952,11 @@ local lootByInstance = {
 					["model"] = 3456,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 9327,
 			[2] = 4.95,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Mekgineer Thermaplugg",
@@ -5037,11 +5036,11 @@ local lootByInstance = {
 					["model"] = 6889,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 9485,
 			[2] = 0.44,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Caverndeep Ambusher",
@@ -5114,11 +5113,11 @@ local lootByInstance = {
 					["model"] = 6982,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9486,
 			[2] = 0.13,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Agent",
@@ -5205,11 +5204,11 @@ local lootByInstance = {
 					["model"] = 6610,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9487,
 			[2] = 0.17,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Caverndeep Ambusher",
@@ -5310,11 +5309,11 @@ local lootByInstance = {
 					["model"] = 4906,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9488,
 			[2] = 3.57,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Mechanized Guardian",
@@ -5401,11 +5400,11 @@ local lootByInstance = {
 					["model"] = 6610,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9489,
 			[2] = 1.52,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Leprous Defender",
@@ -5478,11 +5477,11 @@ local lootByInstance = {
 					["model"] = 5926,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9490,
 			[2] = 0.6,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Caverndeep Burrower",
@@ -5562,11 +5561,11 @@ local lootByInstance = {
 					["model"] = 6891,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9491,
 			[2] = 0.05,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Agent",
@@ -5604,11 +5603,11 @@ local lootByInstance = {
 					["model"] = 8369,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9508,
 			[2] = 0.08,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Leprous Defender",
@@ -5660,11 +5659,11 @@ local lootByInstance = {
 					["model"] = 6890,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9509,
 			[2] = 0.15,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Caverndeep Ambusher",
@@ -5744,11 +5743,11 @@ local lootByInstance = {
 					["model"] = 8369,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9510,
 			[2] = 0.08,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Arcane Nullifier X-21",
@@ -5779,11 +5778,11 @@ local lootByInstance = {
 					["model"] = 6979,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 13325,
 			[2] = 2.56,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Mekgineer Thermaplugg",
@@ -5793,11 +5792,11 @@ local lootByInstance = {
 					["model"] = 117499,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 215430,
 			[2] = 20.57,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Grubbis",
@@ -5919,11 +5918,11 @@ local lootByInstance = {
 					["model"] = 764,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 216634,
 			[2] = 0.02,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Crowd Pummeler 9-60",
@@ -5993,13 +5992,13 @@ local lootByInstance = {
 					["model"] = 8369,
 				},
 			},
+			["itemClass"] = 12,
 		},
 	},
 	["Scarlet Monastery"] = {
 		{
 			[1] = 1992,
 			[2] = 0.03,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Diviner",
@@ -6100,11 +6099,11 @@ local lootByInstance = {
 					["model"] = 2476,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2262,
 			[2] = 0.02,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Tracking Hound",
@@ -6240,11 +6239,11 @@ local lootByInstance = {
 					["model"] = 2603,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 4582,
 			[2] = 10.57,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Tracking Hound",
@@ -6254,11 +6253,11 @@ local lootByInstance = {
 					["model"] = 2709,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 5756,
 			[2] = 0.02,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -6366,11 +6365,11 @@ local lootByInstance = {
 					["model"] = 2492,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 5819,
 			[2] = 0.66,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Guardsman",
@@ -6541,11 +6540,11 @@ local lootByInstance = {
 					["model"] = 2503,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7452,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Myrmidon",
@@ -6583,11 +6582,11 @@ local lootByInstance = {
 					["model"] = 2463,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 7727,
 			[2] = 0.07,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Abbot",
@@ -6758,11 +6757,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7728,
 			[2] = 0.32,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Sorcerer",
@@ -6926,11 +6925,11 @@ local lootByInstance = {
 					["model"] = 2503,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7729,
 			[2] = 0.04,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Protector",
@@ -7108,11 +7107,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7730,
 			[2] = 0.03,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Tracking Hound",
@@ -7276,11 +7275,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7736,
 			[2] = 0.4,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -7374,11 +7373,11 @@ local lootByInstance = {
 					["model"] = 2492,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7752,
 			[2] = 0.05,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Abbot",
@@ -7549,11 +7548,11 @@ local lootByInstance = {
 					["model"] = 2497,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7753,
 			[2] = 0.06,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Evoker",
@@ -7731,11 +7730,11 @@ local lootByInstance = {
 					["model"] = 2492,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7754,
 			[2] = 0.07,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Beastmaster",
@@ -7906,11 +7905,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7755,
 			[2] = 0.01,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Diviner",
@@ -8011,11 +8010,11 @@ local lootByInstance = {
 					["model"] = 2603,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7757,
 			[2] = 0.17,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Gallant",
@@ -8144,11 +8143,11 @@ local lootByInstance = {
 					["model"] = 5726,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7759,
 			[2] = 0.03,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Protector",
@@ -8249,11 +8248,11 @@ local lootByInstance = {
 					["model"] = 2501,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7760,
 			[2] = 0.39,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Sorcerer",
@@ -8333,11 +8332,11 @@ local lootByInstance = {
 					["model"] = 2492,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 7761,
 			[2] = 0.03,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Evoker",
@@ -8473,11 +8472,11 @@ local lootByInstance = {
 					["model"] = 4629,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7786,
 			[2] = 0.06,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -8648,11 +8647,11 @@ local lootByInstance = {
 					["model"] = 2520,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 7787,
 			[2] = 0.15,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -8830,11 +8829,11 @@ local lootByInstance = {
 					["model"] = 5726,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 8225,
 			[2] = 0.26,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Gallant",
@@ -8984,11 +8983,11 @@ local lootByInstance = {
 					["model"] = 2509,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 8226,
 			[2] = 0.07,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -9166,11 +9165,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 10328,
 			[2] = 0.3,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Champion",
@@ -9180,11 +9179,11 @@ local lootByInstance = {
 					["model"] = 2460,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10329,
 			[2] = 2.58,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Myrmidon",
@@ -9201,11 +9200,11 @@ local lootByInstance = {
 					["model"] = 2462,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10331,
 			[2] = 2.18,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Centurion",
@@ -9215,11 +9214,11 @@ local lootByInstance = {
 					["model"] = 2499,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10332,
 			[2] = 0.03,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Soldier",
@@ -9369,11 +9368,11 @@ local lootByInstance = {
 					["model"] = 2603,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10333,
 			[2] = 2.65,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Protector",
@@ -9390,11 +9389,11 @@ local lootByInstance = {
 					["model"] = 2511,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 14635,
 			[2] = 0,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Haunting Phantasm",
@@ -9404,11 +9403,11 @@ local lootByInstance = {
 					["model"] = 4629,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 23169,
 			[2] = 38.46,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scorn",
@@ -9418,11 +9417,11 @@ local lootByInstance = {
 					["model"] = 16197,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 217276,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Protector",
@@ -9432,11 +9431,11 @@ local lootByInstance = {
 					["model"] = 2476,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 248690,
 			[2] = 0,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Unfettered Spirit",
@@ -9446,11 +9445,11 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 262889,
 			[2] = 0,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Unfettered Spirit",
@@ -9460,13 +9459,13 @@ local lootByInstance = {
 					["model"] = 5430,
 				},
 			},
+			["itemClass"] = 0,
 		},
 	},
 	["Razorfen Kraul"] = {
 		{
 			[1] = 776,
 			[2] = 0.61,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Defender",
@@ -9532,11 +9531,11 @@ local lootByInstance = {
 					["model"] = 6105,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1488,
 			[2] = 2.17,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Kraul Bat",
@@ -9595,11 +9594,11 @@ local lootByInstance = {
 					["model"] = 6106,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 1727,
 			[2] = 3.03,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Agam'ar",
@@ -9742,11 +9741,11 @@ local lootByInstance = {
 					["model"] = 4647,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1975,
 			[2] = 0.35,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Defender",
@@ -9868,11 +9867,11 @@ local lootByInstance = {
 					["model"] = 6093,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1976,
 			[2] = 1.83,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Raging Agam'ar",
@@ -10001,11 +10000,11 @@ local lootByInstance = {
 					["model"] = 4714,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 1978,
 			[2] = 5.88,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Groundshaker",
@@ -10162,11 +10161,11 @@ local lootByInstance = {
 					["model"] = 4647,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2039,
 			[2] = 1.1,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Earthbreaker",
@@ -10295,11 +10294,11 @@ local lootByInstance = {
 					["model"] = 6099,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2264,
 			[2] = 6.67,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Kraul Bat",
@@ -10358,11 +10357,11 @@ local lootByInstance = {
 					["model"] = 6106,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 2549,
 			[2] = 0.42,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Warden",
@@ -10533,11 +10532,11 @@ local lootByInstance = {
 					["model"] = 4453,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 2997,
 			[2] = 100,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Tamed Battleboar",
@@ -10547,11 +10546,11 @@ local lootByInstance = {
 					["model"] = 704,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 3569,
 			[2] = 2.9,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Death's Head Priest",
@@ -10561,11 +10560,11 @@ local lootByInstance = {
 					["model"] = 6096,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 4438,
 			[2] = 2.78,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Greater Kraul Bat",
@@ -10673,11 +10672,11 @@ local lootByInstance = {
 					["model"] = 6096,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 5801,
 			[2] = 8.76,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Greater Kraul Bat",
@@ -10694,10 +10693,10 @@ local lootByInstance = {
 					["model"] = 138630,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 5876,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10706,11 +10705,11 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 6679,
 			[2] = 61.37,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Spearhide",
@@ -10720,10 +10719,10 @@ local lootByInstance = {
 					["model"] = 6078,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 10998,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10732,10 +10731,10 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11084,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10744,10 +10743,10 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11134,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10756,10 +10755,10 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11138,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10768,10 +10767,10 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11139,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Willix the Importer",
@@ -10780,11 +10779,11 @@ local lootByInstance = {
 					["model"] = 7155,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 249428,
 			[2] = 0.02,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Kraul Bat",
@@ -10801,13 +10800,13 @@ local lootByInstance = {
 					["model"] = 1954,
 				},
 			},
+			["itemClass"] = 7,
 		},
 	},
 	["Razorfen Downs"] = {
 		{
 			[1] = 10571,
 			[2] = 1,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Withered Quilguard",
@@ -10901,11 +10900,11 @@ local lootByInstance = {
 					["model"] = 1245,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 10573,
 			[2] = 0.23,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Withered Quilguard",
@@ -10978,11 +10977,11 @@ local lootByInstance = {
 					["model"] = 1245,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 10578,
 			[2] = 1.54,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Boneflayer Ghoul",
@@ -11069,11 +11068,11 @@ local lootByInstance = {
 					["model"] = 11385,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10582,
 			[2] = 0.3,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Withered Quilguard",
@@ -11146,11 +11145,11 @@ local lootByInstance = {
 					["model"] = 11386,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 10584,
 			[2] = 0.45,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Death's Head Necromancer",
@@ -11237,13 +11236,13 @@ local lootByInstance = {
 					["model"] = 3004,
 				},
 			},
+			["itemClass"] = 4,
 		},
 	},
 	["Uldaman"] = {
 		{
 			[1] = 7666,
 			[2] = 14.41,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Oracle",
@@ -11260,11 +11259,11 @@ local lootByInstance = {
 					["model"] = 721,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 8009,
 			[2] = 17.26,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowforge Relic Hunter",
@@ -11309,11 +11308,11 @@ local lootByInstance = {
 					["model"] = 5991,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 8052,
 			[2] = 17.87,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowforge Relic Hunter",
@@ -11358,11 +11357,11 @@ local lootByInstance = {
 					["model"] = 5991,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 8053,
 			[2] = 28.07,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Obsidian Sentinel",
@@ -11372,11 +11371,11 @@ local lootByInstance = {
 					["model"] = 5285,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 8154,
 			[2] = 0.76,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Deadly Cleft Scorpid",
@@ -11386,11 +11385,11 @@ local lootByInstance = {
 					["model"] = 138637,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 9381,
 			[2] = 2.22,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Oracle",
@@ -11456,11 +11455,11 @@ local lootByInstance = {
 					["model"] = 6009,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9384,
 			[2] = 3.03,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Brawler",
@@ -11519,11 +11518,11 @@ local lootByInstance = {
 					["model"] = 5285,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9386,
 			[2] = 1.33,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shrike Bat",
@@ -11596,11 +11595,11 @@ local lootByInstance = {
 					["model"] = 6056,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9391,
 			[2] = 0.49,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shrike Bat",
@@ -11666,11 +11665,11 @@ local lootByInstance = {
 					["model"] = 6009,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9393,
 			[2] = 1.96,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Rockchewer",
@@ -11729,11 +11728,11 @@ local lootByInstance = {
 					["model"] = 722,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9396,
 			[2] = 0.15,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Oracle",
@@ -11792,11 +11791,11 @@ local lootByInstance = {
 					["model"] = 2234,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9397,
 			[2] = 0.05,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shrike Bat",
@@ -11855,11 +11854,11 @@ local lootByInstance = {
 					["model"] = 722,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9406,
 			[2] = 1.08,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Cave Lurker",
@@ -11953,11 +11952,11 @@ local lootByInstance = {
 					["model"] = 6057,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9420,
 			[2] = 0.06,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shrike Bat",
@@ -12030,11 +12029,11 @@ local lootByInstance = {
 					["model"] = 6054,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 9426,
 			[2] = 1.43,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Stonevault Brawler",
@@ -12107,11 +12106,11 @@ local lootByInstance = {
 					["model"] = 1194,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 9428,
 			[2] = 2,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Stone Steward",
@@ -12170,13 +12169,13 @@ local lootByInstance = {
 					["model"] = 11166,
 				},
 			},
+			["itemClass"] = 4,
 		},
 	},
 	["Zul'Farrak"] = {
 		{
 			[1] = 8444,
 			[2] = 77.11,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Sandfury Executioner",
@@ -12186,11 +12185,11 @@ local lootByInstance = {
 					["model"] = 6440,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 9238,
 			[2] = 9.68,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Scarab",
@@ -12200,11 +12199,11 @@ local lootByInstance = {
 					["model"] = 7470,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 9523,
 			[2] = 20.21,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Zul'Farrak Dead Hero",
@@ -12263,11 +12262,11 @@ local lootByInstance = {
 					["model"] = 6419,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 221290,
 			[2] = 15.09,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Delirious Ancient",
@@ -12284,11 +12283,11 @@ local lootByInstance = {
 					["model"] = 6440,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 221360,
 			[2] = 16.35,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Zul'Farrak Zombie",
@@ -12298,12 +12297,12 @@ local lootByInstance = {
 					["model"] = 6417,
 				},
 			},
+			["itemClass"] = 12,
 		},
 	},
 	["The Temple of Atal'Hakkar"] = {
 		{
 			[1] = 6212,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Jammal'an the Prophet",
@@ -12312,11 +12311,11 @@ local lootByInstance = {
 					["model"] = 6708,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 10460,
 			[2] = 86.47,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Hakkari Bloodkeeper",
@@ -12326,11 +12325,11 @@ local lootByInstance = {
 					["model"] = 7829,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 10663,
 			[2] = 49.77,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Avatar of Hakkar",
@@ -12346,11 +12345,11 @@ local lootByInstance = {
 					["model"] = 7690,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 10838,
 			[2] = 18.92,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
@@ -12360,11 +12359,11 @@ local lootByInstance = {
 					["model"] = 7690,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 10844,
 			[2] = 17.79,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
@@ -12374,11 +12373,11 @@ local lootByInstance = {
 					["model"] = 7690,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 11318,
 			[2] = 40.04,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Saturated Ooze",
@@ -12414,11 +12413,11 @@ local lootByInstance = {
 					["model"] = 631,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 15733,
 			[2] = 2.58,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Murk Worm",
@@ -12428,11 +12427,11 @@ local lootByInstance = {
 					["model"] = 7549,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16216,
 			[2] = 2.14,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Atal'ai Witch Doctor",
@@ -12449,10 +12448,10 @@ local lootByInstance = {
 					["model"] = 6670,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 20019,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12461,10 +12460,10 @@ local lootByInstance = {
 					["model"] = 9584,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20022,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12473,10 +12472,10 @@ local lootByInstance = {
 					["model"] = 9584,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20025,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12485,10 +12484,10 @@ local lootByInstance = {
 					["model"] = 9584,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20085,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12497,10 +12496,10 @@ local lootByInstance = {
 					["model"] = 9584,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20606,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Gasher",
@@ -12527,10 +12526,10 @@ local lootByInstance = {
 					["model"] = 6701,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20607,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Mijan",
@@ -12557,10 +12556,10 @@ local lootByInstance = {
 					["model"] = 6707,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 20608,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Loro",
@@ -12587,10 +12586,10 @@ local lootByInstance = {
 					["model"] = 6699,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 22444,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Atal'alarion <Guardian of the Idol>",
@@ -12605,11 +12604,11 @@ local lootByInstance = {
 					["model"] = 119351,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 220606,
 			[2] = 22.65,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12619,11 +12618,11 @@ local lootByInstance = {
 					["model"] = 9584,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 221281,
 			[2] = 15.28,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Festering Rotslime",
@@ -12633,11 +12632,11 @@ local lootByInstance = {
 					["model"] = 119351,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 221298,
 			[2] = 16.21,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Hazzas",
@@ -12661,12 +12660,12 @@ local lootByInstance = {
 					["model"] = 117504,
 				},
 			},
+			["itemClass"] = 15,
 		},
 	},
 	["Blackrock Depths"] = {
 		{
 			[1] = 2928,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Mistress Nagmara",
@@ -12675,10 +12674,10 @@ local lootByInstance = {
 					["model"] = 2834,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 5173,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Mistress Nagmara",
@@ -12687,11 +12686,11 @@ local lootByInstance = {
 					["model"] = 2834,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 11197,
 			[2] = 88.44,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Dark Keeper Bethek",
@@ -12736,11 +12735,11 @@ local lootByInstance = {
 					["model"] = 8596,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 11269,
 			[2] = 6.19,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Molten War Golem",
@@ -12771,11 +12770,11 @@ local lootByInstance = {
 					["model"] = 8289,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 11312,
 			[2] = 23.01,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Blackbreath Crony",
@@ -12785,10 +12784,10 @@ local lootByInstance = {
 					["model"] = 8661,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 11325,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Mistress Nagmara",
@@ -12797,11 +12796,11 @@ local lootByInstance = {
 					["model"] = 2834,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 11370,
 			[2] = 17.04,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Marshal Windsor",
@@ -12838,11 +12837,11 @@ local lootByInstance = {
 					["model"] = 8289,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11404,
 			[2] = 13.09,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dark Screecher",
@@ -12852,11 +12851,11 @@ local lootByInstance = {
 					["model"] = 138638,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 11611,
 			[2] = 5.98,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Hammered Patron",
@@ -12873,11 +12872,11 @@ local lootByInstance = {
 					["model"] = 9233,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 11885,
 			[2] = 92.71,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowforge Flame Keeper",
@@ -12887,11 +12886,11 @@ local lootByInstance = {
 					["model"] = 9309,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 15770,
 			[2] = 2.95,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Marshal",
@@ -12901,11 +12900,11 @@ local lootByInstance = {
 					["model"] = 8751,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 15781,
 			[2] = 3.32,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Captain",
@@ -12915,11 +12914,11 @@ local lootByInstance = {
 					["model"] = 8749,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16048,
 			[2] = 2.01,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Doomforge Craftsman",
@@ -12929,11 +12928,11 @@ local lootByInstance = {
 					["model"] = 8803,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16049,
 			[2] = 1.92,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Weapon Technician",
@@ -12943,11 +12942,11 @@ local lootByInstance = {
 					["model"] = 8894,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16053,
 			[2] = 0.91,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Doomforge Arcanasmith",
@@ -12957,11 +12956,11 @@ local lootByInstance = {
 					["model"] = 8812,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 18654,
 			[2] = 3.91,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Weapon Technician",
@@ -12971,11 +12970,11 @@ local lootByInstance = {
 					["model"] = 8894,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 18661,
 			[2] = 3.88,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Weapon Technician",
@@ -12985,11 +12984,11 @@ local lootByInstance = {
 					["model"] = 8894,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 19933,
 			[2] = 7.27,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Deep Stinger",
@@ -12999,11 +12998,11 @@ local lootByInstance = {
 					["model"] = 7347,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 22047,
 			[2] = 69.16,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Theldren",
@@ -13013,11 +13012,11 @@ local lootByInstance = {
 					["model"] = 15981,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 221314,
 			[2] = 94.34,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Patrol",
@@ -13027,11 +13026,11 @@ local lootByInstance = {
 					["model"] = 119500,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 227903,
 			[2] = 4.67,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Captain",
@@ -13041,11 +13040,11 @@ local lootByInstance = {
 					["model"] = 8749,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 227904,
 			[2] = 5.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Marshal",
@@ -13055,14 +13054,14 @@ local lootByInstance = {
 					["model"] = 8751,
 				},
 			},
+			["itemClass"] = 9,
 		},
 	},
-	["Blackrock Spire"] = {{14513}, {16696}, {16685}, {16683}, {16703}, {16713}, {16716}, {16680}, {16673}, {16736}, {16735}, {15749}, {15775}, {13494}, {16250}, {16244}, {9214}, {12219}, {12586}, {24102}, {13260}, {16681}, {16247},},
+	["Blackrock Spire"] = {{9214}, {12219}, {12586}, {13260}, {13494}, {14513}, {15749}, {15775}, {16244}, {16247}, {16250}, {16673}, {16680}, {16681}, {16683}, {16685}, {16696}, {16703}, {16713}, {16716}, {16735}, {16736}, {24102},},
 	["Dire Maul"] = {
 		{
 			[1] = 13465,
 			[2] = 0.75,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Phase Lasher",
@@ -13107,11 +13106,11 @@ local lootByInstance = {
 					["model"] = 2078,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 13466,
 			[2] = 0.71,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Phase Lasher",
@@ -13170,11 +13169,11 @@ local lootByInstance = {
 					["model"] = 6350,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 13467,
 			[2] = 0.9,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Warpwood Stomper",
@@ -13212,11 +13211,11 @@ local lootByInstance = {
 					["model"] = 13173,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 18250,
 			[2] = 46.56,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Gordok Mage-Lord",
@@ -13261,11 +13260,11 @@ local lootByInstance = {
 					["model"] = 10709,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 18603,
 			[2] = 3.35,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Wildspawn Shadowstalker",
@@ -13317,11 +13316,11 @@ local lootByInstance = {
 					["model"] = 11345,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 18640,
 			[2] = 3.09,
-			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Gordok Bushwacker",
@@ -13366,11 +13365,11 @@ local lootByInstance = {
 					["model"] = 11537,
 				},
 			},
+			["itemClass"] = 0,
 		},
 		{
 			[1] = 22224,
 			[2] = 11.11,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Eldreth Sorcerer",
@@ -13422,11 +13421,11 @@ local lootByInstance = {
 					["model"] = 14695,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 228313,
 			[2] = 0.04,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Petrified Guardian",
@@ -13436,13 +13435,13 @@ local lootByInstance = {
 					["model"] = 5848,
 				},
 			},
+			["itemClass"] = 9,
 		},
 	},
 	["Scholomance"] = {
 		{
 			[1] = 12753,
 			[2] = 25.45,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Risen Construct",
@@ -13459,11 +13458,11 @@ local lootByInstance = {
 					["model"] = 11397,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12840,
 			[2] = 47.86,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Plagued Hatchling",
@@ -13480,11 +13479,11 @@ local lootByInstance = {
 					["model"] = 9786,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12841,
 			[2] = 43.73,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Lord Blackwood",
@@ -13655,11 +13654,11 @@ local lootByInstance = {
 					["model"] = 11157,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13920,
 			[2] = 21.3,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Plagued Hatchling",
@@ -13669,11 +13668,11 @@ local lootByInstance = {
 					["model"] = 10007,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 15773,
 			[2] = 4.39,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Researcher",
@@ -13683,11 +13682,11 @@ local lootByInstance = {
 					["model"] = 3942,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 15776,
 			[2] = 1.96,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Dark Summoner",
@@ -13697,11 +13696,11 @@ local lootByInstance = {
 					["model"] = 11163,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16254,
 			[2] = 1.28,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Researcher",
@@ -13711,11 +13710,11 @@ local lootByInstance = {
 					["model"] = 3942,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16255,
 			[2] = 1.32,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Adept",
@@ -13725,11 +13724,11 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16671,
 			[2] = 0.64,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Splintered Skeleton",
@@ -13739,11 +13738,11 @@ local lootByInstance = {
 					["model"] = 11401,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16684,
 			[2] = 2.03,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Adept",
@@ -13753,11 +13752,11 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16685,
 			[2] = 0.75,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Adept",
@@ -13767,11 +13766,11 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16702,
 			[2] = 0.52,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Necromancer",
@@ -13781,11 +13780,11 @@ local lootByInstance = {
 					["model"] = 11163,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16705,
 			[2] = 1.41,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Necromancer",
@@ -13795,11 +13794,11 @@ local lootByInstance = {
 					["model"] = 11163,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16710,
 			[2] = 3.02,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Risen Construct",
@@ -13816,11 +13815,11 @@ local lootByInstance = {
 					["model"] = 11157,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16714,
 			[2] = 0.5,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Diseased Ghoul",
@@ -13830,11 +13829,11 @@ local lootByInstance = {
 					["model"] = 519,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16716,
 			[2] = 2.95,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Researcher",
@@ -13858,11 +13857,11 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16722,
 			[2] = 2.94,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Risen Warrior",
@@ -13879,11 +13878,11 @@ local lootByInstance = {
 					["model"] = 11489,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 20520,
 			[2] = 39.38,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Scholomance Dark Summoner",
@@ -13900,13 +13899,13 @@ local lootByInstance = {
 					["model"] = 11163,
 				},
 			},
+			["itemClass"] = 7,
 		},
 	},
 	["Stratholme"] = {
 		{
 			[1] = 12734,
 			[2] = 4,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -13916,11 +13915,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12735,
 			[2] = 28.72,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Bile Spewer",
@@ -13944,11 +13943,11 @@ local lootByInstance = {
 					["model"] = 1693,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12811,
 			[2] = 8.82,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
@@ -14028,11 +14027,11 @@ local lootByInstance = {
 					["model"] = 10492,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 12840,
 			[2] = 48.27,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Skeletal Guardian",
@@ -14056,11 +14055,11 @@ local lootByInstance = {
 					["model"] = 4629,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12841,
 			[2] = 43.4,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Black Guard Swordsmith",
@@ -14203,11 +14202,11 @@ local lootByInstance = {
 					["model"] = 10539,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 12843,
 			[2] = 82.63,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
@@ -14231,11 +14230,11 @@ local lootByInstance = {
 					["model"] = 7919,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13172,
 			[2] = 62.96,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Ezra Grimm",
@@ -14245,11 +14244,11 @@ local lootByInstance = {
 					["model"] = 10475,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13250,
 			[2] = 13.82,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14259,11 +14258,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13302,
 			[2] = 39.36,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14273,11 +14272,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13303,
 			[2] = 39.13,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14287,11 +14286,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13304,
 			[2] = 39.45,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14301,11 +14300,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13305,
 			[2] = 38.23,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14315,11 +14314,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13306,
 			[2] = 39.68,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14329,11 +14328,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13307,
 			[2] = 37.47,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
@@ -14343,11 +14342,11 @@ local lootByInstance = {
 					["model"] = 10547,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 13350,
 			[2] = 2.06,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Black Guard Swordsmith",
@@ -14357,11 +14356,11 @@ local lootByInstance = {
 					["model"] = 775,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13351,
 			[2] = 0.7,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
@@ -14371,11 +14370,11 @@ local lootByInstance = {
 					["model"] = 10637,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13354,
 			[2] = 8.9,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Eye of Naxxramas",
@@ -14385,11 +14384,11 @@ local lootByInstance = {
 					["model"] = 4629,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 13520,
 			[2] = 4,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14399,11 +14398,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 14495,
 			[2] = 4.05,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Citizen",
@@ -14413,11 +14412,11 @@ local lootByInstance = {
 					["model"] = 10483,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 14512,
 			[2] = 8.34,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14427,11 +14426,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 14679,
 			[2] = 1.99,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14441,11 +14440,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 15768,
 			[2] = 1.26,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Ghoul Ravener",
@@ -14455,11 +14454,11 @@ local lootByInstance = {
 					["model"] = 10626,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 15777,
 			[2] = 1.59,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Battle Mage",
@@ -14469,11 +14468,11 @@ local lootByInstance = {
 					["model"] = 10529,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16052,
 			[2] = 3.88,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Inquisitor",
@@ -14483,11 +14482,11 @@ local lootByInstance = {
 					["model"] = 10516,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16248,
 			[2] = 0.59,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Thuzadin Shadowcaster",
@@ -14497,11 +14496,11 @@ local lootByInstance = {
 					["model"] = 10631,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16249,
 			[2] = 1.83,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Sorcerer",
@@ -14511,11 +14510,11 @@ local lootByInstance = {
 					["model"] = 10504,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 16671,
 			[2] = 4.17,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crypt Crawler",
@@ -14539,11 +14538,11 @@ local lootByInstance = {
 					["model"] = 10463,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16681,
 			[2] = 2.49,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Defender",
@@ -14567,11 +14566,11 @@ local lootByInstance = {
 					["model"] = 414,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16685,
 			[2] = 4.17,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Conjuror",
@@ -14609,11 +14608,11 @@ local lootByInstance = {
 					["model"] = 10529,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16697,
 			[2] = 3.03,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Conjuror",
@@ -14651,11 +14650,11 @@ local lootByInstance = {
 					["model"] = 10508,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16702,
 			[2] = 3.25,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Conjuror",
@@ -14686,11 +14685,11 @@ local lootByInstance = {
 					["model"] = 10504,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16710,
 			[2] = 0.63,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Plague Ghoul",
@@ -14700,11 +14699,11 @@ local lootByInstance = {
 					["model"] = 559,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16714,
 			[2] = 3.56,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shrieking Banshee",
@@ -14728,11 +14727,11 @@ local lootByInstance = {
 					["model"] = 10516,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16723,
 			[2] = 3.65,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Guardsman",
@@ -14763,11 +14762,11 @@ local lootByInstance = {
 					["model"] = 10512,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16725,
 			[2] = 18.29,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14777,11 +14776,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 16736,
 			[2] = 2.87,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Bile Spewer",
@@ -14805,11 +14804,11 @@ local lootByInstance = {
 					["model"] = 1693,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 18658,
 			[2] = 3.75,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Inquisitor",
@@ -14819,11 +14818,11 @@ local lootByInstance = {
 					["model"] = 10516,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 18720,
 			[2] = 16.48,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Grand Crusader Dathrohan",
@@ -14833,11 +14832,11 @@ local lootByInstance = {
 					["model"] = 10545,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 18781,
 			[2] = 63.56,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
@@ -14847,11 +14846,11 @@ local lootByInstance = {
 					["model"] = 10637,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 18783,
 			[2] = 42.12,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Black Guard Swordsmith",
@@ -14861,11 +14860,11 @@ local lootByInstance = {
 					["model"] = 775,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 22388,
 			[2] = 0.01,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Gallant",
@@ -14882,11 +14881,11 @@ local lootByInstance = {
 					["model"] = 9784,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 23125,
 			[2] = 27.84,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Balzaphon",
@@ -14896,11 +14895,11 @@ local lootByInstance = {
 					["model"] = 7919,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 228314,
 			[2] = 0.08,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Thuzadin Necromancer",
@@ -14917,13 +14916,13 @@ local lootByInstance = {
 					["model"] = 12819,
 				},
 			},
+			["itemClass"] = 9,
 		},
 	},
 	["The Hall of Thanes"] = {
 		{
 			[1] = 275892,
 			[2] = 1.1,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Engineer",
@@ -14947,11 +14946,11 @@ local lootByInstance = {
 					["model"] = 143713,
 				},
 			},
+			["itemClass"] = 15,
 		},
 		{
 			[1] = 275893,
 			[2] = 6.57,
-			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Summoner",
@@ -14975,13 +14974,13 @@ local lootByInstance = {
 					["model"] = 3452,
 				},
 			},
+			["itemClass"] = 15,
 		},
 	},
 	["Ragefire Chasm"] = {
 		{
 			[1] = 14395,
 			[2] = 2.35,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Searing Blade Cultist",
@@ -14998,11 +14997,11 @@ local lootByInstance = {
 					["model"] = 11438,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 14396,
 			[2] = 2.32,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Searing Blade Warlock",
@@ -15019,13 +15018,13 @@ local lootByInstance = {
 					["model"] = 11434,
 				},
 			},
+			["itemClass"] = 12,
 		},
 	},
 	["Excavation Site: Wetlands"] = {
 		{
 			[1] = 2084,
 			[2] = 6.57,
-			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
@@ -15035,11 +15034,11 @@ local lootByInstance = {
 					["model"] = 4916,
 				},
 			},
+			["itemClass"] = 2,
 		},
 		{
 			[1] = 3667,
 			[2] = 41.03,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Marsh Crocolisk",
@@ -15070,11 +15069,11 @@ local lootByInstance = {
 					["model"] = 1035,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 8365,
 			[2] = 10.83,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Highland Tortoise",
@@ -15091,11 +15090,11 @@ local lootByInstance = {
 					["model"] = 7114,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11150,
 			[2] = 2.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
@@ -15105,11 +15104,11 @@ local lootByInstance = {
 					["model"] = 4916,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 271100,
 			[2] = 20.15,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Thicket Stalker",
@@ -15133,11 +15132,11 @@ local lootByInstance = {
 					["model"] = 11316,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 284844,
 			[2] = 36.36,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Thaumaturgist",
@@ -15147,11 +15146,11 @@ local lootByInstance = {
 					["model"] = 4918,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 284845,
 			[2] = 16.54,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Thicket Lurker",
@@ -15175,13 +15174,21 @@ local lootByInstance = {
 					["model"] = 11315,
 				},
 			},
+			["itemClass"] = 12,
+		},
+		{
+			[1] = 286983,
+			["itemClass"] = 2,
+		},
+		{
+			[1] = 287068,
+			["itemClass"] = 2,
 		},
 	},
 	["Maraudon"] = {
 		{
 			[1] = 3841,
 			[2] = 1,
-			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Deeprot Tangler",
@@ -15191,10 +15198,10 @@ local lootByInstance = {
 					["model"] = 13098,
 				},
 			},
+			["itemClass"] = 4,
 		},
 		{
 			[1] = 5500,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Zaetar's Spirit",
@@ -15203,11 +15210,11 @@ local lootByInstance = {
 					["model"] = 12369,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 7079,
 			[2] = 7.72,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Noxxious Scion",
@@ -15217,10 +15224,10 @@ local lootByInstance = {
 					["model"] = 13749,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 11175,
-			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Celebras the Redeemed",
@@ -15229,11 +15236,11 @@ local lootByInstance = {
 					["model"] = 13715,
 				},
 			},
+			["itemClass"] = 7,
 		},
 		{
 			[1] = 17764,
 			[2] = 96.74,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Spirit of Maraudos <The Fourth Kahn>",
@@ -15243,11 +15250,11 @@ local lootByInstance = {
 					["model"] = 12370,
 				},
 			},
+			["itemClass"] = 12,
 		},
 		{
 			[1] = 17765,
 			[2] = 96.93,
-			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Spirit of Veng <The Fifth Kahn>",
@@ -15257,8 +15264,14 @@ local lootByInstance = {
 					["model"] = 12373,
 				},
 			},
+			["itemClass"] = 12,
 		},
 	},
+	["The Drowned City"] = {},
+	["Krol'dok Stronghold"] = {},
+	["Alcaz Prison"] = {},
+	["Blackmaw Hold"] = {},
+	["Shaper's Terrace"] = {},
 }
 
 for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
