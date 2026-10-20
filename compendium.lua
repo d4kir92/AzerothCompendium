@@ -871,11 +871,34 @@ local function UpdateInstanceBackground(row, inst)
     for _, edge in ipairs(row.selectionBorder or {}) do edge:Hide() end
     local fileID, layout = nil, nil
     if UsesLoadingScreens() and not inst.levelGroup then fileID, layout = GetLoadingScreen(inst) end
+    if row.factionEmblem then row.factionEmblem:Hide() end
     if fileID ~= nil then
         row.loadingLayout = layout
         row.loadingScreen:SetTexture(fileID)
         UpdateLoadingScreenCrop(row)
         row.loadingScreen:Show()
+    elseif UsesLoadingScreens() and not inst.levelGroup and inst.honor then
+        local horde = UnitFactionGroup and UnitFactionGroup("player") == "Horde"
+        if row.factionEmblem == nil then
+            row.factionEmblem = row:CreateTexture(nil, "BORDER")
+            row.factionEmblem:SetPoint("TOP", row, "TOP", 0, -2)
+            row.factionEmblem:SetPoint("BOTTOM", row, "BOTTOM", 0, 2)
+            row.factionEmblem:SetAlpha(0.6)
+            row:HookScript("OnSizeChanged", function(sel) sel.factionEmblem:SetWidth(max(1, sel:GetHeight() - 4)) end)
+        end
+
+        row.loadingScreen:SetTexCoord(0, 1, 0, 1)
+        if horde then
+            row.loadingScreen:SetColorTexture(0.22, 0.03, 0.03, 1)
+            row.factionEmblem:SetTexture("Interface\\Timer\\Horde-Logo")
+        else
+            row.loadingScreen:SetColorTexture(0.03, 0.08, 0.22, 1)
+            row.factionEmblem:SetTexture("Interface\\Timer\\Alliance-Logo")
+        end
+
+        row.factionEmblem:SetWidth(max(1, row:GetHeight() - 4))
+        row.loadingScreen:Show()
+        row.factionEmblem:Show()
     else
         row.loadingScreen:Hide()
     end
@@ -1024,38 +1047,47 @@ end
 
 function AzerothCompendium:UpdateReputationBar(row, inst)
     local factionID = UsesLoadingScreens() and not inst.levelGroup and inst.factionID
-    local name, standing, barMin, barMax, value = nil, nil, nil, nil, nil
-    if factionID and GetFactionInfoByID then
-        local info = {pcall(GetFactionInfoByID, factionID)}
-        if info[1] then name, standing, barMin, barMax, value = info[2], info[4], info[5], info[6], info[7] end
-    end
-    if type(name) ~= "string" or type(standing) ~= "number" or type(barMin) ~= "number" or type(barMax) ~= "number" or type(value) ~= "number" then
+    local rep = factionID and AzerothCompendium:GetFactionReputation(factionID)
+    if rep == nil then
         if row.repBar then row.repBar:Hide() end
         return
     end
 
     if row.repBar == nil then
-        row.repBar = CreateFrame("StatusBar", nil, row)
-        row.repBar:SetHeight(14)
+        row.repBar = AzerothCompendium:CreateReputationBar(row, 14)
         row.repBar:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 6, 6)
         row.repBar:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
-        row.repBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        row.repBar.background = row.repBar:CreateTexture(nil, "BACKGROUND")
-        row.repBar.background:SetAllPoints(row.repBar)
-        row.repBar.background:SetColorTexture(0, 0, 0, 0.6)
-        row.repBar.text = row.repBar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        row.repBar.text:SetPoint("CENTER", row.repBar, "CENTER", 0, 0)
     end
 
-    local color = FACTION_BAR_COLORS and FACTION_BAR_COLORS[standing] or {r = 0, g = 0.6, b = 0.1}
-    local maxValue = max(1, barMax - barMin)
-    row.repBar:SetStatusBarColor(color.r, color.g, color.b)
-    row.repBar:SetMinMaxValues(0, maxValue)
-    row.repBar:SetValue(min(maxValue, max(0, value - barMin)))
-    local label = _G["FACTION_STANDING_LABEL" .. standing] or ""
-    row.repBar.text:SetText(standing >= 8 and label or format("%s %d/%d", label, value - barMin, maxValue))
+    AzerothCompendium:ApplyReputationBar(row.repBar, rep)
     row.repBar:SetFrameLevel(row:GetFrameLevel() + 2)
     row.repBar:Show()
+end
+
+function AzerothCompendium:CreateReputationBar(parent, height)
+    local bar = CreateFrame("StatusBar", nil, parent)
+    bar:SetHeight(height)
+    bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    bar.background = bar:CreateTexture(nil, "BACKGROUND")
+    bar.background:SetAllPoints(bar)
+    bar.background:SetColorTexture(0, 0, 0, 0.6)
+    bar.text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    bar.text:SetPoint("LEFT", bar, "LEFT", 4, 0)
+    bar.text:SetPoint("RIGHT", bar, "RIGHT", -4, 0)
+    bar.text:SetWordWrap(false)
+    return bar
+end
+
+function AzerothCompendium:ApplyReputationBar(bar, rep, name)
+    local standing, barMin, barMax, value = rep.standing, rep.barMin, rep.barMax, rep.value
+    local color = FACTION_BAR_COLORS and FACTION_BAR_COLORS[standing] or {r = 0, g = 0.6, b = 0.1}
+    local maxValue = max(1, barMax - barMin)
+    bar:SetStatusBarColor(color.r, color.g, color.b)
+    bar:SetMinMaxValues(0, maxValue)
+    bar:SetValue(min(maxValue, max(0, value - barMin)))
+    local label = _G["FACTION_STANDING_LABEL" .. standing] or ""
+    local status = standing >= 8 and label or format("%s %d/%d", label, value - barMin, maxValue)
+    bar.text:SetText(name and format("%s - %s", name, status) or status)
 end
 
 local function UpdateInstanceRow(row, inst)
@@ -5469,6 +5501,24 @@ local function CreateJournal()
     bossTitle:SetWordWrap(false)
     bossTitle:SetJustifyH("LEFT")
     compendium.bossTitle = bossTitle
+    bossTitle.repBar = AzerothCompendium:CreateReputationBar(compendium, 16)
+    bossTitle.repBar:SetPoint("LEFT", bossTitle, "LEFT", 0, 0)
+    bossTitle.repBar:SetWidth(MIDDLE_COL_W)
+    bossTitle.repBar:Hide()
+    hooksecurefunc(bossTitle, "Show", function(sel)
+        local inst = selectedInstance
+        local rep = listKind == "faction" and inst ~= nil and inst.factionID and AzerothCompendium:GetFactionReputation(inst.factionID)
+        if rep then
+            AzerothCompendium:ApplyReputationBar(sel.repBar, rep, AzerothCompendium:GetInstanceName(inst))
+            sel.repBar:SetFrameLevel(compendium:GetFrameLevel() + 4)
+            sel.repBar:Show()
+            sel:SetAlpha(0)
+        else
+            sel.repBar:Hide()
+            sel:SetAlpha(1)
+        end
+    end)
+    hooksecurefunc(bossTitle, "Hide", function(sel) sel.repBar:Hide() end)
     local bosses = CreateScroller(compendium, ROW_H, function(scroller)
         local row = CreateTextRow(scroller, OnBossClick)
         AddBossPortrait(row)
@@ -6717,6 +6767,7 @@ AzerothCompendium:RegisterEvent(loader, "CHAT_MSG_LOOT")
 AzerothCompendium:RegisterEvent(loader, "PLAYER_TARGET_CHANGED")
 AzerothCompendium:RegisterEvent(loader, "UPDATE_MOUSEOVER_UNIT")
 AzerothCompendium:RegisterEvent(loader, "NAME_PLATE_UNIT_ADDED")
+AzerothCompendium:RegisterEvent(loader, "UPDATE_FACTION")
 loader:SetScript("OnEvent", function(sel, event, itemID, success)
     if event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT" or event == "NAME_PLATE_UNIT_ADDED" then
         AzerothCompendium:MarkUnitSeen(event == "PLAYER_TARGET_CHANGED" and "target" or event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or itemID)
@@ -6771,6 +6822,19 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
 
     if event == "PLAYER_LOGIN" then
         AzerothCompendium:RegisterTrainerSpellsPlaceholders()
+        return
+    end
+
+    if event == "UPDATE_FACTION" then
+        AzerothCompendium:InvalidateReputation()
+        if sel.factionRefreshPending or compendium == nil or not compendium:IsShown() or listKind ~= "faction" then return end
+        sel.factionRefreshPending = true
+        AzerothCompendium:After(0.25, function()
+            sel.factionRefreshPending = false
+            if compendium == nil or not compendium:IsShown() or listKind ~= "faction" then return end
+            RefreshInstances()
+            if compendium.overviewActive and compendium.RefreshOverview then compendium:RefreshOverview() end
+        end, "AzerothCompendium:Reputation")
         return
     end
 

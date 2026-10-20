@@ -477,6 +477,90 @@ function AzerothCompendium:SetWishlistItem(itemID, source, mark)
     if AzerothCompendium.RefreshWishlist then AzerothCompendium:RefreshWishlist() end
 end
 
+AzerothCompendium.reputationCache = nil
+function AzerothCompendium:InvalidateReputation()
+    AzerothCompendium.reputationCache = nil
+end
+
+function AzerothCompendium:ReadReputationEntry(index)
+    if C_Reputation and C_Reputation.GetFactionDataByIndex then
+        local ok, data = pcall(C_Reputation.GetFactionDataByIndex, index)
+        if ok and type(data) == "table" then
+            local hasRep = not data.isHeader or data.isHeaderWithRep
+            return data.factionID, data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, hasRep, data.isCollapsed
+        end
+    end
+
+    if GetFactionInfo then
+        local ok, name, _, standing, barMin, barMax, value, _, _, isHeader, isCollapsed, hasRep, _, _, factionID = pcall(GetFactionInfo, index)
+        if ok then return factionID, name, standing, barMin, barMax, value, not isHeader or hasRep, isCollapsed end
+    end
+
+    return nil
+end
+
+function AzerothCompendium:ReadReputationByID(factionID)
+    if C_Reputation and C_Reputation.GetFactionDataByID then
+        local ok, data = pcall(C_Reputation.GetFactionDataByID, factionID)
+        if ok and type(data) == "table" then return data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding end
+    end
+
+    if GetFactionInfoByID then
+        local ok, name, _, standing, barMin, barMax, value = pcall(GetFactionInfoByID, factionID)
+        if ok then return name, standing, barMin, barMax, value end
+    end
+
+    return nil
+end
+
+function AzerothCompendium:GetFactionReputation(factionID)
+    if factionID == nil then return nil end
+    local cache = AzerothCompendium.reputationCache
+    if cache == nil then
+        cache = {
+            known = {},
+            collapsed = false
+        }
+
+        local count = 0
+        if C_Reputation and C_Reputation.GetNumFactions then
+            count = C_Reputation.GetNumFactions() or 0
+        elseif GetNumFactions then
+            count = GetNumFactions() or 0
+        end
+
+        for index = 1, count do
+            local id, name, standing, barMin, barMax, value, hasRep, isCollapsed = AzerothCompendium:ReadReputationEntry(index)
+            if isCollapsed then cache.collapsed = true end
+            if id and id ~= 0 and hasRep and type(name) == "string" and type(standing) == "number" and type(barMin) == "number" and type(barMax) == "number" and type(value) == "number" then
+                cache.known[id] = {
+                    name = name,
+                    standing = standing,
+                    barMin = barMin,
+                    barMax = barMax,
+                    value = value
+                }
+            end
+        end
+
+        AzerothCompendium.reputationCache = cache
+    end
+
+    if cache.known[factionID] then return cache.known[factionID] end
+    if not cache.collapsed then return nil end
+    local name, standing, barMin, barMax, value = AzerothCompendium:ReadReputationByID(factionID)
+    if type(name) ~= "string" or type(standing) ~= "number" or type(barMin) ~= "number" or type(barMax) ~= "number" or type(value) ~= "number" then return nil end
+    if value == 0 and standing == 4 then return nil end
+
+    return {
+        name = name,
+        standing = standing,
+        barMin = barMin,
+        barMax = barMax,
+        value = value
+    }
+end
+
 function AzerothCompendium:GetInstanceWingName(inst)
     if inst == nil or inst.wing == nil then return nil end
 
