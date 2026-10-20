@@ -1256,6 +1256,10 @@ local function UpdateBossRow(row, boss)
     end
 end
 
+function AzerothCompendium:IsSpoilerFree()
+    return (listKind == "dungeon" or listKind == "raid") and type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
+end
+
 function AzerothCompendium:GetLevelFilterMode()
     if listKind ~= "dungeon" and listKind ~= "raid" or type(ACOTABPC) ~= "table" then return "all" end
     if ACOTABPC.ONLYMAXLEVEL == true then return "max" end
@@ -1391,6 +1395,10 @@ local function GetLootList()
         local ok = IsItemVisible(itemID)
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok and onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then
+            ok = false
+            hidden = hidden + 1
+        end
+        if ok and AzerothCompendium:IsSpoilerFree() and not AzerothCompendium:IsLootSeen(itemID) then
             ok = false
             hidden = hidden + 1
         end
@@ -1717,8 +1725,13 @@ local function GetWorldQuestItemList()
             local sourceText = source
             if entry.zone ~= nil then sourceText = sourceText .. " - " .. entry.zone end
             local quest = AzerothCompendium:GetQuestDataByID(entry.questID)
-            local side = quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[entry.questID]
-            if AzerothCompendium:IsQuestSideVisible(side) and (Matches(itemName) or Matches(entry.itemName) or Matches(questName) or Matches(sourceText) or Matches(entry.description)) then
+            local side = quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[entry.questID] or entry.side
+            local classOk = true
+            if entry.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then
+                local classID = select(3, UnitClass("player"))
+                classOk = type(classID) ~= "number" or bit.band(entry.classMask, 2 ^ (classID - 1)) ~= 0
+            end
+            if classOk and AzerothCompendium:IsQuestSideVisible(side) and (Matches(itemName) or Matches(entry.itemName) or Matches(questName) or Matches(sourceText) or Matches(entry.description)) then
                 tinsert(list, {
                     itemID = entry.itemID,
                     questID = entry.questID,
@@ -2400,8 +2413,15 @@ local function RefreshDetail()
     if detailKind == "loot" then
         local lootList, hidden, pending, itemCount = GetLootList()
         compendium.loot.sharedPending = pending
-        if AzerothCompendium:GetConfig("CLASSFILTER", false) then
-            compendium.loot:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. AzerothCompendium:Trans("LID_CLASSFILTER"), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden), function() AzerothCompendium:SetClassFilter(false) end)
+        local lootFilters = {}
+        if AzerothCompendium:GetConfig("CLASSFILTER", false) then tinsert(lootFilters, AzerothCompendium:Trans("LID_CLASSFILTER")) end
+        if AzerothCompendium:IsSpoilerFree() then tinsert(lootFilters, AzerothCompendium:Trans("LID_SPOILERFREE")) end
+        if #lootFilters > 0 then
+            compendium.loot:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. table.concat(lootFilters, ", "), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden), function()
+                ACOTABPC = ACOTABPC or {}
+                ACOTABPC.SPOILERFREE = false
+                AzerothCompendium:SetClassFilter(false)
+            end)
         else
             compendium.loot:SetBanner(nil)
         end
@@ -4334,7 +4354,7 @@ local function RefreshWorldQuestItemsView()
     toggle:ClearAllPoints()
     toggle:SetPoint("BOTTOMRIGHT", scroller, "TOPRIGHT", -2, 4)
     toggle:Show()
-    toggle.classHeader:Hide()
+    toggle.classHeader:Show()
     toggle.completedFilter:Hide()
     for side, button in ipairs(toggle.buttons) do
         local enabled = AzerothCompendium:IsQuestSideVisible(side)
@@ -4345,7 +4365,7 @@ local function RefreshWorldQuestItemsView()
         button.icon:SetAlpha(enabled and 1 or 0.45)
     end
     compendium.worldQuestItemsCount:ClearAllPoints()
-    compendium.worldQuestItemsCount:SetPoint("RIGHT", toggle, "LEFT", -12, 0)
+    compendium.worldQuestItemsCount:SetPoint("RIGHT", toggle.classHeader.label, "LEFT", -12, 0)
     if total == 0 then
         compendium.worldQuestItemsEmpty:Show()
     else
@@ -4681,7 +4701,12 @@ function AzerothCompendium:CreateInstanceControls()
         GameTooltip:Show()
     end)
     levelFilter:HookScript("OnLeave", function() GameTooltip:Hide() end)
-    filterPopup.keepOpen = function() return levelFilter.IsMenuOpen ~= nil and levelFilter:IsMenuOpen() end
+    filterPopup.keepOpen = function()
+        for _, control in ipairs({levelFilter, compendium.continentControl}) do
+            if control and control.IsMenuOpen ~= nil and control:IsMenuOpen() then return true end
+        end
+        return false
+    end
     compendium.levelFilter = levelFilter
 
     local hideForeverFilter = CreateTemplated("CheckButton", "AzerothCompendiumHideForeverFilter", filterPopup, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
@@ -4728,6 +4753,25 @@ function AzerothCompendium:CreateInstanceControls()
     hideCompletedFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.hideCompletedFilter = hideCompletedFilter
     compendium.hideCompletedLabel = hideCompletedLabel
+    filterPopup.spoilerFilter = CreateTemplated("CheckButton", "AzerothCompendiumSpoilerFilter", filterPopup, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
+    filterPopup.spoilerFilter:SetSize(24, 24)
+    filterPopup.spoilerFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true)
+    filterPopup.spoilerFilter.label = filterPopup.spoilerFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    filterPopup.spoilerFilter.label:SetPoint("LEFT", filterPopup.spoilerFilter, "RIGHT", 2, 0)
+    filterPopup.spoilerFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
+    filterPopup.spoilerFilter:SetScript("OnClick", function(sel)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.SPOILERFREE = sel:GetChecked() == true
+        AzerothCompendium:RefreshCompendium()
+    end)
+    filterPopup.spoilerFilter:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREE")))
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREEHINT")), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    filterPopup.spoilerFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    compendium.spoilerFilter = filterPopup.spoilerFilter
     function filterDropdown:Refresh()
         local dungeon = listKind == "dungeon"
         local forever = dungeon and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER
@@ -4737,6 +4781,8 @@ function AzerothCompendium:CreateInstanceControls()
             if forever and ACOTABPC.HIDENEWFOREVER == true then count = count + 1 end
             if dungeon and ACOTABPC.HIDECOMPLETED == true then count = count + 1 end
         end
+        if AzerothCompendium:IsSpoilerFree() then count = count + 1 end
+        if (listKind == "dungeon" or listKind == "raid") and AzerothCompendium:GetSelectedContinent() ~= nil then count = count + 1 end
         if AzerothCompendium:GetConfig("CLASSFILTER", false) == true then count = count + 1 end
         local text = AzerothCompendium:Trans("LID_FILTER")
         if count > 0 then text = "|cffffd100" .. AzerothCompendium:Trans("LID_FILTERACTIVE") .. " (" .. count .. ")|r" end
@@ -4760,26 +4806,52 @@ function AzerothCompendium:CreateInstanceControls()
         AzerothCompendium:SetDropdownText(levelFilter, levelFilter:AcoChoiceText(AzerothCompendium:GetLevelFilterMode()))
         levelFilter:SetWidth(200)
         local classFilter = compendium.factionToggle and compendium.factionToggle.classFilter
-        local rows = {levelFilter}
+        local continent = compendium.continentControl
+        local grouped = listKind == "dungeon" or listKind == "raid"
+        filterPopup.spoilerFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true)
+        local rows = {}
+        if continent and grouped then
+            continent:SetSize(170, 22)
+            tinsert(rows, continent)
+        end
+        tinsert(rows, levelFilter)
         if forever then tinsert(rows, hideForeverFilter) end
         if dungeon then tinsert(rows, hideCompletedFilter) end
+        if grouped then tinsert(rows, filterPopup.spoilerFilter) end
         if classFilter then
             classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
             tinsert(rows, classFilter)
         end
         local popupWidth = 160
         local inlineX = 0
-        for _, check in ipairs({hideForeverFilter, hideCompletedFilter}) do
+        for _, check in ipairs({hideForeverFilter, hideCompletedFilter, filterPopup.spoilerFilter}) do
             check:Hide()
         end
+        if continent and not grouped then continent:Hide() end
+        local inlineLine, inlineRight = 1, 0
+        local overviewWidth = compendium.overview and compendium.overview:GetWidth() or 0
+        local toggle = compendium.factionToggle
+        local firstLimit = overviewWidth - 110
+        local toggleLeft = toggle and toggle:IsShown() and toggle:GetLeft()
+        for _, button in ipairs(toggle and toggle.buttons or {}) do
+            local left = button.ring and button.ring:GetLeft() or button:GetLeft()
+            if left and toggleLeft then toggleLeft = min(toggleLeft, left) end
+        end
+        if toggleLeft and compendium.overview:GetLeft() then firstLimit = toggleLeft - compendium.overview:GetLeft() - 12 end
         for index, check in ipairs(rows) do
             local label = check == hideForeverFilter and hideForeverLabel or check == hideCompletedFilter and hideCompletedLabel or check.label
-            local rowWidth = check == levelFilter and levelFilter:GetWidth() or label:GetStringWidth() + 28
+            local rowWidth = (check == levelFilter or check == continent) and check:GetWidth() or label:GetStringWidth() + 28
             check:ClearAllPoints()
             if inline then
+                local limit = inlineLine == 1 and firstLimit or overviewWidth
+                if inlineX > 0 and overviewWidth > 0 and inlineX + rowWidth > limit then
+                    inlineLine = inlineLine + 1
+                    inlineX = 0
+                end
                 check:SetParent(compendium.overviewFilterBar)
-                check:SetPoint("LEFT", compendium.overviewFilterBar, "LEFT", inlineX, 0)
+                check:SetPoint("LEFT", compendium.overviewFilterBar, "TOPLEFT", inlineX, -13 - (inlineLine - 1) * 28)
                 inlineX = inlineX + rowWidth + 12
+                inlineRight = max(inlineRight, inlineX)
             else
                 check:SetParent(filterPopup)
                 check:SetPoint("TOPLEFT", filterPopup, "TOPLEFT", 6, -6 - (index - 1) * 28)
@@ -4787,7 +4859,21 @@ function AzerothCompendium:CreateInstanceControls()
             check:Show()
             popupWidth = max(popupWidth, rowWidth + 16)
         end
-        if compendium.overviewFilterBar then compendium.overviewFilterBar:SetWidth(max(1, inlineX)) end
+        local extraLines = inline and inlineLine - 1 or 0
+        if compendium.overviewFilterBar then
+            compendium.overviewFilterBar:SetWidth(max(1, inlineRight))
+            compendium.overviewFilterBar:SetHeight(26 + extraLines * 28)
+            compendium.overviewFilterBar:ClearAllPoints()
+            compendium.overviewFilterBar:SetPoint("TOPLEFT", compendium.overview, "TOPLEFT", 0, 30 + extraLines * 28)
+        end
+        if inline and toggle then
+            toggle:ClearAllPoints()
+            toggle:SetPoint("BOTTOMRIGHT", compendium.overview, "TOPRIGHT", -2, 4 + extraLines * 28)
+        end
+        if compendium.overview then
+            local layout = AzerothCompendium:GetContentLayout()
+            compendium.overview:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -layout.top - extraLines * 28)
+        end
         filterPopup:SetSize(popupWidth, 8 + #rows * 28)
     end
     filterDropdown:SetScript("OnEnter", function(sel)
@@ -4811,6 +4897,15 @@ function AzerothCompendium:CreateInstanceControls()
         end
         if AzerothCompendium:GetConfig("CLASSFILTER", false) == true then
             GameTooltip:AddLine(AzerothCompendium:Trans("LID_ONLYOWNCLASS"), 1, 0.82, 0)
+            active = true
+        end
+        if AzerothCompendium:IsSpoilerFree() then
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_SPOILERFREE"), 1, 0.82, 0)
+            active = true
+        end
+        local continent = AzerothCompendium:GetSelectedContinent()
+        if continent ~= nil and (listKind == "dungeon" or listKind == "raid") then
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_CONTINENT_" .. strupper(continent)), 1, 0.82, 0)
             active = true
         end
         if active then GameTooltip:AddLine(AzerothCompendium:Trans("LID_FILTERACTIVEHINT"), 1, 1, 1, true) end
@@ -4875,7 +4970,7 @@ function AzerothCompendium:CreateInstanceControls()
     function continentControl:Refresh()
         local border = compendium.NineSlice
         self:SetFrameLevel(max(self:GetParent():GetFrameLevel() + 1, border and border:GetFrameLevel() + 2 or 0))
-        self:SetShown(not AzerothCompendium.Theme:IsModern() or listKind == "dungeon" or listKind == "raid")
+        self:SetShown(listKind == "dungeon" or listKind == "raid")
         AzerothCompendium:SetDropdownText(self, GetContinentText(AzerothCompendium:GetSelectedContinent()))
     end
 
@@ -4920,15 +5015,12 @@ function AzerothCompendium:CreateInstanceControls()
     function instanceControl:ApplyHeaderLayout()
         self:ClearAllPoints()
         overviewButton:ClearAllPoints()
-        continentControl:ClearAllPoints()
         filterControl:ClearAllPoints()
         segmentGroup:ClearAllPoints()
         if not AzerothCompendium.Theme:IsModern() then
             self:SetPoint("LEFT", compendium, "TOPLEFT", 169, -42)
             overviewButton:SetSize(102, 22)
             overviewButton:SetPoint("RIGHT", instanceDropdown, "LEFT", -8, 0)
-            continentControl:SetSize(190, 22)
-            continentControl:SetPoint("LEFT", compendium, "TOPLEFT", 59, -11)
             filterControl:SetPoint("LEFT", instanceDropdown, "RIGHT", 8, 0)
             instanceDropdown:SetHeight(22)
             filterDropdown:SetHeight(22)
@@ -4939,13 +5031,11 @@ function AzerothCompendium:CreateInstanceControls()
         local layout = AzerothCompendium.ContentLayoutModern
         local grouped = listKind == "dungeon" or listKind == "raid"
         local overviewText = overviewButton.Text or (overviewButton.GetFontString and overviewButton:GetFontString())
-        continentControl:SetSize(layout.continentWidth, layout.headerHeight)
-        continentControl:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft, layout.headerY)
         overviewButton:SetSize(max(80, (overviewText and overviewText:GetStringWidth() or 60) + 28), layout.headerHeight - 6)
         instanceDropdown:SetHeight(layout.headerHeight - 6)
         filterDropdown:SetHeight(layout.headerHeight - 6)
         if grouped then
-            overviewButton:SetPoint("LEFT", continentControl, "RIGHT", 19, 0)
+            overviewButton:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft + 3, layout.headerY)
             self:SetPoint("LEFT", overviewButton, "RIGHT", 2, 0)
         else
             self:SetPoint("LEFT", compendium, "TOPLEFT", layout.railLeft + 3, layout.headerY)
@@ -4990,6 +5080,14 @@ function AzerothCompendium:CreateInstanceControls()
     AzerothCompendium:AnchorContent(overview)
     overview:EnableEmptyText()
     overview:Hide()
+    overview:HookScript("OnSizeChanged", function()
+        if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
+    end)
+    overview:HookScript("OnShow", function()
+        AzerothCompendium:After(0, function()
+            if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
+        end, "AzerothCompendium:OverviewFilterBar")
+    end)
     compendium.overview = overview
     function compendium:RefreshOverview()
         local viewport = self.overview:GetViewport()
@@ -5046,7 +5144,7 @@ function AzerothCompendium:CreateInstanceControls()
             local width = min(276, max(90, floor(textWidth + 44)))
             local grouped = listKind == "dungeon" or listKind == "raid"
             local used = layout.railLeft + 3 + 3
-            if grouped then used = used + layout.continentWidth + 16 + overviewButton:GetWidth() + 2 end
+            if grouped then used = used + overviewButton:GetWidth() + 2 end
             if filterControl:IsShown() then used = used + filterDropdown:GetWidth() + 2 end
             width = max(90, min(width, floor(compendium:GetWidth() - layout.searchRight - 120 - 16 - used)))
             used = used + width
@@ -5620,6 +5718,7 @@ local function CreateJournal()
         AzerothCompendium:SetDropdownText(compendium.overviewButton, AzerothCompendium:Trans("LID_OVERVIEW"))
         compendium.hideForeverLabel:SetText(AzerothCompendium:Trans("LID_HIDENEWFOREVER"))
         compendium.hideCompletedLabel:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETED"))
+        if compendium.spoilerFilter then compendium.spoilerFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE")) end
         compendium.filterDropdown:Refresh()
         compendium.continentControl:Refresh()
         compendium.instanceControl:UpdateDropdownWidth()
@@ -6476,7 +6575,27 @@ AzerothCompendium:RegisterEvent(loader, "QUEST_TURNED_IN")
 AzerothCompendium:RegisterEvent(loader, "GROUP_ROSTER_UPDATE")
 AzerothCompendium:RegisterEvent(loader, "UNIT_QUEST_LOG_CHANGED")
 AzerothCompendium:RegisterEvent(loader, "GLOBAL_MOUSE_DOWN")
+AzerothCompendium:RegisterEvent(loader, "LOOT_OPENED")
+AzerothCompendium:RegisterEvent(loader, "START_LOOT_ROLL")
+AzerothCompendium:RegisterEvent(loader, "CHAT_MSG_LOOT")
 loader:SetScript("OnEvent", function(sel, event, itemID, success)
+    if event == "LOOT_OPENED" then
+        for slot = 1, GetNumLootItems and GetNumLootItems() or 0 do
+            AzerothCompendium:MarkLootSeen(GetLootSlotLink(slot))
+        end
+        return
+    end
+
+    if event == "START_LOOT_ROLL" then
+        if GetLootRollItemLink then AzerothCompendium:MarkLootSeen(GetLootRollItemLink(itemID)) end
+        return
+    end
+
+    if event == "CHAT_MSG_LOOT" then
+        AzerothCompendium:MarkLootMessageSeen(itemID)
+        return
+    end
+
     if event == "GET_ITEM_INFO_RECEIVED" then AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success) end
     if event == "GLOBAL_MOUSE_DOWN" then
         if compendium == nil or not compendium:IsShown() then return end

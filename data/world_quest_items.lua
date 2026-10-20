@@ -95,3 +95,15 @@ AzerothCompendium.WORLDQUESTITEMS = {
     {itemID = 285963, questID = 99043, itemName = "Mote of Corruption", description = "", forever = true},
     {itemID = 213422, questID = 79624, itemName = "Illegible Recipe", source = "Crushridge Mauler", mapID = 1416, x = 38.4, y = 41.8, zone = "Alterac Mountains", forever = true},
 }
+
+local knownWorldQuestItems = {}
+for _, entry in ipairs(AzerothCompendium.WORLDQUESTITEMS) do
+    knownWorldQuestItems[entry.itemID] = true
+end
+
+for _, entry in ipairs(AzerothCompendium.WORLDQUESTBOOKS or {}) do
+    if not knownWorldQuestItems[entry.itemID] then
+        knownWorldQuestItems[entry.itemID] = true
+        tinsert(AzerothCompendium.WORLDQUESTITEMS, entry)
+    end
+end

@@ -274,6 +274,43 @@ function AzerothCompendium:SetClassFilter(value)
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
 
+function AzerothCompendium:MarkLootSeen(link)
+    local itemID = tonumber(strmatch(link or "", "item:(%d+)"))
+    if itemID == nil then return end
+    ACOTAB = ACOTAB or {}
+    ACOTAB.SEENLOOT = ACOTAB.SEENLOOT or {}
+    ACOTAB.SEENLOOT[itemID] = true
+end
+
+function AzerothCompendium:IsLootSeen(itemID)
+    return type(ACOTAB) == "table" and type(ACOTAB.SEENLOOT) == "table" and ACOTAB.SEENLOOT[itemID] == true
+end
+
+function AzerothCompendium:MarkLootMessageSeen(message)
+    if type(message) ~= "string" then return end
+    if self.lootPatterns == nil then
+        self.lootPatterns = {}
+        for _, key in ipairs({"LOOT_ITEM", "LOOT_ITEM_MULTIPLE", "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE"}) do
+            local text = _G[key]
+            if type(text) == "string" then
+                text = gsub(text, "%%%d?%$?[sd]", "\001")
+                text = gsub(text, "([%(%)%.%[%]%*%+%-%?%^%$%%])", "%%%1")
+                text = gsub(text, "\001", ".+")
+                tinsert(self.lootPatterns, "^" .. text .. "$")
+            end
+        end
+    end
+
+    for _, pattern in ipairs(self.lootPatterns) do
+        if strfind(message, pattern) then
+            for link in gmatch(message, "|Hitem:[^|]+|h") do
+                self:MarkLootSeen(link)
+            end
+            return
+        end
+    end
+end
+
 function AzerothCompendium:IsClassicEraClient()
     local interface = select(4, GetBuildInfo())
     return type(interface) == "number" and interface < 16000
