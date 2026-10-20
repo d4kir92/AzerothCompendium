@@ -507,6 +507,16 @@ AzerothCompendium.QUESTCHAINS = {
 	[1649] = {1649},
 	[8415] = {8415},
 	[92459] = {92432, 92458, 92459},
+	[79360] = {79360},
+	[96264] = {94789, 96264},
+	[79364] = {79360, 79364},
+	[79361] = {79360, 79364, 79361},
+	[79366] = {79360, 79364, 79361, 79366},
+	[79442] = {79360, 79364, 79361, 79366, 79442},
+	[94789] = {94789},
+	[79358] = {94789, 96264, 79358},
+	[96135] = {94789, 96264, 79358, 96135},
+	[96016] = {94789, 96264, 79358, 96135, 96016},
 }
 
 AzerothCompendium.QUESTPREREQUISITES = {
@@ -1039,6 +1049,14 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[8414] = {8415},
 	[1649] = {1793, 1794},
 	[92459] = {92458},
+	[96264] = {94789},
+	[79364] = {79360},
+	[79361] = {79364},
+	[79366] = {79361},
+	[79442] = {79366},
+	[79358] = {96264},
+	[96135] = {79358},
+	[96016] = {96135},
 }
 
 AzerothCompendium.QUESTGIVERS = {
@@ -1293,7 +1311,7 @@ AzerothCompendium.QUESTGIVERS = {
 	[3528] = {1446, 67, 22.4, 8579, "Yeh'kinya"},
 	[3636] = {1453, 50.3, 45.6, 1284, "Archbishop Benedictus"},
 	[3765] = {1453, 36.4, 67.4, 4984, "Argos Nightwhisper"},
-	[3801] = {1428, 28.8, 28.4, 8888, "Franclorn Forgewright"},
+	[3801] = {1428, 29, 29, 8888, "Franclorn Forgewright"},
 	[3906] = {1418, 3.4, 48.2, 9084, "Thunderheart"},
 	[3907] = {1418, 3.4, 48.2, 9084, "Thunderheart"},
 	[3911] = {1418, 3, 47.6, 9078, "Shadowmage Vivian Lagrave"},
@@ -1829,7 +1847,7 @@ AzerothCompendium.QUESTGIVERS = {
 	[5519] = {0, 0, 0, 14338, "Knot Thimblejack", nil, 429},
 	[7429] = {0, 0, 0, 14338, "Knot Thimblejack", nil, 429},
 	[7509] = {0, 0, 0, 14368, "Lorekeeper Lydros", nil, 429},
-	[3802] = {1428, 28.8, 28.4, 8888, "Franclorn Forgewright"},
+	[3802] = {1428, 29, 29, 8888, "Franclorn Forgewright"},
 	[95161] = {1453, 56.2, 54.2, 14450, "Orphan Matron Nightingale"},
 	[97290] = {1458, 46.2, 63, 271613, "Unfinished Abomination"},
 	[5729] = {1454, 32, 37.8, 4949, "Thrall"},
@@ -2073,7 +2091,17 @@ AzerothCompendium.QUESTGIVERS = {
 	[92432] = {1424, 48.3, 60.1, 247264, "Emissary Jacques"},
 	[92459] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
 	[92434] = {1424, 61.6, 20.8, 2410, "Magus Wordeen Voidglare"},
-	[96800] = {1416, 9.8, 62.2, 264265, "Magus Olvek"},
+	[96800] = {1416, 9.6, 62.4, 264265, "Magus Olvek"},
+	[79360] = {1441, 53.6, 42.8, 5905, "Prate Cloudseer"},
+	[96264] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[79364] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[79361] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[79366] = {1441, 53.6, 42.8, 5905, "Prate Cloudseer"},
+	[79442] = {1441, 46, 51.6, 4722, "Rau Cliffrunner"},
+	[94789] = {1455, 47.4, 13.6, 258098, "Eldrun Stormbreaker"},
+	[79358] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[96135] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[96016] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -3195,6 +3223,16 @@ AzerothCompendium.QUESTNAMES = {
 	[1793] = "The Tome of Valor",
 	[1794] = "The Tome of Valor",
 	[92459] = "Friend of the Kirin Tor",
+	[79360] = "Elemental Aid",
+	[96264] = "Elemental Aid",
+	[79364] = "Eyes on the Sky",
+	[79361] = "Storm, Earth, and Fire",
+	[79366] = "Heed My Call",
+	[79442] = "The Tempest's Weapons",
+	[94789] = "Call of Air",
+	[79358] = "Storm, Earth, and Fire",
+	[96135] = "Heed My Call",
+	[96016] = "The Tempest's Weapons",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4019,6 +4057,16 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[1794] = 20,
 	[92459] = 24,
 	[92401] = 15,
+	[79360] = 30,
+	[96264] = 30,
+	[79364] = 30,
+	[79361] = 30,
+	[79366] = 30,
+	[79442] = 30,
+	[94789] = 30,
+	[79358] = 30,
+	[96135] = 30,
+	[96016] = 30,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -4843,6 +4891,16 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[1794] = 20,
 	[92459] = 33,
 	[92401] = 22,
+	[79360] = 33,
+	[96264] = 33,
+	[79364] = 33,
+	[79361] = 40,
+	[79366] = 40,
+	[79442] = 40,
+	[94789] = 30,
+	[79358] = 40,
+	[96135] = 40,
+	[96016] = 40,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -5080,7 +5138,7 @@ AzerothCompendium.QUESTENDERS = {
 	[3528] = {1446, 67, 22.4, 8579, "Yeh'kinya"},
 	[8713] = {0, 0, 0, 15593, "Elder Starsong", nil, 109},
 	[8733] = {1438, 37.6, 48, 15624, "Forest Wisp"},
-	[3801] = {1428, 28.8, 28.4, 8888, "Franclorn Forgewright"},
+	[3801] = {1428, 29, 29, 8888, "Franclorn Forgewright"},
 	[3802] = {0, 0, 0, 164689, "Monument of Franclorn Forgewright", nil, 230},
 	[3907] = {1418, 3.4, 48.2, 9084, "Thunderheart"},
 	[3981] = {0, 0, 0, 9020, "Commander Gor'shak", nil, 230},
@@ -5579,7 +5637,17 @@ AzerothCompendium.QUESTENDERS = {
 	[92459] = {1416, 14.2, 60, 252085, "Archmage Celindra"},
 	[92434] = {1421, 68.6, 45.2, 269127, "Image of Archmage Modera"},
 	[92401] = {1421, 44.4, 42.8, 250686, "Tabitha Heartweaver"},
-	[96800] = {1416, 9.8, 62.2, 264265, "Magus Olvek"},
+	[96800] = {1416, 9.6, 62.4, 264265, "Magus Olvek"},
+	[79360] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[96264] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[79364] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[79361] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[79366] = {1441, 46, 51.6, 4722, "Rau Cliffrunner"},
+	[79442] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
+	[94789] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[79358] = {1441, 46, 51.6, 4722, "Rau Cliffrunner"},
+	[96135] = {1417, 59.8, 27.6, 259023, "Veyric Thunderhame"},
+	[96016] = {1416, 80.4, 66.8, 6176, "Bath'rah the Windwatcher"},
 }
 
 AzerothCompendium.QUESTCLASSES = {
@@ -5700,6 +5768,16 @@ AzerothCompendium.QUESTCLASSES = {
 	[1794] = 2,
 	[7638] = 2,
 	[7670] = 2,
+	[79360] = 64,
+	[96264] = 64,
+	[79364] = 64,
+	[79361] = 64,
+	[79366] = 64,
+	[79442] = 64,
+	[94789] = 64,
+	[79358] = 64,
+	[96135] = 64,
+	[96016] = 64,
 }
 
 AzerothCompendium.QUESTPREANY = {
