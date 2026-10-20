@@ -5376,9 +5376,6 @@ function AzerothCompendium:CreateInstanceControls()
     AzerothCompendium:AnchorContent(overview)
     overview:EnableEmptyText()
     overview:Hide()
-    overview:HookScript("OnSizeChanged", function()
-        if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
-    end)
     overview:HookScript("OnShow", function()
         AzerothCompendium:After(0, function()
             if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
@@ -5428,6 +5425,7 @@ function AzerothCompendium:CreateInstanceControls()
     overview:SetScript("OnSizeChanged", function(sel)
         sel.layoutDirty = true
         sel:QueueRefresh()
+        if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
     end)
     overview:HookScript("OnShow", function(sel) sel:QueueRefresh() end)
     compendium.instanceControl = instanceControl
