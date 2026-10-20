@@ -1870,7 +1870,7 @@ function AzerothCompendium:ShareQuest(questID)
 end
 
 local function GetInstanceLocation(locations, inst)
-    if inst == nil or locations == nil then return nil end
+    if inst == nil or locations == nil or inst.vendor then return nil end
 
     return locations[inst.id] or (inst.parentID and locations[inst.parentID]) or locations[inst.id * 1000 + 1]
 end

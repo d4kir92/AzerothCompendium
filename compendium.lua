@@ -772,7 +772,7 @@ end
 function VENDOR_MAP.Show(row, inst)
     local location = listKind == "faction" and inst.factionID and AzerothCompendium.VENDORLOCATIONS and AzerothCompendium.VENDORLOCATIONS[inst.id]
     local art = location and VENDOR_MAP.GetArt(location[1])
-    if art == nil then
+    if not art then
         VENDOR_MAP.Hide(row)
         return false
     end
@@ -1422,6 +1422,10 @@ function AzerothCompendium:IsSpoilerFree()
     return (listKind == "dungeon" or listKind == "raid") and type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
 end
 
+function AzerothCompendium:IsFactionSpoilerFree()
+    return listKind == "faction" and type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
+end
+
 function AzerothCompendium:IsBossSpoilerHidden(boss)
     return self:IsSpoilerFree() and selectedInstance ~= nil and not selectedInstance.vendor and not self:IsBossFound(boss)
 end
@@ -1461,7 +1465,10 @@ local function GetInstanceList()
             if completed then relevant = false end
         end
 
-        if IsInstanceVisible(inst) and InstanceMatches(inst) and (continent == nil or AzerothCompendium:GetInstanceContinent(inst) == continent) then
+        if relevant and inst.factionID and AzerothCompendium:IsFactionSpoilerFree() and AzerothCompendium:GetFactionReputation(inst.factionID) == nil then relevant = false end
+
+        local side = inst.vendor and AzerothCompendium.VENDORSIDES and AzerothCompendium.VENDORSIDES[inst.id]
+        if IsInstanceVisible(inst) and InstanceMatches(inst) and AzerothCompendium:IsQuestSideVisible(side) and (continent == nil or AzerothCompendium:GetInstanceContinent(inst) == continent) then
             if relevant then
                 tinsert(list, inst)
             else
@@ -2722,7 +2729,7 @@ local function RefreshBosses()
     compendium.foreverNotice:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
     compendium.factionToggle:ClearAllPoints()
     compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.overviewActive and compendium.overview or compendium.questTree, "TOPRIGHT", -2, 4)
-    compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests"))
+    compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests") or (listKind == "pvp" or listKind == "faction") and compendium.overviewActive)
     compendium.factionToggle.completedFilter:SetShown(not compendium.overviewActive)
     compendium.factionToggle.classHeader:SetShown(not compendium.overviewActive)
     if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
@@ -2885,6 +2892,8 @@ function AzerothCompendium:UpdateInstanceFilterBanner(scroller, hidden)
     end
 
     if (listKind == "dungeon" or listKind == "raid") and type(ACOTABPC) == "table" and ACOTABPC.ONLYMAXLEVEL == true then tinsert(names, AzerothCompendium:Trans("LID_ONLYMAXLEVEL", nil, AzerothCompendium:GetMaxLevel())) end
+    local factionSpoiler = AzerothCompendium:IsFactionSpoilerFree()
+    if factionSpoiler then tinsert(names, AzerothCompendium:Trans("LID_SPOILERFREE")) end
     if #names == 0 then
         scroller:SetBanner(nil)
         return
@@ -2895,7 +2904,9 @@ function AzerothCompendium:UpdateInstanceFilterBanner(scroller, hidden)
         ACOTABPC.HIDECOMPLETED = false
         ACOTABPC.HIDENEWFOREVER = false
         ACOTABPC.ONLYMAXLEVEL = false
+        if factionSpoiler then ACOTABPC.SPOILERFREE = false end
         RefreshInstances()
+        if compendium.overviewActive and compendium.RefreshOverview then compendium:RefreshOverview() end
         if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
         if compendium.instancePopup and compendium.instancePopup:IsShown() then compendium.instancePopup:SetHeight(min(600, max(ROW_H, compendium.instances.contentHeight or 0) + compendium.instances.bannerHeight + 10)) end
     end)
@@ -5018,9 +5029,10 @@ function AzerothCompendium:CreateInstanceControls()
             if forever and ACOTABPC.HIDENEWFOREVER == true then count = count + 1 end
             if dungeon and ACOTABPC.HIDECOMPLETED == true then count = count + 1 end
         end
-        if AzerothCompendium:IsSpoilerFree() then count = count + 1 end
+        local faction = listKind == "faction"
+        if AzerothCompendium:IsSpoilerFree() or AzerothCompendium:IsFactionSpoilerFree() then count = count + 1 end
         if (listKind == "dungeon" or listKind == "raid") and AzerothCompendium:GetSelectedContinent() ~= nil then count = count + 1 end
-        if AzerothCompendium:GetConfig("CLASSFILTER", false) == true then count = count + 1 end
+        if not faction and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then count = count + 1 end
         local text = AzerothCompendium:Trans("LID_FILTER")
         if count > 0 then text = "|cffffd100" .. AzerothCompendium:Trans("LID_FILTERACTIVE") .. " (" .. count .. ")|r" end
         if self.SetDefaultText then self:SetDefaultText(text) end
@@ -5030,8 +5042,8 @@ function AzerothCompendium:CreateInstanceControls()
         if AzerothCompendium.Theme:IsModern() then width = max(70, fontString and fontString:GetStringWidth() + 44 or 70) end
         self:SetWidth(width)
         filterControl:SetWidth(width)
-        local inline = compendium.overviewActive == true and compendium.overview ~= nil and (listKind == "dungeon" or listKind == "raid")
-        filterControl:SetShown((listKind == "dungeon" or listKind == "raid") and not inline)
+        local inline = compendium.overviewActive == true and compendium.overview ~= nil and (listKind == "dungeon" or listKind == "raid" or faction)
+        filterControl:SetShown((listKind == "dungeon" or listKind == "raid" or faction) and not inline)
         if inline then filterPopup:Hide() end
         if inline and compendium.overviewFilterBar == nil then
             compendium.overviewFilterBar = CreateFrame("Frame", nil, compendium.overview)
@@ -5051,11 +5063,16 @@ function AzerothCompendium:CreateInstanceControls()
             continent:SetSize(170, 22)
             tinsert(rows, continent)
         end
-        tinsert(rows, levelFilter)
+        if faction then
+            levelFilter:Hide()
+            if classFilter then classFilter:Hide() end
+        else
+            tinsert(rows, levelFilter)
+        end
         if forever then tinsert(rows, hideForeverFilter) end
         if dungeon then tinsert(rows, hideCompletedFilter) end
-        if grouped then tinsert(rows, filterPopup.spoilerFilter) end
-        if classFilter then
+        if grouped or faction then tinsert(rows, filterPopup.spoilerFilter) end
+        if classFilter and not faction then
             classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
             tinsert(rows, classFilter)
         end
