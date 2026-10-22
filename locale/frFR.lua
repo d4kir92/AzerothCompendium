@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("frFR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("frFR", "LID_DESIGN", "Apparence")
 AzerothCompendium:AddTrans("frFR", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("frFR", "LID_DESIGNMODERN", "Moderne")
+AzerothCompendium:AddTrans("frFR", "LID_TILESIZE", "Taille des tuiles")

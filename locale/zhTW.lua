@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("zhTW", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("zhTW", "LID_DESIGN", "介面風格")
 AzerothCompendium:AddTrans("zhTW", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("zhTW", "LID_DESIGNMODERN", "現代")
+AzerothCompendium:AddTrans("zhTW", "LID_TILESIZE", "卡片大小")

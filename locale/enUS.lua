@@ -235,3 +235,4 @@ AzerothCompendium:AddTrans("enUS", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("enUS", "LID_DESIGN", "Design")
 AzerothCompendium:AddTrans("enUS", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("enUS", "LID_DESIGNMODERN", "Modern")
+AzerothCompendium:AddTrans("enUS", "LID_TILESIZE", "Tile size")

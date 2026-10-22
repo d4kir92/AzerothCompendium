@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("esES", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("esES", "LID_DESIGN", "Diseño")
 AzerothCompendium:AddTrans("esES", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("esES", "LID_DESIGNMODERN", "Moderno")
+AzerothCompendium:AddTrans("esES", "LID_TILESIZE", "Tamaño de las tarjetas")

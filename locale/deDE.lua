@@ -235,3 +235,4 @@ AzerothCompendium:AddTrans("deDE", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("deDE", "LID_DESIGN", "Design")
 AzerothCompendium:AddTrans("deDE", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("deDE", "LID_DESIGNMODERN", "Modern")
+AzerothCompendium:AddTrans("deDE", "LID_TILESIZE", "Kachelgröße")

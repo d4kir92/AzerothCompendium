@@ -674,6 +674,7 @@ local function StyleRow(row)
     local highlight = row:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(row)
     highlight:SetColorTexture(1, 1, 1, 0.12)
+    row.highlight = highlight
     row.selected = row:CreateTexture(nil, "BACKGROUND")
     row.selected:SetAllPoints(row)
     row.selected:SetColorTexture(0.9, 0.75, 0.3, 0.2)
@@ -696,6 +697,88 @@ end
 
 local function UsesLoadingScreens()
     return listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
+end
+
+local TILE_STYLE = {
+    media = "Interface\\AddOns\\AzerothCompendium\\media\\",
+    radius = 10,
+    fade = 22,
+    fadeAlpha = 0.6,
+    corners = {{"TOPLEFT", "tl", {0, 1, 0, 1}}, {"TOPRIGHT", "tr", {1, 0, 0, 1}}, {"BOTTOMLEFT", "bl", {0, 1, 1, 0}}, {"BOTTOMRIGHT", "br", {1, 0, 1, 0}}},
+    sides = {{"TOPLEFT", "BOTTOMLEFT", false, {0, 0, 0, 1, 1, 0, 1, 1}}, {"TOPRIGHT", "BOTTOMRIGHT", false, {1, 0, 1, 1, 0, 0, 0, 1}}, {"TOPLEFT", "TOPRIGHT", true, {0, 0, 1, 0, 0, 1, 1, 1}}, {"BOTTOMLEFT", "BOTTOMRIGHT", true, {1, 0, 0, 0, 1, 1, 0, 1}}},
+}
+
+function TILE_STYLE.Mask(row, texture)
+    if row.cornerMasks == nil or texture == nil or texture.AddMaskTexture == nil then return end
+    for _, mask in ipairs(row.cornerMasks) do
+        texture:AddMaskTexture(mask)
+    end
+end
+
+function TILE_STYLE.Apply(row)
+    if row.CreateMaskTexture == nil or row.cornerMasks ~= nil then return end
+    row.cornerMasks = {}
+    for index, side in ipairs({{"TOPLEFT", "BOTTOMLEFT", "tileside"}, {"TOPRIGHT", "BOTTOMRIGHT", "tilesideright"}}) do
+        local mask = row:CreateMaskTexture()
+        mask:SetTexture(TILE_STYLE.media .. side[3], "CLAMPTOWHITE", "CLAMPTOWHITE")
+        mask:SetWidth(TILE_STYLE.radius)
+        mask:SetPoint(side[1], row, side[1], 0, 0)
+        mask:SetPoint(side[2], row, side[2], 0, 0)
+        row.cornerMasks[index] = mask
+    end
+
+    row.tileFade = {}
+    for index, side in ipairs(TILE_STYLE.sides) do
+        local fade = row:CreateTexture(nil, "BACKGROUND", nil, -6)
+        fade:SetTexture(TILE_STYLE.media .. "tilefade")
+        fade:SetTexCoord(unpack(side[4]))
+        fade:SetPoint(side[1], row, side[1], 0, 0)
+        fade:SetPoint(side[2], row, side[2], 0, 0)
+        if side[3] then
+            fade:SetHeight(TILE_STYLE.fade)
+        else
+            fade:SetWidth(TILE_STYLE.fade)
+        end
+
+        fade:SetAlpha(TILE_STYLE.fadeAlpha)
+        fade:Hide()
+        TILE_STYLE.Mask(row, fade)
+        row.tileFade[index] = fade
+    end
+
+    for _, texture in ipairs({row.loadingScreen, row.loadingShade, row.highlight, row.selected}) do
+        TILE_STYLE.Mask(row, texture)
+    end
+end
+
+function TILE_STYLE.AddSelectionCorners(row)
+    if row.cornerMasks == nil then return end
+    for index = 1, 4 do
+        TILE_STYLE.Mask(row, row.selectionBorder[index])
+    end
+
+    for _, corner in ipairs(TILE_STYLE.corners) do
+        local arc = row:CreateTexture(nil, "OVERLAY")
+        arc:SetTexture(TILE_STYLE.media .. "tilering")
+        arc:SetTexCoord(unpack(corner[3]))
+        arc:SetVertexColor(1, 0.82, 0, 1)
+        arc:SetSize(TILE_STYLE.radius, TILE_STYLE.radius)
+        arc:SetPoint(corner[1], row, corner[1], 0, 0)
+        tinsert(row.selectionBorder, arc)
+    end
+end
+
+function TILE_STYLE.SyncFade(row)
+    if row.tileFade == nil then return end
+    local shown = row.loadingScreen:IsShown() or row.vendorMap ~= nil
+    for _, fade in ipairs(row.tileFade) do
+        fade:SetShown(shown)
+    end
+end
+
+function AzerothCompendium:GetOverviewTileScale()
+    local value = tonumber(self:GetConfig("OVERVIEWTILESCALE", 1)) or 1
+    return min(1.6, max(0.5, value))
 end
 
 local VENDOR_MAP = {zoom = 1.6, cache = {}}
@@ -745,6 +828,7 @@ function VENDOR_MAP.Update(row)
         local tile = row.vendorMapTiles[index]
         if tile == nil then
             tile = row:CreateTexture(nil, "BACKGROUND", nil, -8)
+            TILE_STYLE.Mask(row, tile)
             row.vendorMapTiles[index] = tile
         end
 
@@ -1045,6 +1129,8 @@ local function UpdateInstanceBackground(row, inst)
         row.loadingScreen:Hide()
     end
 
+    TILE_STYLE.SyncFade(row)
+
     row.text:ClearAllPoints()
     row.info:ClearAllPoints()
     if row.subText == nil then
@@ -1307,6 +1393,7 @@ local function UpdateInstanceRow(row, inst)
         row.selectionBorder[4]:SetPoint("TOPRIGHT")
         row.selectionBorder[4]:SetPoint("BOTTOMRIGHT")
         row.selectionBorder[4]:SetWidth(2)
+        TILE_STYLE.AddSelectionCorners(row)
     end
     for _, edge in ipairs(row.selectionBorder) do edge:SetShown(selectedInstance == inst) end
     if selectedInstance == inst then
@@ -5127,13 +5214,10 @@ function AzerothCompendium:CreateInstanceControls()
         local inlineLine, inlineRight = 1, 0
         local overviewWidth = compendium.overview and compendium.overview:GetWidth() or 0
         local toggle = compendium.factionToggle
-        local firstLimit = overviewWidth - 110
-        local toggleLeft = toggle and toggle:IsShown() and toggle:GetLeft()
-        for _, button in ipairs(toggle and toggle.buttons or {}) do
-            local left = button.ring and button.ring:GetLeft() or button:GetLeft()
-            if left and toggleLeft then toggleLeft = min(toggleLeft, left) end
-        end
-        if toggleLeft and compendium.overview:GetLeft() then firstLimit = toggleLeft - compendium.overview:GetLeft() - 12 end
+        local firstLimit = overviewWidth - (toggle and toggle:GetWidth() + 4 or 110)
+        local scaleSlider = compendium.overviewScaleSlider
+        local sliderLabelWidth = scaleSlider and scaleSlider.text:GetStringWidth() or 0
+        if inline and scaleSlider then firstLimit = firstLimit - scaleSlider:GetWidth() - sliderLabelWidth - 18 end
         for index, check in ipairs(rows) do
             local label = check == hideForeverFilter and hideForeverLabel or check == hideCompletedFilter and hideCompletedLabel or check.label
             local rowWidth = (check == levelFilter or check == continent) and check:GetWidth() or label:GetStringWidth() + 28
@@ -5161,6 +5245,12 @@ function AzerothCompendium:CreateInstanceControls()
             compendium.overviewFilterBar:SetHeight(26 + extraLines * 28)
             compendium.overviewFilterBar:ClearAllPoints()
             compendium.overviewFilterBar:SetPoint("TOPLEFT", compendium.overview, "TOPLEFT", 0, 30 + extraLines * 28)
+        end
+        if scaleSlider and toggle then
+            scaleSlider.text:ClearAllPoints()
+            scaleSlider.text:SetPoint("LEFT", scaleSlider, "RIGHT", 6, 0)
+            scaleSlider:ClearAllPoints()
+            scaleSlider:SetPoint("RIGHT", toggle, "LEFT", -sliderLabelWidth - 8, 0)
         end
         if inline and toggle then
             toggle:ClearAllPoints()
@@ -5352,6 +5442,7 @@ function AzerothCompendium:CreateInstanceControls()
         row.tiles = {}
         function row:Update(entries)
             local width = compendium.overviewTileWidth
+            local scale = compendium.overviewTileScale or 1
             for index, inst in ipairs(entries) do
                 local tile = self.tiles[index]
                 if tile == nil then
@@ -5360,12 +5451,13 @@ function AzerothCompendium:CreateInstanceControls()
                         OnInstanceClick(entry)
                     end)
                     AddLoadingScreen(tile)
+                    TILE_STYLE.Apply(tile)
                     self.tiles[index] = tile
                 end
                 tile.entry = inst
                 tile:ClearAllPoints()
                 tile:SetPoint("TOPLEFT", self, "TOPLEFT", (index - 1) * (width + 8), 0)
-                tile:SetSize(width, 150)
+                tile:SetSize(width, 150 * scale)
                 UpdateInstanceRow(tile, inst)
                 tile:Show()
             end
@@ -5382,6 +5474,43 @@ function AzerothCompendium:CreateInstanceControls()
         end, "AzerothCompendium:OverviewFilterBar")
     end)
     compendium.overview = overview
+    local scaleSlider = CreateFrame("Slider", nil, overview)
+    scaleSlider:SetOrientation("HORIZONTAL")
+    scaleSlider:SetSize(110, 12)
+    scaleSlider:SetPoint("RIGHT", overview, "TOPRIGHT", -108, 17)
+    scaleSlider:SetMinMaxValues(50, 160)
+    scaleSlider:SetValueStep(5)
+    if scaleSlider.SetObeyStepOnDrag then scaleSlider:SetObeyStepOnDrag(true) end
+    scaleSlider.track = scaleSlider:CreateTexture(nil, "BACKGROUND")
+    scaleSlider.track:SetPoint("LEFT", scaleSlider, "LEFT", 0, 0)
+    scaleSlider.track:SetPoint("RIGHT", scaleSlider, "RIGHT", 0, 0)
+    scaleSlider.track:SetHeight(4)
+    scaleSlider.track:SetColorTexture(0, 0, 0, 0.6)
+    scaleSlider.thumb = scaleSlider:CreateTexture(nil, "OVERLAY")
+    scaleSlider.thumb:SetColorTexture(0.75, 0.6, 0.25, 1)
+    scaleSlider.thumb:SetSize(8, 12)
+    scaleSlider:SetThumbTexture(scaleSlider.thumb)
+    scaleSlider.text = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    scaleSlider.text:SetPoint("LEFT", scaleSlider, "RIGHT", 6, 0)
+    scaleSlider:SetValue(floor(AzerothCompendium:GetOverviewTileScale() * 100 + 0.5))
+    scaleSlider.text:SetText(format("%d%%", scaleSlider:GetValue()))
+    scaleSlider:SetScript("OnValueChanged", function(sel, value)
+        value = floor(value / 5 + 0.5) * 5
+        sel.text:SetText(format("%d%%", value))
+        if abs(value / 100 - AzerothCompendium:GetOverviewTileScale()) < 0.001 then return end
+        AzerothCompendium:SetConfig("OVERVIEWTILESCALE", value / 100)
+        compendium:RefreshOverview()
+        if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
+    end)
+    scaleSlider:EnableMouseWheel(true)
+    scaleSlider:SetScript("OnMouseWheel", function(sel, delta) sel:SetValue(sel:GetValue() + delta * 5) end)
+    scaleSlider:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_TILESIZE"))
+        GameTooltip:Show()
+    end)
+    scaleSlider:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    compendium.overviewScaleSlider = scaleSlider
     function compendium:RefreshOverview()
         local viewport = self.overview:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
@@ -5392,7 +5521,10 @@ function AzerothCompendium:CreateInstanceControls()
         end
 
         self.overviewLayoutWidth = width
-        self.overviewColumns = max(1, floor((width + 8) / 300))
+        local scale = AzerothCompendium:GetOverviewTileScale()
+        self.overviewTileScale = scale
+        self.overview:SetRowHeight(150 * scale + 8)
+        self.overviewColumns = max(1, floor((width + 8) / (300 * scale + 8)))
         self.overviewTileWidth = max(1, (width - (self.overviewColumns - 1) * 8) / self.overviewColumns)
         local rows = {}
         local list, hidden = GetInstanceList()

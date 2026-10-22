@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("ptBR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("ptBR", "LID_DESIGN", "Design")
 AzerothCompendium:AddTrans("ptBR", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("ptBR", "LID_DESIGNMODERN", "Moderno")
+AzerothCompendium:AddTrans("ptBR", "LID_TILESIZE", "Tamanho dos blocos")

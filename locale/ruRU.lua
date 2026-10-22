@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("ruRU", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGN", "Оформление")
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGNMODERN", "Современное")
+AzerothCompendium:AddTrans("ruRU", "LID_TILESIZE", "Размер плиток")

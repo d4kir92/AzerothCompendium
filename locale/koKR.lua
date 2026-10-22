@@ -210,3 +210,4 @@ AzerothCompendium:AddTrans("koKR", "LID_TRAINERSPELLS_COMPENDIUM_PROFESSIONS", "
 AzerothCompendium:AddTrans("koKR", "LID_DESIGN", "디자인")
 AzerothCompendium:AddTrans("koKR", "LID_DESIGNFOREVER", "Forever")
 AzerothCompendium:AddTrans("koKR", "LID_DESIGNMODERN", "모던")
+AzerothCompendium:AddTrans("koKR", "LID_TILESIZE", "타일 크기")
