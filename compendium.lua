@@ -193,6 +193,7 @@ end
 local selectedInstance = nil
 local selectedBoss = nil
 local validListKinds = {
+    dashboard = true,
     dungeon = true,
     raid = true,
     pvp = true,
@@ -214,7 +215,7 @@ local validDetailKinds = {
     model = true
 }
 
-local listKind = "dungeon"
+local listKind = "dashboard"
 local middleKind = "map"
 local detailKind = "loot"
 local mapLevel = 1
@@ -236,7 +237,7 @@ local function LoadNavigationState()
     if navigationLoaded then return end
     navigationLoaded = true
     local navigation = type(ACOTABPC) == "table" and type(ACOTABPC["NAVIGATION"]) == "table" and ACOTABPC["NAVIGATION"] or {}
-    listKind = validListKinds[navigation.listKind] and navigation.listKind or "dungeon"
+    listKind = validListKinds[navigation.listKind] and navigation.listKind or "dashboard"
     middleKind = validMiddleKinds[navigation.middleKind] and navigation.middleKind or "map"
     detailKind = validDetailKinds[navigation.detailKind] and navigation.detailKind or "loot"
     mapLevel = max(1, floor(tonumber(navigation.mapLevel) or 1))
@@ -419,10 +420,19 @@ local function AddContentBorder(frame)
     frame.border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 4, -4)
 end
 
-local function CreateScroller(parent, rowHeight, initRow, padding)
+local function CreateScroller(parent, rowHeight, initRow, padding, inset)
     padding = padding or 0
     local scroller = CreateFrame("Frame", nil, parent)
     AddContentBorder(scroller)
+    if inset then
+        scroller.borderOverlay = CreateFrame("Frame", nil, scroller)
+        scroller.borderOverlay:SetAllPoints()
+        scroller.borderOverlay:SetFrameLevel(scroller:GetFrameLevel() + 20)
+        scroller.border:SetParent(scroller.borderOverlay)
+        scroller.border:SetDrawLayer("OVERLAY", 7)
+    end
+    local rightInset = inset or 0
+    inset = inset or padding
     scroller.rowHeight = rowHeight
     scroller.rowGap = padding
     scroller.initRow = initRow
@@ -431,8 +441,8 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
     local content = nil
     if HasModernScroll() then
         local box = CreateFrame("Frame", nil, scroller, "WowScrollBox")
-        box:SetPoint("TOPLEFT", scroller, "TOPLEFT", padding, -padding)
-        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, padding)
+        box:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
+        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset, inset)
         local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
         bar:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", -5, -6)
         bar:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -5, 6)
@@ -453,8 +463,8 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
             scroll = CreateFrame("ScrollFrame", nil, scroller)
         end
 
-        scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", padding, -padding)
-        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W, padding)
+        scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
+        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset, inset)
         scroll:EnableMouseWheel(true)
         scroll:SetScript("OnMouseWheel", function(sel, delta)
             local range = max(0, (sel.djHeight or 0) - sel:GetHeight())
@@ -605,7 +615,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding)
         if self.bannerHeight == offset then return end
         self.bannerHeight = offset
         local viewport = self:GetViewport()
-        if viewport then viewport:SetPoint("TOPLEFT", self, "TOPLEFT", padding, -padding - offset) end
+        if viewport then viewport:SetPoint("TOPLEFT", self, "TOPLEFT", inset, -inset - offset) end
         if self.bar then self.bar:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, -6 - offset) end
     end
 
@@ -1279,7 +1289,7 @@ end
 function AzerothCompendium:UpdateReputationBar(row, inst)
     local factionID = UsesLoadingScreens() and not inst.levelGroup and inst.factionID
     local rep = factionID and AzerothCompendium:GetFactionReputation(factionID)
-    if rep == nil then
+    if not rep then
         if row.repBar then row.repBar:Hide() end
         return
     end
@@ -4093,6 +4103,7 @@ local function CreateSideTab(parent, label, icon, onClick)
 
     tab:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     tab:EnableMouse(true)
+    tab.OpenDashboardTarget = onClick
     tab:SetCustomOnMouseUpHandler(function(_, button, upInside) if button == "LeftButton" and upInside then onClick() end end)
     return tab
 end
@@ -4191,11 +4202,11 @@ function AzerothCompendium:UpdateMinimumHeight()
         tab:SetScale(scale)
     end
 
-    compendium.kindTabs.dungeon:ClearAllPoints()
+    compendium.kindTabs.dashboard:ClearAllPoints()
     if modern then
-        compendium.kindTabs.dungeon:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.sideRight / scale, -sideTop / scale)
+        compendium.kindTabs.dashboard:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.sideRight / scale, -sideTop / scale)
     else
-        compendium.kindTabs.dungeon:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
+        compendium.kindTabs.dashboard:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
     end
     compendium.minimumHeight = MIN_HEIGHT
     if compendium.SetResizeBounds then
@@ -4512,6 +4523,7 @@ local function SetSpecialMode(mode)
     end
 
     if AzerothCompendium.ItemBrowser.panel then AzerothCompendium.ItemBrowser.panel:SetShown(mode == "allitems") end
+    if compendium.dashboard then compendium.dashboard:SetShown(mode == "dashboard") end
     if compendium.settingsPanel then compendium.settingsPanel:SetShown(mode == "settings") end
     for _, tab in pairs(compendium.wishlistTabs or {}) do
         tab:SetShown(mode == "wishlist")
@@ -4750,6 +4762,137 @@ local function RefreshWorldQuestItemsView()
     end
 end
 
+function AzerothCompendium:RefreshDashboard()
+    if not compendium.dashboard then
+        local panel = CreateFrame("Frame", nil, compendium)
+        self:AddLayout(panel, function(modern)
+            local layout = modern and self.ContentLayoutModern or self.ContentLayout
+            panel:ClearAllPoints()
+            panel:SetPoint("TOPLEFT", compendium, "TOPLEFT", layout.left, -(layout.searchTop + layout.searchHeight + (modern and 8 or 24)))
+            panel:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
+        end)
+        compendium.dashboard = panel
+        panel.grid = CreateScroller(panel, 83, function(parent)
+            local row = CreateFrame("Frame", nil, parent)
+            row.tiles = {}
+            function row:Update(entries)
+                local dashboard = compendium.dashboard
+                local scale = 0.5
+                local width = max(1, (dashboard.grid:GetViewport():GetWidth() - (dashboard.columns - 1) * 8) / dashboard.columns)
+                for index, entry in ipairs(entries) do
+                    local tile = self.tiles[index]
+                    if not tile then
+                        tile = CreateFrame("Button", nil, self)
+                        StyleRow(tile)
+                        tile.icon = tile:CreateTexture(nil, "ARTWORK")
+                        tile.icon:SetPoint("TOPLEFT", 16, -16)
+                        tile.icon:SetSize(32, 32)
+                        tile.title = tile:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+                        tile.title:SetPoint("TOPLEFT", tile.icon, "TOPRIGHT", 12, -2)
+                        tile.title:SetPoint("RIGHT", -12, 0)
+                        tile.title:SetJustifyH("LEFT")
+                        tile.count = tile:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+                        tile.count:SetPoint("TOPLEFT", tile.icon, "BOTTOMLEFT", 0, -10)
+                        tile.count:SetPoint("RIGHT", -12, 0)
+                        tile.count:SetJustifyH("LEFT")
+                        tile:SetScript("OnClick", function(sel)
+                            compendium.search:SetText("")
+                            sel.entry.tab.OpenDashboardTarget()
+                        end)
+                        tile.background = tile:CreateTexture(nil, "BACKGROUND", nil, -7)
+                        tile.background:SetAllPoints()
+                        tile.background:SetColorTexture(0.08, 0.08, 0.08, 0.8)
+                        TILE_STYLE.Apply(tile)
+                        TILE_STYLE.Mask(tile, tile.background)
+                        self.tiles[index] = tile
+                    end
+                    tile.entry = entry
+                    tile:ClearAllPoints()
+                    tile:SetPoint("TOPLEFT", (index - 1) * (width + 8), 0)
+                    tile:SetSize(width, 150 * scale)
+                    tile.icon:SetTexture(entry.icon)
+                    tile.title:SetText(entry.label)
+                    tile.count:SetText(entry.count or "")
+                    tile:Show()
+                end
+                for index = #entries + 1, #self.tiles do self.tiles[index]:Hide() end
+            end
+            return row
+        end, 0, 6)
+        panel.grid:SetPoint("TOPLEFT")
+        panel.grid:SetPoint("BOTTOMRIGHT")
+        panel.grid:EnableEmptyText()
+        panel:SetScript("OnSizeChanged", function()
+            if listKind == "dashboard" then AzerothCompendium:RefreshDashboard() end
+        end)
+    end
+    SetSpecialMode("dashboard")
+    local panel = compendium.dashboard
+    local entries = {}
+    local keys = {dungeon = "LID_DUNGEONS", raid = "LID_RAIDS", pvp = "LID_PVP", faction = "LID_REPUTATION", worldquestitems = "LID_WORLDQUESTITEMS", allitems = "LID_ALLITEMS", wishlist = "LID_WISHLIST", settings = "LID_SETTINGS"}
+    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}) do
+        local tab = compendium.kindTabs[kind]
+        if kind ~= "wishlist" or self:GetConfig("WISHLISTENABLED", true) then
+            local entry = {tab = tab, label = self:Trans(keys[kind]), icon = tab.Icon:GetTexture()}
+            if kind == "dungeon" or kind == "raid" then
+                local seen, done, total = {}, 0, 0
+                for _, inst in ipairs(self:GetInstances(kind)) do
+                    if IsInstanceVisible(inst) then
+                        for _, quest in ipairs(self:GetInstanceQuests(inst)) do
+                            if not seen[quest[1]] then
+                                seen[quest[1]] = true
+                                total = total + 1
+                                if self:IsQuestCompleted(quest[1]) then done = done + 1 end
+                            end
+                        end
+                    end
+                end
+                entry.count = format(self:Trans("LID_QUESTSCOMPLETED"), done, total)
+            end
+            if Matches(entry.label) then tinsert(entries, entry) end
+        end
+    end
+    for _, module in ipairs(self.ModuleTabs) do
+        local label = type(module.label) == "function" and module.label() or module.label
+        if Matches(label) then
+            tinsert(entries, {tab = compendium.moduleTabs[module.id], label = label, icon = module.icon})
+        end
+    end
+    local tabOrder = {}
+    local position = 0
+    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}) do
+        if kind == "allitems" then
+            for _, module in ipairs(self.ModuleTabs) do
+                if module.insertBefore == "wishlist" then
+                    position = position + 1
+                    tabOrder[compendium.moduleTabs[module.id]] = position
+                end
+            end
+        end
+        position = position + 1
+        tabOrder[compendium.kindTabs[kind]] = position
+    end
+    for _, module in ipairs(self.ModuleTabs) do
+        if module.insertBefore ~= "wishlist" then
+            position = position + 1
+            tabOrder[compendium.moduleTabs[module.id]] = position
+        end
+    end
+    table.sort(entries, function(a, b) return tabOrder[a.tab] < tabOrder[b.tab] end)
+    local viewport = panel.grid:GetViewport()
+    local width = viewport and viewport:GetWidth() or panel:GetWidth()
+    local scale = 0.5
+    panel.columns = max(1, floor((width + 8) / (300 * scale + 8)))
+    panel.grid:SetRowHeight(150 * scale + 8)
+    local rows = {}
+    for index, entry in ipairs(entries) do
+        local row = floor((index - 1) / panel.columns) + 1
+        rows[row] = rows[row] or {}
+        tinsert(rows[row], entry)
+    end
+    panel.grid:SetData(rows)
+end
+
 local function RefreshCurrentView()
     if listKind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then
         listKind = "dungeon"
@@ -4759,7 +4902,9 @@ local function RefreshCurrentView()
     end
     UpdateKindTabs()
     if AzerothCompendium:RefreshModuleView() then return end
-    if listKind == "allitems" then
+    if listKind == "dashboard" then
+        AzerothCompendium:RefreshDashboard()
+    elseif listKind == "allitems" then
         AzerothCompendium.ItemBrowser:Create(compendium)
         SetSpecialMode("allitems")
         AzerothCompendium.ItemBrowser:Refresh()
@@ -5464,7 +5609,7 @@ function AzerothCompendium:CreateInstanceControls()
             for index = #entries + 1, #self.tiles do self.tiles[index]:Hide() end
         end
         return row
-    end)
+    end, 0, 6)
     AzerothCompendium:AnchorContent(overview)
     overview:EnableEmptyText()
     overview:Hide()
@@ -5474,22 +5619,17 @@ function AzerothCompendium:CreateInstanceControls()
         end, "AzerothCompendium:OverviewFilterBar")
     end)
     compendium.overview = overview
-    local scaleSlider = CreateFrame("Slider", nil, overview)
+    local scaleSlider = CreateTemplated("Slider", "AzerothCompendiumOverviewScaleSlider", overview, {"MinimalSliderTemplate", "UISliderTemplate", "OptionsSliderTemplate"})
     scaleSlider:SetOrientation("HORIZONTAL")
-    scaleSlider:SetSize(110, 12)
+    scaleSlider:SetSize(110, 16)
     scaleSlider:SetPoint("RIGHT", overview, "TOPRIGHT", -108, 17)
     scaleSlider:SetMinMaxValues(50, 160)
     scaleSlider:SetValueStep(5)
     if scaleSlider.SetObeyStepOnDrag then scaleSlider:SetObeyStepOnDrag(true) end
-    scaleSlider.track = scaleSlider:CreateTexture(nil, "BACKGROUND")
-    scaleSlider.track:SetPoint("LEFT", scaleSlider, "LEFT", 0, 0)
-    scaleSlider.track:SetPoint("RIGHT", scaleSlider, "RIGHT", 0, 0)
-    scaleSlider.track:SetHeight(4)
-    scaleSlider.track:SetColorTexture(0, 0, 0, 0.6)
-    scaleSlider.thumb = scaleSlider:CreateTexture(nil, "OVERLAY")
-    scaleSlider.thumb:SetColorTexture(0.75, 0.6, 0.25, 1)
-    scaleSlider.thumb:SetSize(8, 12)
-    scaleSlider:SetThumbTexture(scaleSlider.thumb)
+    for _, region in ipairs({"Low", "High", "Text"}) do
+        local label = scaleSlider[region] or _G["AzerothCompendiumOverviewScaleSlider" .. region]
+        if label then label:Hide() end
+    end
     scaleSlider.text = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     scaleSlider.text:SetPoint("LEFT", scaleSlider, "RIGHT", 6, 0)
     scaleSlider:SetValue(floor(AzerothCompendium:GetOverviewTileScale() * 100 + 0.5))
@@ -5563,6 +5703,13 @@ function AzerothCompendium:CreateInstanceControls()
     compendium.instanceControl = instanceControl
     compendium.instancePopup = instancePopup
     function instanceControl:UpdateDropdownWidth()
+        if listKind == "dashboard" and AzerothCompendium.Theme:IsModern() then
+            local layout = AzerothCompendium:GetContentLayout()
+            compendium.search:SetWidth(max(120, compendium:GetWidth() - layout.searchRight - (layout.railLeft or layout.left)))
+            compendium.searchLabel:SetAlpha(0)
+            return
+        end
+        compendium.searchLabel:SetAlpha(AzerothCompendium.Theme:IsModern() and 0 or 1)
         if AzerothCompendium.Theme:IsModern() then
             local layout = AzerothCompendium.ContentLayoutModern
             local text = instanceDropdown.Text or (instanceDropdown.GetFontString and instanceDropdown:GetFontString())
@@ -5744,7 +5891,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
+    for _, info in ipairs({{"dashboard", "LID_OVERVIEW", "Interface\\Icons\\INV_Misc_Map_01"}, {"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
             if kind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
@@ -6938,7 +7085,7 @@ end
 
 function AzerothCompendium:ResetCompendiumNavigation()
     if AzerothCompendium:GetConfig("REMEMBERNAVIGATION", true) == true then return end
-    ApplyKindNavigation("dungeon")
+    ApplyKindNavigation("dashboard")
     SaveNavigationState()
 end
 
@@ -7121,6 +7268,10 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         AzerothCompendium:After(0, function()
             sel.questRefreshPending = false
             if compendium == nil or not compendium:IsShown() then return end
+            if listKind == "dashboard" then
+                AzerothCompendium:RefreshDashboard()
+                return
+            end
             if listKind == "dungeon" then RefreshInstances() end
             if middleKind == "quests" then compendium.questTree:Refresh() end
             if listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
@@ -7135,7 +7286,9 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
     AzerothCompendium:After(0.25, function()
         refreshPending = false
         if compendium ~= nil and compendium:IsShown() then
-            if listKind == "allitems" then
+            if listKind == "dashboard" then
+                AzerothCompendium:RefreshDashboard()
+            elseif listKind == "allitems" then
                 AzerothCompendium.ItemBrowser:Refresh()
             elseif listKind == "wishlist" then
                 RefreshWishlistView()
