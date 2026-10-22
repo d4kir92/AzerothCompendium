@@ -178,14 +178,18 @@ function AzerothCompendium:AnchorContent(frame, leftAnchor)
     end)
 end
 
-function AzerothCompendium:AnchorContentTab(tab, content, previous)
+function AzerothCompendium:AnchorContentTab(tab, content, previous, offset)
     self:AddLayout(tab, function(modern)
         local layout = modern and self.ContentLayoutModern or self.ContentLayout
         tab:ClearAllPoints()
+        if offset and offset > 0 then
+            tab:SetFrameLevel(modern and content:GetFrameLevel() + 4 or max(0, content:GetFrameLevel() - 1))
+            if tab.chrome then tab.chrome:SetFrameLevel(modern and content:GetFrameLevel() or max(0, content:GetFrameLevel() - 1)) end
+        end
         if previous then
             tab:SetPoint("LEFT", previous, "RIGHT", layout.tabGap, 0)
         else
-            tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", 0, layout.tabOffset)
+            tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", not modern and offset or 0, layout.tabOffset)
         end
     end)
 end
@@ -4118,7 +4122,9 @@ function AzerothCompendiumAPI.CreateContentTab(parent, label, icon, onClick)
 end
 
 function AzerothCompendiumAPI.PositionContentTab(tab, content, previous)
-    AzerothCompendium:AnchorContentTab(tab, content, previous)
+    local panels = compendium and compendium.modulePanels
+    local trainer = panels and (content == panels["TrainerSpells:class"] or content == panels["TrainerSpells:professions"])
+    AzerothCompendium:AnchorContentTab(tab, content, previous, trainer and 22 or 0)
 end
 
 AzerothCompendium.HeaderSliders = {}
