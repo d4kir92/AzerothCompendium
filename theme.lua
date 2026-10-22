@@ -623,8 +623,8 @@ function Theme:SkinScrollBar(bar)
         end
     end
 
-    self:Hide(record, bar.Back)
-    self:Hide(record, bar.Forward)
+    self:SkinStepper(bar.Back, bar.isHorizontal and -math.pi / 2 or math.pi)
+    self:SkinStepper(bar.Forward, bar.isHorizontal and math.pi / 2 or 0)
 end
 
 function Theme:HideTextures(record, frame, keep)
@@ -780,13 +780,8 @@ function Theme:SkinLegacyScrollBar(bar)
     local record = self:NewRecord(bar)
     local thumb = bar:GetThumbTexture()
     self:HideTextures(record, bar)
-    for _, key in ipairs({"ScrollUpButton", "ScrollDownButton"}) do
-        local button = self:Child(bar, key)
-        if button then
-            self:HideTextures(record, button)
-            self:HideButtonTextures(record, button)
-        end
-    end
+    self:SkinStepper(self:Child(bar, "ScrollUpButton"), math.pi)
+    self:SkinStepper(self:Child(bar, "ScrollDownButton"), 0)
 
     if thumb == nil then return end
     local holder = self:Anchor(bar)

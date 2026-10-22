@@ -2215,7 +2215,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
-    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
+    scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - 2, BOTTOM_H + 2)
     local holder = CreateFrame("Frame", nil, scroll)
     holder:SetSize(1, 1)
     scroll:SetScrollChild(holder)
@@ -2568,9 +2568,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         scroll:ClearAllPoints()
         scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
         if list then
-            scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 4, 0)
+            scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
         else
-            scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W, BOTTOM_H + 2)
+            scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - 2, BOTTOM_H + 2)
         end
 
         scroll:SetScrollChild(list and listHolder or holder)

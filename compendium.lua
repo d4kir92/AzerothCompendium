@@ -189,7 +189,7 @@ function AzerothCompendium:AnchorContentTab(tab, content, previous, offset)
         if previous then
             tab:SetPoint("LEFT", previous, "RIGHT", layout.tabGap, 0)
         else
-            tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", not modern and offset or 0, layout.tabOffset)
+            tab:SetPoint("BOTTOMLEFT", content, "TOPLEFT", not modern and (offset or 20) or 0, layout.tabOffset)
         end
     end)
 end
@@ -446,10 +446,10 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
     if HasModernScroll() then
         local box = CreateFrame("Frame", nil, scroller, "WowScrollBox")
         box:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
-        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset, inset)
+        box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset - 2, inset)
         local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
-        bar:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", -5, -6)
-        bar:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -5, 6)
+        bar:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", -7, -6)
+        bar:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -7, 6)
         content = CreateFrame("Frame", nil, box)
         content.scrollable = true
         content:SetSize(1, 1)
@@ -468,7 +468,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         end
 
         scroll:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
-        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset, inset)
+        scroll:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset - 2, inset)
         scroll:EnableMouseWheel(true)
         scroll:SetScript("OnMouseWheel", function(sel, delta)
             local range = max(0, (sel.djHeight or 0) - sel:GetHeight())
@@ -620,7 +620,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         self.bannerHeight = offset
         local viewport = self:GetViewport()
         if viewport then viewport:SetPoint("TOPLEFT", self, "TOPLEFT", inset, -inset - offset) end
-        if self.bar then self.bar:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, -6 - offset) end
+        if self.bar then self.bar:SetPoint("TOPRIGHT", self, "TOPRIGHT", -7, -6 - offset) end
     end
 
     function scroller:SetBanner(text, info, onClear)
@@ -729,18 +729,30 @@ function TILE_STYLE.Mask(row, texture)
     end
 end
 
+function TILE_STYLE.UpdateMasks(row)
+    local height = row:GetHeight()
+    local scale = min(160, max(50, floor((height > 0 and height / 1.5 or 100) / 5 + 0.5) * 5))
+    if row.tileMaskScale == scale then return end
+    row.tileMaskScale = scale
+    for _, mask in ipairs(row.cornerMasks) do
+        mask:SetTexture(TILE_STYLE.media .. "tilemask_" .. mask.tileSide .. "_" .. scale, "CLAMPTOWHITE", "CLAMPTOWHITE")
+    end
+end
+
 function TILE_STYLE.Apply(row)
     if row.CreateMaskTexture == nil or row.cornerMasks ~= nil then return end
     row.cornerMasks = {}
-    for index, side in ipairs({{"TOPLEFT", "BOTTOMLEFT", "tileside"}, {"TOPRIGHT", "BOTTOMRIGHT", "tilesideright"}}) do
+    for index, side in ipairs({{"TOPLEFT", "BOTTOMLEFT", "left"}, {"TOPRIGHT", "BOTTOMRIGHT", "right"}}) do
         local mask = row:CreateMaskTexture()
-        mask:SetTexture(TILE_STYLE.media .. side[3], "CLAMPTOWHITE", "CLAMPTOWHITE")
+        mask.tileSide = side[3]
         mask:SetWidth(TILE_STYLE.radius)
         mask:SetPoint(side[1], row, side[1], 0, 0)
         mask:SetPoint(side[2], row, side[2], 0, 0)
         row.cornerMasks[index] = mask
     end
 
+    row:HookScript("OnSizeChanged", function(sel) TILE_STYLE.UpdateMasks(sel) end)
+    TILE_STYLE.UpdateMasks(row)
     row.tileFade = {}
     for index, side in ipairs(TILE_STYLE.sides) do
         local fade = row:CreateTexture(nil, "BACKGROUND", nil, -6)
@@ -760,7 +772,7 @@ function TILE_STYLE.Apply(row)
         row.tileFade[index] = fade
     end
 
-    for _, texture in ipairs({row.loadingScreen, row.loadingShade, row.highlight, row.selected}) do
+    for _, texture in pairs({row.loadingScreen, row.loadingShade, row.highlight, row.selected}) do
         TILE_STYLE.Mask(row, texture)
     end
 end
@@ -4124,7 +4136,7 @@ end
 function AzerothCompendiumAPI.PositionContentTab(tab, content, previous)
     local panels = compendium and compendium.modulePanels
     local trainer = panels and (content == panels["TrainerSpells:class"] or content == panels["TrainerSpells:professions"])
-    AzerothCompendium:AnchorContentTab(tab, content, previous, trainer and 22 or 0)
+    AzerothCompendium:AnchorContentTab(tab, content, previous, trainer and 20 or nil)
 end
 
 AzerothCompendium.HeaderSliders = {}
