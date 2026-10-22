@@ -4790,12 +4790,12 @@ function AzerothCompendium:RefreshDashboard()
             panel:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -layout.right, layout.bottom)
         end)
         compendium.dashboard = panel
-        panel.grid = CreateScroller(panel, 83, function(parent)
+        panel.grid = CreateScroller(panel, 98, function(parent)
             local row = CreateFrame("Frame", nil, parent)
             row.tiles = {}
             function row:Update(entries)
                 local dashboard = compendium.dashboard
-                local scale = 0.5
+                local scale = 0.6
                 local width = max(1, (dashboard.grid:GetViewport():GetWidth() - (dashboard.columns - 1) * 8) / dashboard.columns)
                 for index, entry in ipairs(entries) do
                     local tile = self.tiles[index]
@@ -4840,9 +4840,15 @@ function AzerothCompendium:RefreshDashboard()
         panel.grid:SetPoint("TOPLEFT")
         panel.grid:SetPoint("BOTTOMRIGHT")
         panel.grid:EnableEmptyText()
-        panel:SetScript("OnSizeChanged", function()
-            if listKind == "dashboard" then AzerothCompendium:RefreshDashboard() end
-        end)
+        function panel:QueueLayout()
+            self:SetScript("OnUpdate", function(sel)
+                sel:SetScript("OnUpdate", nil)
+                if listKind == "dashboard" and sel:IsShown() then AzerothCompendium:RefreshDashboard() end
+            end)
+        end
+        panel:SetScript("OnSizeChanged", function(sel) sel:QueueLayout() end)
+        panel:SetScript("OnShow", function(sel) sel:QueueLayout() end)
+        panel.grid:GetViewport():HookScript("OnSizeChanged", function() panel:QueueLayout() end)
     end
     SetSpecialMode("dashboard")
     local panel = compendium.dashboard
@@ -4898,8 +4904,12 @@ function AzerothCompendium:RefreshDashboard()
     end
     table.sort(entries, function(a, b) return tabOrder[a.tab] < tabOrder[b.tab] end)
     local viewport = panel.grid:GetViewport()
-    local width = viewport and viewport:GetWidth() or panel:GetWidth()
-    local scale = 0.5
+    local width = viewport and viewport:GetWidth() or 0
+    if width <= 0 then
+        panel:QueueLayout()
+        return
+    end
+    local scale = 0.6
     panel.columns = max(1, floor((width + 8) / (300 * scale + 8)))
     panel.grid:SetRowHeight(150 * scale + 8)
     local rows = {}
