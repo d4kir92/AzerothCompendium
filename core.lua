@@ -192,6 +192,37 @@ local PROFICIENCY = {
             [19] = true
         }
     },
+    ["DEATHKNIGHT"] = {
+        ["armor"] = {
+            [ARMOR_CLOTH] = true,
+            [ARMOR_LEATHER] = true,
+            [ARMOR_MAIL] = true,
+            [ARMOR_PLATE] = true
+        },
+        ["weapon"] = {
+            [0] = true,
+            [1] = true,
+            [4] = true,
+            [5] = true,
+            [6] = true,
+            [7] = true,
+            [8] = true
+        }
+    },
+    ["MONK"] = {
+        ["armor"] = {
+            [ARMOR_CLOTH] = true,
+            [ARMOR_LEATHER] = true
+        },
+        ["weapon"] = {
+            [0] = true,
+            [4] = true,
+            [6] = true,
+            [7] = true,
+            [10] = true,
+            [13] = true
+        }
+    },
     ["DRUID"] = {
         ["armor"] = {
             [ARMOR_CLOTH] = true,
