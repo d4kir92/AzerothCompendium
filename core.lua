@@ -348,6 +348,7 @@ function AzerothCompendium:GetExpansionClientFlavor()
     if interface >= 20000 and interface < 30000 then return "tbc" end
     if interface >= 30000 and interface < 40000 then return "wrath" end
     if interface >= 40000 and interface < 50000 then return "cata" end
+    if interface >= 50000 and interface < 60000 then return "mists" end
 end
 
 function AzerothCompendium:IsFixedFlavorClient()
@@ -359,7 +360,7 @@ function AzerothCompendium:GetFlavorChoices()
     if flavor then
         return {
             {
-                label = ({tbc = "TBC", wrath = "Wrath (WotLK)", cata = "Cataclysm"})[flavor],
+                label = ({tbc = "TBC", wrath = "Wrath (WotLK)", cata = "Cataclysm", mists = "Mists of Pandaria"})[flavor],
                 value = flavor
             }
         }
@@ -388,6 +389,7 @@ function AzerothCompendium:GetWowheadBranch()
     if flavor == FLAVOR_FOREVER then return "forever" end
     if flavor == "tbc" or flavor == "cata" then return flavor end
     if flavor == "wrath" then return "wotlk" end
+    if flavor == "mists" then return "mop-classic" end
     return "classic"
 end
 
@@ -396,11 +398,13 @@ function AzerothCompendium:GetMaxLevel()
     if flavor == "tbc" then return 70 end
     if flavor == "wrath" then return 80 end
     if flavor == "cata" then return 85 end
+    if flavor == "mists" then return 90 end
     return 60
 end
 
 function AzerothCompendium:GetContinents()
     local flavor = AzerothCompendium:GetFlavor()
+    if flavor == "mists" then return {"kalimdor", "easternkingdoms", "outland", "northrend", "maelstrom", "pandaria"} end
     if flavor == "cata" then return {"kalimdor", "easternkingdoms", "outland", "northrend", "maelstrom"} end
     if flavor == "wrath" then return {"kalimdor", "easternkingdoms", "outland", "northrend"} end
     if flavor == "tbc" then return {"kalimdor", "easternkingdoms", "outland"} end
