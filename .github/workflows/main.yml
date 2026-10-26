@@ -48,6 +48,21 @@ jobs:
         with:
           args: -g bcc -w 0
 
+      - name: Package and release for Wrath
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g wrath -w 0
+
+      - name: Package and release for Cataclysm
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g cata -w 0
+
+      - name: Package and release for Mists
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g mists -w 0
+
       - name: Package and release for Classic Era
         uses: BigWigsMods/packager@master
         with:

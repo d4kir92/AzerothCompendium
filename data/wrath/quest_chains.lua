@@ -1,0 +1,13 @@
+local _, AzerothCompendium = ...
+AzerothCompendium.UNAVAILABLEQUESTS = {}
+AzerothCompendium.QUESTCHAINS = {}
+AzerothCompendium.QUESTPREREQUISITES = {}
+AzerothCompendium.QUESTGIVERS = {}
+AzerothCompendium.QUESTSTARTITEMS = {}
+AzerothCompendium.QUESTNAMES = {}
+AzerothCompendium.QUESTREQUIREDLEVELS = {}
+AzerothCompendium.QUESTRECOMMENDEDLEVELS = {}
+AzerothCompendium.QUESTENDERS = {}
+AzerothCompendium.QUESTCLASSES = {}
+AzerothCompendium.QUESTPREANY = {}
+AzerothCompendium.QUESTEXCLUSIVE = {}

@@ -1,4 +1,4 @@
-## Interface: 20505, 20506
+## Interface: 20506
 
 ## Version: 0.9.3
 ## Title: AzerothCompendium by |cff55d2ffD4KiR |T132115:16:16:0:0|t

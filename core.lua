@@ -342,16 +342,25 @@ function AzerothCompendium:IsTBCClient()
     return type(interface) == "number" and interface >= 20000 and interface < 30000
 end
 
+function AzerothCompendium:GetExpansionClientFlavor()
+    local interface = select(4, GetBuildInfo())
+    if type(interface) ~= "number" then return nil end
+    if interface >= 20000 and interface < 30000 then return "tbc" end
+    if interface >= 30000 and interface < 40000 then return "wrath" end
+    if interface >= 40000 and interface < 50000 then return "cata" end
+end
+
 function AzerothCompendium:IsFixedFlavorClient()
-    return AzerothCompendium:IsClassicEraClient() or AzerothCompendium:IsTBCClient()
+    return AzerothCompendium:IsClassicEraClient() or AzerothCompendium:GetExpansionClientFlavor() ~= nil
 end
 
 function AzerothCompendium:GetFlavorChoices()
-    if AzerothCompendium:IsTBCClient() then
+    local flavor = AzerothCompendium:GetExpansionClientFlavor()
+    if flavor then
         return {
             {
-                label = "TBC",
-                value = "tbc"
+                label = ({tbc = "TBC", wrath = "Wrath (WotLK)", cata = "Cataclysm"})[flavor],
+                value = flavor
             }
         }
     end
@@ -377,17 +386,24 @@ end
 function AzerothCompendium:GetWowheadBranch()
     local flavor = AzerothCompendium:GetFlavor()
     if flavor == FLAVOR_FOREVER then return "forever" end
-    if flavor == "tbc" then return "tbc" end
+    if flavor == "tbc" or flavor == "cata" then return flavor end
+    if flavor == "wrath" then return "wotlk" end
     return "classic"
 end
 
 function AzerothCompendium:GetMaxLevel()
-    if AzerothCompendium:GetFlavor() == "tbc" then return 70 end
+    local flavor = AzerothCompendium:GetFlavor()
+    if flavor == "tbc" then return 70 end
+    if flavor == "wrath" then return 80 end
+    if flavor == "cata" then return 85 end
     return 60
 end
 
 function AzerothCompendium:GetContinents()
-    if AzerothCompendium:GetFlavor() == "tbc" then return {"kalimdor", "easternkingdoms", "outland"} end
+    local flavor = AzerothCompendium:GetFlavor()
+    if flavor == "cata" then return {"kalimdor", "easternkingdoms", "outland", "northrend", "maelstrom"} end
+    if flavor == "wrath" then return {"kalimdor", "easternkingdoms", "outland", "northrend"} end
+    if flavor == "tbc" then return {"kalimdor", "easternkingdoms", "outland"} end
     return {"kalimdor", "easternkingdoms"}
 end
 
@@ -417,7 +433,8 @@ function AzerothCompendium:IsMaxLevelInstance(inst)
 end
 
 function AzerothCompendium:GetFlavor()
-    if AzerothCompendium:IsTBCClient() then return "tbc" end
+    local clientFlavor = AzerothCompendium:GetExpansionClientFlavor()
+    if clientFlavor then return clientFlavor end
     if AzerothCompendium:IsClassicEraClient() then return FLAVOR_CLASSIC_ERA end
     local flavor = AzerothCompendium:GetConfig("FLAVOR", FLAVOR_FOREVER)
     if flavor ~= FLAVOR_FOREVER and flavor ~= FLAVOR_CLASSIC_ERA then

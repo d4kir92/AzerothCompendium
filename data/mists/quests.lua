@@ -1,0 +1,3 @@
+local _, AzerothCompendium = ...
+AzerothCompendium.QUESTS = {}
+AzerothCompendium.QUESTFOREVER = {}
