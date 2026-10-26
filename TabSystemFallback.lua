@@ -9,6 +9,7 @@ local FALLBACK_TEXTURES = {
     ["common-sidetab-hover-c60"] = {MEDIA .. "sidetab", 55, 60, 1 / 128, 56 / 128, 63 / 128, 123 / 128},
     ["common-sidetab-selected-c60"] = {MEDIA .. "sidetab", 55, 60, 58 / 128, 113 / 128, 1 / 128, 61 / 128},
     ["common-sidetab-mask-c60"] = {MEDIA .. "sidetabmask", 55, 60},
+    ["common-insideframe"] = {MEDIA .. "insideframe", 107, 107, 1 / 128, 108 / 128, 1 / 128, 108 / 128, 53},
 }
 
 local ATLASES = {
@@ -38,8 +39,13 @@ function TabSystemButtonArtMixinFallback.SetAtlasOrTexture(texture, atlas, useAt
 
     local info = FALLBACK_TEXTURES[atlas]
     if info then
+        if info[8] and not texture.SetTextureSliceMargins then return false end
         texture:SetTexture(info[1])
         if info[4] then texture:SetTexCoord(info[4], info[5], info[6], info[7]) end
+        if info[8] then
+            texture:SetTextureSliceMargins(info[8], info[8], info[8], info[8])
+            if texture.SetTextureSliceMode then texture:SetTextureSliceMode(0) end
+        end
         if useAtlasSize and info[2] then texture:SetSize(info[2], info[3]) end
     end
     return false

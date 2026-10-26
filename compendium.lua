@@ -26,7 +26,7 @@ local INSTANCE_TYPE_TAGS = {
 local QUEST_COUNT_ICON = "Interface\\GossipFrame\\ActiveQuestIcon"
 local TAB_ICONS = {
     ["map"] = {
-        texture = "Interface\\Icons\\INV_Misc_Map09"
+        texture = "Interface\\AddOns\\AzerothCompendium\\media\\ui\\map"
     },
     ["bosses"] = {
         texture = "Interface\\TargetingFrame\\UI-RaidTargetingIcons",
@@ -419,7 +419,7 @@ local function AddContentBorder(frame)
     frame.contentBackground:SetVertTile(true)
     frame.contentBackground:SetAllPoints(frame)
     frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
-    frame.border:SetAtlas("common-insideframe")
+    TabSystemButtonArtMixinFallback.SetAtlasOrTexture(frame.border, "common-insideframe")
     frame.border:SetPoint("TOPLEFT", frame, "TOPLEFT", -4, 4)
     frame.border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 4, -4)
 end
