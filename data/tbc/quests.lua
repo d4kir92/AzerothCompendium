@@ -68,3 +68,5 @@ AzerothCompendium.QUESTFOREVER = {
 	[98823] = true,
 	[98824] = true,
 }
+
+AzerothCompendium.WORLDQUESTBOOKS = {}

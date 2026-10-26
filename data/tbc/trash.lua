@@ -363,15 +363,85 @@ local lootByInstance = {
 	["Wailing Caverns"] = {
 		{
 			[1] = 2924,
-			[2] = 30.32,
+			[2] = 30.43,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Deviate Crocolisk",
 					["npcs"] = {5053},
-					["chance"] = 30.32,
+					["chance"] = 30.43,
 					["classification"] = 0,
 					["model"] = 2996,
+				},
+			},
+		},
+		{
+			[1] = 3180,
+			[2] = 18.89,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Ravager",
+					["npcs"] = {3636},
+					["chance"] = 18.46,
+					["classification"] = 1,
+					["model"] = 1747,
+				},
+				{
+					["name"] = "Deviate Guardian",
+					["npcs"] = {3637},
+					["chance"] = 18.89,
+					["classification"] = 1,
+					["model"] = 755,
+				},
+			},
+		},
+		{
+			[1] = 3181,
+			[2] = 70.31,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Crocolisk",
+					["npcs"] = {5053},
+					["chance"] = 70.31,
+					["classification"] = 0,
+					["model"] = 2996,
+				},
+			},
+		},
+		{
+			[1] = 3401,
+			[2] = 73.68,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Crocolisk",
+					["npcs"] = {5053},
+					["chance"] = 73.68,
+					["classification"] = 0,
+					["model"] = 2996,
+				},
+			},
+		},
+		{
+			[1] = 5124,
+			[2] = 65.98,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Guardian",
+					["npcs"] = {3637},
+					["chance"] = 65.59,
+					["classification"] = 1,
+					["model"] = 755,
+				},
+				{
+					["name"] = "Deviate Ravager",
+					["npcs"] = {3636},
+					["chance"] = 65.98,
+					["classification"] = 1,
+					["model"] = 1747,
 				},
 			},
 		},
@@ -388,21 +458,84 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 5370,
+			[2] = 0,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Evolving Ectoplasm",
+					["npcs"] = {3640},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 1751,
+				},
+			},
+		},
+		{
+			[1] = 6445,
+			[2] = 22.98,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Python",
+					["npcs"] = {8886},
+					["chance"] = 16.05,
+					["classification"] = 0,
+					["model"] = 8173,
+				},
+				{
+					["name"] = "Deviate Adder",
+					["npcs"] = {5048},
+					["chance"] = 20.96,
+					["classification"] = 1,
+					["model"] = 4317,
+				},
+				{
+					["name"] = "Deviate Viper",
+					["npcs"] = {5755},
+					["chance"] = 21.25,
+					["classification"] = 1,
+					["model"] = 4312,
+				},
+				{
+					["name"] = "Deviate Dreadfang",
+					["npcs"] = {5056},
+					["chance"] = 21.57,
+					["classification"] = 1,
+					["model"] = 3006,
+				},
+				{
+					["name"] = "Deviate Venomwing",
+					["npcs"] = {5756},
+					["chance"] = 21.77,
+					["classification"] = 1,
+					["model"] = 2706,
+				},
+				{
+					["name"] = "Deviate Moccasin",
+					["npcs"] = {5762},
+					["chance"] = 22.98,
+					["classification"] = 1,
+					["model"] = 4305,
+				},
+			},
+		},
+		{
 			[1] = 6464,
-			[2] = 27.52,
+			[2] = 27.59,
 			["itemClass"] = 0,
 			["mobs"] = {
 				{
 					["name"] = "Nightmare Ectoplasm",
 					["npcs"] = {5763},
-					["chance"] = 12.01,
+					["chance"] = 12.12,
 					["classification"] = 0,
 					["model"] = 470,
 				},
 				{
 					["name"] = "Evolving Ectoplasm",
 					["npcs"] = {3640},
-					["chance"] = 27.52,
+					["chance"] = 27.59,
 					["classification"] = 1,
 					["model"] = 1751,
 				},
@@ -480,13 +613,13 @@ local lootByInstance = {
 	["The Deadmines"] = {
 		{
 			[1] = 814,
-			[2] = 29.39,
+			[2] = 29.41,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Craftsman",
 					["npcs"] = {1731},
-					["chance"] = 29.39,
+					["chance"] = 29.41,
 					["classification"] = 1,
 					["model"] = 7110,
 				},
@@ -494,7 +627,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 915,
-			[2] = 9.78,
+			[2] = 9.81,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -507,14 +640,14 @@ local lootByInstance = {
 				{
 					["name"] = "Defias Squallshaper",
 					["npcs"] = {1732},
-					["chance"] = 0.76,
+					["chance"] = 0.77,
 					["classification"] = 1,
 					["model"] = 2349,
 				},
 				{
 					["name"] = "Defias Blackguard",
 					["npcs"] = {636},
-					["chance"] = 0.82,
+					["chance"] = 0.81,
 					["classification"] = 1,
 					["model"] = 2314,
 				},
@@ -556,14 +689,14 @@ local lootByInstance = {
 				{
 					["name"] = "Defias Evoker",
 					["npcs"] = {1729},
-					["chance"] = 8.07,
+					["chance"] = 8.1,
 					["classification"] = 1,
 					["model"] = 2318,
 				},
 				{
 					["name"] = "Defias Miner",
 					["npcs"] = {598},
-					["chance"] = 9.78,
+					["chance"] = 9.81,
 					["classification"] = 0,
 					["model"] = 308,
 				},
@@ -585,7 +718,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1929,
-			[2] = 5.95,
+			[2] = 5.94,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -598,7 +731,7 @@ local lootByInstance = {
 				{
 					["name"] = "Defias Evoker",
 					["npcs"] = {1729},
-					["chance"] = 5.95,
+					["chance"] = 5.94,
 					["classification"] = 1,
 					["model"] = 2318,
 				},
@@ -620,13 +753,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1934,
-			[2] = 5.52,
+			[2] = 5.49,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Defias Blackguard",
 					["npcs"] = {636},
-					["chance"] = 5.52,
+					["chance"] = 5.49,
 					["classification"] = 1,
 					["model"] = 2314,
 				},
@@ -648,13 +781,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1943,
-			[2] = 6.15,
+			[2] = 6.22,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Shipbuilder",
 					["npcs"] = {3947},
-					["chance"] = 6.15,
+					["chance"] = 6.22,
 					["classification"] = 1,
 					["model"] = 7112,
 				},
@@ -662,13 +795,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1944,
-			[2] = 5.09,
+			[2] = 5.11,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Goblin Craftsman",
 					["npcs"] = {1731},
-					["chance"] = 5.09,
+					["chance"] = 5.11,
 					["classification"] = 1,
 					["model"] = 7110,
 				},
@@ -738,7 +871,7 @@ local lootByInstance = {
 				{
 					["name"] = "Goblin Craftsman",
 					["npcs"] = {1731},
-					["chance"] = 1.1,
+					["chance"] = 1.12,
 					["classification"] = 1,
 					["model"] = 7110,
 				},
@@ -748,6 +881,20 @@ local lootByInstance = {
 					["chance"] = 1.27,
 					["classification"] = 1,
 					["model"] = 7109,
+				},
+			},
+		},
+		{
+			[1] = 5379,
+			[2] = 0.01,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Goblin Craftsman",
+					["npcs"] = {1731},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 7110,
 				},
 			},
 		},
@@ -881,27 +1028,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1015,
-			[2] = 32.18,
+			[2] = 32.17,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Slavering Worg",
 					["npcs"] = {3862},
-					["chance"] = 27.02,
+					["chance"] = 26.98,
 					["classification"] = 1,
 					["model"] = 11421,
 				},
 				{
 					["name"] = "Bleak Worg",
 					["npcs"] = {3861},
-					["chance"] = 27.89,
+					["chance"] = 27.78,
 					["classification"] = 1,
 					["model"] = 801,
 				},
 				{
 					["name"] = "Lupine Horror",
 					["npcs"] = {3863},
-					["chance"] = 32.18,
+					["chance"] = 32.17,
 					["classification"] = 1,
 					["model"] = 2446,
 				},
@@ -1364,7 +1511,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 1935,
-			[2] = 0.07,
+			[2] = 0.06,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
@@ -1440,7 +1587,7 @@ local lootByInstance = {
 				{
 					["name"] = "Blood Seeker",
 					["npcs"] = {3868},
-					["chance"] = 0.07,
+					["chance"] = 0.06,
 					["classification"] = 1,
 					["model"] = 1955,
 				},
@@ -1559,7 +1706,7 @@ local lootByInstance = {
 				{
 					["name"] = "Blood Seeker",
 					["npcs"] = {3868},
-					["chance"] = 0.07,
+					["chance"] = 0.06,
 					["classification"] = 1,
 					["model"] = 1955,
 				},
@@ -1902,16 +2049,79 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 5120,
+			[2] = 8.53,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Fel Steed",
+					["npcs"] = {3864},
+					["chance"] = 7.32,
+					["classification"] = 1,
+					["model"] = 1951,
+				},
+				{
+					["name"] = "Shadow Charger",
+					["npcs"] = {3865},
+					["chance"] = 8.53,
+					["classification"] = 1,
+					["model"] = 1952,
+				},
+			},
+		},
+		{
+			[1] = 5871,
+			[2] = 24.71,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Fel Steed",
+					["npcs"] = {3864},
+					["chance"] = 23.05,
+					["classification"] = 1,
+					["model"] = 1951,
+				},
+				{
+					["name"] = "Shadow Charger",
+					["npcs"] = {3865},
+					["chance"] = 24.71,
+					["classification"] = 1,
+					["model"] = 1952,
+				},
+			},
+		},
+		{
 			[1] = 5943,
-			[2] = 2.34,
+			[2] = 2.41,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Arugal's Voidwalker",
 					["npcs"] = {4627},
-					["chance"] = 2.34,
+					["chance"] = 2.41,
 					["classification"] = 0,
 					["model"] = 1131,
+				},
+			},
+		},
+		{
+			[1] = 6298,
+			[2] = 26.85,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vile Bat",
+					["npcs"] = {3866},
+					["chance"] = 25.72,
+					["classification"] = 1,
+					["model"] = 8808,
+				},
+				{
+					["name"] = "Blood Seeker",
+					["npcs"] = {3868},
+					["chance"] = 26.85,
+					["classification"] = 1,
+					["model"] = 1955,
 				},
 			},
 		},
@@ -1930,16 +2140,65 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 6438,
+			[2] = 38.93,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Arugal's Voidwalker",
+					["npcs"] = {4627},
+					["chance"] = 38.93,
+					["classification"] = 0,
+					["model"] = 1131,
+				},
+			},
+		},
+		{
+			[1] = 6439,
+			[2] = 16.47,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Arugal's Voidwalker",
+					["npcs"] = {4627},
+					["chance"] = 16.47,
+					["classification"] = 0,
+					["model"] = 1131,
+				},
+			},
+		},
+		{
 			[1] = 6915,
-			[2] = 0.77,
+			[2] = 0.8,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowfang Darksoul",
 					["npcs"] = {3855},
-					["chance"] = 0.77,
+					["chance"] = 0.8,
 					["classification"] = 1,
 					["model"] = 657,
+				},
+			},
+		},
+		{
+			[1] = 11390,
+			[2] = 27.17,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vile Bat",
+					["npcs"] = {3866},
+					["chance"] = 24.99,
+					["classification"] = 1,
+					["model"] = 8808,
+				},
+				{
+					["name"] = "Blood Seeker",
+					["npcs"] = {3868},
+					["chance"] = 27.17,
+					["classification"] = 1,
+					["model"] = 1955,
 				},
 			},
 		},
@@ -3045,7 +3304,7 @@ local lootByInstance = {
 				{
 					["name"] = "Twilight Acolyte",
 					["npcs"] = {4809},
-					["chance"] = 1.59,
+					["chance"] = 1.56,
 					["classification"] = 1,
 					["model"] = 2882,
 				},
@@ -3059,9 +3318,16 @@ local lootByInstance = {
 				{
 					["name"] = "Twilight Reaver",
 					["npcs"] = {4810},
-					["chance"] = 1.78,
+					["chance"] = 1.77,
 					["classification"] = 1,
 					["model"] = 2898,
+				},
+				{
+					["name"] = "Twilight Shadowmage",
+					["npcs"] = {4813},
+					["chance"] = 1.87,
+					["classification"] = 1,
+					["model"] = 2876,
 				},
 				{
 					["name"] = "Twilight Aquamancer",
@@ -3069,13 +3335,6 @@ local lootByInstance = {
 					["chance"] = 1.89,
 					["classification"] = 1,
 					["model"] = 2886,
-				},
-				{
-					["name"] = "Twilight Shadowmage",
-					["npcs"] = {4813},
-					["chance"] = 1.89,
-					["classification"] = 1,
-					["model"] = 2876,
 				},
 				{
 					["name"] = "Twilight Elementalist",
@@ -3134,13 +3393,6 @@ local lootByInstance = {
 					["model"] = 4982,
 				},
 				{
-					["name"] = "Blackfathom Myrmidon",
-					["npcs"] = {4807},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 4762,
-				},
-				{
 					["name"] = "Twilight Reaver",
 					["npcs"] = {4810},
 					["chance"] = 0.04,
@@ -3153,6 +3405,13 @@ local lootByInstance = {
 					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 3617,
+				},
+				{
+					["name"] = "Blackfathom Myrmidon",
+					["npcs"] = {4807},
+					["chance"] = 0.05,
+					["classification"] = 1,
+					["model"] = 4762,
 				},
 				{
 					["name"] = "Twilight Aquamancer",
@@ -3213,7 +3472,7 @@ local lootByInstance = {
 				{
 					["name"] = "Aku'mai Fisher",
 					["npcs"] = {4824},
-					["chance"] = 0.08,
+					["chance"] = 0.07,
 					["classification"] = 1,
 					["model"] = 1244,
 				},
@@ -3409,8 +3668,22 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 2608,
+			[2] = 21.19,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deep Pool Threshfin",
+					["npcs"] = {4827},
+					["chance"] = 21.19,
+					["classification"] = 1,
+					["model"] = 2836,
+				},
+			},
+		},
+		{
 			[1] = 2674,
-			[2] = 43.04,
+			[2] = 43.06,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -3430,7 +3703,7 @@ local lootByInstance = {
 				{
 					["name"] = "Snapping Crustacean",
 					["npcs"] = {4822},
-					["chance"] = 43.04,
+					["chance"] = 43.06,
 					["classification"] = 1,
 					["model"] = 1001,
 				},
@@ -3444,7 +3717,7 @@ local lootByInstance = {
 				{
 					["name"] = "Snapping Crustacean",
 					["npcs"] = {4822},
-					["chance"] = 41.54,
+					["chance"] = 42.11,
 					["classification"] = 1,
 					["model"] = 1001,
 				},
@@ -4037,13 +4310,6 @@ local lootByInstance = {
 					["model"] = 4982,
 				},
 				{
-					["name"] = "Twilight Shadowmage",
-					["npcs"] = {4813},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 2876,
-				},
-				{
 					["name"] = "Twilight Loreseeker",
 					["npcs"] = {4812},
 					["chance"] = 0.04,
@@ -4072,6 +4338,13 @@ local lootByInstance = {
 					["model"] = 110,
 				},
 				{
+					["name"] = "Blindlight Muckdweller",
+					["npcs"] = {4819},
+					["chance"] = 0.07,
+					["classification"] = 1,
+					["model"] = 11293,
+				},
+				{
 					["name"] = "Aku'mai Snapjaw",
 					["npcs"] = {215108},
 					["chance"] = 0.07,
@@ -4079,18 +4352,18 @@ local lootByInstance = {
 					["model"] = 4829,
 				},
 				{
-					["name"] = "Blindlight Muckdweller",
-					["npcs"] = {4819},
-					["chance"] = 0.08,
-					["classification"] = 1,
-					["model"] = 11293,
-				},
-				{
 					["name"] = "Blindlight Oracle",
 					["npcs"] = {4820},
 					["chance"] = 0.08,
 					["classification"] = 1,
 					["model"] = 3617,
+				},
+				{
+					["name"] = "Twilight Shadowmage",
+					["npcs"] = {4813},
+					["chance"] = 0.09,
+					["classification"] = 1,
+					["model"] = 2876,
 				},
 				{
 					["name"] = "Skittering Crustacean",
@@ -4305,8 +4578,43 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 5376,
+			[2] = 0.02,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Acolyte",
+					["npcs"] = {4809},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 2882,
+				},
+			},
+		},
+		{
+			[1] = 5377,
+			[2] = 0.01,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Blackfathom Sea Witch",
+					["npcs"] = {4805},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 4982,
+				},
+				{
+					["name"] = "Blackfathom Myrmidon",
+					["npcs"] = {4807},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 4762,
+				},
+			},
+		},
+		{
 			[1] = 5879,
-			[2] = 34.94,
+			[2] = 35.03,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -4319,14 +4627,14 @@ local lootByInstance = {
 				{
 					["name"] = "Twilight Shadowmage",
 					["npcs"] = {4813},
-					["chance"] = 19.18,
+					["chance"] = 19.36,
 					["classification"] = 1,
 					["model"] = 2876,
 				},
 				{
 					["name"] = "Twilight Acolyte",
 					["npcs"] = {4809},
-					["chance"] = 31.61,
+					["chance"] = 31.7,
 					["classification"] = 1,
 					["model"] = 2882,
 				},
@@ -4347,7 +4655,7 @@ local lootByInstance = {
 				{
 					["name"] = "Twilight Reaver",
 					["npcs"] = {4810},
-					["chance"] = 34.94,
+					["chance"] = 35.03,
 					["classification"] = 1,
 					["model"] = 2898,
 				},
@@ -4382,7 +4690,7 @@ local lootByInstance = {
 				{
 					["name"] = "Fallenroot Shadowstalker",
 					["npcs"] = {4798},
-					["chance"] = 8.9,
+					["chance"] = 9.07,
 					["classification"] = 1,
 					["model"] = 2014,
 				},
@@ -4394,18 +4702,18 @@ local lootByInstance = {
 					["model"] = 4982,
 				},
 				{
-					["name"] = "Blackfathom Myrmidon",
-					["npcs"] = {4807},
-					["chance"] = 9.6,
-					["classification"] = 1,
-					["model"] = 4762,
-				},
-				{
 					["name"] = "Fallenroot Hellcaller",
 					["npcs"] = {4799},
 					["chance"] = 9.74,
 					["classification"] = 1,
 					["model"] = 2021,
+				},
+				{
+					["name"] = "Blackfathom Myrmidon",
+					["npcs"] = {4807},
+					["chance"] = 9.76,
+					["classification"] = 1,
+					["model"] = 4762,
 				},
 				{
 					["name"] = "Blackfathom Elite",
@@ -4418,13 +4726,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 6914,
-			[2] = 8.56,
+			[2] = 8.47,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Acolyte",
 					["npcs"] = {4809},
-					["chance"] = 8.56,
+					["chance"] = 8.47,
 					["classification"] = 1,
 					["model"] = 2882,
 				},
@@ -6106,14 +6414,14 @@ local lootByInstance = {
 				{
 					["name"] = "Defias Insurgent",
 					["npcs"] = {1715},
-					["chance"] = 0.91,
+					["chance"] = 0.92,
 					["classification"] = 1,
 					["model"] = 2147,
 				},
 				{
 					["name"] = "Defias Inmate",
 					["npcs"] = {1708},
-					["chance"] = 0.94,
+					["chance"] = 0.95,
 					["classification"] = 1,
 					["model"] = 2146,
 				},
@@ -6142,41 +6450,41 @@ local lootByInstance = {
 		},
 		{
 			[1] = 2909,
-			[2] = 7.31,
+			[2] = 7.36,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Defias Insurgent",
 					["npcs"] = {1715},
-					["chance"] = 4.84,
+					["chance"] = 4.89,
 					["classification"] = 1,
 					["model"] = 2147,
 				},
 				{
-					["name"] = "Defias Convict",
-					["npcs"] = {1711},
-					["chance"] = 5.27,
-					["classification"] = 1,
-					["model"] = 2145,
-				},
-				{
 					["name"] = "Defias Inmate",
 					["npcs"] = {1708},
-					["chance"] = 5.31,
+					["chance"] = 5.34,
 					["classification"] = 1,
 					["model"] = 2146,
 				},
 				{
+					["name"] = "Defias Convict",
+					["npcs"] = {1711},
+					["chance"] = 5.38,
+					["classification"] = 1,
+					["model"] = 2145,
+				},
+				{
 					["name"] = "Defias Prisoner",
 					["npcs"] = {1706},
-					["chance"] = 7,
+					["chance"] = 7.05,
 					["classification"] = 1,
 					["model"] = 2148,
 				},
 				{
 					["name"] = "Defias Captive",
 					["npcs"] = {1707},
-					["chance"] = 7.31,
+					["chance"] = 7.36,
 					["classification"] = 1,
 					["model"] = 2144,
 				},
@@ -6186,7 +6494,7 @@ local lootByInstance = {
 	["Gnomeregan"] = {
 		{
 			[1] = 4371,
-			[2] = 1.74,
+			[2] = 1.71,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -6198,49 +6506,49 @@ local lootByInstance = {
 				{
 					["name"] = "Arcane Nullifier X-21",
 					["npcs"] = {6232},
-					["chance"] = 1.08,
+					["chance"] = 1.06,
 					["classification"] = 1,
 					["model"] = 6889,
 				},
 				{
-					["name"] = "Mechano-Flamewalker",
-					["npcs"] = {6226},
-					["chance"] = 1.16,
-					["classification"] = 1,
-					["model"] = 6890,
-				},
-				{
 					["name"] = "Mechano-Tank",
 					["npcs"] = {6225},
-					["chance"] = 1.17,
+					["chance"] = 1.16,
 					["classification"] = 1,
 					["model"] = 5926,
 				},
 				{
+					["name"] = "Mechano-Flamewalker",
+					["npcs"] = {6226},
+					["chance"] = 1.22,
+					["classification"] = 1,
+					["model"] = 6890,
+				},
+				{
 					["name"] = "Mechanized Sentry",
 					["npcs"] = {6233},
-					["chance"] = 1.25,
+					["chance"] = 1.24,
 					["classification"] = 1,
 					["model"] = 6978,
 				},
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 1.41,
+					["chance"] = 1.38,
 					["classification"] = 1,
 					["model"] = 6979,
 				},
 				{
 					["name"] = "Peacekeeper Security Suit",
 					["npcs"] = {6230},
-					["chance"] = 1.54,
+					["chance"] = 1.52,
 					["classification"] = 1,
 					["model"] = 8369,
 				},
 				{
 					["name"] = "Mechano-Frostwalker",
 					["npcs"] = {6227},
-					["chance"] = 1.74,
+					["chance"] = 1.71,
 					["classification"] = 1,
 					["model"] = 6891,
 				},
@@ -6248,7 +6556,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 4377,
-			[2] = 6.23,
+			[2] = 6.27,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -6260,57 +6568,57 @@ local lootByInstance = {
 				{
 					["name"] = "Arcane Nullifier X-21",
 					["npcs"] = {6232},
-					["chance"] = 4.34,
+					["chance"] = 4.39,
 					["classification"] = 1,
 					["model"] = 6889,
 				},
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 4.83,
+					["chance"] = 4.8,
 					["classification"] = 1,
 					["model"] = 6979,
 				},
 				{
 					["name"] = "Mechano-Tank",
 					["npcs"] = {6225},
-					["chance"] = 5.13,
+					["chance"] = 5.07,
 					["classification"] = 1,
 					["model"] = 5926,
 				},
 				{
 					["name"] = "Mechanized Sentry",
 					["npcs"] = {6233},
-					["chance"] = 5.29,
+					["chance"] = 5.3,
 					["classification"] = 1,
 					["model"] = 6978,
 				},
 				{
 					["name"] = "Mechano-Flamewalker",
 					["npcs"] = {6226},
-					["chance"] = 6,
+					["chance"] = 5.96,
 					["classification"] = 1,
 					["model"] = 6890,
 				},
 				{
-					["name"] = "Mechano-Frostwalker",
-					["npcs"] = {6227},
-					["chance"] = 6.14,
-					["classification"] = 1,
-					["model"] = 6891,
-				},
-				{
 					["name"] = "Peacekeeper Security Suit",
 					["npcs"] = {6230},
-					["chance"] = 6.23,
+					["chance"] = 6.19,
 					["classification"] = 1,
 					["model"] = 8369,
+				},
+				{
+					["name"] = "Mechano-Frostwalker",
+					["npcs"] = {6227},
+					["chance"] = 6.27,
+					["classification"] = 1,
+					["model"] = 6891,
 				},
 			},
 		},
 		{
 			[1] = 4382,
-			[2] = 1.75,
+			[2] = 1.79,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -6323,14 +6631,14 @@ local lootByInstance = {
 				{
 					["name"] = "Arcane Nullifier X-21",
 					["npcs"] = {6232},
-					["chance"] = 1.05,
+					["chance"] = 1.06,
 					["classification"] = 1,
 					["model"] = 6889,
 				},
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 1.21,
+					["chance"] = 1.19,
 					["classification"] = 1,
 					["model"] = 6979,
 				},
@@ -6344,21 +6652,21 @@ local lootByInstance = {
 				{
 					["name"] = "Mechano-Frostwalker",
 					["npcs"] = {6227},
-					["chance"] = 1.55,
+					["chance"] = 1.53,
 					["classification"] = 1,
 					["model"] = 6891,
 				},
 				{
 					["name"] = "Peacekeeper Security Suit",
 					["npcs"] = {6230},
-					["chance"] = 1.64,
+					["chance"] = 1.61,
 					["classification"] = 1,
 					["model"] = 8369,
 				},
 				{
 					["name"] = "Mechano-Flamewalker",
 					["npcs"] = {6226},
-					["chance"] = 1.75,
+					["chance"] = 1.79,
 					["classification"] = 1,
 					["model"] = 6890,
 				},
@@ -6453,7 +6761,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 7191,
-			[2] = 17.96,
+			[2] = 17.64,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -6494,28 +6802,28 @@ local lootByInstance = {
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 3.91,
+					["chance"] = 4,
 					["classification"] = 1,
 					["model"] = 6979,
 				},
 				{
 					["name"] = "Mechano-Flamewalker",
 					["npcs"] = {6226},
-					["chance"] = 4.09,
+					["chance"] = 4.24,
 					["classification"] = 1,
 					["model"] = 6890,
 				},
 				{
 					["name"] = "Mechano-Frostwalker",
 					["npcs"] = {6227},
-					["chance"] = 4.64,
+					["chance"] = 4.63,
 					["classification"] = 1,
 					["model"] = 6891,
 				},
 				{
 					["name"] = "Peacekeeper Security Suit",
 					["npcs"] = {6230},
-					["chance"] = 17.96,
+					["chance"] = 17.64,
 					["classification"] = 1,
 					["model"] = 8369,
 				},
@@ -6621,7 +6929,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9308,
-			[2] = 49.24,
+			[2] = 49.37,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -6634,77 +6942,77 @@ local lootByInstance = {
 				{
 					["name"] = "Dark Iron Agent",
 					["npcs"] = {6212},
-					["chance"] = 38.91,
+					["chance"] = 38.93,
 					["classification"] = 1,
 					["model"] = 3456,
 				},
 				{
 					["name"] = "Leprous Defender",
 					["npcs"] = {6223},
-					["chance"] = 40.76,
+					["chance"] = 40.74,
 					["classification"] = 1,
 					["model"] = 6982,
 				},
 				{
 					["name"] = "Irradiated Pillager",
 					["npcs"] = {6329},
-					["chance"] = 41.31,
+					["chance"] = 41.28,
 					["classification"] = 1,
 					["model"] = 976,
 				},
 				{
 					["name"] = "Caverndeep Ambusher",
 					["npcs"] = {6207},
-					["chance"] = 41.39,
+					["chance"] = 41.45,
 					["classification"] = 0,
 					["model"] = 764,
 				},
 				{
 					["name"] = "Caverndeep Burrower",
 					["npcs"] = {6206},
-					["chance"] = 41.87,
+					["chance"] = 41.71,
 					["classification"] = 1,
 					["model"] = 830,
 				},
 				{
 					["name"] = "Caverndeep Reaver",
 					["npcs"] = {6211},
-					["chance"] = 42.66,
+					["chance"] = 42.24,
 					["classification"] = 1,
 					["model"] = 10285,
 				},
 				{
 					["name"] = "Holdout Warrior",
 					["npcs"] = {6391},
-					["chance"] = 44.15,
+					["chance"] = 44.14,
 					["classification"] = 1,
 					["model"] = 6610,
 				},
 				{
 					["name"] = "Leprous Technician",
 					["npcs"] = {6222},
-					["chance"] = 45.58,
+					["chance"] = 45.59,
 					["classification"] = 0,
 					["model"] = 6932,
 				},
 				{
 					["name"] = "Holdout Technician",
 					["npcs"] = {6407},
-					["chance"] = 46.21,
+					["chance"] = 45.65,
 					["classification"] = 1,
 					["model"] = 6628,
 				},
 				{
 					["name"] = "Holdout Medic",
 					["npcs"] = {6392},
-					["chance"] = 47.75,
+					["chance"] = 47.02,
 					["classification"] = 1,
 					["model"] = 6608,
 				},
 				{
 					["name"] = "Leprous Machinesmith",
 					["npcs"] = {6224},
-					["chance"] = 49.24,
+					["chance"] = 49.37,
 					["classification"] = 0,
 					["model"] = 6936,
 				},
@@ -6712,13 +7020,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9326,
-			[2] = 14.49,
+			[2] = 14.48,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dark Iron Agent",
 					["npcs"] = {6212},
-					["chance"] = 14.49,
+					["chance"] = 14.48,
 					["classification"] = 1,
 					["model"] = 3456,
 				},
@@ -6726,7 +7034,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9327,
-			[2] = 4.74,
+			[2] = 4.63,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -6758,51 +7066,51 @@ local lootByInstance = {
 					["model"] = 6774,
 				},
 				{
-					["name"] = "Mechanized Sentry",
-					["npcs"] = {6233},
-					["chance"] = 2.18,
-					["classification"] = 1,
-					["model"] = 6978,
-				},
-				{
 					["name"] = "Mechano-Frostwalker",
 					["npcs"] = {6227},
-					["chance"] = 2.2,
+					["chance"] = 2.16,
 					["classification"] = 1,
 					["model"] = 6891,
 				},
 				{
-					["name"] = "Mechano-Flamewalker",
-					["npcs"] = {6226},
-					["chance"] = 2.21,
+					["name"] = "Mechanized Sentry",
+					["npcs"] = {6233},
+					["chance"] = 2.22,
 					["classification"] = 1,
-					["model"] = 6890,
+					["model"] = 6978,
 				},
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 2.28,
+					["chance"] = 2.24,
 					["classification"] = 1,
 					["model"] = 6979,
 				},
 				{
+					["name"] = "Mechano-Flamewalker",
+					["npcs"] = {6226},
+					["chance"] = 2.25,
+					["classification"] = 1,
+					["model"] = 6890,
+				},
+				{
 					["name"] = "Mechano-Tank",
 					["npcs"] = {6225},
-					["chance"] = 2.44,
+					["chance"] = 2.42,
 					["classification"] = 1,
 					["model"] = 5926,
 				},
 				{
 					["name"] = "Peacekeeper Security Suit",
 					["npcs"] = {6230},
-					["chance"] = 3.04,
+					["chance"] = 3.13,
 					["classification"] = 1,
 					["model"] = 8369,
 				},
 				{
 					["name"] = "Arcane Nullifier X-21",
 					["npcs"] = {6232},
-					["chance"] = 4.74,
+					["chance"] = 4.63,
 					["classification"] = 1,
 					["model"] = 6889,
 				},
@@ -7524,7 +7832,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9510,
-			[2] = 0.08,
+			[2] = 0.07,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -7551,9 +7859,37 @@ local lootByInstance = {
 				{
 					["name"] = "Mechanized Guardian",
 					["npcs"] = {6234},
-					["chance"] = 0.08,
+					["chance"] = 0.07,
 					["classification"] = 1,
 					["model"] = 6979,
+				},
+			},
+		},
+		{
+			[1] = 11384,
+			[2] = 33.52,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Chomper",
+					["npcs"] = {6215},
+					["chance"] = 33.52,
+					["classification"] = 1,
+					["model"] = 4906,
+				},
+			},
+		},
+		{
+			[1] = 11385,
+			[2] = 34.82,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Chomper",
+					["npcs"] = {6215},
+					["chance"] = 34.82,
+					["classification"] = 1,
+					["model"] = 4906,
 				},
 			},
 		},
@@ -9301,6 +9637,13 @@ local lootByInstance = {
 					["model"] = 2507,
 				},
 				{
+					["name"] = "Scarlet Protector",
+					["npcs"] = {4292},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2476,
+				},
+				{
 					["name"] = "Scarlet Sorcerer",
 					["npcs"] = {4294},
 					["chance"] = 0.01,
@@ -9364,13 +9707,6 @@ local lootByInstance = {
 					["model"] = 2511,
 				},
 				{
-					["name"] = "Scarlet Protector",
-					["npcs"] = {4292},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 2476,
-				},
-				{
 					["name"] = "Scarlet Conjuror",
 					["npcs"] = {4297},
 					["chance"] = 0.02,
@@ -9402,7 +9738,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 3875,
-			[2] = 0.03,
+			[2] = 0.02,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
@@ -9429,7 +9765,7 @@ local lootByInstance = {
 				{
 					["name"] = "Scarlet Beastmaster",
 					["npcs"] = {4288},
-					["chance"] = 0.03,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 2497,
 				},
@@ -10834,13 +11170,6 @@ local lootByInstance = {
 					["model"] = 2509,
 				},
 				{
-					["name"] = "Scarlet Guardsman",
-					["npcs"] = {4290},
-					["chance"] = 0.01,
-					["classification"] = 1,
-					["model"] = 2511,
-				},
-				{
 					["name"] = "Scarlet Protector",
 					["npcs"] = {4292},
 					["chance"] = 0.01,
@@ -10918,6 +11247,13 @@ local lootByInstance = {
 					["model"] = 2497,
 				},
 				{
+					["name"] = "Scarlet Guardsman",
+					["npcs"] = {4290},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 2511,
+				},
+				{
 					["name"] = "Scarlet Chaplain",
 					["npcs"] = {4299},
 					["chance"] = 0.02,
@@ -10946,6 +11282,13 @@ local lootByInstance = {
 					["model"] = 10255,
 				},
 				{
+					["name"] = "Scarlet Diviner",
+					["npcs"] = {4291},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 2507,
+				},
+				{
 					["name"] = "Scarlet Adept",
 					["npcs"] = {4296},
 					["chance"] = 0.03,
@@ -10972,13 +11315,6 @@ local lootByInstance = {
 					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 2463,
-				},
-				{
-					["name"] = "Scarlet Diviner",
-					["npcs"] = {4291},
-					["chance"] = 0.04,
-					["classification"] = 1,
-					["model"] = 2507,
 				},
 				{
 					["name"] = "Unfettered Spirit",
@@ -11968,6 +12304,13 @@ local lootByInstance = {
 					["model"] = 2463,
 				},
 				{
+					["name"] = "Scarlet Beastmaster",
+					["npcs"] = {4288},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 2497,
+				},
+				{
 					["name"] = "Scarlet Evoker",
 					["npcs"] = {4289},
 					["chance"] = 0.02,
@@ -12001,13 +12344,6 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 4629,
-				},
-				{
-					["name"] = "Scarlet Beastmaster",
-					["npcs"] = {4288},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 2497,
 				},
 				{
 					["name"] = "Scarlet Adept",
@@ -12122,18 +12458,18 @@ local lootByInstance = {
 					["model"] = 2460,
 				},
 				{
+					["name"] = "Scarlet Beastmaster",
+					["npcs"] = {4288},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 2497,
+				},
+				{
 					["name"] = "Scarlet Diviner",
 					["npcs"] = {4291},
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 2507,
-				},
-				{
-					["name"] = "Scarlet Chaplain",
-					["npcs"] = {4299},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 2501,
 				},
 				{
 					["name"] = "Scarlet Abbot",
@@ -12157,18 +12493,18 @@ local lootByInstance = {
 					["model"] = 2603,
 				},
 				{
-					["name"] = "Scarlet Beastmaster",
-					["npcs"] = {4288},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 2497,
-				},
-				{
 					["name"] = "Scarlet Conjuror",
 					["npcs"] = {4297},
 					["chance"] = 0.03,
 					["classification"] = 1,
 					["model"] = 2503,
+				},
+				{
+					["name"] = "Scarlet Chaplain",
+					["npcs"] = {4299},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 2501,
 				},
 				{
 					["name"] = "Scarlet Tracking Hound",
@@ -12573,7 +12909,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10329,
-			[2] = 2.39,
+			[2] = 2.4,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -12586,7 +12922,7 @@ local lootByInstance = {
 				{
 					["name"] = "Scarlet Defender",
 					["npcs"] = {4298},
-					["chance"] = 2.39,
+					["chance"] = 2.4,
 					["classification"] = 1,
 					["model"] = 2462,
 				},
@@ -12703,13 +13039,6 @@ local lootByInstance = {
 					["model"] = 2463,
 				},
 				{
-					["name"] = "Scarlet Diviner",
-					["npcs"] = {4291},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 2507,
-				},
-				{
 					["name"] = "Scarlet Myrmidon",
 					["npcs"] = {4295},
 					["chance"] = 0.02,
@@ -12752,6 +13081,13 @@ local lootByInstance = {
 					["model"] = 4629,
 				},
 				{
+					["name"] = "Scarlet Diviner",
+					["npcs"] = {4291},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 2507,
+				},
+				{
 					["name"] = "Scarlet Monk",
 					["npcs"] = {4540},
 					["chance"] = 0.03,
@@ -12790,13 +13126,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10601,
-			[2] = 0.03,
+			[2] = 0.02,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Defender",
 					["npcs"] = {4298},
-					["chance"] = 0.03,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 2462,
 				},
@@ -12846,13 +13182,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 23192,
-			[2] = 2.33,
+			[2] = 2.39,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Trainee",
 					["npcs"] = {6575},
-					["chance"] = 2.33,
+					["chance"] = 2.39,
 					["classification"] = 0,
 					["model"] = 2467,
 				},
@@ -13476,7 +13812,7 @@ local lootByInstance = {
 				{
 					["name"] = "Razorfen Stalker",
 					["npcs"] = {6035},
-					["chance"] = 0.46,
+					["chance"] = 0.45,
 					["classification"] = 1,
 					["model"] = 6106,
 				},
@@ -13565,18 +13901,18 @@ local lootByInstance = {
 					["model"] = 6112,
 				},
 				{
+					["name"] = "Quilguard Champion",
+					["npcs"] = {4623},
+					["chance"] = 0.07,
+					["classification"] = 1,
+					["model"] = 6103,
+				},
+				{
 					["name"] = "Death's Head Sage",
 					["npcs"] = {4518},
 					["chance"] = 0.08,
 					["classification"] = 1,
 					["model"] = 6099,
-				},
-				{
-					["name"] = "Quilguard Champion",
-					["npcs"] = {4623},
-					["chance"] = 0.08,
-					["classification"] = 1,
-					["model"] = 6103,
 				},
 				{
 					["name"] = "Razorfen Earthbreaker",
@@ -13623,7 +13959,7 @@ local lootByInstance = {
 				{
 					["name"] = "Razorfen Dustweaver",
 					["npcs"] = {4522},
-					["chance"] = 0.21,
+					["chance"] = 0.2,
 					["classification"] = 1,
 					["model"] = 6110,
 				},
@@ -13705,18 +14041,18 @@ local lootByInstance = {
 					["model"] = 4453,
 				},
 				{
+					["name"] = "Razorfen Stalker",
+					["npcs"] = {6035},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 6106,
+				},
+				{
 					["name"] = "Quilguard Champion",
 					["npcs"] = {4623},
 					["chance"] = 0.05,
 					["classification"] = 1,
 					["model"] = 6103,
-				},
-				{
-					["name"] = "Razorfen Stalker",
-					["npcs"] = {6035},
-					["chance"] = 0.05,
-					["classification"] = 1,
-					["model"] = 6106,
 				},
 				{
 					["name"] = "Rotting Agam'ar",
@@ -14013,6 +14349,13 @@ local lootByInstance = {
 					["model"] = 6111,
 				},
 				{
+					["name"] = "Quilguard Champion",
+					["npcs"] = {4623},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 6103,
+				},
+				{
 					["name"] = "Razorfen Beastmaster",
 					["npcs"] = {4532},
 					["chance"] = 0.04,
@@ -14025,13 +14368,6 @@ local lootByInstance = {
 					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 1954,
-				},
-				{
-					["name"] = "Quilguard Champion",
-					["npcs"] = {4623},
-					["chance"] = 0.04,
-					["classification"] = 1,
-					["model"] = 6103,
 				},
 				{
 					["name"] = "Death's Head Priest",
@@ -14092,7 +14428,7 @@ local lootByInstance = {
 				{
 					["name"] = "Razorfen Dustweaver",
 					["npcs"] = {4522},
-					["chance"] = 0.25,
+					["chance"] = 0.24,
 					["classification"] = 1,
 					["model"] = 6110,
 				},
@@ -14300,13 +14636,6 @@ local lootByInstance = {
 					["model"] = 1963,
 				},
 				{
-					["name"] = "Razorfen Warden",
-					["npcs"] = {4437},
-					["chance"] = 0.05,
-					["classification"] = 1,
-					["model"] = 4758,
-				},
-				{
 					["name"] = "Razorfen Spearhide",
 					["npcs"] = {4438},
 					["chance"] = 0.05,
@@ -14342,18 +14671,18 @@ local lootByInstance = {
 					["model"] = 6111,
 				},
 				{
+					["name"] = "Death's Head Seer",
+					["npcs"] = {4519},
+					["chance"] = 0.11,
+					["classification"] = 1,
+					["model"] = 6100,
+				},
+				{
 					["name"] = "Razorfen Quilguard",
 					["npcs"] = {4436},
 					["chance"] = 0.12,
 					["classification"] = 1,
 					["model"] = 6108,
-				},
-				{
-					["name"] = "Death's Head Seer",
-					["npcs"] = {4519},
-					["chance"] = 0.12,
-					["classification"] = 1,
-					["model"] = 6100,
 				},
 				{
 					["name"] = "Razorfen Warrior",
@@ -14375,6 +14704,13 @@ local lootByInstance = {
 					["chance"] = 0.17,
 					["classification"] = 1,
 					["model"] = 6105,
+				},
+				{
+					["name"] = "Razorfen Warden",
+					["npcs"] = {4437},
+					["chance"] = 0.18,
+					["classification"] = 1,
+					["model"] = 4758,
 				},
 				{
 					["name"] = "Death's Head Acolyte",
@@ -14408,13 +14744,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 3569,
-			[2] = 2.79,
+			[2] = 2.67,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Death's Head Priest",
 					["npcs"] = {4517},
-					["chance"] = 2.79,
+					["chance"] = 2.67,
 					["classification"] = 1,
 					["model"] = 6096,
 				},
@@ -14540,6 +14876,20 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 5369,
+			[2] = 66.67,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Death's Head Ward Keeper",
+					["npcs"] = {4625},
+					["chance"] = 66.67,
+					["classification"] = 0,
+					["model"] = 6101,
+				},
+			},
+		},
+		{
 			[1] = 5801,
 			[2] = 9.34,
 			["itemClass"] = 12,
@@ -14547,7 +14897,7 @@ local lootByInstance = {
 				{
 					["name"] = "Greater Kraul Bat",
 					["npcs"] = {4539},
-					["chance"] = 8.63,
+					["chance"] = 8.86,
 					["classification"] = 1,
 					["model"] = 1954,
 				},
@@ -14574,13 +14924,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 6679,
-			[2] = 60.9,
+			[2] = 60.81,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Razorfen Spearhide",
 					["npcs"] = {4438},
-					["chance"] = 60.9,
+					["chance"] = 60.81,
 					["classification"] = 2,
 					["model"] = 6078,
 				},
@@ -15624,7 +15974,7 @@ local lootByInstance = {
 				{
 					["name"] = "Stonevault Oracle",
 					["npcs"] = {4852},
-					["chance"] = 13.8,
+					["chance"] = 13.57,
 					["classification"] = 1,
 					["model"] = 160,
 				},
@@ -15643,6 +15993,27 @@ local lootByInstance = {
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
+					["name"] = "Shadowforge Geologist",
+					["npcs"] = {7030},
+					["chance"] = 10.91,
+					["classification"] = 1,
+					["model"] = 6056,
+				},
+				{
+					["name"] = "Shadowforge Sharpshooter",
+					["npcs"] = {7290},
+					["chance"] = 11.55,
+					["classification"] = 1,
+					["model"] = 6057,
+				},
+				{
+					["name"] = "Shadowforge Darkcaster",
+					["npcs"] = {4848},
+					["chance"] = 11.74,
+					["classification"] = 1,
+					["model"] = 6055,
+				},
+				{
 					["name"] = "Shadowforge Relic Hunter",
 					["npcs"] = {4847},
 					["chance"] = 12,
@@ -15650,32 +16021,11 @@ local lootByInstance = {
 					["model"] = 6054,
 				},
 				{
-					["name"] = "Shadowforge Geologist",
-					["npcs"] = {7030},
-					["chance"] = 12.91,
-					["classification"] = 1,
-					["model"] = 6056,
-				},
-				{
-					["name"] = "Shadowforge Sharpshooter",
-					["npcs"] = {7290},
-					["chance"] = 13.29,
-					["classification"] = 1,
-					["model"] = 6057,
-				},
-				{
 					["name"] = "Shadowforge Archaeologist",
 					["npcs"] = {4849},
 					["chance"] = 13.89,
 					["classification"] = 1,
 					["model"] = 6067,
-				},
-				{
-					["name"] = "Shadowforge Darkcaster",
-					["npcs"] = {4848},
-					["chance"] = 13.94,
-					["classification"] = 1,
-					["model"] = 6055,
 				},
 				{
 					["name"] = "Shadowforge Ambusher",
@@ -15692,6 +16042,27 @@ local lootByInstance = {
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
+					["name"] = "Shadowforge Geologist",
+					["npcs"] = {7030},
+					["chance"] = 10.05,
+					["classification"] = 1,
+					["model"] = 6056,
+				},
+				{
+					["name"] = "Shadowforge Darkcaster",
+					["npcs"] = {4848},
+					["chance"] = 10.64,
+					["classification"] = 1,
+					["model"] = 6055,
+				},
+				{
+					["name"] = "Shadowforge Sharpshooter",
+					["npcs"] = {7290},
+					["chance"] = 11.09,
+					["classification"] = 1,
+					["model"] = 6057,
+				},
+				{
 					["name"] = "Shadowforge Relic Hunter",
 					["npcs"] = {4847},
 					["chance"] = 11.27,
@@ -15699,32 +16070,11 @@ local lootByInstance = {
 					["model"] = 6054,
 				},
 				{
-					["name"] = "Shadowforge Geologist",
-					["npcs"] = {7030},
-					["chance"] = 12.02,
-					["classification"] = 1,
-					["model"] = 6056,
-				},
-				{
 					["name"] = "Shadowforge Archaeologist",
 					["npcs"] = {4849},
 					["chance"] = 12.53,
 					["classification"] = 1,
 					["model"] = 6067,
-				},
-				{
-					["name"] = "Shadowforge Sharpshooter",
-					["npcs"] = {7290},
-					["chance"] = 12.77,
-					["classification"] = 1,
-					["model"] = 6057,
-				},
-				{
-					["name"] = "Shadowforge Darkcaster",
-					["npcs"] = {4848},
-					["chance"] = 12.81,
-					["classification"] = 1,
-					["model"] = 6055,
 				},
 				{
 					["name"] = "Shadowforge Ambusher",
@@ -15860,6 +16210,13 @@ local lootByInstance = {
 					["model"] = 2488,
 				},
 				{
+					["name"] = "Stonevault Brawler",
+					["npcs"] = {4855},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 11166,
+				},
+				{
 					["name"] = "Stone Steward",
 					["npcs"] = {4860},
 					["chance"] = 0.02,
@@ -15888,11 +16245,11 @@ local lootByInstance = {
 					["model"] = 160,
 				},
 				{
-					["name"] = "Stonevault Brawler",
-					["npcs"] = {4855},
+					["name"] = "Stonevault Flameweaver",
+					["npcs"] = {7321},
 					["chance"] = 0.03,
 					["classification"] = 1,
-					["model"] = 11166,
+					["model"] = 160,
 				},
 				{
 					["name"] = "Shadowforge Relic Hunter",
@@ -15900,13 +16257,6 @@ local lootByInstance = {
 					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 6054,
-				},
-				{
-					["name"] = "Stonevault Flameweaver",
-					["npcs"] = {7321},
-					["chance"] = 0.04,
-					["classification"] = 1,
-					["model"] = 160,
 				},
 				{
 					["name"] = "Stonevault Geomancer",
@@ -15944,6 +16294,13 @@ local lootByInstance = {
 					["model"] = 2488,
 				},
 				{
+					["name"] = "Stonevault Oracle",
+					["npcs"] = {4852},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 160,
+				},
+				{
 					["name"] = "Stonevault Geomancer",
 					["npcs"] = {4853},
 					["chance"] = 0.02,
@@ -15951,16 +16308,9 @@ local lootByInstance = {
 					["model"] = 1194,
 				},
 				{
-					["name"] = "Stonevault Oracle",
-					["npcs"] = {4852},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 160,
-				},
-				{
 					["name"] = "Stonevault Flameweaver",
 					["npcs"] = {7321},
-					["chance"] = 0.03,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 160,
 				},
@@ -16189,13 +16539,6 @@ local lootByInstance = {
 					["model"] = 1194,
 				},
 				{
-					["name"] = "Stonevault Brawler",
-					["npcs"] = {4855},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 11166,
-				},
-				{
 					["name"] = "Stone Steward",
 					["npcs"] = {4860},
 					["chance"] = 0.02,
@@ -16206,6 +16549,13 @@ local lootByInstance = {
 					["name"] = "Stonevault Mauler",
 					["npcs"] = {7320},
 					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 11166,
+				},
+				{
+					["name"] = "Stonevault Brawler",
+					["npcs"] = {4855},
+					["chance"] = 0.03,
 					["classification"] = 1,
 					["model"] = 11166,
 				},
@@ -16532,6 +16882,13 @@ local lootByInstance = {
 					["model"] = 1954,
 				},
 				{
+					["name"] = "Stonevault Oracle",
+					["npcs"] = {4852},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 160,
+				},
+				{
 					["name"] = "Stonevault Geomancer",
 					["npcs"] = {4853},
 					["chance"] = 0.02,
@@ -16551,13 +16908,6 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 6056,
-				},
-				{
-					["name"] = "Stonevault Oracle",
-					["npcs"] = {4852},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 160,
 				},
 				{
 					["name"] = "Jadespine Basilisk",
@@ -16630,6 +16980,13 @@ local lootByInstance = {
 					["model"] = 160,
 				},
 				{
+					["name"] = "Stonevault Brawler",
+					["npcs"] = {4855},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 11166,
+				},
+				{
 					["name"] = "Earthen Sculptor",
 					["npcs"] = {7012},
 					["chance"] = 0.02,
@@ -16644,25 +17001,18 @@ local lootByInstance = {
 					["model"] = 11166,
 				},
 				{
+					["name"] = "Stonevault Flameweaver",
+					["npcs"] = {7321},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 160,
+				},
+				{
 					["name"] = "Stonevault Rockchewer",
 					["npcs"] = {4851},
 					["chance"] = 0.03,
 					["classification"] = 0,
 					["model"] = 721,
-				},
-				{
-					["name"] = "Stonevault Brawler",
-					["npcs"] = {4855},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 11166,
-				},
-				{
-					["name"] = "Stonevault Flameweaver",
-					["npcs"] = {7321},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 160,
 				},
 				{
 					["name"] = "Shadowforge Relic Hunter",
@@ -16723,7 +17073,7 @@ local lootByInstance = {
 				{
 					["name"] = "Shadowforge Darkcaster",
 					["npcs"] = {4848},
-					["chance"] = 0.1,
+					["chance"] = 0.08,
 					["classification"] = 1,
 					["model"] = 6055,
 				},
@@ -16800,7 +17150,7 @@ local lootByInstance = {
 				{
 					["name"] = "Stonevault Brawler",
 					["npcs"] = {4855},
-					["chance"] = 0.01,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 11166,
 				},
@@ -16821,7 +17171,7 @@ local lootByInstance = {
 				{
 					["name"] = "Earthen Sculptor",
 					["npcs"] = {7012},
-					["chance"] = 0.04,
+					["chance"] = 0.03,
 					["classification"] = 0,
 					["model"] = 6009,
 				},
@@ -16856,7 +17206,7 @@ local lootByInstance = {
 				{
 					["name"] = "Stonevault Flameweaver",
 					["npcs"] = {7321},
-					["chance"] = 0.03,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 160,
 				},
@@ -16882,6 +17232,13 @@ local lootByInstance = {
 					["model"] = 11166,
 				},
 				{
+					["name"] = "Stonevault Cave Lurker",
+					["npcs"] = {4850},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 722,
+				},
+				{
 					["name"] = "Stone Steward",
 					["npcs"] = {4860},
 					["chance"] = 0.02,
@@ -16903,13 +17260,6 @@ local lootByInstance = {
 					["model"] = 6009,
 				},
 				{
-					["name"] = "Stonevault Cave Lurker",
-					["npcs"] = {4850},
-					["chance"] = 0.03,
-					["classification"] = 1,
-					["model"] = 722,
-				},
-				{
 					["name"] = "Shadowforge Relic Hunter",
 					["npcs"] = {4847},
 					["chance"] = 0.04,
@@ -16917,18 +17267,18 @@ local lootByInstance = {
 					["model"] = 6054,
 				},
 				{
+					["name"] = "Shadowforge Sharpshooter",
+					["npcs"] = {7290},
+					["chance"] = 0.05,
+					["classification"] = 1,
+					["model"] = 6057,
+				},
+				{
 					["name"] = "Stonevault Mauler",
 					["npcs"] = {7320},
 					["chance"] = 0.05,
 					["classification"] = 1,
 					["model"] = 11166,
-				},
-				{
-					["name"] = "Shadowforge Sharpshooter",
-					["npcs"] = {7290},
-					["chance"] = 0.06,
-					["classification"] = 1,
-					["model"] = 6057,
 				},
 				{
 					["name"] = "Venomlash Scorpid",
@@ -17045,7 +17395,7 @@ local lootByInstance = {
 				{
 					["name"] = "Stonevault Geomancer",
 					["npcs"] = {4853},
-					["chance"] = 0.05,
+					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 1194,
 				},
@@ -17169,13 +17519,6 @@ local lootByInstance = {
 					["model"] = 1194,
 				},
 				{
-					["name"] = "Stone Steward",
-					["npcs"] = {4860},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 2234,
-				},
-				{
 					["name"] = "Earthen Sculptor",
 					["npcs"] = {7012},
 					["chance"] = 0.02,
@@ -17192,9 +17535,16 @@ local lootByInstance = {
 				{
 					["name"] = "Stonevault Flameweaver",
 					["npcs"] = {7321},
-					["chance"] = 0.04,
+					["chance"] = 0.03,
 					["classification"] = 1,
 					["model"] = 160,
+				},
+				{
+					["name"] = "Stone Steward",
+					["npcs"] = {4860},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 2234,
 				},
 				{
 					["name"] = "Venomlash Scorpid",
@@ -17262,6 +17612,55 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 19937,
+			[2] = 52.56,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deadly Cleft Scorpid",
+					["npcs"] = {7405},
+					["chance"] = 9.86,
+					["classification"] = 0,
+					["model"] = 5985,
+				},
+				{
+					["name"] = "Cleft Scorpid",
+					["npcs"] = {7078},
+					["chance"] = 14.38,
+					["classification"] = 0,
+					["model"] = 5985,
+				},
+				{
+					["name"] = "Venomlash Scorpid",
+					["npcs"] = {7022},
+					["chance"] = 52.56,
+					["classification"] = 1,
+					["model"] = 2488,
+				},
+			},
+		},
+		{
+			[1] = 19938,
+			[2] = 33.87,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Cleft Scorpid",
+					["npcs"] = {7078},
+					["chance"] = 9.51,
+					["classification"] = 0,
+					["model"] = 5985,
+				},
+				{
+					["name"] = "Venomlash Scorpid",
+					["npcs"] = {7022},
+					["chance"] = 33.87,
+					["classification"] = 1,
+					["model"] = 2488,
+				},
+			},
+		},
+		{
 			[1] = 223537,
 			[2] = 0.23,
 			["mobs"] = {
@@ -17278,6 +17677,27 @@ local lootByInstance = {
 	},
 	["Zul'Farrak"] = {
 		{
+			[1] = 4092,
+			[2] = 28.59,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Sul'lithuz Sandcrawler",
+					["npcs"] = {8095},
+					["chance"] = 28.11,
+					["classification"] = 1,
+					["model"] = 7345,
+				},
+				{
+					["name"] = "Sul'lithuz Abomination",
+					["npcs"] = {8120},
+					["chance"] = 28.59,
+					["classification"] = 1,
+					["model"] = 7345,
+				},
+			},
+		},
+		{
 			[1] = 5616,
 			[2] = 0.58,
 			["mobs"] = {
@@ -17293,13 +17713,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 8444,
-			[2] = 77.54,
+			[2] = 77.56,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Sandfury Executioner",
 					["npcs"] = {7274},
-					["chance"] = 77.54,
+					["chance"] = 77.56,
 					["classification"] = 1,
 					["model"] = 6440,
 				},
@@ -17307,15 +17727,71 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9238,
-			[2] = 10.39,
+			[2] = 10.44,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Scarab",
 					["npcs"] = {7269},
-					["chance"] = 10.39,
+					["chance"] = 10.44,
 					["classification"] = 0,
 					["model"] = 7470,
+				},
+			},
+		},
+		{
+			[1] = 9242,
+			[2] = 2.4,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Sandfury Executioner",
+					["npcs"] = {7274},
+					["chance"] = 1.44,
+					["classification"] = 1,
+					["model"] = 6440,
+				},
+				{
+					["name"] = "Zul'Farrak Dead Hero",
+					["npcs"] = {7276},
+					["chance"] = 1.94,
+					["classification"] = 0,
+					["model"] = 6436,
+				},
+				{
+					["name"] = "Sandfury Shadowcaster",
+					["npcs"] = {5648},
+					["chance"] = 2.22,
+					["classification"] = 1,
+					["model"] = 6419,
+				},
+				{
+					["name"] = "Sandfury Blood Drinker",
+					["npcs"] = {5649},
+					["chance"] = 2.22,
+					["classification"] = 1,
+					["model"] = 6423,
+				},
+				{
+					["name"] = "Sandfury Witch Doctor",
+					["npcs"] = {5650},
+					["chance"] = 2.23,
+					["classification"] = 1,
+					["model"] = 6421,
+				},
+				{
+					["name"] = "Sandfury Shadowhunter",
+					["npcs"] = {7246},
+					["chance"] = 2.38,
+					["classification"] = 1,
+					["model"] = 6425,
+				},
+				{
+					["name"] = "Sandfury Soul Eater",
+					["npcs"] = {7247},
+					["chance"] = 2.4,
+					["classification"] = 1,
+					["model"] = 6427,
 				},
 			},
 		},
@@ -17334,7 +17810,7 @@ local lootByInstance = {
 				{
 					["name"] = "Sandfury Soul Eater",
 					["npcs"] = {7247},
-					["chance"] = 1.09,
+					["chance"] = 1.08,
 					["classification"] = 1,
 					["model"] = 6427,
 				},
@@ -17348,28 +17824,28 @@ local lootByInstance = {
 				{
 					["name"] = "Sandfury Blood Drinker",
 					["npcs"] = {5649},
-					["chance"] = 1.21,
+					["chance"] = 1.23,
 					["classification"] = 1,
 					["model"] = 6423,
 				},
 				{
 					["name"] = "Sandfury Shadowhunter",
 					["npcs"] = {7246},
-					["chance"] = 1.25,
+					["chance"] = 1.24,
 					["classification"] = 1,
 					["model"] = 6425,
 				},
 				{
 					["name"] = "Sandfury Shadowcaster",
 					["npcs"] = {5648},
-					["chance"] = 1.27,
+					["chance"] = 1.26,
 					["classification"] = 1,
 					["model"] = 6419,
 				},
 				{
 					["name"] = "Sandfury Executioner",
 					["npcs"] = {7274},
-					["chance"] = 1.4,
+					["chance"] = 1.38,
 					["classification"] = 1,
 					["model"] = 6440,
 				},
@@ -17482,7 +17958,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 9523,
-			[2] = 19.9,
+			[2] = 19.8,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -17495,49 +17971,49 @@ local lootByInstance = {
 				{
 					["name"] = "Zul'Farrak Zombie",
 					["npcs"] = {7286},
-					["chance"] = 2.48,
+					["chance"] = 2.5,
 					["classification"] = 1,
 					["model"] = 6417,
 				},
 				{
 					["name"] = "Sandfury Executioner",
 					["npcs"] = {7274},
-					["chance"] = 12.36,
+					["chance"] = 12.43,
 					["classification"] = 1,
 					["model"] = 6440,
 				},
 				{
 					["name"] = "Sandfury Soul Eater",
 					["npcs"] = {7247},
-					["chance"] = 13.02,
+					["chance"] = 13.08,
 					["classification"] = 1,
 					["model"] = 6427,
 				},
 				{
 					["name"] = "Sandfury Shadowhunter",
 					["npcs"] = {7246},
-					["chance"] = 16.77,
+					["chance"] = 16.7,
 					["classification"] = 1,
 					["model"] = 6425,
 				},
 				{
 					["name"] = "Sandfury Witch Doctor",
 					["npcs"] = {5650},
-					["chance"] = 17.86,
+					["chance"] = 17.88,
 					["classification"] = 1,
 					["model"] = 6421,
 				},
 				{
 					["name"] = "Sandfury Blood Drinker",
 					["npcs"] = {5649},
-					["chance"] = 18.19,
+					["chance"] = 18.18,
 					["classification"] = 1,
 					["model"] = 6423,
 				},
 				{
 					["name"] = "Sandfury Shadowcaster",
 					["npcs"] = {5648},
-					["chance"] = 19.9,
+					["chance"] = 19.8,
 					["classification"] = 1,
 					["model"] = 6419,
 				},
@@ -17554,6 +18030,27 @@ local lootByInstance = {
 					["chance"] = 0.28,
 					["classification"] = 0,
 					["model"] = 6436,
+				},
+			},
+		},
+		{
+			[1] = 11387,
+			[2] = 28.75,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Sul'lithuz Sandcrawler",
+					["npcs"] = {8095},
+					["chance"] = 28.52,
+					["classification"] = 1,
+					["model"] = 7345,
+				},
+				{
+					["name"] = "Sul'lithuz Abomination",
+					["npcs"] = {8120},
+					["chance"] = 28.75,
+					["classification"] = 1,
+					["model"] = 7345,
 				},
 			},
 		},
@@ -17624,13 +18121,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10460,
-			[2] = 86.36,
+			[2] = 86.39,
 			["itemClass"] = 15,
 			["mobs"] = {
 				{
 					["name"] = "Hakkari Bloodkeeper",
 					["npcs"] = {8438},
-					["chance"] = 86.36,
+					["chance"] = 86.39,
 					["classification"] = 1,
 					["model"] = 7829,
 				},
@@ -17638,7 +18135,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10623,
-			[2] = 0.21,
+			[2] = 0.42,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
@@ -17672,7 +18169,7 @@ local lootByInstance = {
 				{
 					["name"] = "Atal'ai Witch Doctor",
 					["npcs"] = {5259},
-					["chance"] = 0.03,
+					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 6670,
 				},
@@ -17693,7 +18190,7 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 0.11,
+					["chance"] = 0.1,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
@@ -17707,7 +18204,7 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Suppressor",
 					["npcs"] = {8497},
-					["chance"] = 0.21,
+					["chance"] = 0.42,
 					["classification"] = 1,
 					["model"] = 7974,
 				},
@@ -17756,7 +18253,7 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 0.05,
+					["chance"] = 0.04,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
@@ -18232,7 +18729,7 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 0.14,
+					["chance"] = 0.13,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
@@ -18377,18 +18874,18 @@ local lootByInstance = {
 					["model"] = 1336,
 				},
 				{
+					["name"] = "Nightmare Scalebane",
+					["npcs"] = {5277},
+					["chance"] = 0.07,
+					["classification"] = 1,
+					["model"] = 7903,
+				},
+				{
 					["name"] = "Hakkari Bloodkeeper",
 					["npcs"] = {8438},
 					["chance"] = 0.07,
 					["classification"] = 1,
 					["model"] = 7829,
-				},
-				{
-					["name"] = "Nightmare Scalebane",
-					["npcs"] = {5277},
-					["chance"] = 0.08,
-					["classification"] = 1,
-					["model"] = 7903,
 				},
 				{
 					["name"] = "Nightmare Wyrmkin",
@@ -18428,14 +18925,14 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 0.11,
+					["chance"] = 0.1,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
 				{
 					["name"] = "Nightmare Wyrmkin",
 					["npcs"] = {5280},
-					["chance"] = 0.19,
+					["chance"] = 0.18,
 					["classification"] = 1,
 					["model"] = 7863,
 				},
@@ -18450,7 +18947,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10634,
-			[2] = 0.11,
+			[2] = 0.1,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -18526,7 +19023,7 @@ local lootByInstance = {
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 0.11,
+					["chance"] = 0.1,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
@@ -18534,7 +19031,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10663,
-			[2] = 49.92,
+			[2] = 49.85,
 			["itemClass"] = 0,
 			["mobs"] = {
 				{
@@ -18547,7 +19044,7 @@ local lootByInstance = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 49.92,
+					["chance"] = 49.85,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18555,13 +19052,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10801,
-			[2] = 47.1,
+			[2] = 47.29,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Spawn of Hakkar",
 					["npcs"] = {5708},
-					["chance"] = 47.1,
+					["chance"] = 47.29,
 					["classification"] = 1,
 					["model"] = 4065,
 				},
@@ -18569,13 +19066,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10802,
-			[2] = 23.74,
+			[2] = 23.64,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Spawn of Hakkar",
 					["npcs"] = {5708},
-					["chance"] = 23.74,
+					["chance"] = 23.64,
 					["classification"] = 1,
 					["model"] = 4065,
 				},
@@ -18583,13 +19080,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10838,
-			[2] = 18.62,
+			[2] = 18.49,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 18.62,
+					["chance"] = 18.49,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18597,13 +19094,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10842,
-			[2] = 35.08,
+			[2] = 35.09,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 35.08,
+					["chance"] = 35.09,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18611,13 +19108,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10843,
-			[2] = 35.26,
+			[2] = 35.22,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 35.26,
+					["chance"] = 35.22,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18625,13 +19122,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10844,
-			[2] = 17.61,
+			[2] = 17.69,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 17.61,
+					["chance"] = 17.69,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18639,13 +19136,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10845,
-			[2] = 34.93,
+			[2] = 34.84,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 34.93,
+					["chance"] = 34.84,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18653,13 +19150,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 10846,
-			[2] = 36.28,
+			[2] = 36.18,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Shade of Hakkar",
 					["npcs"] = {8440},
-					["chance"] = 36.28,
+					["chance"] = 36.18,
 					["classification"] = 1,
 					["model"] = 7690,
 				},
@@ -18667,7 +19164,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11318,
-			[2] = 38.98,
+			[2] = 38.97,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -18687,21 +19184,21 @@ local lootByInstance = {
 				{
 					["name"] = "Murk Worm",
 					["npcs"] = {5226},
-					["chance"] = 18.88,
+					["chance"] = 18.84,
 					["classification"] = 1,
 					["model"] = 7549,
 				},
 				{
 					["name"] = "Saturated Ooze",
 					["npcs"] = {5228},
-					["chance"] = 19.32,
+					["chance"] = 19.19,
 					["classification"] = 1,
 					["model"] = 682,
 				},
 				{
 					["name"] = "Deep Lurker",
 					["npcs"] = {8384},
-					["chance"] = 38.98,
+					["chance"] = 38.97,
 					["classification"] = 1,
 					["model"] = 631,
 				},
@@ -18723,20 +19220,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 15412,
-			[2] = 10.67,
+			[2] = 10.66,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Nightmare Wyrmkin",
 					["npcs"] = {5280},
-					["chance"] = 10.56,
+					["chance"] = 10.54,
 					["classification"] = 1,
 					["model"] = 7863,
 				},
 				{
 					["name"] = "Nightmare Scalebane",
 					["npcs"] = {5277},
-					["chance"] = 10.67,
+					["chance"] = 10.66,
 					["classification"] = 1,
 					["model"] = 7903,
 				},
@@ -18744,13 +19241,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 15733,
-			[2] = 2.45,
+			[2] = 2.44,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Murk Worm",
 					["npcs"] = {5226},
-					["chance"] = 2.45,
+					["chance"] = 2.44,
 					["classification"] = 1,
 					["model"] = 7549,
 				},
@@ -18764,7 +19261,7 @@ local lootByInstance = {
 				{
 					["name"] = "Atal'ai Witch Doctor",
 					["npcs"] = {5259},
-					["chance"] = 1.2,
+					["chance"] = 1.19,
 					["classification"] = 1,
 					["model"] = 6670,
 				},
@@ -20843,29 +21340,22 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11129,
-			[2] = 3.06,
+			[2] = 3.08,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Molten War Golem",
 					["npcs"] = {8908},
-					["chance"] = 1.61,
+					["chance"] = 1.59,
 					["classification"] = 1,
 					["model"] = 8179,
 				},
 				{
 					["name"] = "Ragereaver Golem",
 					["npcs"] = {8906},
-					["chance"] = 1.96,
+					["chance"] = 1.98,
 					["classification"] = 1,
 					["model"] = 8177,
-				},
-				{
-					["name"] = "Fireguard",
-					["npcs"] = {8909},
-					["chance"] = 2.23,
-					["classification"] = 1,
-					["model"] = 2172,
 				},
 				{
 					["name"] = "Fireguard Destroyer",
@@ -20873,6 +21363,13 @@ local lootByInstance = {
 					["chance"] = 2.23,
 					["classification"] = 1,
 					["model"] = 5488,
+				},
+				{
+					["name"] = "Fireguard",
+					["npcs"] = {8909},
+					["chance"] = 2.24,
+					["classification"] = 1,
+					["model"] = 2172,
 				},
 				{
 					["name"] = "Blazing Fireguard",
@@ -20884,7 +21381,7 @@ local lootByInstance = {
 				{
 					["name"] = "Warbringer Construct",
 					["npcs"] = {8905},
-					["chance"] = 3.06,
+					["chance"] = 3.08,
 					["classification"] = 1,
 					["model"] = 8289,
 				},
@@ -20892,13 +21389,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11197,
-			[2] = 87.7,
+			[2] = 87.86,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Dark Keeper Bethek",
 					["npcs"] = {9438},
-					["chance"] = 82.85,
+					["chance"] = 83.06,
 					["classification"] = 1,
 					["model"] = 8592,
 				},
@@ -20910,13 +21407,6 @@ local lootByInstance = {
 					["model"] = 8595,
 				},
 				{
-					["name"] = "Dark Keeper Zimrel",
-					["npcs"] = {9441},
-					["chance"] = 85.62,
-					["classification"] = 1,
-					["model"] = 8594,
-				},
-				{
 					["name"] = "Dark Keeper Vorfalk",
 					["npcs"] = {9437},
 					["chance"] = 85.77,
@@ -20924,16 +21414,23 @@ local lootByInstance = {
 					["model"] = 8591,
 				},
 				{
+					["name"] = "Dark Keeper Zimrel",
+					["npcs"] = {9441},
+					["chance"] = 85.9,
+					["classification"] = 1,
+					["model"] = 8594,
+				},
+				{
 					["name"] = "Dark Keeper Uggel",
 					["npcs"] = {9439},
-					["chance"] = 87.41,
+					["chance"] = 87.48,
 					["classification"] = 1,
 					["model"] = 8593,
 				},
 				{
 					["name"] = "Dark Keeper Pelver",
 					["npcs"] = {9443},
-					["chance"] = 87.7,
+					["chance"] = 87.86,
 					["classification"] = 1,
 					["model"] = 8596,
 				},
@@ -20941,20 +21438,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11269,
-			[2] = 6.1,
+			[2] = 6.07,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Molten War Golem",
 					["npcs"] = {8908},
-					["chance"] = 2.79,
+					["chance"] = 2.81,
 					["classification"] = 1,
 					["model"] = 8179,
 				},
 				{
 					["name"] = "Ragereaver Golem",
 					["npcs"] = {8906},
-					["chance"] = 4.38,
+					["chance"] = 4.4,
 					["classification"] = 1,
 					["model"] = 8177,
 				},
@@ -20968,7 +21465,7 @@ local lootByInstance = {
 				{
 					["name"] = "Warbringer Construct",
 					["npcs"] = {8905},
-					["chance"] = 6.1,
+					["chance"] = 6.07,
 					["classification"] = 1,
 					["model"] = 8289,
 				},
@@ -20976,13 +21473,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11312,
-			[2] = 22.41,
+			[2] = 22.36,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Blackbreath Crony",
 					["npcs"] = {9541},
-					["chance"] = 22.41,
+					["chance"] = 22.36,
 					["classification"] = 1,
 					["model"] = 8661,
 				},
@@ -21002,7 +21499,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11370,
-			[2] = 17.22,
+			[2] = 17.27,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
@@ -21014,42 +21511,84 @@ local lootByInstance = {
 				{
 					["name"] = "Molten War Golem",
 					["npcs"] = {8908},
-					["chance"] = 14.12,
+					["chance"] = 14.03,
 					["classification"] = 1,
 					["model"] = 8179,
 				},
 				{
 					["name"] = "Wrath Hammer Construct",
 					["npcs"] = {8907},
-					["chance"] = 15.59,
+					["chance"] = 15.56,
 					["classification"] = 1,
 					["model"] = 8178,
 				},
 				{
 					["name"] = "Ragereaver Golem",
 					["npcs"] = {8906},
-					["chance"] = 16.11,
+					["chance"] = 16.09,
 					["classification"] = 1,
 					["model"] = 8177,
 				},
 				{
 					["name"] = "Warbringer Construct",
 					["npcs"] = {8905},
-					["chance"] = 17.22,
+					["chance"] = 17.27,
 					["classification"] = 1,
 					["model"] = 8289,
 				},
 			},
 		},
 		{
+			[1] = 11395,
+			[2] = 13.6,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Dark Screecher",
+					["npcs"] = {8927},
+					["chance"] = 13.6,
+					["classification"] = 0,
+					["model"] = 1955,
+				},
+			},
+		},
+		{
+			[1] = 11402,
+			[2] = 13.38,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Dark Screecher",
+					["npcs"] = {8927},
+					["chance"] = 13.38,
+					["classification"] = 0,
+					["model"] = 1955,
+				},
+			},
+		},
+		{
+			[1] = 11403,
+			[2] = 13.43,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Dark Screecher",
+					["npcs"] = {8927},
+					["chance"] = 13.43,
+					["classification"] = 0,
+					["model"] = 1955,
+				},
+			},
+		},
+		{
 			[1] = 11404,
-			[2] = 13.27,
+			[2] = 13.29,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dark Screecher",
 					["npcs"] = {8927},
-					["chance"] = 13.27,
+					["chance"] = 13.29,
 					["classification"] = 0,
 					["model"] = 1955,
 				},
@@ -21078,13 +21617,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 11885,
-			[2] = 92.77,
+			[2] = 92.74,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Shadowforge Flame Keeper",
 					["npcs"] = {9956},
-					["chance"] = 92.77,
+					["chance"] = 92.74,
 					["classification"] = 0,
 					["model"] = 9309,
 				},
@@ -21124,13 +21663,6 @@ local lootByInstance = {
 					["model"] = 8750,
 				},
 				{
-					["name"] = "Anvilrage Footman",
-					["npcs"] = {8892},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 8718,
-				},
-				{
 					["name"] = "Ragereaver Golem",
 					["npcs"] = {8906},
 					["chance"] = 0.02,
@@ -21157,6 +21689,13 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 8790,
+				},
+				{
+					["name"] = "Anvilrage Footman",
+					["npcs"] = {8892},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 8718,
 				},
 				{
 					["name"] = "Anvilrage Soldier",
@@ -21677,6 +22216,13 @@ local lootByInstance = {
 					["model"] = 5488,
 				},
 				{
+					["name"] = "Anvilrage Soldier",
+					["npcs"] = {8893},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 8757,
+				},
+				{
 					["name"] = "Anvilrage Marshal",
 					["npcs"] = {8898},
 					["chance"] = 0.03,
@@ -21689,13 +22235,6 @@ local lootByInstance = {
 					["chance"] = 0.03,
 					["classification"] = 1,
 					["model"] = 8790,
-				},
-				{
-					["name"] = "Anvilrage Soldier",
-					["npcs"] = {8893},
-					["chance"] = 0.04,
-					["classification"] = 1,
-					["model"] = 8757,
 				},
 				{
 					["name"] = "Anvilrage Captain",
@@ -21738,13 +22277,6 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 8751,
-				},
-				{
-					["name"] = "Doomforge Dragoon",
-					["npcs"] = {8899},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 8820,
 				},
 				{
 					["name"] = "Anvilrage Captain",
@@ -21803,6 +22335,13 @@ local lootByInstance = {
 					["model"] = 8757,
 				},
 				{
+					["name"] = "Doomforge Dragoon",
+					["npcs"] = {8899},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 8820,
+				},
+				{
 					["name"] = "Warbringer Construct",
 					["npcs"] = {8905},
 					["chance"] = 0.03,
@@ -21858,13 +22397,6 @@ local lootByInstance = {
 			[2] = 0.04,
 			["itemClass"] = 4,
 			["mobs"] = {
-				{
-					["name"] = "Twilight's Hammer Torturer",
-					["npcs"] = {8912},
-					["chance"] = 0,
-					["classification"] = 1,
-					["model"] = 8790,
-				},
 				{
 					["name"] = "Anvilrage Guardsman",
 					["npcs"] = {8891},
@@ -21927,6 +22459,13 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 8179,
+				},
+				{
+					["name"] = "Twilight's Hammer Torturer",
+					["npcs"] = {8912},
+					["chance"] = 0.02,
+					["classification"] = 1,
+					["model"] = 8790,
 				},
 				{
 					["name"] = "Doomforge Dragoon",
@@ -22702,13 +23241,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 15781,
-			[2] = 3.28,
+			[2] = 3.27,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Anvilrage Captain",
 					["npcs"] = {8903},
-					["chance"] = 3.28,
+					["chance"] = 3.27,
 					["classification"] = 1,
 					["model"] = 8749,
 				},
@@ -22716,13 +23255,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16048,
-			[2] = 3.19,
+			[2] = 3.4,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Doomforge Craftsman",
 					["npcs"] = {8897},
-					["chance"] = 3.19,
+					["chance"] = 3.4,
 					["classification"] = 0,
 					["model"] = 8803,
 				},
@@ -22730,13 +23269,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16049,
-			[2] = 1.89,
+			[2] = 1.88,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Weapon Technician",
 					["npcs"] = {8920},
-					["chance"] = 1.89,
+					["chance"] = 1.88,
 					["classification"] = 0,
 					["model"] = 8894,
 				},
@@ -22758,13 +23297,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18654,
-			[2] = 3.83,
+			[2] = 3.84,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Weapon Technician",
 					["npcs"] = {8920},
-					["chance"] = 3.83,
+					["chance"] = 3.84,
 					["classification"] = 0,
 					["model"] = 8894,
 				},
@@ -22799,14 +23338,28 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 19934,
+			[2] = 21,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Deep Stinger",
+					["npcs"] = {8926},
+					["chance"] = 21,
+					["classification"] = 0,
+					["model"] = 7347,
+				},
+			},
+		},
+		{
 			[1] = 22047,
-			[2] = 68.93,
+			[2] = 69.58,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Theldren",
 					["npcs"] = {16059},
-					["chance"] = 68.93,
+					["chance"] = 69.58,
 					["classification"] = 1,
 					["model"] = 15981,
 				},
@@ -23038,6 +23591,32 @@ local lootByInstance = {
 	["Blackrock Spire"] = {{14513}, {16696}, {16685}, {16683}, {16703}, {16713}, {16716}, {16680}, {16673}, {16736}, {16735}, {15749}, {15775}, {13494}, {16250}, {16244}, {9214}, {12219}, {12586}, {24102}, {13260}, {16681}, {16247},},
 	["Dire Maul"] = {
 		{
+			[1] = 5263,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Mizzle the Crafty",
+					["npcs"] = {14353},
+					["classification"] = 1,
+					["model"] = 14406,
+				},
+			},
+		},
+		{
+			[1] = 11414,
+			[2] = 59.03,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Ferra",
+					["npcs"] = {14308},
+					["chance"] = 59.03,
+					["classification"] = 1,
+					["model"] = 1083,
+				},
+			},
+		},
+		{
 			[1] = 13464,
 			[2] = 0.82,
 			["itemClass"] = 7,
@@ -23052,7 +23631,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ironbark Protector",
 					["npcs"] = {11459},
-					["chance"] = 0.65,
+					["chance"] = 0.64,
 					["classification"] = 1,
 					["model"] = 13489,
 				},
@@ -23101,7 +23680,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ironbark Protector",
 					["npcs"] = {11459},
-					["chance"] = 0.64,
+					["chance"] = 0.63,
 					["classification"] = 1,
 					["model"] = 13489,
 				},
@@ -23192,7 +23771,7 @@ local lootByInstance = {
 				{
 					["name"] = "Phase Lasher",
 					["npcs"] = {13196},
-					["chance"] = 0.34,
+					["chance"] = 0.38,
 					["classification"] = 1,
 					["model"] = 13109,
 				},
@@ -23262,8 +23841,36 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 18236,
+			[2] = 15.5,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Gordok Mastiff",
+					["npcs"] = {13036},
+					["chance"] = 15.5,
+					["classification"] = 0,
+					["model"] = 12966,
+				},
+			},
+		},
+		{
+			[1] = 18237,
+			[2] = 28.72,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Gordok Mastiff",
+					["npcs"] = {13036},
+					["chance"] = 28.72,
+					["classification"] = 0,
+					["model"] = 12966,
+				},
+			},
+		},
+		{
 			[1] = 18250,
-			[2] = 46.83,
+			[2] = 46.75,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
@@ -23276,7 +23883,7 @@ local lootByInstance = {
 				{
 					["name"] = "Gordok Brute",
 					["npcs"] = {11441},
-					["chance"] = 6.49,
+					["chance"] = 6.5,
 					["classification"] = 1,
 					["model"] = 12473,
 				},
@@ -23297,28 +23904,112 @@ local lootByInstance = {
 				{
 					["name"] = "Gordok Warlock",
 					["npcs"] = {11448},
-					["chance"] = 7.02,
+					["chance"] = 7.01,
 					["classification"] = 1,
 					["model"] = 14423,
 				},
 				{
 					["name"] = "Gordok Bushwacker",
 					["npcs"] = {14351},
-					["chance"] = 46.83,
+					["chance"] = 46.75,
 					["classification"] = 1,
 					["model"] = 10709,
 				},
 			},
 		},
 		{
+			[1] = 18285,
+			[2] = 26.82,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Arcane Feedback",
+					["npcs"] = {14400},
+					["chance"] = 12.69,
+					["classification"] = 0,
+					["model"] = 5490,
+				},
+				{
+					["name"] = "Residual Monstrosity",
+					["npcs"] = {11484},
+					["chance"] = 24.55,
+					["classification"] = 1,
+					["model"] = 14254,
+				},
+				{
+					["name"] = "Mana Remnant",
+					["npcs"] = {11483},
+					["chance"] = 25.86,
+					["classification"] = 1,
+					["model"] = 14272,
+				},
+				{
+					["name"] = "Arcane Aberration",
+					["npcs"] = {11480},
+					["chance"] = 25.89,
+					["classification"] = 1,
+					["model"] = 14253,
+				},
+				{
+					["name"] = "Arcane Torrent",
+					["npcs"] = {14399},
+					["chance"] = 26.82,
+					["classification"] = 1,
+					["model"] = 10315,
+				},
+			},
+		},
+		{
+			[1] = 18286,
+			[2] = 49.37,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Arcane Feedback",
+					["npcs"] = {14400},
+					["chance"] = 24.52,
+					["classification"] = 0,
+					["model"] = 5490,
+				},
+				{
+					["name"] = "Arcane Torrent",
+					["npcs"] = {14399},
+					["chance"] = 47.1,
+					["classification"] = 1,
+					["model"] = 10315,
+				},
+				{
+					["name"] = "Mana Remnant",
+					["npcs"] = {11483},
+					["chance"] = 47.83,
+					["classification"] = 1,
+					["model"] = 14272,
+				},
+				{
+					["name"] = "Arcane Aberration",
+					["npcs"] = {11480},
+					["chance"] = 48.6,
+					["classification"] = 1,
+					["model"] = 14253,
+				},
+				{
+					["name"] = "Residual Monstrosity",
+					["npcs"] = {11484},
+					["chance"] = 49.37,
+					["classification"] = 1,
+					["model"] = 14254,
+				},
+			},
+		},
+		{
 			[1] = 18289,
-			[2] = 1.91,
+			[2] = 1.85,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Warpwood Tangler",
 					["npcs"] = {11464},
-					["chance"] = 1.37,
+					["chance"] = 1.35,
 					["classification"] = 1,
 					["model"] = 9592,
 				},
@@ -23339,14 +24030,14 @@ local lootByInstance = {
 				{
 					["name"] = "Warpwood Stomper",
 					["npcs"] = {11465},
-					["chance"] = 1.86,
+					["chance"] = 1.84,
 					["classification"] = 1,
 					["model"] = 6350,
 				},
 				{
 					["name"] = "Warpwood Crusher",
 					["npcs"] = {13021},
-					["chance"] = 1.91,
+					["chance"] = 1.85,
 					["classification"] = 1,
 					["model"] = 12929,
 				},
@@ -23354,13 +24045,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18295,
-			[2] = 1.31,
+			[2] = 1.29,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Phase Lasher",
 					["npcs"] = {13196},
-					["chance"] = 1.31,
+					["chance"] = 1.29,
 					["classification"] = 1,
 					["model"] = 13109,
 				},
@@ -23368,13 +24059,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18296,
-			[2] = 0.8,
+			[2] = 0.84,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Wildspawn Rogue",
 					["npcs"] = {11452},
-					["chance"] = 0.42,
+					["chance"] = 0.41,
 					["classification"] = 1,
 					["model"] = 2021,
 				},
@@ -23409,7 +24100,7 @@ local lootByInstance = {
 				{
 					["name"] = "Wildspawn Satyr",
 					["npcs"] = {11451},
-					["chance"] = 0.8,
+					["chance"] = 0.84,
 					["classification"] = 1,
 					["model"] = 11345,
 				},
@@ -23417,7 +24108,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18298,
-			[2] = 0.88,
+			[2] = 0.89,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -23449,18 +24140,18 @@ local lootByInstance = {
 					["model"] = 10032,
 				},
 				{
-					["name"] = "Wildspawn Satyr",
-					["npcs"] = {11451},
-					["chance"] = 0.85,
-					["classification"] = 1,
-					["model"] = 11345,
-				},
-				{
 					["name"] = "Wildspawn Hellcaller",
 					["npcs"] = {11457},
 					["chance"] = 0.88,
 					["classification"] = 1,
 					["model"] = 11340,
+				},
+				{
+					["name"] = "Wildspawn Satyr",
+					["npcs"] = {11451},
+					["chance"] = 0.89,
+					["classification"] = 1,
+					["model"] = 11345,
 				},
 			},
 		},
@@ -23501,7 +24192,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18338,
-			[2] = 1.13,
+			[2] = 1.12,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
@@ -23521,14 +24212,14 @@ local lootByInstance = {
 				{
 					["name"] = "Mana Remnant",
 					["npcs"] = {11483},
-					["chance"] = 0.87,
+					["chance"] = 0.88,
 					["classification"] = 1,
 					["model"] = 14272,
 				},
 				{
 					["name"] = "Arcane Torrent",
 					["npcs"] = {14399},
-					["chance"] = 1.13,
+					["chance"] = 1.12,
 					["classification"] = 1,
 					["model"] = 10315,
 				},
@@ -23536,13 +24227,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18339,
-			[2] = 1.11,
+			[2] = 1.13,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Eldreth Phantasm",
 					["npcs"] = {11475},
-					["chance"] = 0.81,
+					["chance"] = 0.8,
 					["classification"] = 1,
 					["model"] = 14368,
 				},
@@ -23563,7 +24254,7 @@ local lootByInstance = {
 				{
 					["name"] = "Eldreth Spectre",
 					["npcs"] = {11473},
-					["chance"] = 1.11,
+					["chance"] = 1.13,
 					["classification"] = 1,
 					["model"] = 14366,
 				},
@@ -23606,7 +24297,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18343,
-			[2] = 1.43,
+			[2] = 1.44,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -23626,7 +24317,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ironbark Protector",
 					["npcs"] = {11459},
-					["chance"] = 1.43,
+					["chance"] = 1.44,
 					["classification"] = 1,
 					["model"] = 13489,
 				},
@@ -23634,7 +24325,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18344,
-			[2] = 1.3,
+			[2] = 1.29,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -23654,7 +24345,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ironbark Protector",
 					["npcs"] = {11459},
-					["chance"] = 1.3,
+					["chance"] = 1.29,
 					["classification"] = 1,
 					["model"] = 13489,
 				},
@@ -23662,15 +24353,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18354,
-			[2] = 24.45,
+			[2] = 24.4,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Pimgib",
 					["npcs"] = {14349},
-					["chance"] = 24.45,
+					["chance"] = 24.4,
 					["classification"] = 1,
 					["model"] = 14380,
+				},
+			},
+		},
+		{
+			[1] = 18365,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Mizzle the Crafty",
+					["npcs"] = {14353},
+					["classification"] = 1,
+					["model"] = 14406,
 				},
 			},
 		},
@@ -23924,7 +24627,7 @@ local lootByInstance = {
 				{
 					["name"] = "Wildspawn Rogue",
 					["npcs"] = {11452},
-					["chance"] = 1.02,
+					["chance"] = 1.01,
 					["classification"] = 1,
 					["model"] = 2021,
 				},
@@ -23945,7 +24648,7 @@ local lootByInstance = {
 				{
 					["name"] = "Wildspawn Satyr",
 					["npcs"] = {11451},
-					["chance"] = 3.04,
+					["chance"] = 3.05,
 					["classification"] = 1,
 					["model"] = 11345,
 				},
@@ -23978,18 +24681,18 @@ local lootByInstance = {
 					["model"] = 11564,
 				},
 				{
-					["name"] = "Gordok Brute",
-					["npcs"] = {11441},
-					["chance"] = 2.93,
-					["classification"] = 1,
-					["model"] = 12473,
-				},
-				{
 					["name"] = "Gordok Warlock",
 					["npcs"] = {11448},
 					["chance"] = 2.94,
 					["classification"] = 1,
 					["model"] = 14423,
+				},
+				{
+					["name"] = "Gordok Brute",
+					["npcs"] = {11441},
+					["chance"] = 2.95,
+					["classification"] = 1,
+					["model"] = 12473,
 				},
 				{
 					["name"] = "Gordok Reaver",
@@ -24099,7 +24802,7 @@ local lootByInstance = {
 				{
 					["name"] = "Gordok Brute",
 					["npcs"] = {11441},
-					["chance"] = 6.19,
+					["chance"] = 6.18,
 					["classification"] = 1,
 					["model"] = 12473,
 				},
@@ -24155,7 +24858,7 @@ local lootByInstance = {
 				{
 					["name"] = "Eldreth Seether",
 					["npcs"] = {11469},
-					["chance"] = 2.99,
+					["chance"] = 2.98,
 					["classification"] = 1,
 					["model"] = 11213,
 				},
@@ -24382,20 +25085,20 @@ local lootByInstance = {
 	["Scholomance"] = {
 		{
 			[1] = 12753,
-			[2] = 25.43,
+			[2] = 25.23,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Risen Construct",
 					["npcs"] = {10488},
-					["chance"] = 24.07,
+					["chance"] = 23.88,
 					["classification"] = 1,
 					["model"] = 12074,
 				},
 				{
 					["name"] = "Risen Bonewarder",
 					["npcs"] = {10491},
-					["chance"] = 25.43,
+					["chance"] = 25.23,
 					["classification"] = 1,
 					["model"] = 11397,
 				},
@@ -24403,20 +25106,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 12840,
-			[2] = 44.46,
+			[2] = 44.43,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Risen Aberration",
 					["npcs"] = {10485},
-					["chance"] = 36.85,
+					["chance"] = 36.42,
 					["classification"] = 0,
 					["model"] = 9786,
 				},
 				{
 					["name"] = "Plagued Hatchling",
 					["npcs"] = {10678},
-					["chance"] = 44.46,
+					["chance"] = 44.43,
 					["classification"] = 0,
 					["model"] = 10007,
 				},
@@ -24424,7 +25127,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 12841,
-			[2] = 41.52,
+			[2] = 41.32,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -24456,18 +25159,18 @@ local lootByInstance = {
 					["model"] = 11163,
 				},
 				{
+					["name"] = "Necrofiend",
+					["npcs"] = {11551},
+					["chance"] = 24.27,
+					["classification"] = 1,
+					["model"] = 11178,
+				},
+				{
 					["name"] = "Aspect of Banality",
 					["npcs"] = {14518},
 					["chance"] = 24.61,
 					["classification"] = 1,
 					["model"] = 14560,
-				},
-				{
-					["name"] = "Necrofiend",
-					["npcs"] = {11551},
-					["chance"] = 24.66,
-					["classification"] = 1,
-					["model"] = 11178,
 				},
 				{
 					["name"] = "Aspect of Corruption",
@@ -24479,16 +25182,23 @@ local lootByInstance = {
 				{
 					["name"] = "Risen Construct",
 					["npcs"] = {10488},
-					["chance"] = 28.39,
+					["chance"] = 27.61,
 					["classification"] = 1,
 					["model"] = 12074,
 				},
 				{
 					["name"] = "Risen Protector",
 					["npcs"] = {10487},
-					["chance"] = 28.82,
+					["chance"] = 27.84,
 					["classification"] = 1,
 					["model"] = 11489,
+				},
+				{
+					["name"] = "Spectral Tutor",
+					["npcs"] = {10498},
+					["chance"] = 29.49,
+					["classification"] = 1,
+					["model"] = 3942,
 				},
 				{
 					["name"] = "Scholomance Necrolyte",
@@ -24498,18 +25208,18 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 				{
-					["name"] = "Spectral Tutor",
-					["npcs"] = {10498},
-					["chance"] = 30.35,
-					["classification"] = 1,
-					["model"] = 3942,
-				},
-				{
 					["name"] = "Risen Bonewarder",
 					["npcs"] = {10491},
-					["chance"] = 30.51,
+					["chance"] = 30.13,
 					["classification"] = 1,
 					["model"] = 11397,
+				},
+				{
+					["name"] = "Spectral Researcher",
+					["npcs"] = {10499},
+					["chance"] = 30.25,
+					["classification"] = 1,
+					["model"] = 3942,
 				},
 				{
 					["name"] = "Risen Guard",
@@ -24519,23 +25229,9 @@ local lootByInstance = {
 					["model"] = 7848,
 				},
 				{
-					["name"] = "Spectral Researcher",
-					["npcs"] = {10499},
-					["chance"] = 31.54,
-					["classification"] = 1,
-					["model"] = 3942,
-				},
-				{
-					["name"] = "Aspect of Shadow",
-					["npcs"] = {14521},
-					["chance"] = 31.84,
-					["classification"] = 1,
-					["model"] = 11649,
-				},
-				{
 					["name"] = "Diseased Ghoul",
 					["npcs"] = {10495},
-					["chance"] = 31.98,
+					["chance"] = 31.74,
 					["classification"] = 1,
 					["model"] = 519,
 				},
@@ -24547,51 +25243,58 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 				{
+					["name"] = "Aspect of Shadow",
+					["npcs"] = {14521},
+					["chance"] = 32.38,
+					["classification"] = 1,
+					["model"] = 11649,
+				},
+				{
 					["name"] = "Scholomance Neophyte",
 					["npcs"] = {10470},
-					["chance"] = 36.84,
+					["chance"] = 35.14,
 					["classification"] = 1,
 					["model"] = 11164,
 				},
 				{
 					["name"] = "Scholomance Acolyte",
 					["npcs"] = {10471},
-					["chance"] = 36.99,
+					["chance"] = 35.93,
 					["classification"] = 1,
 					["model"] = 11157,
 				},
 				{
 					["name"] = "Splintered Skeleton",
 					["npcs"] = {10478},
-					["chance"] = 37.84,
+					["chance"] = 37.56,
 					["classification"] = 1,
 					["model"] = 11401,
 				},
 				{
 					["name"] = "Risen Warrior",
 					["npcs"] = {10486},
-					["chance"] = 37.84,
+					["chance"] = 37.57,
 					["classification"] = 1,
 					["model"] = 7847,
 				},
 				{
 					["name"] = "Scholomance Handler",
 					["npcs"] = {11257},
-					["chance"] = 38.58,
+					["chance"] = 38.48,
 					["classification"] = 1,
 					["model"] = 11161,
 				},
 				{
 					["name"] = "Spectral Teacher",
 					["npcs"] = {10500},
-					["chance"] = 39.52,
+					["chance"] = 39.32,
 					["classification"] = 1,
 					["model"] = 3942,
 				},
 				{
 					["name"] = "Scholomance Occultist",
 					["npcs"] = {10472},
-					["chance"] = 41.52,
+					["chance"] = 41.32,
 					["classification"] = 1,
 					["model"] = 11157,
 				},
@@ -24599,13 +25302,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13920,
-			[2] = 20.18,
+			[2] = 20.14,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Plagued Hatchling",
 					["npcs"] = {10678},
-					["chance"] = 20.18,
+					["chance"] = 20.14,
 					["classification"] = 0,
 					["model"] = 10007,
 				},
@@ -24711,13 +25414,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 15773,
-			[2] = 3.44,
+			[2] = 3.26,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Researcher",
 					["npcs"] = {10499},
-					["chance"] = 3.44,
+					["chance"] = 3.26,
 					["classification"] = 1,
 					["model"] = 3942,
 				},
@@ -24753,13 +25456,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16254,
-			[2] = 2.84,
+			[2] = 3.23,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Researcher",
 					["npcs"] = {10499},
-					["chance"] = 2.84,
+					["chance"] = 3.23,
 					["classification"] = 1,
 					["model"] = 3942,
 				},
@@ -24851,20 +25554,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16710,
-			[2] = 2.91,
+			[2] = 2.9,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Risen Construct",
 					["npcs"] = {10488},
-					["chance"] = 2.24,
+					["chance"] = 2.18,
 					["classification"] = 1,
 					["model"] = 12074,
 				},
 				{
 					["name"] = "Scholomance Occultist",
 					["npcs"] = {10472},
-					["chance"] = 2.91,
+					["chance"] = 2.9,
 					["classification"] = 1,
 					["model"] = 11157,
 				},
@@ -24872,13 +25575,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16714,
-			[2] = 0.6,
+			[2] = 0.61,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Diseased Ghoul",
 					["npcs"] = {10495},
-					["chance"] = 0.6,
+					["chance"] = 0.61,
 					["classification"] = 1,
 					["model"] = 519,
 				},
@@ -24892,14 +25595,14 @@ local lootByInstance = {
 				{
 					["name"] = "Spectral Researcher",
 					["npcs"] = {10499},
-					["chance"] = 0.85,
+					["chance"] = 0.82,
 					["classification"] = 1,
 					["model"] = 3942,
 				},
 				{
 					["name"] = "Spectral Teacher",
 					["npcs"] = {10500},
-					["chance"] = 2.51,
+					["chance"] = 2.5,
 					["classification"] = 1,
 					["model"] = 3942,
 				},
@@ -24914,20 +25617,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16722,
-			[2] = 2.83,
+			[2] = 2.81,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Risen Protector",
 					["npcs"] = {10487},
-					["chance"] = 2.57,
+					["chance"] = 2.59,
 					["classification"] = 1,
 					["model"] = 11489,
 				},
 				{
 					["name"] = "Risen Warrior",
 					["npcs"] = {10486},
-					["chance"] = 2.83,
+					["chance"] = 2.81,
 					["classification"] = 1,
 					["model"] = 7847,
 				},
@@ -25569,6 +26272,13 @@ local lootByInstance = {
 					["model"] = 519,
 				},
 				{
+					["name"] = "Spectral Tutor",
+					["npcs"] = {10498},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 3942,
+				},
+				{
 					["name"] = "Scholomance Dark Summoner",
 					["npcs"] = {11582},
 					["chance"] = 0,
@@ -25597,13 +26307,6 @@ local lootByInstance = {
 					["model"] = 7848,
 				},
 				{
-					["name"] = "Spectral Tutor",
-					["npcs"] = {10498},
-					["chance"] = 0.01,
-					["classification"] = 1,
-					["model"] = 3942,
-				},
-				{
 					["name"] = "Scholomance Handler",
 					["npcs"] = {11257},
 					["chance"] = 0.01,
@@ -25611,18 +26314,18 @@ local lootByInstance = {
 					["model"] = 11161,
 				},
 				{
-					["name"] = "Scholomance Neophyte",
-					["npcs"] = {10470},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 11164,
-				},
-				{
 					["name"] = "Splintered Skeleton",
 					["npcs"] = {10478},
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 11401,
+				},
+				{
+					["name"] = "Scholomance Neophyte",
+					["npcs"] = {10470},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 11164,
 				},
 				{
 					["name"] = "Necrofiend",
@@ -26001,7 +26704,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 12735,
-			[2] = 27.42,
+			[2] = 27.4,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -26021,7 +26724,7 @@ local lootByInstance = {
 				{
 					["name"] = "Venom Belcher",
 					["npcs"] = {10417},
-					["chance"] = 27.42,
+					["chance"] = 27.4,
 					["classification"] = 1,
 					["model"] = 12819,
 				},
@@ -26029,20 +26732,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 12811,
-			[2] = 7.83,
+			[2] = 7.82,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
 					["npcs"] = {11120},
-					["chance"] = 3.75,
+					["chance"] = 3.83,
 					["classification"] = 1,
 					["model"] = 10637,
 				},
 				{
 					["name"] = "Crimson Conjuror",
 					["npcs"] = {10419},
-					["chance"] = 6.03,
+					["chance"] = 5.97,
 					["classification"] = 1,
 					["model"] = 10488,
 				},
@@ -26063,28 +26766,28 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Priest",
 					["npcs"] = {10423},
-					["chance"] = 6.71,
+					["chance"] = 6.67,
 					["classification"] = 1,
 					["model"] = 10508,
 				},
 				{
 					["name"] = "Crimson Initiate",
 					["npcs"] = {10420},
-					["chance"] = 6.79,
+					["chance"] = 6.71,
 					["classification"] = 1,
 					["model"] = 10496,
 				},
 				{
 					["name"] = "Crimson Sorcerer",
 					["npcs"] = {10422},
-					["chance"] = 7.04,
+					["chance"] = 7.03,
 					["classification"] = 1,
 					["model"] = 10504,
 				},
 				{
 					["name"] = "Crimson Gallant",
 					["npcs"] = {10424},
-					["chance"] = 7.4,
+					["chance"] = 7.41,
 					["classification"] = 1,
 					["model"] = 10512,
 				},
@@ -26098,14 +26801,14 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Monk",
 					["npcs"] = {11043},
-					["chance"] = 7.75,
+					["chance"] = 7.78,
 					["classification"] = 1,
 					["model"] = 10463,
 				},
 				{
 					["name"] = "Crimson Defender",
 					["npcs"] = {10421},
-					["chance"] = 7.83,
+					["chance"] = 7.82,
 					["classification"] = 1,
 					["model"] = 10500,
 				},
@@ -26119,14 +26822,14 @@ local lootByInstance = {
 				{
 					["name"] = "Skeletal Guardian",
 					["npcs"] = {10390},
-					["chance"] = 15.59,
+					["chance"] = 15.11,
 					["classification"] = 0,
 					["model"] = 9789,
 				},
 				{
 					["name"] = "Skeletal Berserker",
 					["npcs"] = {10391},
-					["chance"] = 17.31,
+					["chance"] = 16.78,
 					["classification"] = 0,
 					["model"] = 9784,
 				},
@@ -26152,6 +26855,13 @@ local lootByInstance = {
 					["model"] = 1693,
 				},
 				{
+					["name"] = "Ravaged Cadaver",
+					["npcs"] = {10381},
+					["chance"] = 12.95,
+					["classification"] = 1,
+					["model"] = 10974,
+				},
+				{
 					["name"] = "Mangled Cadaver",
 					["npcs"] = {10382},
 					["chance"] = 13.13,
@@ -26159,51 +26869,44 @@ local lootByInstance = {
 					["model"] = 10972,
 				},
 				{
-					["name"] = "Ravaged Cadaver",
-					["npcs"] = {10381},
-					["chance"] = 13.36,
-					["classification"] = 1,
-					["model"] = 10974,
-				},
-				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 16.09,
+					["chance"] = 15.56,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
 				{
 					["name"] = "Plague Ghoul",
 					["npcs"] = {10405},
-					["chance"] = 19.74,
+					["chance"] = 19.31,
 					["classification"] = 1,
 					["model"] = 559,
 				},
 				{
 					["name"] = "Black Guard Swordsmith",
 					["npcs"] = {11121},
-					["chance"] = 24.17,
+					["chance"] = 23.93,
 					["classification"] = 1,
 					["model"] = 775,
 				},
 				{
 					["name"] = "Crypt Beast",
 					["npcs"] = {10413},
-					["chance"] = 28.77,
+					["chance"] = 28.72,
 					["classification"] = 1,
 					["model"] = 9758,
 				},
 				{
 					["name"] = "Crypt Crawler",
 					["npcs"] = {10412},
-					["chance"] = 29.55,
+					["chance"] = 29.51,
 					["classification"] = 1,
 					["model"] = 6841,
 				},
 				{
 					["name"] = "Venom Belcher",
 					["npcs"] = {10417},
-					["chance"] = 30.45,
+					["chance"] = 30.35,
 					["classification"] = 1,
 					["model"] = 12819,
 				},
@@ -26217,7 +26920,7 @@ local lootByInstance = {
 				{
 					["name"] = "Rockwing Screecher",
 					["npcs"] = {10409},
-					["chance"] = 32.23,
+					["chance"] = 32.12,
 					["classification"] = 1,
 					["model"] = 11071,
 				},
@@ -26231,7 +26934,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ghoul Ravener",
 					["npcs"] = {10406},
-					["chance"] = 33.38,
+					["chance"] = 33.33,
 					["classification"] = 1,
 					["model"] = 10626,
 				},
@@ -26266,7 +26969,7 @@ local lootByInstance = {
 				{
 					["name"] = "Thuzadin Acolyte",
 					["npcs"] = {10399},
-					["chance"] = 39.2,
+					["chance"] = 39.05,
 					["classification"] = 0,
 					["model"] = 10535,
 				},
@@ -26294,14 +26997,14 @@ local lootByInstance = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 61.64,
+					["chance"] = 59.39,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
 				{
 					["name"] = "Ezra Grimm",
 					["npcs"] = {11058},
-					["chance"] = 80.53,
+					["chance"] = 80.46,
 					["classification"] = 1,
 					["model"] = 10475,
 				},
@@ -26316,13 +27019,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13172,
-			[2] = 61.93,
+			[2] = 61.85,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Ezra Grimm",
 					["npcs"] = {11058},
-					["chance"] = 61.93,
+					["chance"] = 61.85,
 					["classification"] = 1,
 					["model"] = 10475,
 				},
@@ -26330,7 +27033,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13174,
-			[2] = 9.11,
+			[2] = 9.09,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -26343,7 +27046,7 @@ local lootByInstance = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 0.63,
+					["chance"] = 0.61,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26357,9 +27060,16 @@ local lootByInstance = {
 				{
 					["name"] = "Venom Belcher",
 					["npcs"] = {10417},
-					["chance"] = 2.91,
+					["chance"] = 2.9,
 					["classification"] = 1,
 					["model"] = 12819,
+				},
+				{
+					["name"] = "Ravaged Cadaver",
+					["npcs"] = {10381},
+					["chance"] = 4.01,
+					["classification"] = 1,
+					["model"] = 10974,
 				},
 				{
 					["name"] = "Mangled Cadaver",
@@ -26369,16 +27079,9 @@ local lootByInstance = {
 					["model"] = 10972,
 				},
 				{
-					["name"] = "Ravaged Cadaver",
-					["npcs"] = {10381},
-					["chance"] = 4.13,
-					["classification"] = 1,
-					["model"] = 10974,
-				},
-				{
 					["name"] = "Plague Ghoul",
 					["npcs"] = {10405},
-					["chance"] = 4.54,
+					["chance"] = 4.44,
 					["classification"] = 1,
 					["model"] = 559,
 				},
@@ -26392,7 +27095,7 @@ local lootByInstance = {
 				{
 					["name"] = "Ghoul Ravener",
 					["npcs"] = {10406},
-					["chance"] = 5.82,
+					["chance"] = 5.81,
 					["classification"] = 1,
 					["model"] = 10626,
 				},
@@ -26406,14 +27109,14 @@ local lootByInstance = {
 				{
 					["name"] = "Crypt Crawler",
 					["npcs"] = {10412},
-					["chance"] = 8.97,
+					["chance"] = 8.95,
 					["classification"] = 1,
 					["model"] = 6841,
 				},
 				{
 					["name"] = "Crypt Beast",
 					["npcs"] = {10413},
-					["chance"] = 9.11,
+					["chance"] = 9.09,
 					["classification"] = 1,
 					["model"] = 9758,
 				},
@@ -26435,13 +27138,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13302,
-			[2] = 32.59,
+			[2] = 32.34,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 32.59,
+					["chance"] = 32.34,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26449,13 +27152,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13303,
-			[2] = 33.17,
+			[2] = 33.31,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 33.17,
+					["chance"] = 33.31,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26463,13 +27166,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13304,
-			[2] = 32.12,
+			[2] = 32.23,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 32.12,
+					["chance"] = 32.23,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26477,13 +27180,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13305,
-			[2] = 29.94,
+			[2] = 29.71,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 29.94,
+					["chance"] = 29.71,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26491,13 +27194,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13306,
-			[2] = 29.56,
+			[2] = 29.76,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 29.56,
+					["chance"] = 29.76,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26505,13 +27208,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13307,
-			[2] = 29.61,
+			[2] = 29.66,
 			["itemClass"] = 13,
 			["mobs"] = {
 				{
 					["name"] = "Stratholme Courier",
 					["npcs"] = {11082},
-					["chance"] = 29.61,
+					["chance"] = 29.66,
 					["classification"] = 1,
 					["model"] = 10547,
 				},
@@ -26533,13 +27236,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13350,
-			[2] = 3.33,
+			[2] = 3.3,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Black Guard Swordsmith",
 					["npcs"] = {11121},
-					["chance"] = 3.33,
+					["chance"] = 3.3,
 					["classification"] = 1,
 					["model"] = 775,
 				},
@@ -26547,13 +27250,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13351,
-			[2] = 1.56,
+			[2] = 1.55,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
 					["npcs"] = {11120},
-					["chance"] = 1.56,
+					["chance"] = 1.55,
 					["classification"] = 1,
 					["model"] = 10637,
 				},
@@ -26630,6 +27333,66 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 13362,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Undead Postman",
+					["npcs"] = {11142},
+					["classification"] = 1,
+					["model"] = 10668,
+				},
+			},
+		},
+		{
+			[1] = 13363,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Undead Postman",
+					["npcs"] = {11142},
+					["classification"] = 1,
+					["model"] = 10668,
+				},
+			},
+		},
+		{
+			[1] = 13364,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Undead Postman",
+					["npcs"] = {11142},
+					["classification"] = 1,
+					["model"] = 10668,
+				},
+			},
+		},
+		{
+			[1] = 13365,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Undead Postman",
+					["npcs"] = {11142},
+					["classification"] = 1,
+					["model"] = 10668,
+				},
+			},
+		},
+		{
+			[1] = 13366,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Undead Postman",
+					["npcs"] = {11142},
+					["classification"] = 1,
+					["model"] = 10668,
+				},
+			},
+		},
+		{
 			[1] = 13369,
 			[2] = 17.25,
 			["itemClass"] = 4,
@@ -26645,13 +27408,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13388,
-			[2] = 22.64,
+			[2] = 21.82,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 22.64,
+					["chance"] = 21.82,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26659,13 +27422,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13389,
-			[2] = 13.21,
+			[2] = 12.73,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 13.21,
+					["chance"] = 12.73,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26673,13 +27436,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13390,
-			[2] = 5.66,
+			[2] = 5.45,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 5.66,
+					["chance"] = 5.45,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26687,13 +27450,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13391,
-			[2] = 15.72,
+			[2] = 15.15,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 15.72,
+					["chance"] = 15.15,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26701,13 +27464,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13392,
-			[2] = 17.61,
+			[2] = 16.97,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 17.61,
+					["chance"] = 16.97,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26715,13 +27478,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 13393,
-			[2] = 16.35,
+			[2] = 19.39,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Postmaster Malown",
 					["npcs"] = {11143},
-					["chance"] = 16.35,
+					["chance"] = 19.39,
 					["classification"] = 1,
 					["model"] = 10669,
 				},
@@ -26743,13 +27506,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 14495,
-			[2] = 2.27,
+			[2] = 2.23,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Spectral Citizen",
 					["npcs"] = {10384},
-					["chance"] = 2.27,
+					["chance"] = 2.23,
 					["classification"] = 1,
 					["model"] = 10483,
 				},
@@ -26799,13 +27562,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 15768,
-			[2] = 1.21,
+			[2] = 1.2,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Ghoul Ravener",
 					["npcs"] = {10406},
-					["chance"] = 1.21,
+					["chance"] = 1.2,
 					["classification"] = 1,
 					["model"] = 10626,
 				},
@@ -26855,13 +27618,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16249,
-			[2] = 2.59,
+			[2] = 2.7,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Sorcerer",
 					["npcs"] = {10422},
-					["chance"] = 2.59,
+					["chance"] = 2.7,
 					["classification"] = 1,
 					["model"] = 10504,
 				},
@@ -26882,7 +27645,7 @@ local lootByInstance = {
 				{
 					["name"] = "Crypt Beast",
 					["npcs"] = {10413},
-					["chance"] = 2.03,
+					["chance"] = 2.02,
 					["classification"] = 1,
 					["model"] = 9758,
 				},
@@ -26931,14 +27694,14 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Conjuror",
 					["npcs"] = {10419},
-					["chance"] = 0.34,
+					["chance"] = 0.35,
 					["classification"] = 1,
 					["model"] = 10488,
 				},
 				{
 					["name"] = "Crimson Sorcerer",
 					["npcs"] = {10422},
-					["chance"] = 0.77,
+					["chance"] = 0.8,
 					["classification"] = 1,
 					["model"] = 10504,
 				},
@@ -26967,20 +27730,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16697,
-			[2] = 3.11,
+			[2] = 3.12,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Conjuror",
 					["npcs"] = {10419},
-					["chance"] = 0.35,
+					["chance"] = 0.34,
 					["classification"] = 1,
 					["model"] = 10488,
 				},
 				{
 					["name"] = "Crimson Initiate",
 					["npcs"] = {10420},
-					["chance"] = 0.78,
+					["chance"] = 0.79,
 					["classification"] = 1,
 					["model"] = 10496,
 				},
@@ -27001,7 +27764,7 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Priest",
 					["npcs"] = {10423},
-					["chance"] = 3.11,
+					["chance"] = 3.12,
 					["classification"] = 1,
 					["model"] = 10508,
 				},
@@ -27009,13 +27772,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16702,
-			[2] = 3.09,
+			[2] = 3.07,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Conjuror",
 					["npcs"] = {10419},
-					["chance"] = 0.3,
+					["chance"] = 0.31,
 					["classification"] = 1,
 					["model"] = 10488,
 				},
@@ -27036,7 +27799,7 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Sorcerer",
 					["npcs"] = {10422},
-					["chance"] = 3.09,
+					["chance"] = 3.07,
 					["classification"] = 1,
 					["model"] = 10504,
 				},
@@ -27086,7 +27849,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16723,
-			[2] = 3.51,
+			[2] = 3.53,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -27099,7 +27862,7 @@ local lootByInstance = {
 				{
 					["name"] = "Rockwing Screecher",
 					["npcs"] = {10409},
-					["chance"] = 2.03,
+					["chance"] = 2.02,
 					["classification"] = 1,
 					["model"] = 11071,
 				},
@@ -27113,7 +27876,7 @@ local lootByInstance = {
 				{
 					["name"] = "Crimson Gallant",
 					["npcs"] = {10424},
-					["chance"] = 3.51,
+					["chance"] = 3.53,
 					["classification"] = 1,
 					["model"] = 10512,
 				},
@@ -27135,7 +27898,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 16736,
-			[2] = 1.2,
+			[2] = 1.22,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
@@ -27155,7 +27918,7 @@ local lootByInstance = {
 				{
 					["name"] = "Venom Belcher",
 					["npcs"] = {10417},
-					["chance"] = 1.2,
+					["chance"] = 1.22,
 					["classification"] = 1,
 					["model"] = 12819,
 				},
@@ -27166,6 +27929,13 @@ local lootByInstance = {
 			[2] = 0.05,
 			["itemClass"] = 4,
 			["mobs"] = {
+				{
+					["name"] = "Ravaged Cadaver",
+					["npcs"] = {10381},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 10974,
+				},
 				{
 					["name"] = "Mangled Cadaver",
 					["npcs"] = {10382},
@@ -27506,13 +28276,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18781,
-			[2] = 63.56,
+			[2] = 63.47,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Crimson Hammersmith",
 					["npcs"] = {11120},
-					["chance"] = 63.56,
+					["chance"] = 63.47,
 					["classification"] = 1,
 					["model"] = 10637,
 				},
@@ -27520,13 +28290,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 18783,
-			[2] = 41.41,
+			[2] = 41.4,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Black Guard Swordsmith",
 					["npcs"] = {11121},
-					["chance"] = 41.41,
+					["chance"] = 41.4,
 					["classification"] = 1,
 					["model"] = 775,
 				},
@@ -28174,8 +28944,22 @@ local lootByInstance = {
 	},
 	["Ragefire Chasm"] = {
 		{
+			[1] = 5741,
+			[2] = 16.77,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Molten Elemental",
+					["npcs"] = {11321},
+					["chance"] = 16.77,
+					["classification"] = 1,
+					["model"] = 2075,
+				},
+			},
+		},
+		{
 			[1] = 14395,
-			[2] = 2.05,
+			[2] = 2.06,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
@@ -28188,7 +28972,7 @@ local lootByInstance = {
 				{
 					["name"] = "Searing Blade Warlock",
 					["npcs"] = {11324},
-					["chance"] = 2.05,
+					["chance"] = 2.06,
 					["classification"] = 1,
 					["model"] = 11438,
 				},
@@ -28196,20 +28980,20 @@ local lootByInstance = {
 		},
 		{
 			[1] = 14396,
-			[2] = 2.04,
+			[2] = 2.06,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Searing Blade Warlock",
 					["npcs"] = {11324},
-					["chance"] = 1.86,
+					["chance"] = 1.85,
 					["classification"] = 1,
 					["model"] = 11438,
 				},
 				{
 					["name"] = "Searing Blade Cultist",
 					["npcs"] = {11322},
-					["chance"] = 2.04,
+					["chance"] = 2.06,
 					["classification"] = 1,
 					["model"] = 11434,
 				},
@@ -28217,13 +29001,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 24225,
-			[2] = 58.89,
+			[2] = 58.33,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Zelemar the Wrathful",
 					["npcs"] = {17830},
-					["chance"] = 58.89,
+					["chance"] = 58.33,
 					["classification"] = 1,
 					["model"] = 1912,
 				},
@@ -28450,13 +29234,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 7079,
-			[2] = 7.68,
+			[2] = 7.67,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
 					["name"] = "Noxxious Scion",
 					["npcs"] = {13696},
-					["chance"] = 7.68,
+					["chance"] = 7.67,
 					["classification"] = 0,
 					["model"] = 13749,
 				},
@@ -28476,13 +29260,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 17764,
-			[2] = 97,
+			[2] = 97.02,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Spirit of Maraudos <The Fourth Kahn>",
 					["npcs"] = {12242},
-					["chance"] = 97,
+					["chance"] = 97.02,
 					["classification"] = 1,
 					["model"] = 12370,
 				},
@@ -28578,7 +29362,7 @@ local lootByInstance = {
 				{
 					["name"] = "Bleeding Hollow Archer",
 					["npcs"] = {17270},
-					["chance"] = 0.02,
+					["chance"] = 0.01,
 					["classification"] = 1,
 					["model"] = 17050,
 				},
@@ -28588,6 +29372,13 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 0,
 					["model"] = 14334,
+				},
+				{
+					["name"] = "Bonechewer Ravener",
+					["npcs"] = {17264},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 17049,
 				},
 				{
 					["name"] = "Hellfire Watcher <Watchkeeper's Subordinate>",
@@ -28603,18 +29394,11 @@ local lootByInstance = {
 					["classification"] = 1,
 					["model"] = 17052,
 				},
-				{
-					["name"] = "Bonechewer Ravener",
-					["npcs"] = {17264},
-					["chance"] = 0.05,
-					["classification"] = 1,
-					["model"] = 17049,
-				},
 			},
 		},
 		{
 			[1] = 25240,
-			[2] = 0.07,
+			[2] = 0.06,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
@@ -28634,14 +29418,14 @@ local lootByInstance = {
 				{
 					["name"] = "Bleeding Hollow Archer",
 					["npcs"] = {17270},
-					["chance"] = 0.03,
+					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 17050,
 				},
 				{
 					["name"] = "Hellfire Watcher <Watchkeeper's Subordinate>",
 					["npcs"] = {17309},
-					["chance"] = 0.07,
+					["chance"] = 0.06,
 					["classification"] = 1,
 					["model"] = 17051,
 				},
@@ -28667,18 +29451,18 @@ local lootByInstance = {
 					["model"] = 17049,
 				},
 				{
+					["name"] = "Bleeding Hollow Archer",
+					["npcs"] = {17270},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 17050,
+				},
+				{
 					["name"] = "Shattered Hand Warhound",
 					["npcs"] = {17280},
 					["chance"] = 0.01,
 					["classification"] = 0,
 					["model"] = 14334,
-				},
-				{
-					["name"] = "Bleeding Hollow Archer",
-					["npcs"] = {17270},
-					["chance"] = 0.02,
-					["classification"] = 1,
-					["model"] = 17050,
 				},
 				{
 					["name"] = "Bleeding Hollow Darkcaster",
@@ -28738,6 +29522,58 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 29561,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vazruden the Herald",
+					["npcs"] = {17307},
+					["classification"] = 1,
+					["model"] = 18944,
+				},
+			},
+		},
+		{
+			[1] = 29562,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vazruden the Herald",
+					["npcs"] = {17307},
+					["classification"] = 1,
+					["model"] = 18944,
+				},
+			},
+		},
+		{
+			[1] = 29563,
+			[2] = 4.94,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vazruden the Herald",
+					["npcs"] = {17307},
+					["chance"] = 4.94,
+					["classification"] = 1,
+					["model"] = 18944,
+				},
+			},
+		},
+		{
+			[1] = 29564,
+			[2] = 1.89,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Vazruden the Herald",
+					["npcs"] = {17307},
+					["chance"] = 1.89,
+					["classification"] = 1,
+					["model"] = 18944,
+				},
+			},
+		},
+		{
 			[1] = 33833,
 			[2] = 84.57,
 			["itemClass"] = 12,
@@ -28755,76 +29591,76 @@ local lootByInstance = {
 	["The Blood Furnace"] = {
 		{
 			[1] = 23894,
-			[2] = 26.67,
+			[2] = 27.03,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Fel Orc Neophyte",
 					["npcs"] = {17429},
-					["chance"] = 0.52,
+					["chance"] = 0.54,
 					["classification"] = 1,
 					["model"] = 16332,
 				},
 				{
 					["name"] = "Nascent Fel Orc",
 					["npcs"] = {17398},
-					["chance"] = 2.45,
+					["chance"] = 2.51,
 					["classification"] = 1,
 					["model"] = 16332,
 				},
 				{
 					["name"] = "Shadowmoon Warlock",
 					["npcs"] = {17371},
-					["chance"] = 5.44,
+					["chance"] = 5.58,
 					["classification"] = 1,
 					["model"] = 17137,
 				},
 				{
 					["name"] = "Shadowmoon Technician",
 					["npcs"] = {17414},
-					["chance"] = 6.24,
+					["chance"] = 6.38,
 					["classification"] = 1,
 					["model"] = 17147,
 				},
 				{
 					["name"] = "Laughing Skull Warden",
 					["npcs"] = {17624},
-					["chance"] = 7.19,
+					["chance"] = 7.36,
 					["classification"] = 1,
 					["model"] = 17152,
 				},
 				{
 					["name"] = "Shadowmoon Summoner",
 					["npcs"] = {17395},
-					["chance"] = 13.33,
+					["chance"] = 13.43,
 					["classification"] = 1,
 					["model"] = 17145,
 				},
 				{
 					["name"] = "Laughing Skull Legionnaire",
 					["npcs"] = {17626},
-					["chance"] = 13.82,
+					["chance"] = 14.18,
 					["classification"] = 1,
 					["model"] = 17150,
 				},
 				{
 					["name"] = "Laughing Skull Rogue",
 					["npcs"] = {17491},
-					["chance"] = 15.08,
+					["chance"] = 15.12,
 					["classification"] = 1,
 					["model"] = 17151,
 				},
 				{
 					["name"] = "Laughing Skull Enforcer",
 					["npcs"] = {17370},
-					["chance"] = 20.91,
+					["chance"] = 21.22,
 					["classification"] = 1,
 					["model"] = 17149,
 				},
 				{
 					["name"] = "Shadowmoon Adept",
 					["npcs"] = {17397},
-					["chance"] = 26.67,
+					["chance"] = 27.03,
 					["classification"] = 1,
 					["model"] = 17148,
 				},
@@ -28857,6 +29693,48 @@ local lootByInstance = {
 					["chance"] = 9.09,
 					["classification"] = 1,
 					["model"] = 17185,
+				},
+			},
+		},
+		{
+			[1] = 23624,
+			[2] = 0.05,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Shattered Hand Champion",
+					["npcs"] = {17671},
+					["chance"] = 0.05,
+					["classification"] = 1,
+					["model"] = 17186,
+				},
+			},
+		},
+		{
+			[1] = 25445,
+			[2] = 57.63,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Creeping Ooze",
+					["npcs"] = {17356},
+					["chance"] = 57.63,
+					["classification"] = 1,
+					["model"] = 358,
+				},
+			},
+		},
+		{
+			[1] = 25447,
+			[2] = 16.95,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Creeping Ooze",
+					["npcs"] = {17356},
+					["chance"] = 16.95,
+					["classification"] = 1,
+					["model"] = 358,
 				},
 			},
 		},
@@ -28936,6 +29814,34 @@ local lootByInstance = {
 					["chance"] = 0.01,
 					["classification"] = 1,
 					["model"] = 21005,
+				},
+			},
+		},
+		{
+			[1] = 28058,
+			[2] = 100,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Mana Leech",
+					["npcs"] = {19306},
+					["chance"] = 100,
+					["classification"] = 0,
+					["model"] = 16217,
+				},
+			},
+		},
+		{
+			[1] = 28059,
+			[2] = 19.41,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Mana Leech",
+					["npcs"] = {19306},
+					["chance"] = 19.41,
+					["classification"] = 0,
+					["model"] = 16217,
 				},
 			},
 		},
@@ -29067,13 +29973,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 31920,
-			[2] = 1.02,
+			[2] = 1.1,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Ethereum Prisoner (Dungeon Energy Ball)",
 					["npcs"] = {22927},
-					["chance"] = 1.02,
+					["chance"] = 1.1,
 					["classification"] = 0,
 					["model"] = 19745,
 				},
@@ -29081,13 +29987,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 31921,
-			[2] = 1.77,
+			[2] = 1.96,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Ethereum Prisoner (Dungeon Energy Ball)",
 					["npcs"] = {22927},
-					["chance"] = 1.77,
+					["chance"] = 1.96,
 					["classification"] = 0,
 					["model"] = 19745,
 				},
@@ -29109,13 +30015,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 31923,
-			[2] = 1.49,
+			[2] = 1.73,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Ethereum Prisoner (Dungeon Energy Ball)",
 					["npcs"] = {22927},
-					["chance"] = 1.49,
+					["chance"] = 1.73,
 					["classification"] = 0,
 					["model"] = 19745,
 				},
@@ -29123,13 +30029,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 31924,
-			[2] = 1.77,
+			[2] = 1.96,
 			["itemClass"] = 4,
 			["mobs"] = {
 				{
 					["name"] = "Ethereum Prisoner (Dungeon Energy Ball)",
 					["npcs"] = {22927},
-					["chance"] = 1.77,
+					["chance"] = 1.96,
 					["classification"] = 0,
 					["model"] = 19745,
 				},
@@ -29222,6 +30128,34 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 30812,
+			[2] = 40,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Cobalt Serpent",
+					["npcs"] = {19428},
+					["chance"] = 40,
+					["classification"] = 1,
+					["model"] = 19788,
+				},
+			},
+		},
+		{
+			[1] = 30813,
+			[2] = 16.22,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Cobalt Serpent",
+					["npcs"] = {19428},
+					["chance"] = 16.22,
+					["classification"] = 1,
+					["model"] = 19788,
+				},
+			},
+		},
+		{
 			[1] = 31671,
 			[2] = 20,
 			["itemClass"] = 7,
@@ -29253,7 +30187,7 @@ local lootByInstance = {
 		},
 		{
 			[1] = 23622,
-			[2] = 0,
+			[2] = 0.01,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
@@ -29266,7 +30200,7 @@ local lootByInstance = {
 				{
 					["name"] = "Cabal Ritualist",
 					["npcs"] = {18794},
-					["chance"] = 0,
+					["chance"] = 0.01,
 					["classification"] = 1,
 					["model"] = 18191,
 				},
@@ -29287,7 +30221,36 @@ local lootByInstance = {
 			},
 		},
 	},
-	["The Slave Pens"] = {},
+	["The Slave Pens"] = {
+		{
+			[1] = 25429,
+			[2] = 53.52,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Bogstrok",
+					["npcs"] = {17816},
+					["chance"] = 53.52,
+					["classification"] = 1,
+					["model"] = 17106,
+				},
+			},
+		},
+		{
+			[1] = 25431,
+			[2] = 12.79,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Bogstrok",
+					["npcs"] = {17816},
+					["chance"] = 12.79,
+					["classification"] = 1,
+					["model"] = 17106,
+				},
+			},
+		},
+	},
 	["The Underbog"] = {
 		{
 			[1] = 22794,
@@ -29298,6 +30261,170 @@ local lootByInstance = {
 					["npcs"] = {17725},
 					["classification"] = 1,
 					["model"] = 17754,
+				},
+			},
+		},
+		{
+			[1] = 25435,
+			[2] = 71.43,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Fen Ray",
+					["npcs"] = {17731},
+					["chance"] = 50,
+					["classification"] = 1,
+					["model"] = 19403,
+				},
+				{
+					["name"] = "Lykul Stinger",
+					["npcs"] = {19632},
+					["chance"] = 66.67,
+					["classification"] = 1,
+					["model"] = 19367,
+				},
+				{
+					["name"] = "Lykul Wasp",
+					["npcs"] = {17732},
+					["chance"] = 71.43,
+					["classification"] = 1,
+					["model"] = 18722,
+				},
+			},
+		},
+		{
+			[1] = 25437,
+			[2] = 28.57,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Lykul Stinger",
+					["npcs"] = {19632},
+					["chance"] = 5.88,
+					["classification"] = 1,
+					["model"] = 19367,
+				},
+				{
+					["name"] = "Fen Ray",
+					["npcs"] = {17731},
+					["chance"] = 16.67,
+					["classification"] = 1,
+					["model"] = 19403,
+				},
+				{
+					["name"] = "Lykul Wasp",
+					["npcs"] = {17732},
+					["chance"] = 28.57,
+					["classification"] = 1,
+					["model"] = 18722,
+				},
+			},
+		},
+		{
+			[1] = 25450,
+			[2] = 59.15,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Underbog Lurker",
+					["npcs"] = {17725},
+					["classification"] = 1,
+					["model"] = 17754,
+				},
+				{
+					["name"] = "Underbog Lord",
+					["npcs"] = {17734},
+					["classification"] = 1,
+					["model"] = 17758,
+				},
+				{
+					["name"] = "Bog Giant",
+					["npcs"] = {17723},
+					["chance"] = 58.36,
+					["classification"] = 1,
+					["model"] = 17450,
+				},
+				{
+					["name"] = "Underbog Shambler",
+					["npcs"] = {17871},
+					["chance"] = 59.15,
+					["classification"] = 1,
+					["model"] = 16273,
+				},
+			},
+		},
+		{
+			[1] = 25452,
+			[2] = 15.46,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Underbog Lurker",
+					["npcs"] = {17725},
+					["classification"] = 1,
+					["model"] = 17754,
+				},
+				{
+					["name"] = "Underbog Lord",
+					["npcs"] = {17734},
+					["classification"] = 1,
+					["model"] = 17758,
+				},
+				{
+					["name"] = "Bog Giant",
+					["npcs"] = {17723},
+					["chance"] = 14.81,
+					["classification"] = 1,
+					["model"] = 17450,
+				},
+				{
+					["name"] = "Underbog Shambler",
+					["npcs"] = {17871},
+					["chance"] = 15.46,
+					["classification"] = 1,
+					["model"] = 16273,
+				},
+			},
+		},
+		{
+			[1] = 25454,
+			[2] = 18.75,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Underbat",
+					["npcs"] = {17724},
+					["chance"] = 18.75,
+					["classification"] = 1,
+					["model"] = 17752,
+				},
+			},
+		},
+		{
+			[1] = 25456,
+			[2] = 75,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Underbat",
+					["npcs"] = {17724},
+					["chance"] = 75,
+					["classification"] = 1,
+					["model"] = 17752,
+				},
+			},
+		},
+		{
+			[1] = 25813,
+			[2] = 0.33,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Underbog Shambler",
+					["npcs"] = {17871},
+					["chance"] = 0.33,
+					["classification"] = 1,
+					["model"] = 16273,
 				},
 			},
 		},
@@ -29523,7 +30650,7 @@ local lootByInstance = {
 				{
 					["name"] = "Rift Lord",
 					["npcs"] = {17839},
-					["chance"] = 2.26,
+					["chance"] = 2.25,
 					["classification"] = 1,
 					["model"] = 19326,
 				},
@@ -29552,34 +30679,34 @@ local lootByInstance = {
 		},
 		{
 			[1] = 31753,
-			[2] = 8.19,
+			[2] = 7.87,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Rift Lord",
 					["npcs"] = {21140},
-					["chance"] = 7.04,
+					["chance"] = 6.94,
 					["classification"] = 1,
 					["model"] = 19326,
 				},
 				{
 					["name"] = "Rift Lord",
 					["npcs"] = {17839},
-					["chance"] = 7.36,
+					["chance"] = 7.45,
 					["classification"] = 1,
 					["model"] = 19326,
 				},
 				{
 					["name"] = "Rift Keeper",
 					["npcs"] = {21148},
-					["chance"] = 7.64,
+					["chance"] = 7.79,
 					["classification"] = 1,
 					["model"] = 20102,
 				},
 				{
 					["name"] = "Rift Keeper",
 					["npcs"] = {21104},
-					["chance"] = 8.19,
+					["chance"] = 7.87,
 					["classification"] = 1,
 					["model"] = 20102,
 				},
@@ -29844,6 +30971,48 @@ local lootByInstance = {
 					["chance"] = 3.12,
 					["classification"] = 1,
 					["model"] = 20282,
+				},
+			},
+		},
+		{
+			[1] = 29799,
+			[2] = 73.21,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Death Watcher",
+					["npcs"] = {20867},
+					["chance"] = 63.04,
+					["classification"] = 1,
+					["model"] = 19878,
+				},
+				{
+					["name"] = "Entropic Eye",
+					["npcs"] = {20868},
+					["chance"] = 73.21,
+					["classification"] = 1,
+					["model"] = 19877,
+				},
+			},
+		},
+		{
+			[1] = 29800,
+			[2] = 17.39,
+			["itemClass"] = 15,
+			["mobs"] = {
+				{
+					["name"] = "Entropic Eye",
+					["npcs"] = {20868},
+					["chance"] = 8.89,
+					["classification"] = 1,
+					["model"] = 19877,
+				},
+				{
+					["name"] = "Death Watcher",
+					["npcs"] = {20867},
+					["chance"] = 17.39,
+					["classification"] = 1,
+					["model"] = 19878,
 				},
 			},
 		},
