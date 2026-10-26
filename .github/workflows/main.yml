@@ -43,25 +43,30 @@ jobs:
         with:
           args: -g forever -w 0
 
-      - name: Package and release for TBC
+      - name: Package and release for Mists Classic
         uses: BigWigsMods/packager@master
         with:
-          args: -g bcc -w 0
+          args: -g mists -w 0
 
-      - name: Package and release for Wrath
-        uses: BigWigsMods/packager@master
-        with:
-          args: -g wrath -w 0
-
-      - name: Package and release for Cataclysm
+      - name: Package and release for Cata Classic
         uses: BigWigsMods/packager@master
         with:
           args: -g cata -w 0
 
-      - name: Package and release for Mists
+      - name: Package and release for Wrath Classic
         uses: BigWigsMods/packager@master
         with:
-          args: -g mists -w 0
+          args: -g wrath -w 0
+
+      - name: Package and release for Titan Reforged Classic
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g titan -w 0
+
+      - name: Package and release for Burning Crusade Classic
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g bcc -w 0
 
       - name: Package and release for Classic Era
         uses: BigWigsMods/packager@master
