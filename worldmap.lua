@@ -228,6 +228,7 @@ function WorldMap.AddLocation(groups, kind, id, location)
     if #insts == 0 then insts = WorldMap.GetInstances(location[4] or id) end
     if #insts == 0 then return end
     if insts[1].forever and AzerothCompendium:IsFixedFlavorClient() then return end
+    if not AzerothCompendium:IsInstanceInFlavor(insts[1]) then return end
     local mapID = location[1]
     groups[mapID] = groups[mapID] or {}
     local group = nil
@@ -266,7 +267,8 @@ function WorldMap.AddLocation(groups, kind, id, location)
 end
 
 function WorldMap.GetLocations(mapID)
-    if WorldMap.locations == nil then
+    if WorldMap.locations == nil or WorldMap.locationsFlavor ~= AzerothCompendium:GetFlavor() then
+        WorldMap.locationsFlavor = AzerothCompendium:GetFlavor()
         local groups = {}
         for id, location in pairs(AzerothCompendium.INSTANCEENTRANCES or {}) do
             WorldMap.AddLocation(groups, "entrance", id, location)

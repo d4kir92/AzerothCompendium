@@ -216,7 +216,7 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
         ["value"] = AzerothCompendium:GetFlavor(),
         ["func"] = function(value) AzerothCompendium:SetFlavor(value) end,
     })
-    acoset.flavor:SetEnabled(not AzerothCompendium:IsFixedFlavorClient())
+    acoset.flavor:SetEnabled(not AzerothCompendium:IsFlavorLocked())
     tinsert(labels, {acoset.flavor.Label, acoset.flavor.uiElement, "LID_FLAVOR"})
     acoset.scale = acoset:AddSlider({
         ["label"] = AzerothCompendium:Trans("LID_SCALE") .. ": %d%%",
@@ -244,6 +244,17 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     AddCheckbox("REMEMBERNAVIGATION", true, nil, nil, "2026-10-20")
 
+    AddCategory("SIDETABS", nil, "2026-10-27")
+    for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
+        AddCheckbox("SHOWTAB_" .. strupper(info[1]), true, function() AzerothCompendium:RefreshCompendium() end, info[2], "2026-10-27")
+    end
+
+    AddCategory("TRAINERSPELLS", 2, "2026-10-07")
+    AzerothCompendium.TrainerSpellsTabCheckboxes = {}
+    for _, key in ipairs({"TRAINERSPELLS_COMPENDIUM_CLASS", "TRAINERSPELLS_COMPENDIUM_PROFESSIONS"}) do
+        AzerothCompendium.TrainerSpellsTabCheckboxes[key] = AddCheckbox(key, true, function(value) AzerothCompendium:SetTrainerSpellsTabSetting(key, value) end, nil, "2026-10-07")
+    end
+
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
     AddCheckbox("WISHLISTENABLED", true, function()
         if AzerothCompendium.WishlistStars then
@@ -267,11 +278,6 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_ENTRANCE", "LID_SHOWENTRANCEPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_LEVEL", "LID_SHOWLEVELPINS", "2026-10-04")
-    AddCategory("TRAINERSPELLS", nil, "2026-10-07")
-    AzerothCompendium.TrainerSpellsTabCheckboxes = {}
-    for _, key in ipairs({"TRAINERSPELLS_COMPENDIUM_CLASS", "TRAINERSPELLS_COMPENDIUM_PROFESSIONS"}) do
-        AzerothCompendium.TrainerSpellsTabCheckboxes[key] = AddCheckbox(key, true, function(value) AzerothCompendium:SetTrainerSpellsTabSetting(key, value) end, nil, "2026-10-07")
-    end
 
     acoset:ResumeLayout()
     AzerothCompendium:RefreshSettingsLanguage()

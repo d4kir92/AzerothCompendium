@@ -386,13 +386,60 @@ function AzerothCompendium:IsFixedFlavorClient()
     return AzerothCompendium:IsClassicEraClient() or AzerothCompendium:GetExpansionClientFlavor() ~= nil
 end
 
+AzerothCompendium.FlavorOrder = {"classic_era", "tbc", "wrath", "cata", "mists"}
+AzerothCompendium.FlavorLabels = {
+    classic_era = "Classic Era",
+    tbc = "TBC",
+    wrath = "Wrath (WotLK)",
+    cata = "Cataclysm",
+    mists = "Mists of Pandaria"
+}
+
+function AzerothCompendium:IsFlavorLocked()
+    return #AzerothCompendium:GetFlavorChoices() < 2
+end
+
+AzerothCompendium.FlavorMaxLevels = {
+    classic_era = 60,
+    tbc = 70,
+    wrath = 80,
+    cata = 85,
+    mists = 90
+}
+
+function AzerothCompendium:IsInstanceInFlavor(inst)
+    if inst == nil or AzerothCompendium:GetExpansionClientFlavor() == nil then return true end
+    local flavor = AzerothCompendium:GetFlavor()
+    local minLevel = 0
+    for _, value in ipairs(AzerothCompendium.FlavorOrder) do
+        if value == flavor then break end
+        minLevel = AzerothCompendium.FlavorMaxLevels[value]
+    end
+
+    local level = inst.maxLevel or AzerothCompendium.FlavorMaxLevels.classic_era
+    return level > minLevel and level <= AzerothCompendium.FlavorMaxLevels[flavor]
+end
+
 function AzerothCompendium:GetFlavorChoices()
     local flavor = AzerothCompendium:GetExpansionClientFlavor()
     if flavor then
+        local choices = {}
+        for _, value in ipairs(AzerothCompendium.FlavorOrder) do
+            tinsert(choices, {
+                label = AzerothCompendium.FlavorLabels[value],
+                value = value
+            })
+
+            if value == flavor then break end
+        end
+        return choices
+    end
+
+    if AzerothCompendium:IsClassicEraClient() then
         return {
             {
-                label = ({tbc = "TBC", wrath = "Wrath (WotLK)", cata = "Cataclysm", mists = "Mists of Pandaria"})[flavor],
-                value = flavor
+                label = "Classic Era",
+                value = FLAVOR_CLASSIC_ERA
             }
         }
     end
@@ -416,7 +463,7 @@ function AzerothCompendium:GetFlavorText()
 end
 
 function AzerothCompendium:GetWowheadBranch()
-    local flavor = AzerothCompendium:GetFlavor()
+    local flavor = AzerothCompendium:GetExpansionClientFlavor() or AzerothCompendium:GetFlavor()
     if flavor == FLAVOR_FOREVER then return "forever" end
     if flavor == "tbc" or flavor == "cata" then return flavor end
     if flavor == "wrath" then return "wotlk" end
@@ -469,7 +516,16 @@ end
 
 function AzerothCompendium:GetFlavor()
     local clientFlavor = AzerothCompendium:GetExpansionClientFlavor()
-    if clientFlavor then return clientFlavor end
+    if clientFlavor then
+        local selected = AzerothCompendium:GetConfig("FLAVOR", clientFlavor)
+        for _, choice in ipairs(AzerothCompendium:GetFlavorChoices()) do
+            if choice.value == selected then return selected end
+        end
+
+        AzerothCompendium:SetConfig("FLAVOR", clientFlavor)
+        return clientFlavor
+    end
+
     if AzerothCompendium:IsClassicEraClient() then return FLAVOR_CLASSIC_ERA end
     local flavor = AzerothCompendium:GetConfig("FLAVOR", FLAVOR_FOREVER)
     if flavor ~= FLAVOR_FOREVER and flavor ~= FLAVOR_CLASSIC_ERA then
@@ -481,8 +537,12 @@ function AzerothCompendium:GetFlavor()
 end
 
 function AzerothCompendium:SetFlavor(value)
-    if value ~= FLAVOR_CLASSIC_ERA then value = FLAVOR_FOREVER end
-    if not AzerothCompendium:IsFixedFlavorClient() then AzerothCompendium:SetConfig("FLAVOR", value) end
+    local valid = false
+    for _, choice in ipairs(AzerothCompendium:GetFlavorChoices()) do
+        if choice.value == value then valid = true end
+    end
+
+    if valid and not AzerothCompendium:IsFlavorLocked() then AzerothCompendium:SetConfig("FLAVOR", value) end
     if AzerothCompendium.SyncCompendiumFlavor then AzerothCompendium:SyncCompendiumFlavor() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end

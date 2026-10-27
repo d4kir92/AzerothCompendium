@@ -52,7 +52,7 @@ function Browser:Collect()
     end
     for _, collection in ipairs({AC.INSTANCES or {}, AC.VENDORS or {}}) do
         for _, instance in ipairs(collection) do
-            if AC:GetFlavor() == "forever" or not instance.forever then
+            if (AC:GetFlavor() == "forever" or not instance.forever) and AC:IsInstanceInFlavor(instance) then
                 for _, boss in ipairs(instance.bosses or {}) do
                     local source = AC:GetInstanceName(instance) .. " / " .. AC:GetBossName(boss)
                     for _, loot in ipairs(boss.loot or {}) do Add(loot[1], source) end

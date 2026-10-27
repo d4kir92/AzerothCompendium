@@ -231,7 +231,6 @@ local searchText = ""
 local navigationLoaded = false
 local refreshPending = false
 local FLAVOR_FOREVER = "forever"
-local FLAVOR_CLASSIC_ERA = "classic_era"
 local function Lower(text)
     if text == nil then return "" end
     return strlower(text)
@@ -337,6 +336,7 @@ end
 local function IsInstanceVisible(inst)
     if not IsClassicEra() then return true end
     if inst.forever then return false end
+    if not AzerothCompendium:IsInstanceInFlavor(inst) then return false end
     if not inst.vendor then return true end
     for _, boss in ipairs(inst.bosses or {}) do
         if VisibleLootCount(boss) > 0 then return true end
@@ -344,10 +344,13 @@ local function IsInstanceVisible(inst)
     return false
 end
 
-local sharedLootIndex = nil
+local sharedLootIndexes = {}
 local function GetSharedLootSources(itemID)
+    local flavor = AzerothCompendium:GetFlavor()
+    local sharedLootIndex = sharedLootIndexes[flavor]
     if sharedLootIndex == nil then
         sharedLootIndex = {}
+        sharedLootIndexes[flavor] = sharedLootIndex
         for _, kind in ipairs({"dungeon", "raid"}) do
             for _, inst in ipairs(AzerothCompendium:GetInstances(kind)) do
                 if not inst.vendor and IsInstanceVisible(inst) then
@@ -2151,15 +2154,28 @@ local function UpdateModel()
     return applied
 end
 
+AzerothCompendium.KindTabOrder = {"dashboard", "dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}
+function AzerothCompendium:IsKindTabShown(kind)
+    if kind == "settings" then return true end
+    if kind == "wishlist" and not self:GetConfig("WISHLISTENABLED", true) then return false end
+    return self:GetConfig("SHOWTAB_" .. strupper(kind), true) ~= false
+end
+
+function AzerothCompendium:GetFirstShownKindTab()
+    for _, kind in ipairs(self.KindTabOrder) do
+        if self:IsKindTabShown(kind) then return kind end
+    end
+    return "settings"
+end
+
 local function UpdateKindTabs()
     if compendium == nil then return end
-    local wishlistEnabled = AzerothCompendium:GetConfig("WISHLISTENABLED", true)
-    compendium.kindTabs.wishlist:SetShown(wishlistEnabled)
-    compendium.kindTabs.settings:ClearAllPoints()
-    compendium.kindTabs.settings:SetPoint("TOPLEFT", wishlistEnabled and compendium.kindTabs.wishlist or compendium.kindTabs.allitems, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     for kind, tab in pairs(compendium.kindTabs) do
+        tab:SetShown(AzerothCompendium:IsKindTabShown(kind))
         tab:SetChecked(kind == listKind)
     end
+
+    AzerothCompendium:UpdateMinimumHeight()
 end
 
 local function GetInstanceMaps()
@@ -3868,23 +3884,33 @@ local function CreateFlavorControl(parent)
         control:SetPoint("LEFT", parent, "TOPLEFT", 59, -11)
         control:SetWidth(190)
         control.Dropdown:SetWidth(120)
-        local function SelectFlavor(value)
-            AzerothCompendium:SetFlavor(value)
+        local function GetFlavorIndex()
+            local choices = AzerothCompendium:GetFlavorChoices()
+            for index, choice in ipairs(choices) do
+                if choice.value == AzerothCompendium:GetFlavor() then return index, choices end
+            end
+            return 1, choices
         end
 
-        local steppers = AzerothCompendium:SetupDropdownSteppers(control, function() SelectFlavor(FLAVOR_CLASSIC_ERA) end, function() SelectFlavor(FLAVOR_FOREVER) end, true)
+        local function StepFlavor(delta)
+            local index, choices = GetFlavorIndex()
+            local choice = choices[index + delta]
+            if choice then AzerothCompendium:SetFlavor(choice.value) end
+        end
+
+        local steppers = AzerothCompendium:SetupDropdownSteppers(control, function() StepFlavor(-1) end, function() StepFlavor(1) end, true)
         control.Dropdown:SetupMenu(function(_, rootDescription)
             rootDescription:CreateTitle(AzerothCompendium:Trans("LID_FLAVOR"))
-            rootDescription:CreateButton("Classic Era", function() SelectFlavor(FLAVOR_CLASSIC_ERA) end)
-            rootDescription:CreateButton("Forever", function() SelectFlavor(FLAVOR_FOREVER) end)
+            for _, choice in ipairs(AzerothCompendium:GetFlavorChoices()) do
+                rootDescription:CreateButton(choice.label, function() AzerothCompendium:SetFlavor(choice.value) end)
+            end
         end)
 
         parent.flavorControl = control
         parent.flavorDropdown = control.Dropdown
         parent.updateFlavorSteppers = function()
-            local classic = AzerothCompendium:GetFlavor() == FLAVOR_CLASSIC_ERA
-            local locked = AzerothCompendium:IsFixedFlavorClient()
-            steppers:SetEnabled(not classic and not locked, classic and not locked)
+            local index, choices = GetFlavorIndex()
+            steppers:SetEnabled(index > 1, index < #choices)
         end
 
         control:HookScript("OnShow", parent.updateFlavorSteppers)
@@ -4173,13 +4199,15 @@ function AzerothCompendium:UpdateMinimumHeight()
     if not compendium or not compendium.kindTabs then return end
     local firstHeight, firstCount, secondHeight, secondCount = 0, 0, 0, 0
     for _, tab in pairs(compendium.kindTabs) do
-        firstHeight = firstHeight + tab:GetHeight()
-        firstCount = firstCount + 1
+        if tab:IsShown() then
+            firstHeight = firstHeight + tab:GetHeight()
+            firstCount = firstCount + 1
+        end
     end
 
     for _, entry in ipairs(self.ModuleTabs) do
         local tab = compendium.moduleTabs and compendium.moduleTabs[entry.id]
-        if tab then
+        if tab and tab:IsShown() then
             if entry.insertBefore == "wishlist" then
                 firstHeight = firstHeight + tab:GetHeight()
                 firstCount = firstCount + 1
@@ -4220,12 +4248,7 @@ function AzerothCompendium:UpdateMinimumHeight()
         tab:SetScale(scale)
     end
 
-    compendium.kindTabs.dashboard:ClearAllPoints()
-    if modern then
-        compendium.kindTabs.dashboard:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.sideRight / scale, -sideTop / scale)
-    else
-        compendium.kindTabs.dashboard:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
-    end
+    self:LayoutSideTabs(modern, layout, scale, sideTop)
     compendium.minimumHeight = MIN_HEIGHT
     if compendium.SetResizeBounds then
         compendium:SetResizeBounds(MIN_WIDTH, compendium.minimumHeight, 0, 0)
@@ -4236,11 +4259,63 @@ function AzerothCompendium:UpdateMinimumHeight()
     if compendium:GetHeight() < compendium.minimumHeight then compendium:SetHeight(compendium.minimumHeight) end
 end
 
+function AzerothCompendium:LayoutSideTabs(modern, layout, scale, sideTop)
+    local tabs = compendium.kindTabs
+    local column, extra = {}, {}
+    for _, kind in ipairs(self.KindTabOrder) do
+        if kind == "allitems" then
+            for _, entry in ipairs(self.ModuleTabs) do
+                local tab = compendium.moduleTabs and compendium.moduleTabs[entry.id]
+                if tab and entry.insertBefore == "wishlist" then tinsert(column, tab) end
+            end
+        end
+
+        tinsert(column, tabs[kind])
+    end
+
+    for _, entry in ipairs(self.ModuleTabs) do
+        local tab = compendium.moduleTabs and compendium.moduleTabs[entry.id]
+        if tab and entry.insertBefore ~= "wishlist" then tinsert(modern and column or extra, tab) end
+    end
+
+    local previous, first, second = nil, nil, nil
+    for _, tab in ipairs(column) do
+        if tab:IsShown() then
+            tab:ClearAllPoints()
+            if previous == nil then
+                if modern then
+                    tab:SetPoint("TOPRIGHT", compendium, "TOPRIGHT", -layout.sideRight / scale, -sideTop / scale)
+                else
+                    tab:SetPoint("TOPLEFT", compendium, "TOPRIGHT", -2 / scale, -SIDE_TAB_TOP / scale)
+                end
+
+                first = tab
+            else
+                tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+                second = second or tab
+            end
+
+            previous = tab
+        end
+    end
+
+    local anchor = tabs.dungeon:IsShown() and tabs.dungeon or second or first
+    previous = nil
+    for _, tab in ipairs(extra) do
+        tab:ClearAllPoints()
+        if previous == nil then
+            tab:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 4, 0)
+        else
+            tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
+        end
+
+        previous = tab
+    end
+end
+
 function AzerothCompendium:RefreshModuleTabs()
     if compendium == nil or compendium.kindTabs == nil then return end
     compendium.moduleTabs = compendium.moduleTabs or {}
-    local previous = nil
-    local beforeWishlist = compendium.kindTabs.worldquestitems
     for _, entry in ipairs(self.ModuleTabs) do
         local tab = compendium.moduleTabs[entry.id]
         if tab == nil then
@@ -4265,29 +4340,9 @@ function AzerothCompendium:RefreshModuleTabs()
         end
 
         tab.Icon:SetTexture(entry.icon)
-        tab:ClearAllPoints()
-        if entry.insertBefore == "wishlist" then
-            tab:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
-            beforeWishlist = tab
-        else
-            if previous == nil and self.Theme:IsModern() then
-                tab:SetPoint("TOPLEFT", compendium.kindTabs.settings, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
-            elseif previous == nil then
-                tab:SetPoint("TOPLEFT", compendium.kindTabs.dungeon, "TOPRIGHT", 4, 0)
-            else
-                tab:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
-            end
-
-            previous = tab
-        end
     end
 
-    compendium.kindTabs.allitems:ClearAllPoints()
-    compendium.kindTabs.allitems:SetPoint("TOPLEFT", beforeWishlist, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
-    compendium.kindTabs.wishlist:ClearAllPoints()
-    compendium.kindTabs.wishlist:SetPoint("TOPLEFT", compendium.kindTabs.allitems, "BOTTOMLEFT", 0, -SIDE_TAB_GAP)
     UpdateKindTabs()
-    self:UpdateMinimumHeight()
 end
 
 AzerothCompendium.TrainerSpellsTabSettings = {
@@ -4856,7 +4911,7 @@ function AzerothCompendium:RefreshDashboard()
     local keys = {dungeon = "LID_DUNGEONS", raid = "LID_RAIDS", pvp = "LID_PVP", faction = "LID_REPUTATION", worldquestitems = "LID_WORLDQUESTITEMS", allitems = "LID_ALLITEMS", wishlist = "LID_WISHLIST", settings = "LID_SETTINGS"}
     for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}) do
         local tab = compendium.kindTabs[kind]
-        if kind ~= "wishlist" or self:GetConfig("WISHLISTENABLED", true) then
+        if self:IsKindTabShown(kind) then
             local entry = {tab = tab, label = self:Trans(keys[kind]), icon = tab.Icon:GetTexture()}
             if kind == "dungeon" or kind == "raid" then
                 local seen, done, total = {}, 0, 0
@@ -7112,9 +7167,18 @@ function AzerothCompendium:OpenCompendiumSettings()
 end
 
 function AzerothCompendium:ResetCompendiumNavigation()
-    if AzerothCompendium:GetConfig("REMEMBERNAVIGATION", true) == true then return end
-    ApplyKindNavigation("dashboard")
-    SaveNavigationState()
+    local changed = false
+    if AzerothCompendium:GetConfig("REMEMBERNAVIGATION", true) ~= true then
+        ApplyKindNavigation("dashboard")
+        changed = true
+    end
+
+    if compendium.kindTabs[listKind] and not AzerothCompendium:IsKindTabShown(listKind) then
+        ApplyKindNavigation(AzerothCompendium:GetFirstShownKindTab())
+        changed = true
+    end
+
+    if changed then SaveNavigationState() end
 end
 
 function AzerothCompendium:ToggleCompendium()
