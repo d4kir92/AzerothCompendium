@@ -31,6 +31,7 @@ ignore:
   - data/mists/quest_chains.lua
   - data/mists/quest_followups.lua
   - data/mists/quest_rewards.lua
+  - data/mists/sets.lua
   - data/mists/trash.lua
   - data/quests.lua
   - data/quest_chains.lua

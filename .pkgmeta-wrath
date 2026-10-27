@@ -19,6 +19,7 @@ ignore:
   - data/cata/quest_chains.lua
   - data/cata/quest_followups.lua
   - data/cata/quest_rewards.lua
+  - data/cata/sets.lua
   - data/cata/trash.lua
   - data/classic_era/boss_ranks.lua
   - data/classic_era/instances.lua
@@ -42,6 +43,7 @@ ignore:
   - data/mists/quest_chains.lua
   - data/mists/quest_followups.lua
   - data/mists/quest_rewards.lua
+  - data/mists/sets.lua
   - data/mists/trash.lua
   - data/quests.lua
   - data/quest_chains.lua

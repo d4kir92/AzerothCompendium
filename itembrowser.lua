@@ -52,7 +52,7 @@ function Browser:Collect()
     end
     for _, collection in ipairs({AC.INSTANCES or {}, AC.VENDORS or {}}) do
         for _, instance in ipairs(collection) do
-            if (AC:GetFlavor() == "forever" or not instance.forever) and AC:IsInstanceInFlavor(instance) then
+            if instance.type ~= "sets" and (AC:GetFlavor() == "forever" or not instance.forever) and AC:IsInstanceInFlavor(instance) then
                 for _, boss in ipairs(instance.bosses or {}) do
                     local source = AC:GetInstanceName(instance) .. " / " .. AC:GetBossName(boss)
                     for _, loot in ipairs(boss.loot or {}) do Add(loot[1], source) end
@@ -289,7 +289,7 @@ function Browser:BuildColumns()
     for _, attribute in ipairs(self.attributes) do
         if self.selectedAttributes[attribute[1]] then table.insert(definitions, {"stat:" .. attribute[1], self:Label(attribute), 100}) end
     end
-    table.insert(definitions, {"source", AC:Trans("LID_SOURCE"), 140})
+    table.insert(definitions, {"source", AC:Trans("LID_SOURCECOLUMN"), 140})
     local validSort = false
     for _, definition in ipairs(definitions) do
         local modern = AC:CheckTemplates("WowStyle1DropdownTemplate")

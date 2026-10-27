@@ -67,6 +67,13 @@ data\vendor_locations.lua
 data\tbc\factions.lua
 data\wrath\factions.lua
 
+data\pvp_sides.lua
+data\tbc\pvp.lua
+data\wrath\pvp.lua
+data\classic_era\sets.lua
+data\tbc\sets.lua
+data\wrath\sets.lua
+
 data\continents.lua
 data\wrath\continents.lua
 

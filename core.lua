@@ -687,9 +687,32 @@ function AzerothCompendium:GetInstanceName(inst)
     return base
 end
 
+function AzerothCompendium:GetLabelText(entry)
+    if entry.labelInstance then
+        for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+            if inst.id == entry.labelInstance and not inst.parentID then return AzerothCompendium:GetInstanceName(inst) end
+        end
+
+        return entry.name
+    end
+
+    local arg = entry.labelArg
+    if entry.labelArgKey then arg = AzerothCompendium:Trans(entry.labelArgKey) end
+    return AzerothCompendium:Trans(entry.labelKey, nil, arg) .. (entry.labelSuffix or "")
+end
+
+function AzerothCompendium:GetItemSetName(setID)
+    local getter = C_Item and C_Item.GetItemSetInfo or GetItemSetInfo
+    if getter == nil then return nil end
+    local ok, name = pcall(getter, setID)
+    if ok and type(name) == "string" and name ~= "" then return name end
+    return nil
+end
+
 function AzerothCompendium:GetInstanceBaseName(inst)
     if inst == nil then return "" end
     if inst.honor then return AzerothCompendium:Trans("LID_HONORRANKS") end
+    if inst.labelKey or inst.labelInstance then return AzerothCompendium:GetLabelText(inst) end
     if inst.factionID then
         if C_Reputation and C_Reputation.GetFactionDataByID then
             local data = C_Reputation.GetFactionDataByID(inst.factionID)
@@ -936,6 +959,8 @@ function AzerothCompendium:GetBossName(boss)
     end
 
     if boss.rank ~= nil then return AzerothCompendium:Trans("LID_RANK", nil, boss.rank) end
+    if boss.setID ~= nil then return AzerothCompendium:GetItemSetName(boss.setID) or boss.name end
+    if boss.labelKey or boss.labelInstance then return AzerothCompendium:GetLabelText(boss) end
     if boss.npcs and boss.npcs[1] and AzerothCompendium:GetLanguage() == GetLocale() then
         local live = AzerothCompendium:GetBossCreatureName(boss)
         if live then return live end
@@ -2209,7 +2234,8 @@ function AzerothCompendium:GetInstances(kind)
             ["dungeon"] = {},
             ["raid"] = {},
             ["pvp"] = {},
-            ["faction"] = {}
+            ["faction"] = {},
+            ["sets"] = {}
         }
 
         for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
@@ -2246,16 +2272,20 @@ function AzerothCompendium:GetInstances(kind)
 
         table.sort(byType["faction"], ByName)
         table.sort(byType["pvp"], ByName)
+        local setOrder = {}
+        for index, inst in ipairs(byType["sets"]) do
+            setOrder[inst] = index
+        end
+        table.sort(byType["sets"], function(a, b)
+            if (a.maxLevel or 0) ~= (b.maxLevel or 0) then return (a.maxLevel or 0) < (b.maxLevel or 0) end
+            return setOrder[a] < setOrder[b]
+        end)
     end
 
     return byType[kind] or {}
 end
 
 AzerothCompendium.FactionCategoryOrder = {"shattrath", "tabard", "dungeon", "world", "sholazar", "argent", "daily", "steamwheedle", "warfront", "other"}
-function AzerothCompendium:GetFactionCategory(inst)
-    return inst and inst.category or "other"
-end
-
 AzerothCompendium.FactionCategoryMaps = {
     shattrath = 111,
     sholazar = 119
@@ -2282,19 +2312,41 @@ function AzerothCompendium:GetFactionCategoryName(category)
     return AzerothCompendium:Trans("LID_FACTIONCAT_" .. string.upper(category or "other"))
 end
 
-function AzerothCompendium:GetFactionCategoryGroups(list)
+AzerothCompendium.SetCategoryOrder = {"tier", "raid", "dungeon", "arena", "pvp", "world", "other"}
+function AzerothCompendium:GetSetCategoryName(category)
+    return AzerothCompendium:Trans("LID_SETCAT_" .. string.upper(category or "other"))
+end
+
+function AzerothCompendium:HasKindCategories(kind)
+    return kind == "faction" or kind == "sets"
+end
+
+function AzerothCompendium:IsBossForPlayer(boss)
+    if boss.side and not AzerothCompendium:IsQuestSideVisible(boss.side) then return false end
+    if boss.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then
+        local classID = select(3, UnitClass("player"))
+        if type(classID) == "number" and bit.band(boss.classMask, 2 ^ (classID - 1)) == 0 then return false end
+    end
+    return true
+end
+
+function AzerothCompendium:IsGroupedKind(kind)
+    return kind == "dungeon" or kind == "raid" or kind == "pvp" or kind == "faction" or kind == "sets"
+end
+
+function AzerothCompendium:GetCategoryGroups(list, order, getName)
     local byCategory, groups = {}, {}
     for _, inst in ipairs(list) do
-        local category = AzerothCompendium:GetFactionCategory(inst)
+        local category = inst.category or "other"
         byCategory[category] = byCategory[category] or {}
         tinsert(byCategory[category], inst)
     end
 
-    for _, category in ipairs(AzerothCompendium.FactionCategoryOrder) do
+    for _, category in ipairs(order) do
         if byCategory[category] then
             tinsert(groups, {
                 category = category,
-                label = AzerothCompendium:GetFactionCategoryName(category),
+                label = getName(AzerothCompendium, category),
                 entries = byCategory[category]
             })
             byCategory[category] = nil
@@ -2304,11 +2356,16 @@ function AzerothCompendium:GetFactionCategoryGroups(list)
     for category, entries in pairs(byCategory) do
         tinsert(groups, {
             category = category,
-            label = AzerothCompendium:GetFactionCategoryName("other"),
+            label = getName(AzerothCompendium, "other"),
             entries = entries
         })
     end
     return groups
+end
+
+function AzerothCompendium:GetKindCategoryGroups(kind, list)
+    if kind == "sets" then return AzerothCompendium:GetCategoryGroups(list, AzerothCompendium.SetCategoryOrder, AzerothCompendium.GetSetCategoryName) end
+    return AzerothCompendium:GetCategoryGroups(list, AzerothCompendium.FactionCategoryOrder, AzerothCompendium.GetFactionCategoryName)
 end
 
 function AzerothCompendium:GetItemDisplay(itemID)
@@ -2337,8 +2394,66 @@ function AzerothCompendium:GetItemSlotText(itemID)
     return itemType or ""
 end
 
+AzerothCompendium.ItemClassRestrictions = {}
+function AzerothCompendium:ReadItemTooltipLines(itemID)
+    local texts = {}
+    if C_TooltipInfo and C_TooltipInfo.GetItemByID then
+        local ok, data = pcall(C_TooltipInfo.GetItemByID, itemID)
+        if ok and type(data) == "table" and type(data.lines) == "table" then
+            for _, line in ipairs(data.lines) do
+                if type(line.leftText) == "string" then tinsert(texts, line.leftText) end
+            end
+            return texts
+        end
+    end
+
+    local tooltip = _G["AzerothCompendiumScanTooltip"] or CreateFrame("GameTooltip", "AzerothCompendiumScanTooltip", UIParent, "GameTooltipTemplate")
+    tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    tooltip:ClearLines()
+    pcall(tooltip.SetHyperlink, tooltip, "item:" .. itemID)
+    for index = 1, tooltip:NumLines() do
+        local region = _G["AzerothCompendiumScanTooltipTextLeft" .. index]
+        local text = region and region:GetText()
+        if type(text) == "string" then tinsert(texts, text) end
+    end
+    tooltip:Hide()
+    return texts
+end
+
+function AzerothCompendium:GetItemClassRestriction(itemID)
+    local cached = AzerothCompendium.ItemClassRestrictions[itemID]
+    if cached ~= nil then return cached end
+    if type(ITEM_CLASSES_ALLOWED) ~= "string" then return false end
+    if C_Item and C_Item.IsItemDataCachedByID and not C_Item.IsItemDataCachedByID(itemID) then return nil end
+    local prefix = ITEM_CLASSES_ALLOWED:match("^(.-)%%s")
+    if prefix == nil or prefix == "" then return false end
+    local texts = AzerothCompendium:ReadItemTooltipLines(itemID)
+    if #texts == 0 then return nil end
+    local result = false
+    for _, text in ipairs(texts) do
+        if issecretvalue and issecretvalue(text) then return nil end
+        if text:sub(1, #prefix) == prefix then
+            result = text:sub(#prefix + 1)
+            break
+        end
+    end
+
+    AzerothCompendium.ItemClassRestrictions[itemID] = result
+    return result
+end
+
+function AzerothCompendium:IsClassAllowedByRestriction(restriction, class)
+    if type(restriction) ~= "string" then return true end
+    for _, names in ipairs({LOCALIZED_CLASS_NAMES_MALE, LOCALIZED_CLASS_NAMES_FEMALE}) do
+        local name = type(names) == "table" and names[class or ""]
+        if type(name) == "string" and name ~= "" and restriction:find(name, 1, true) then return true end
+    end
+    return false
+end
+
 function AzerothCompendium:IsUsableByClass(itemID, class)
     if itemID == nil then return true end
+    if not AzerothCompendium:IsClassAllowedByRestriction(AzerothCompendium:GetItemClassRestriction(itemID), class) then return false end
     local _, _, _, invType, _, classID, subClassID = AzerothCompendium:GetItemInfoInstant(itemID)
     if classID == nil then return true end
     if ALWAYS_USABLE_SLOTS[invType or ""] then return true end

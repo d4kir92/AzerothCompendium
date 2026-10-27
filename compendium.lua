@@ -713,7 +713,7 @@ local function CreateTextRow(scroller, onClick)
 end
 
 local function UsesLoadingScreens()
-    return listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
+    return AzerothCompendium:IsGroupedKind(listKind)
 end
 
 local TILE_STYLE = {
@@ -911,6 +911,12 @@ local function UpdateLoadingScreenCrop(row)
 end
 
 local function GetLoadingScreen(inst)
+    if inst.loadingInstance then
+        local id = inst.loadingInstance
+        if AzerothCompendium.LOADINGSCREENS_WIDE and AzerothCompendium.LOADINGSCREENS_WIDE[id] then return AzerothCompendium.LOADINGSCREENS_WIDE[id], LOADSCREEN_WIDE end
+        if AzerothCompendium.LOADINGSCREENS and AzerothCompendium.LOADINGSCREENS[id] then return AzerothCompendium.LOADINGSCREENS[id], LOADSCREEN_CLASSIC end
+        return nil, nil
+    end
     if inst.vendor then
         local fileID = AzerothCompendium.LOADINGSCREENS_VENDOR and AzerothCompendium.LOADINGSCREENS_VENDOR[inst.id]
         if fileID then return fileID, LOADSCREEN_CLASSIC end
@@ -1638,13 +1644,14 @@ local function GetInstanceList()
 end
 
 function AzerothCompendium:GetGroupedInstanceList(list)
-    if listKind ~= "dungeon" and listKind ~= "raid" and listKind ~= "faction" then return list end
+    local categorized = AzerothCompendium:HasKindCategories(listKind)
+    if listKind ~= "dungeon" and listKind ~= "raid" and not categorized then return list end
     ACOTABPC = ACOTABPC or {}
     ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
     local groups, levels, result = {}, {}, {}
-    if listKind == "faction" then
-        for _, group in ipairs(AzerothCompendium:GetFactionCategoryGroups(list)) do
-            local key = "faction:" .. group.category
+    if categorized then
+        for _, group in ipairs(AzerothCompendium:GetKindCategoryGroups(listKind, list)) do
+            local key = listKind .. ":" .. group.category
             local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
             tinsert(result, {
                 levelGroup = true,
@@ -1707,7 +1714,7 @@ local function GetBossList()
             total = total + 1
             if AzerothCompendium:IsBossFound(boss) then found = found + 1 end
         end
-        if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) and not AzerothCompendium:IsBossSpoilerHidden(boss) then tinsert(list, boss) end
+        if (not selectedInstance.vendor or VisibleLootCount(boss) > 0) and BossMatches(boss) and not AzerothCompendium:IsBossSpoilerHidden(boss) and AzerothCompendium:IsBossForPlayer(boss) then tinsert(list, boss) end
     end
     compendium.bossesFound, compendium.bossesTotal = found, total
 
@@ -1752,6 +1759,7 @@ local function GetLootList()
         local boss = entry.source or selectedBoss
         local bossMatched = Matches(AzerothCompendium:GetBossName(boss)) or Matches(boss.name)
         local ok = IsItemVisible(itemID)
+        if ok and (listKind == "pvp" or listKind == "sets") and not AzerothCompendium:IsQuestSideVisible(AzerothCompendium.ITEMSIDES and AzerothCompendium.ITEMSIDES[itemID]) then ok = false end
         if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok and onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then
             ok = false
@@ -1939,7 +1947,7 @@ end
 local function FindWishlistSource(itemID, source)
     if type(source) == "table" and source.kind == "worldquestitems" then return nil, nil, nil end
     if not IsItemVisible(itemID) then return nil, nil, nil end
-    local kinds = {"dungeon", "raid", "pvp", "faction"}
+    local kinds = {"dungeon", "raid", "pvp", "faction", "sets"}
     if type(source) == "table" and source.kind ~= nil then
         for _, inst in ipairs(AzerothCompendium:GetInstances(source.kind)) do
             if IsInstanceVisible(inst) and GetInstanceKey(inst) == source.instance then
@@ -2176,7 +2184,7 @@ local function UpdateModel()
     return applied
 end
 
-AzerothCompendium.KindTabOrder = {"dashboard", "dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}
+AzerothCompendium.KindTabOrder = {"dashboard", "dungeon", "raid", "pvp", "faction", "sets", "worldquestitems", "allitems", "wishlist", "settings"}
 function AzerothCompendium:IsKindTabShown(kind)
     if kind == "settings" then return true end
     if kind == "wishlist" and not self:GetConfig("WISHLISTENABLED", true) then return false end
@@ -2891,7 +2899,8 @@ local function RefreshDetail()
         spoiler:SetChecked(AzerothCompendium:IsSpoilerFree())
         spoiler.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontDisableSmall)
         compendium.detailTitle:ClearAllPoints()
-        compendium.detailTitle:SetPoint("RIGHT", grouped and spoiler.label or compendium.classFilterLabel, "LEFT", -12, 0)
+        local sided = listKind == "pvp" or listKind == "sets"
+        compendium.detailTitle:SetPoint("RIGHT", sided and compendium.factionToggle or grouped and spoiler.label or compendium.classFilterLabel, "LEFT", -12, 0)
         compendium.detailTitle:SetJustifyH("RIGHT")
     elseif AzerothCompendium.LayoutEntries[compendium.detailTitle] then
         AzerothCompendium.LayoutEntries[compendium.detailTitle](AzerothCompendium.Theme:IsModern())
@@ -2920,11 +2929,16 @@ local function RefreshBosses()
     compendium.foreverNotice:SetShown(listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
     compendium.foreverNotice:ClearAllPoints()
     compendium.foreverNotice:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
+    local lootToggle = (listKind == "pvp" or listKind == "sets") and not compendium.overviewActive
     compendium.factionToggle:ClearAllPoints()
-    compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.overviewActive and compendium.overview or compendium.questTree, "TOPRIGHT", -2, 4)
-    compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests") or (listKind == "pvp" or listKind == "faction") and compendium.overviewActive)
-    compendium.factionToggle.completedFilter:SetShown(not compendium.overviewActive)
-    compendium.factionToggle.classHeader:SetShown(not compendium.overviewActive)
+    if lootToggle then
+        compendium.factionToggle:SetPoint("RIGHT", compendium.classFilterLabel, "LEFT", -12, 0)
+    else
+        compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.overviewActive and compendium.overview or compendium.questTree, "TOPRIGHT", -2, 4)
+    end
+    compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests") or listKind == "faction" and compendium.overviewActive or listKind == "pvp" or listKind == "sets")
+    compendium.factionToggle.completedFilter:SetShown(not compendium.overviewActive and not lootToggle)
+    compendium.factionToggle.classHeader:SetShown(not compendium.overviewActive and not lootToggle)
     if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
     for side, button in ipairs(compendium.factionToggle.buttons) do
         local enabled = AzerothCompendium:IsQuestSideVisible(side)
@@ -2934,7 +2948,7 @@ local function RefreshBosses()
         button.icon:SetDesaturated(not enabled)
         button.icon:SetAlpha(enabled and 1 or 0.45)
     end
-    if compendium.overviewActive and (listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction") then
+    if compendium.overviewActive and AzerothCompendium:IsGroupedKind(listKind) then
         for _, frame in ipairs({compendium.bosses, compendium.bossTitle, compendium.questTree, compendium.mapView, compendium.mapLevel, compendium.loot, compendium.spells, compendium.detailCount, compendium.detailTitle, compendium.classFilter, compendium.classFilterLabel, compendium.empty}) do frame:Hide() end
         if compendium.model then compendium.model:Hide() end
         for _, tab in pairs(compendium.middleTabs) do tab:Hide() end
@@ -4760,7 +4774,7 @@ function AzerothCompendium:CreateWishlistTabs()
     ACOTABPC = ACOTABPC or {}
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
-    local categories = {{"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
+    local categories = {{"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"sets", "LID_SETS", "Interface\\Icons\\INV_Chest_Plate03"},{"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}}
     compendium.wishlistTabs = {}
     local previous = nil
     for _, info in ipairs(categories) do
@@ -4930,8 +4944,8 @@ function AzerothCompendium:RefreshDashboard()
     SetSpecialMode("dashboard")
     local panel = compendium.dashboard
     local entries = {}
-    local keys = {dungeon = "LID_DUNGEONS", raid = "LID_RAIDS", pvp = "LID_PVP", faction = "LID_REPUTATION", worldquestitems = "LID_WORLDQUESTITEMS", allitems = "LID_ALLITEMS", wishlist = "LID_WISHLIST", settings = "LID_SETTINGS"}
-    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}) do
+    local keys = {dungeon = "LID_DUNGEONS", raid = "LID_RAIDS", pvp = "LID_PVP", faction = "LID_REPUTATION", sets = "LID_SETS", worldquestitems = "LID_WORLDQUESTITEMS", allitems = "LID_ALLITEMS", wishlist = "LID_WISHLIST", settings = "LID_SETTINGS"}
+    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "sets", "worldquestitems", "allitems", "wishlist", "settings"}) do
         local tab = compendium.kindTabs[kind]
         if self:IsKindTabShown(kind) then
             local entry = {tab = tab, label = self:Trans(keys[kind]), icon = tab.Icon:GetTexture()}
@@ -4961,7 +4975,7 @@ function AzerothCompendium:RefreshDashboard()
     end
     local tabOrder = {}
     local position = 0
-    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "worldquestitems", "allitems", "wishlist", "settings"}) do
+    for _, kind in ipairs({"dungeon", "raid", "pvp", "faction", "sets", "worldquestitems", "allitems", "wishlist", "settings"}) do
         if kind == "allitems" then
             for _, module in ipairs(self.ModuleTabs) do
                 if module.insertBefore == "wishlist" then
@@ -5665,7 +5679,7 @@ function AzerothCompendium:CreateInstanceControls()
         end
 
         local layout = AzerothCompendium.ContentLayoutModern
-        local grouped = listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
+        local grouped = AzerothCompendium:IsGroupedKind(listKind)
         local overviewText = overviewButton.Text or (overviewButton.GetFontString and overviewButton:GetFontString())
         overviewButton:SetSize(max(80, (overviewText and overviewText:GetStringWidth() or 60) + 28), layout.headerHeight - 6)
         instanceDropdown:SetHeight(layout.headerHeight - 6)
@@ -5690,8 +5704,17 @@ function AzerothCompendium:CreateInstanceControls()
     local overview = CreateScroller(compendium, 158, function(scroller)
         local row = CreateFrame("Frame", nil, scroller)
         row.tiles = {}
+        row.headerIcon = row:CreateTexture(nil, "OVERLAY")
+        row.headerIcon:SetSize(16, 16)
+        row.headerIcon:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 8)
         row.header = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-        row.header:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 6)
+        row.header:SetPoint("LEFT", row.headerIcon, "RIGHT", 4, 0)
+        row:SetScript("OnMouseUp", function(sel, button)
+            local entries = sel.headerEntry
+            if button ~= "LeftButton" or entries == nil then return end
+            ACOTABPC.INSTANCEGROUPS[entries.key] = not ACOTABPC.INSTANCEGROUPS[entries.key] or nil
+            compendium:RefreshOverview()
+        end)
         row.header:SetJustifyH("LEFT")
         row.headerCount = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         row.headerCount:SetPoint("LEFT", row.header, "RIGHT", 8, 0)
@@ -5703,11 +5726,15 @@ function AzerothCompendium:CreateInstanceControls()
         row.headerLine:SetColorTexture(1, 0.82, 0, 0.35)
         function row:Update(entries)
             local header = entries.overviewHeader == true
+            self.headerEntry = header and entries or nil
+            self:EnableMouse(header)
             self.header:SetShown(header)
+            self.headerIcon:SetShown(header)
             self.headerCount:SetShown(header)
             self.headerLine:SetShown(header)
             if self.stripe then self.stripe:SetShown(not header) end
             if header then
+                AzerothCompendium.Theme:SetCollapseIcon(self.headerIcon, entries.collapsed)
                 self.header:SetText(entries.label)
                 self.headerCount:SetText(entries.count)
                 for _, tile in ipairs(self.tiles) do tile:Hide() end
@@ -5798,11 +5825,18 @@ function AzerothCompendium:CreateInstanceControls()
         local list, hidden = GetInstanceList()
         AzerothCompendium:UpdateInstanceFilterBanner(self.overview, hidden)
         local groups = {{entries = list}}
-        if listKind == "faction" and #list > 0 then groups = AzerothCompendium:GetFactionCategoryGroups(list) end
+        if #list > 0 and AzerothCompendium:HasKindCategories(listKind) then groups = AzerothCompendium:GetKindCategoryGroups(listKind, list) end
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
         for _, group in ipairs(groups) do
+            local collapsed = false
             if group.label then
+                local key = listKind .. ":" .. group.category
+                collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
                 tinsert(rows, {
                     overviewHeader = true,
+                    key = key,
+                    collapsed = collapsed,
                     label = group.label,
                     count = #group.entries,
                     rowHeight = 30
@@ -5810,10 +5844,12 @@ function AzerothCompendium:CreateInstanceControls()
             end
 
             local first = #rows
-            for index, inst in ipairs(group.entries) do
-                local rowIndex = first + floor((index - 1) / self.overviewColumns) + 1
-                rows[rowIndex] = rows[rowIndex] or {}
-                tinsert(rows[rowIndex], inst)
+            if not collapsed then
+                for index, inst in ipairs(group.entries) do
+                    local rowIndex = first + floor((index - 1) / self.overviewColumns) + 1
+                    rows[rowIndex] = rows[rowIndex] or {}
+                    tinsert(rows[rowIndex], inst)
+                end
             end
         end
         self.overview.data = rows
@@ -5857,7 +5893,7 @@ function AzerothCompendium:CreateInstanceControls()
             local text = instanceDropdown.Text or (instanceDropdown.GetFontString and instanceDropdown:GetFontString())
             local textWidth = text and (text.GetUnboundedStringWidth and text:GetUnboundedStringWidth() or text:GetStringWidth()) or 120
             local width = min(276, max(90, floor(textWidth + 44)))
-            local grouped = listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction"
+            local grouped = AzerothCompendium:IsGroupedKind(listKind)
             local used = layout.railLeft + 3 + 3
             if grouped then used = used + overviewButton:GetWidth() + 2 end
             if filterControl:IsShown() then used = used + filterDropdown:GetWidth() + 2 end
@@ -5882,7 +5918,7 @@ function AzerothCompendium:CreateInstanceControls()
             available = available - 169 - filterWidth
             dropdownWidth = max(110, min(300, floor(available / 4) * 2))
             searchWidth = dropdownWidth
-        elseif listKind == "pvp" or listKind == "faction" then
+        elseif listKind == "pvp" or listKind == "faction" or listKind == "sets" then
             searchWidth = max(110, min(300, floor((available - 169 - dropdownWidth) / 2) * 2))
         end
         self:SetWidth(dropdownWidth)
@@ -5894,7 +5930,7 @@ function AzerothCompendium:CreateInstanceControls()
         filterDropdown:Refresh()
         continentControl:Refresh()
         instanceControl:UpdateDropdownWidth()
-        overviewButton:SetShown(listKind == "dungeon" or listKind == "raid" or listKind == "pvp" or listKind == "faction")
+        overviewButton:SetShown(AzerothCompendium:IsGroupedKind(listKind))
         local text = selectedInstance and AzerothCompendium:GetInstanceName(selectedInstance) or "-"
         if instanceDropdown.SetDefaultText then instanceDropdown:SetDefaultText(text) end
         if instanceDropdown.SetText then instanceDropdown:SetText(text) end
@@ -6033,7 +6069,7 @@ local function CreateJournal()
     local pvpIcon = "Interface\\Icons\\INV_BannerPVP_02"
     if UnitFactionGroup and UnitFactionGroup("player") == "Horde" then pvpIcon = "Interface\\Icons\\INV_BannerPVP_01" end
     local previousTab = nil
-    for _, info in ipairs({{"dashboard", "LID_OVERVIEW", "Interface\\Icons\\INV_Misc_Map_01"}, {"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
+    for _, info in ipairs({{"dashboard", "LID_OVERVIEW", "Interface\\Icons\\INV_Misc_Map_01"}, {"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"sets", "LID_SETS", "Interface\\Icons\\INV_Chest_Plate03"},{"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
             if kind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end

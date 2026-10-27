@@ -16,6 +16,7 @@ ignore:
   - data/cata/quest_chains.lua
   - data/cata/quest_followups.lua
   - data/cata/quest_rewards.lua
+  - data/cata/sets.lua
   - data/cata/trash.lua
   - data/classic_era/boss_ranks.lua
   - data/classic_era/instances.lua
@@ -36,16 +37,19 @@ ignore:
   - data/mists/quest_chains.lua
   - data/mists/quest_followups.lua
   - data/mists/quest_rewards.lua
+  - data/mists/sets.lua
   - data/mists/trash.lua
   - data/tbc/boss_ranks.lua
   - data/tbc/factions.lua
   - data/tbc/instances.lua
   - data/tbc/instance_entrances.lua
   - data/tbc/instance_wings.lua
+  - data/tbc/pvp.lua
   - data/tbc/quests.lua
   - data/tbc/quest_chains.lua
   - data/tbc/quest_followups.lua
   - data/tbc/quest_rewards.lua
+  - data/tbc/sets.lua
   - data/tbc/trash.lua
   - data/wrath/boss_ranks.lua
   - data/wrath/continents.lua
@@ -53,10 +57,12 @@ ignore:
   - data/wrath/instances.lua
   - data/wrath/instance_entrances.lua
   - data/wrath/instance_wings.lua
+  - data/wrath/pvp.lua
   - data/wrath/quests.lua
   - data/wrath/quest_chains.lua
   - data/wrath/quest_followups.lua
   - data/wrath/quest_rewards.lua
+  - data/wrath/sets.lua
   - data/wrath/trash.lua
   - media/235.blp
   - media/236.blp

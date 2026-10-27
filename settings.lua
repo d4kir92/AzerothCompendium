@@ -245,7 +245,7 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddCheckbox("REMEMBERNAVIGATION", true, nil, nil, "2026-10-20")
 
     AddCategory("SIDETABS", nil, "2026-10-27")
-    for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
+    for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"sets", "LID_SETS"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
         AddCheckbox("SHOWTAB_" .. strupper(info[1]), true, function() AzerothCompendium:RefreshCompendium() end, info[2], "2026-10-27")
     end
 
