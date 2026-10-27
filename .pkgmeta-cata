@@ -23,6 +23,7 @@ ignore:
   - data/instance_wings.lua
   - data/mists/boss_ranks.lua
   - data/mists/continents.lua
+  - data/mists/factions.lua
   - data/mists/instances.lua
   - data/mists/instance_entrances.lua
   - data/mists/instance_wings.lua
@@ -47,8 +48,6 @@ ignore:
   - data/tbc/quest_rewards.lua
   - data/tbc/trash.lua
   - data/trash.lua
-  - data/vendors.lua
-  - data/vendor_locations.lua
   - data/world_quest_items.lua
   - data/wrath/boss_ranks.lua
   - data/wrath/instances.lua

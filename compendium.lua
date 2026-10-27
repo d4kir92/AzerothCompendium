@@ -1638,10 +1638,32 @@ local function GetInstanceList()
 end
 
 function AzerothCompendium:GetGroupedInstanceList(list)
-    if listKind ~= "dungeon" and listKind ~= "raid" then return list end
+    if listKind ~= "dungeon" and listKind ~= "raid" and listKind ~= "faction" then return list end
     ACOTABPC = ACOTABPC or {}
     ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
     local groups, levels, result = {}, {}, {}
+    if listKind == "faction" then
+        for _, group in ipairs(AzerothCompendium:GetFactionCategoryGroups(list)) do
+            local key = "faction:" .. group.category
+            local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
+            tinsert(result, {
+                levelGroup = true,
+                key = key,
+                label = group.label,
+                count = #group.entries,
+                collapsed = collapsed,
+                rowHeight = 26
+            })
+
+            if not collapsed then
+                for _, inst in ipairs(group.entries) do
+                    tinsert(result, inst)
+                end
+            end
+        end
+        return result
+    end
+
     for _, inst in ipairs(list) do
         local level = max(1, ceil((inst.minLevel or 0) / 10)) * 10 - 9
         if groups[level] == nil then
@@ -5145,7 +5167,7 @@ function AzerothCompendium:CreateInstanceControls()
                 self.text:SetPoint("LEFT", self.collapseIcon, "RIGHT", 4, 0)
                 self.text:SetPoint("RIGHT", self, "RIGHT", -30, 0)
                 self.info:SetPoint("RIGHT", self, "RIGHT", -6, 0)
-                self.text:SetText(AzerothCompendium:Trans("LID_LEVELGROUP", nil, entry.level, entry.level + 9))
+                self.text:SetText(entry.label or AzerothCompendium:Trans("LID_LEVELGROUP", nil, entry.level, entry.level + 9))
                 self.text:SetTextColor(1, 0.82, 0)
                 self.info:SetJustifyH("RIGHT")
                 self.info:SetTextColor(0.7, 0.7, 0.7)
@@ -5668,7 +5690,30 @@ function AzerothCompendium:CreateInstanceControls()
     local overview = CreateScroller(compendium, 158, function(scroller)
         local row = CreateFrame("Frame", nil, scroller)
         row.tiles = {}
+        row.header = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        row.header:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 4, 6)
+        row.header:SetJustifyH("LEFT")
+        row.headerCount = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.headerCount:SetPoint("LEFT", row.header, "RIGHT", 8, 0)
+        row.headerCount:SetTextColor(0.7, 0.7, 0.7)
+        row.headerLine = row:CreateTexture(nil, "ARTWORK")
+        row.headerLine:SetHeight(1)
+        row.headerLine:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 2)
+        row.headerLine:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 2)
+        row.headerLine:SetColorTexture(1, 0.82, 0, 0.35)
         function row:Update(entries)
+            local header = entries.overviewHeader == true
+            self.header:SetShown(header)
+            self.headerCount:SetShown(header)
+            self.headerLine:SetShown(header)
+            if self.stripe then self.stripe:SetShown(not header) end
+            if header then
+                self.header:SetText(entries.label)
+                self.headerCount:SetText(entries.count)
+                for _, tile in ipairs(self.tiles) do tile:Hide() end
+                return
+            end
+
             local width = compendium.overviewTileWidth
             local scale = compendium.overviewTileScale or 1
             for index, inst in ipairs(entries) do
@@ -5752,10 +5797,24 @@ function AzerothCompendium:CreateInstanceControls()
         local rows = {}
         local list, hidden = GetInstanceList()
         AzerothCompendium:UpdateInstanceFilterBanner(self.overview, hidden)
-        for index, inst in ipairs(list) do
-            local rowIndex = floor((index - 1) / self.overviewColumns) + 1
-            rows[rowIndex] = rows[rowIndex] or {}
-            tinsert(rows[rowIndex], inst)
+        local groups = {{entries = list}}
+        if listKind == "faction" and #list > 0 then groups = AzerothCompendium:GetFactionCategoryGroups(list) end
+        for _, group in ipairs(groups) do
+            if group.label then
+                tinsert(rows, {
+                    overviewHeader = true,
+                    label = group.label,
+                    count = #group.entries,
+                    rowHeight = 30
+                })
+            end
+
+            local first = #rows
+            for index, inst in ipairs(group.entries) do
+                local rowIndex = first + floor((index - 1) / self.overviewColumns) + 1
+                rows[rowIndex] = rows[rowIndex] or {}
+                tinsert(rows[rowIndex], inst)
+            end
         end
         self.overview.data = rows
         self.overview:Refresh()

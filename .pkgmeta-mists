@@ -46,8 +46,6 @@ ignore:
   - data/tbc/quest_rewards.lua
   - data/tbc/trash.lua
   - data/trash.lua
-  - data/vendors.lua
-  - data/vendor_locations.lua
   - data/world_quest_items.lua
   - data/wrath/boss_ranks.lua
   - data/wrath/instances.lua

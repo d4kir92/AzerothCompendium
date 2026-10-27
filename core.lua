@@ -2251,6 +2251,66 @@ function AzerothCompendium:GetInstances(kind)
     return byType[kind] or {}
 end
 
+AzerothCompendium.FactionCategoryOrder = {"shattrath", "tabard", "dungeon", "world", "sholazar", "argent", "daily", "steamwheedle", "warfront", "other"}
+function AzerothCompendium:GetFactionCategory(inst)
+    return inst and inst.category or "other"
+end
+
+AzerothCompendium.FactionCategoryMaps = {
+    shattrath = 111,
+    sholazar = 119
+}
+
+AzerothCompendium.FactionCategoryFactions = {
+    steamwheedle = 169
+}
+
+function AzerothCompendium:GetFactionCategoryName(category)
+    if AzerothCompendium:GetLanguage() == GetLocale() then
+        local mapID = AzerothCompendium.FactionCategoryMaps[category]
+        if mapID and C_Map and C_Map.GetMapInfo then
+            local info = C_Map.GetMapInfo(mapID)
+            if info and type(info.name) == "string" and info.name ~= "" then return info.name end
+        end
+
+        local factionID = AzerothCompendium.FactionCategoryFactions[category]
+        if factionID then
+            local name = AzerothCompendium:ReadReputationByID(factionID)
+            if type(name) == "string" and name ~= "" then return name end
+        end
+    end
+    return AzerothCompendium:Trans("LID_FACTIONCAT_" .. string.upper(category or "other"))
+end
+
+function AzerothCompendium:GetFactionCategoryGroups(list)
+    local byCategory, groups = {}, {}
+    for _, inst in ipairs(list) do
+        local category = AzerothCompendium:GetFactionCategory(inst)
+        byCategory[category] = byCategory[category] or {}
+        tinsert(byCategory[category], inst)
+    end
+
+    for _, category in ipairs(AzerothCompendium.FactionCategoryOrder) do
+        if byCategory[category] then
+            tinsert(groups, {
+                category = category,
+                label = AzerothCompendium:GetFactionCategoryName(category),
+                entries = byCategory[category]
+            })
+            byCategory[category] = nil
+        end
+    end
+
+    for category, entries in pairs(byCategory) do
+        tinsert(groups, {
+            category = category,
+            label = AzerothCompendium:GetFactionCategoryName("other"),
+            entries = entries
+        })
+    end
+    return groups
+end
+
 function AzerothCompendium:GetItemDisplay(itemID)
     local name, link, quality, _, _, _, _, _, equipLoc, icon = AzerothCompendium:GetItemInfo(itemID)
     if icon == nil then

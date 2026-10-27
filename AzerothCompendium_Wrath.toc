@@ -49,20 +49,28 @@ locale\zhTW.lua
 locale\bosses_deDE.lua
 
 data\wrath\instances.lua
+data\wrath\instance_entrances.lua
+data\wrath\boss_ranks.lua
+data\wrath\trash.lua
+data\instance_maps.lua
+data\instance_map_pins.lua
+data\meeting_stones.lua
+data\loadingscreens.lua
+
 data\wrath\quests.lua
 data\wrath\quest_chains.lua
 data\wrath\quest_followups.lua
-data\wrath\instance_entrances.lua
-data\meeting_stones.lua
-data\instance_maps.lua
-data\instance_map_pins.lua
 data\wrath\quest_rewards.lua
-data\wrath\trash.lua
-data\wrath\boss_ranks.lua
-data\loadingscreens.lua
-data\wrath\instance_wings.lua
+
+data\vendors.lua
+data\vendor_locations.lua
+data\tbc\factions.lua
+data\wrath\factions.lua
+
 data\continents.lua
 data\wrath\continents.lua
+
+data\wrath\instance_wings.lua
 
 core.lua
 wishliststars.lua

@@ -177,6 +177,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 529,
+		["category"] = "dungeon",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -206,6 +207,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2586,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -225,6 +227,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 21,
+		["category"] = "steamwheedle",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -249,6 +252,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 910,
+		["category"] = "dungeon",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -283,6 +287,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 609,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -312,6 +317,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2798,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -341,6 +347,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2587,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -360,6 +367,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2787,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Friendly",
@@ -374,6 +382,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 577,
+		["category"] = "steamwheedle",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -398,6 +407,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 369,
+		["category"] = "steamwheedle",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -422,6 +432,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2765,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -441,6 +452,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 749,
+		["category"] = "dungeon",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -455,6 +467,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2740,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -474,6 +487,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2758,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -503,6 +517,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2827,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -527,6 +542,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 470,
+		["category"] = "steamwheedle",
 		["bosses"] = {
 			{
 				["name"] = "Revered",
@@ -551,6 +567,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2819,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -580,6 +597,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 2799,
+		["category"] = "warfront",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -609,6 +627,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 59,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -638,6 +657,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 576,
+		["category"] = "world",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
@@ -667,6 +687,7 @@ AzerothCompendium.VENDORS = {
 		["type"] = "faction",
 		["vendor"] = true,
 		["factionID"] = 270,
+		["category"] = "dungeon",
 		["bosses"] = {
 			{
 				["name"] = "Exalted",
