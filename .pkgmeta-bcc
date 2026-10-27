@@ -9,10 +9,12 @@ ignore:
   - data/boss_ranks.lua
   - data/cata/boss_ranks.lua
   - data/cata/continents.lua
+  - data/cata/costs.lua
   - data/cata/factions.lua
   - data/cata/instances.lua
   - data/cata/instance_entrances.lua
   - data/cata/instance_wings.lua
+  - data/cata/pvp.lua
   - data/cata/quests.lua
   - data/cata/quest_chains.lua
   - data/cata/quest_followups.lua
@@ -33,10 +35,12 @@ ignore:
   - data/instance_wings.lua
   - data/mists/boss_ranks.lua
   - data/mists/continents.lua
+  - data/mists/costs.lua
   - data/mists/factions.lua
   - data/mists/instances.lua
   - data/mists/instance_entrances.lua
   - data/mists/instance_wings.lua
+  - data/mists/pvp.lua
   - data/mists/quests.lua
   - data/mists/quest_chains.lua
   - data/mists/quest_followups.lua
@@ -50,6 +54,7 @@ ignore:
   - data/trash.lua
   - data/wrath/boss_ranks.lua
   - data/wrath/continents.lua
+  - data/wrath/costs.lua
   - data/wrath/factions.lua
   - data/wrath/instances.lua
   - data/wrath/instance_entrances.lua

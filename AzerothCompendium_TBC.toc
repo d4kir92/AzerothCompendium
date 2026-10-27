@@ -75,6 +75,8 @@ data\pvp_sides.lua
 data\tbc\pvp.lua
 data\classic_era\sets.lua
 data\tbc\sets.lua
+data\classic_era\costs.lua
+data\tbc\costs.lua
 
 data\continents.lua
 

@@ -72,11 +72,18 @@ data\mists\factions.lua
 data\pvp_sides.lua
 data\tbc\pvp.lua
 data\wrath\pvp.lua
+data\cata\pvp.lua
+data\mists\pvp.lua
 data\classic_era\sets.lua
 data\tbc\sets.lua
 data\wrath\sets.lua
 data\cata\sets.lua
 data\mists\sets.lua
+data\classic_era\costs.lua
+data\tbc\costs.lua
+data\wrath\costs.lua
+data\cata\costs.lua
+data\mists\costs.lua
 
 data\continents.lua
 data\wrath\continents.lua

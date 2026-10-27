@@ -73,6 +73,9 @@ data\wrath\pvp.lua
 data\classic_era\sets.lua
 data\tbc\sets.lua
 data\wrath\sets.lua
+data\classic_era\costs.lua
+data\tbc\costs.lua
+data\wrath\costs.lua
 
 data\continents.lua
 data\wrath\continents.lua

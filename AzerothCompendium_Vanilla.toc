@@ -72,6 +72,7 @@ data\vendor_locations.lua
 
 data\pvp_sides.lua
 data\classic_era\sets.lua
+data\classic_era\costs.lua
 
 data\continents.lua
 

@@ -2321,6 +2321,80 @@ function AzerothCompendium:HasKindCategories(kind)
     return kind == "faction" or kind == "sets"
 end
 
+AzerothCompendium.CostCurrencyGameIDs = {
+    [1901] = 392,
+    [1900] = 390
+}
+
+function AzerothCompendium:GetGameCurrencyInfo(id)
+    if C_CurrencyInfo == nil or C_CurrencyInfo.GetCurrencyInfo == nil then return nil end
+    for _, gameID in ipairs({id, AzerothCompendium.CostCurrencyGameIDs[id]}) do
+        local ok, info = pcall(C_CurrencyInfo.GetCurrencyInfo, gameID)
+        if ok and type(info) == "table" and type(info.name) == "string" and info.name ~= "" then return info end
+    end
+    return nil
+end
+
+function AzerothCompendium:GetCostCurrencyIcon(id)
+    local info = AzerothCompendium:GetGameCurrencyInfo(id)
+    if info and info.iconFileID and info.iconFileID ~= 0 then return info.iconFileID end
+
+    if id == 1901 then return "Interface\\PVPFrame\\PVP-Currency-" .. (UnitFactionGroup("player") == "Horde" and "Horde" or "Alliance") end
+    if id == 1900 then return "Interface\\PVPFrame\\PVP-ArenaPoints-Icon" end
+    local data = AzerothCompendium.COSTCURRENCIES and AzerothCompendium.COSTCURRENCIES[id]
+    if data and data[2] ~= "" then return "Interface\\Icons\\" .. data[2] end
+    return 134400
+end
+
+function AzerothCompendium:GetCostCurrencyName(id)
+    local info = AzerothCompendium:GetGameCurrencyInfo(id)
+    if info then return info.name end
+
+    if id == 1901 and type(HONOR_POINTS) == "string" then return HONOR_POINTS end
+    if id == 1900 and type(ARENA_POINTS) == "string" then return ARENA_POINTS end
+    local data = AzerothCompendium.COSTCURRENCIES and AzerothCompendium.COSTCURRENCIES[id]
+    return data and data[1] or ""
+end
+
+function AzerothCompendium:GetItemCostText(itemID)
+    local cost = AzerothCompendium.ITEMCOSTS and AzerothCompendium.ITEMCOSTS[itemID]
+    if cost == nil then return nil end
+    local parts = {}
+    for index = 1, #(cost[2] or {}), 2 do
+        tinsert(parts, BreakUpLargeNumbers and BreakUpLargeNumbers(cost[2][index + 1]) or tostring(cost[2][index + 1]))
+        parts[#parts] = parts[#parts] .. " |T" .. AzerothCompendium:GetCostCurrencyIcon(cost[2][index]) .. ":14:14:0:0|t"
+    end
+
+    for index = 1, #(cost[3] or {}), 2 do
+        local icon = (C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(cost[3][index])) or (GetItemIcon and GetItemIcon(cost[3][index])) or 134400
+        tinsert(parts, cost[3][index + 1] .. " |T" .. icon .. ":14:14:0:0|t")
+    end
+
+    if (cost[1] or 0) > 0 then
+        if GetCoinTextureString then
+            tinsert(parts, GetCoinTextureString(cost[1]))
+        else
+            tinsert(parts, format("%dg", floor(cost[1] / 10000)))
+        end
+    end
+    return #parts > 0 and table.concat(parts, "  ") or nil
+end
+
+function AzerothCompendium:AddItemCostToTooltip(tooltip, itemID)
+    local cost = AzerothCompendium.ITEMCOSTS and AzerothCompendium.ITEMCOSTS[itemID]
+    if cost == nil then return end
+    for index = 1, #(cost[2] or {}), 2 do
+        tooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetCostCurrencyName(cost[2][index])), cost[2][index + 1] .. " |T" .. AzerothCompendium:GetCostCurrencyIcon(cost[2][index]) .. ":14:14:0:0|t", 0.9, 0.9, 0.9, 1, 1, 1)
+    end
+
+    for index = 1, #(cost[3] or {}), 2 do
+        local name = AzerothCompendium:GetItemDisplay(cost[3][index])
+        tooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(name or ("item:" .. cost[3][index])), tostring(cost[3][index + 1]), 0.9, 0.9, 0.9, 1, 1, 1)
+    end
+
+    if (cost[1] or 0) > 0 and GetCoinTextureString then tooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.MONEY or "Money"), GetCoinTextureString(cost[1]), 0.9, 0.9, 0.9, 1, 1, 1) end
+end
+
 function AzerothCompendium:IsBossForPlayer(boss)
     if boss.side and not AzerothCompendium:IsQuestSideVisible(boss.side) then return false end
     if boss.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then
@@ -2395,15 +2469,17 @@ function AzerothCompendium:GetItemSlotText(itemID)
 end
 
 AzerothCompendium.ItemClassRestrictions = {}
+AzerothCompendium.ItemClassPending = {}
 function AzerothCompendium:ReadItemTooltipLines(itemID)
     local texts = {}
     if C_TooltipInfo and C_TooltipInfo.GetItemByID then
         local ok, data = pcall(C_TooltipInfo.GetItemByID, itemID)
         if ok and type(data) == "table" and type(data.lines) == "table" then
             for _, line in ipairs(data.lines) do
+                if TooltipUtil and TooltipUtil.SurfaceArgs and line.leftText == nil then pcall(TooltipUtil.SurfaceArgs, line) end
                 if type(line.leftText) == "string" then tinsert(texts, line.leftText) end
             end
-            return texts
+            if #texts > 0 then return texts end
         end
     end
 
@@ -2424,11 +2500,15 @@ function AzerothCompendium:GetItemClassRestriction(itemID)
     local cached = AzerothCompendium.ItemClassRestrictions[itemID]
     if cached ~= nil then return cached end
     if type(ITEM_CLASSES_ALLOWED) ~= "string" then return false end
-    if C_Item and C_Item.IsItemDataCachedByID and not C_Item.IsItemDataCachedByID(itemID) then return nil end
+    local getInfo = C_Item and C_Item.GetItemInfo or GetItemInfo
+    if getInfo == nil or getInfo(itemID) == nil or C_Item and C_Item.IsItemDataCachedByID and not C_Item.IsItemDataCachedByID(itemID) then
+        AzerothCompendium.ItemClassPending[itemID] = true
+        return nil
+    end
     local prefix = ITEM_CLASSES_ALLOWED:match("^(.-)%%s")
     if prefix == nil or prefix == "" then return false end
     local texts = AzerothCompendium:ReadItemTooltipLines(itemID)
-    if #texts == 0 then return nil end
+    if #texts < 2 or texts[1] == RETRIEVING_ITEM_INFO or texts[1] == RETRIEVING_DATA then return nil end
     local result = false
     for _, text in ipairs(texts) do
         if issecretvalue and issecretvalue(text) then return nil end

@@ -3231,6 +3231,7 @@ local function ShowItemTooltip(row)
     end
 
     if row.boss ~= nil then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_DROPPEDBY"), AzerothCompendium:GetBossName(row.boss))), 1, 0.82, 0) end
+    if not row.isWishlist and selectedInstance and selectedInstance.vendor then AzerothCompendium:AddItemCostToTooltip(GameTooltip, row.itemID) end
     if row.worldQuestItem ~= nil then
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_STARTSQUEST"), row.worldQuestItem.questName)), 1, 0.82, 0)
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_SOURCE"), row.worldQuestItem.sourceText)), 1, 1, 1)
@@ -3551,7 +3552,11 @@ local function CreateLootRow(scroller)
         end
 
         self.slot:SetText(AzerothCompendium:GetItemSlotText(itemID))
-        if chance ~= nil and AzerothCompendium:GetConfig("SHOWCHANCE", true) then
+        local cost = selectedInstance and selectedInstance.vendor and not entry.source and AzerothCompendium:GetItemCostText(itemID)
+        if cost then
+            self.chance:SetText(cost)
+            self.chance:SetTextColor(1, 1, 1)
+        elseif chance ~= nil and AzerothCompendium:GetConfig("SHOWCHANCE", true) then
             self.chance:SetText(format("%.2f%%", chance))
             if chance >= 50 then
                 self.chance:SetTextColor(0.4, 0.9, 0.4)
@@ -7402,7 +7407,13 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         return
     end
 
-    if event == "GET_ITEM_INFO_RECEIVED" then AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success) end
+    if event == "GET_ITEM_INFO_RECEIVED" then
+        AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success)
+        if AzerothCompendium.ItemClassPending[itemID] then
+            AzerothCompendium.ItemClassPending[itemID] = nil
+            if compendium ~= nil and compendium:IsShown() and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then AzerothCompendium:After(0.2, function() if compendium ~= nil and compendium:IsShown() then RefreshDetail() end end, "AzerothCompendium:ClassRestrictionRefresh") end
+        end
+    end
     if event == "GLOBAL_MOUSE_DOWN" then
         if compendium == nil or not compendium:IsShown() then return end
         if itemID == "LeftButton" then
