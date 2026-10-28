@@ -1179,6 +1179,8 @@ local function UpdateInstanceBackground(row, inst)
         row.questCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
         row.questCount:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -6, 6)
         row.questCount:SetJustifyH("RIGHT")
+        row.bossCount = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        row.bossCount:SetJustifyH("RIGHT")
         row.questCountHover = CreateFrame("Frame", nil, row)
         row.questCountHover:SetAllPoints(row.questCount)
         row.questCountHover:SetFrameLevel(row:GetFrameLevel() + 2)
@@ -1251,6 +1253,7 @@ local function UpdateInstanceBackground(row, inst)
     row.subText:Hide()
     row.typeIcon:Hide()
     row.questCount:Hide()
+    row.bossCount:Hide()
     row.questCountHover:Hide()
     row.attuneIcon:Hide()
     for _, pin in ipairs(row.locationPins) do
@@ -1292,6 +1295,15 @@ local function UpdateInstanceBackground(row, inst)
 
         local textY = -INSTANCE_TYPE_ICON_OFFSET - INSTANCE_TYPE_ICON_SIZE / 2
         local textRight = UpdateLocationPins(row, inst) - 2
+        local bossTotal = inst.type == "raid" and #(inst.bosses or {}) or 0
+        if bossTotal > 0 then
+            row.bossCount:ClearAllPoints()
+            row.bossCount:SetPoint("RIGHT", row, "TOPRIGHT", textRight, textY)
+            row.bossCount:SetText(format("|TInterface\\TargetingFrame\\UI-TargetingFrame-Skull:14:14|t %s", format(AzerothCompendium:Trans("LID_BOSSCOUNT"), bossTotal)))
+            row.bossCount:Show()
+            textRight = textRight - row.bossCount:GetStringWidth() - 4
+        end
+
         row.text:SetPoint("LEFT", row, "TOPLEFT", textX, textY)
         row.text:SetPoint("RIGHT", row, "TOPRIGHT", textRight, textY)
         row.subText:ClearAllPoints()
@@ -1374,6 +1386,13 @@ local function UpdateInstanceRow(row, inst)
         row.info:SetText(inst.minLevel .. "-" .. inst.maxLevel)
     else
         row.info:SetText("")
+    end
+
+    local players = UsesLoadingScreens() and not inst.levelGroup and AzerothCompendium:GetRaidSize(inst)
+    if players then
+        local playersText = format(AzerothCompendium:Trans("LID_PLAYERCOUNT"), tostring(players))
+        local level = row.info:GetText()
+        row.info:SetText(level and level ~= "" and format("%s (%s)", level, playersText) or playersText)
     end
 
     AzerothCompendium:UpdateReputationBar(row, inst)

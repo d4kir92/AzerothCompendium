@@ -501,6 +501,34 @@ function AzerothCompendium:GetMaxLevel()
     return 60
 end
 
+AzerothCompendium.RAIDSIZES = {
+    [249] = 40,
+    [309] = 20,
+    [409] = 40,
+    [469] = 40,
+    [509] = 20,
+    [531] = 40,
+    [533] = 40,
+    [532] = 10,
+    [568] = 10,
+    [534] = 25,
+    [544] = 25,
+    [548] = 25,
+    [550] = 25,
+    [564] = 25,
+    [565] = 25,
+    [580] = 25,
+}
+
+function AzerothCompendium:GetRaidSize(inst)
+    if inst == nil or inst.type ~= "raid" then return nil end
+    local id = inst.parentID or inst.id
+    local flavor = AzerothCompendium:GetFlavor()
+    local modern = flavor == "wrath" or flavor == "cata" or flavor == "mists"
+    if modern and (id == 249 or id == 533) then return "10/25" end
+    return AzerothCompendium.RAIDSIZES[id] or modern and "10/25" or nil
+end
+
 function AzerothCompendium:GetContinents()
     local flavor = AzerothCompendium:GetFlavor()
     if flavor == "mists" then return {"kalimdor", "easternkingdoms", "outland", "northrend", "maelstrom", "pandaria"} end

@@ -569,4 +569,197 @@ AzerothCompendium.INSTANCEMAPPINS = {
     [167] = { -- Naxxramas - The Upper Necropolis
         {"level", 0.125, 0.080, 166},
     },
+    [347] = { -- Hellfire Ramparts
+        {"boss", 0.730, 0.314, 17306}, -- Watchkeeper Gargolmar
+        {"boss", 0.391, 0.205, 17308}, -- Omor the Unscarred
+        {"boss", 0.355, 0.828, 17537}, -- Nazan & Vazruden
+    },
+    [261] = { -- The Blood Furnace
+        {"boss", 0.387, 0.418, 17381}, -- The Maker
+        {"boss", 0.433, 0.219, 17380}, -- Broggok
+        {"boss", 0.583, 0.412, 17377}, -- Keli'dan the Breaker
+    },
+    [246] = { -- The Shattered Halls
+        {"boss", 0.333, 0.621, 16807}, -- Grand Warlock Nethekurse
+        {"boss", 0.297, 0.147, 20923}, -- Blood Guard Porung
+        {"boss", 0.542, 0.342, 16809}, -- Warbringer O'mrogg
+        {"boss", 0.673, 0.545, 16808}, -- Warchief Kargath Bladefist
+    },
+    [272] = { -- Mana-Tombs
+        {"boss", 0.480, 0.297, 18341}, -- Pandemonius
+        {"boss", 0.609, 0.742, 18343}, -- Tavarok
+        {"boss", 0.357, 0.609, 22930}, -- Yor
+        {"boss", 0.324, 0.492, 18344}, -- Nexus-Prince Shaffar
+    },
+    [257] = { -- Auchenai Crypts - 257
+        {"boss", 0.463, 0.680, 18371}, -- Shirrak the Dead Watcher
+        {"boss", 0.739, 0.508, 18373}, -- Exarch Maladaar
+    },
+    [258] = { -- Sethekk Halls - 258
+        {"boss", 0.488, 0.680, 18472}, -- Darkweaver Syth
+    },
+    [259] = { -- Sethekk Halls - 259
+        {"boss", 0.327, 0.545, 23035}, -- Anzu
+        {"boss", 0.327, 0.277, 18473}, -- Talon King Ikiss
+    },
+    [260] = { -- Shadow Labyrinth
+        {"boss", 0.219, 0.395, 18731}, -- Ambassador Hellmaw
+        {"boss", 0.268, 0.705, 18667}, -- Blackheart the Inciter
+        {"boss", 0.531, 0.541, 18732}, -- Grandmaster Vorpil
+        {"boss", 0.809, 0.391, 18708}, -- Murmur
+    },
+    [265] = { -- The Slave Pens
+        {"boss", 0.490, 0.270, 17941}, -- Mennu the Betrayer
+        {"boss", 0.581, 0.406, 17991}, -- Rokmar the Crackler
+        {"boss", 0.821, 0.768, 17942}, -- Quagmirran
+    },
+    [262] = { -- The Underbog
+        {"boss", 0.694, 0.900, 17770}, -- Hungarfen
+        {"boss", 0.787, 0.289, 18105}, -- Ghaz'an
+        {"boss", 0.415, 0.242, 17826}, -- Swamplord Musel'ek
+        {"boss", 0.247, 0.457, 17882}, -- The Black Stalker
+    },
+    [263] = { -- The Steamvault - 263
+        {"boss", 0.542, 0.137, 17797}, -- Hydromancer Thespia
+        {"boss", 0.342, 0.820, 17796}, -- Mekgineer Steamrigger
+        {"boss", 0.760, 0.436, 17798}, -- Warlord Kalithresh
+    },
+    [274] = { -- Old Hillsbrad Foothills
+        {"boss", 0.754, 0.662, 17848}, -- Lieutenant Drake
+        {"boss", 0.691, 0.697, 17862}, -- Captain Skarloc
+        {"boss", 0.508, 0.320, 18096}, -- Epoch Hunter
+    },
+    [273] = { -- The Black Morass
+        {"boss", 0.451, 0.621, 17879}, -- Chrono Lord Deja
+        {"boss", 0.549, 0.619, 17880}, -- Temporus
+        {"boss", 0.481, 0.746, 17881}, -- Aeonus
+    },
+    [269] = { -- The Arcatraz - 269
+        {"boss", 0.593, 0.244, 20870}, -- Zereketh the Unbound
+    },
+    [270] = { -- The Arcatraz - 270
+        {"boss", 0.363, 0.783, 20885}, -- Dalliah the Doomsayer
+        {"boss", 0.199, 0.787, 20886}, -- Wrath-Scryer Soccothrates
+    },
+    [271] = { -- The Arcatraz - 271
+        {"boss", 0.616, 0.307, 20912}, -- Harbinger Skyriss
+    },
+    [266] = { -- The Botanica
+        {"boss", 0.443, 0.234, 17976}, -- Commander Sarannis
+        {"boss", 0.242, 0.227, 17975}, -- High Botanist Freywinn
+        {"boss", 0.074, 0.482, 17978}, -- Thorngrin the Tender
+        {"boss", 0.340, 0.863, 17980}, -- Laj
+        {"boss", 0.343, 0.369, 17977}, -- Warp Splinter
+    },
+    [267] = { -- The Mechanar - 267
+        {"boss", 0.514, 0.316, 19219}, -- Mechano-Lord Capacitus
+    },
+    [268] = { -- The Mechanar - 268
+        {"boss", 0.478, 0.203, 19221}, -- Nethermancer Sepethrea
+        {"boss", 0.272, 0.611, 19220}, -- Pathaleon the Calculator
+    },
+    [348] = { -- Magisters' Terrace - 348
+        {"boss", 0.398, 0.557, 24560}, -- Priestess Delrissa
+        {"boss", 0.086, 0.502, 24664}, -- Kael'thas Sunstrider
+    },
+    [349] = { -- Magisters' Terrace - 349
+        {"boss", 0.425, 0.223, 24723}, -- Selin Fireheart
+        {"boss", 0.835, 0.264, 24744}, -- Vexallus
+    },
+    [350] = { -- Karazhan - 350
+        {"boss", 0.453, 0.826, 16152}, -- Attumen the Huntsman
+    },
+    [352] = { -- Karazhan - 352
+        {"boss", 0.271, 0.635, 15687}, -- Moroes
+    },
+    [353] = { -- Karazhan - 353
+        {"boss", 0.834, 0.500, 16457}, -- Maiden of Virtue
+        {"boss", 0.181, 0.351, 17521}, -- The Big Bad Wolf
+    },
+    [358] = { -- Karazhan - 358
+        {"boss", 0.495, 0.366, 15691}, -- The Curator
+    },
+    [359] = { -- Karazhan - 359
+        {"boss", 0.716, 0.260, 16524}, -- Shade of Aran
+    },
+    [360] = { -- Karazhan - 360
+        {"boss", 0.526, 0.697, 15688}, -- Terestian Illhoof
+    },
+    [362] = { -- Karazhan - 362
+        {"boss", 0.359, 0.418, 15689}, -- Netherspite
+    },
+    [366] = { -- Karazhan - 366
+        {"boss", 0.514, 0.309, 15690}, -- Prince Malchezaar
+    },
+    [333] = { -- Zul'Aman
+        {"boss", 0.355, 0.231, 23574}, -- Akil'zon
+        {"boss", 0.405, 0.774, 23576}, -- Nalorakk
+        {"boss", 0.555, 0.710, 23578}, -- Jan'alai
+        {"boss", 0.585, 0.238, 23577}, -- Halazzi
+        {"boss", 0.715, 0.530, 24239}, -- Hex Lord Malacrass
+        {"boss", 0.904, 0.530, 23863}, -- Zul'jin
+    },
+    [331] = { -- Magtheridon's Lair
+        {"boss", 0.692, 0.743, 17257}, -- Magtheridon
+    },
+    [330] = { -- Gruul's Lair
+        {"boss", 0.550, 0.571, 18831}, -- High King Maulgar
+        {"boss", 0.199, 0.283, 19044}, -- Gruul the Dragonkiller
+    },
+    [332] = { -- Serpentshrine Cavern
+        {"boss", 0.364, 0.848, 21216}, -- Hydross the Unstable
+        {"boss", 0.403, 0.582, 21217}, -- The Lurker Below
+        {"boss", 0.418, 0.255, 21215}, -- Leotheras the Blind
+        {"boss", 0.504, 0.177, 21214}, -- Fathom-Lord Karathress
+        {"boss", 0.596, 0.260, 21213}, -- Morogrim Tidewalker
+        {"boss", 0.723, 0.589, 21212}, -- Lady Vashj
+    },
+    [334] = { -- Tempest Keep
+        {"boss", 0.501, 0.588, 19514}, -- Al'ar
+        {"boss", 0.264, 0.491, 19516}, -- Void Reaver
+        {"boss", 0.740, 0.489, 18805}, -- High Astromancer Solarian
+        {"boss", 0.501, 0.138, 19622}, -- Kael'thas Sunstrider
+    },
+    [329] = { -- Hyjal Summit
+        {"boss", 0.128, 0.634, 17767}, -- Rage Winterchill
+        {"boss", 0.086, 0.682, 17808}, -- Anetheron
+        {"boss", 0.424, 0.358, 17888}, -- Kaz'rogal
+        {"boss", 0.357, 0.378, 17842}, -- Azgalor
+        {"boss", 0.773, 0.283, 17968}, -- Archimonde
+    },
+    [339] = { -- Black Temple - 339
+        {"boss", 0.663, 0.474, 22898}, -- Supremus
+    },
+    [340] = { -- Black Temple - 340
+        {"boss", 0.439, 0.188, 22887}, -- High Warlord Naj'entus
+    },
+    [341] = { -- Black Temple - 341
+        {"boss", 0.410, 0.889, 22841}, -- Shade of Akama
+    },
+    [342] = { -- Black Temple - 342
+        {"boss", 0.540, 0.477, 22948}, -- Gurtogg Bloodboil
+        {"boss", 0.614, 0.851, 22856}, -- Reliquary of the Lost
+    },
+    [343] = { -- Black Temple - 343
+        {"boss", 0.394, 0.118, 22871}, -- Teron Gorefiend
+    },
+    [344] = { -- Black Temple - 344
+        {"boss", 0.675, 0.368, 22947}, -- Mother Shahraz
+    },
+    [345] = { -- Black Temple - 345
+        {"boss", 0.473, 0.438, 23426}, -- The Illidari Council
+    },
+    [346] = { -- Black Temple - 346
+        {"boss", 0.528, 0.705, 22917}, -- Illidan Stormrage
+    },
+    [335] = { -- Sunwell Plateau - 335
+        {"boss", 0.306, 0.511, 24850}, -- Kalecgos
+        {"boss", 0.659, 0.865, 24882}, -- Brutallus
+        {"boss", 0.728, 0.826, 25038}, -- Felmyst
+        {"boss", 0.642, 0.321, 25166}, -- Eredar Twins
+    },
+    [336] = { -- Sunwell Plateau - 336
+        {"boss", 0.467, 0.238, 25741}, -- M'uru
+        {"boss", 0.460, 0.617, 25315}, -- Kil'jaeden
+    },
 }
