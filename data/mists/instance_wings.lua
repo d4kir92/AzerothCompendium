@@ -1,6 +1,5 @@
 local _, AzerothCompendium = ...
 local SPLITS = {}
-
 local function FindBoss(inst, npcID)
 	for _, boss in ipairs(inst.bosses or {}) do
 		for _, id in ipairs(boss.npcs or {}) do
