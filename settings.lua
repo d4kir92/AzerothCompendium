@@ -200,6 +200,14 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
                 value = "modern"
             },
             {
+                label = "LID_DESIGNMATERIALDARK",
+                value = "materialdark"
+            },
+            {
+                label = "LID_DESIGNMATERIALLIGHT",
+                value = "materiallight"
+            },
+            {
                 label = "LID_DESIGNFOREVER",
                 value = "forever"
             }

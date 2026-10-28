@@ -5,20 +5,57 @@ Theme.records = {}
 Theme.roots = {}
 Theme.MEDIA = "Interface\\AddOns\\AzerothCompendium\\media\\ui\\modern\\"
 Theme.WHITE = "Interface\\Buttons\\WHITE8X8"
-Theme.colors = {
-    window = {0.067, 0.071, 0.082, 1},
-    edge = {0.16, 0.17, 0.19, 1},
-    panel = {0.094, 0.098, 0.114, 1},
-    control = {0.125, 0.13, 0.15, 1},
-    hover = {0.17, 0.18, 0.205, 1},
-    selected = {0.2, 0.21, 0.245, 1},
-    thumb = {0.3, 0.31, 0.35, 1},
-    border = {0.22, 0.23, 0.26, 1},
-    accent = {0.36, 0.78, 0.98, 1},
-    accentDark = {0.13, 0.36, 0.48, 1},
-    title = {1, 0.82, 0.2, 1},
-    muted = {0.55, 0.56, 0.6, 1},
+Theme.shapes = setmetatable({}, {__mode = "k"})
+Theme.tints = setmetatable({}, {__mode = "k"})
+Theme.PALETTES = {
+    modern = {
+        window = {0.067, 0.071, 0.082, 1},
+        edge = {0.16, 0.17, 0.19, 1},
+        panel = {0.094, 0.098, 0.114, 1},
+        control = {0.125, 0.13, 0.15, 1},
+        hover = {0.17, 0.18, 0.205, 1},
+        selected = {0.2, 0.21, 0.245, 1},
+        thumb = {0.3, 0.31, 0.35, 1},
+        border = {0.22, 0.23, 0.26, 1},
+        accent = {0.36, 0.78, 0.98, 1},
+        accentDark = {0.13, 0.36, 0.48, 1},
+        title = {1, 0.82, 0.2, 1},
+        muted = {0.55, 0.56, 0.6, 1},
+    },
+    materialdark = {
+        window = {0.071, 0.071, 0.071, 1},
+        edge = {0.2, 0.2, 0.2, 1},
+        panel = {0.118, 0.118, 0.118, 1},
+        control = {0.173, 0.173, 0.173, 1},
+        hover = {0.208, 0.208, 0.208, 1},
+        selected = {0.235, 0.235, 0.235, 1},
+        thumb = {0.38, 0.38, 0.38, 1},
+        border = {0.259, 0.259, 0.259, 1},
+        accent = {0.733, 0.525, 0.988, 1},
+        accentDark = {0.3, 0.2, 0.45, 1},
+        title = {0.87, 0.87, 0.87, 1},
+        muted = {0.6, 0.6, 0.6, 1},
+    },
+    materiallight = {
+        window = {0.565, 0.643, 0.682, 1},
+        edge = {0.69, 0.745, 0.773, 1},
+        panel = {0.471, 0.565, 0.612, 1},
+        control = {0.376, 0.49, 0.545, 1},
+        hover = {0.329, 0.431, 0.478, 1},
+        selected = {0.271, 0.353, 0.392, 1},
+        thumb = {0.812, 0.847, 0.863, 1},
+        border = {0.271, 0.353, 0.392, 1},
+        accent = {0.082, 0.396, 0.753, 1},
+        accentDark = {0.733, 0.871, 0.984, 1},
+        title = {1, 1, 1, 1},
+        muted = {0.925, 0.937, 0.945, 1},
+    },
 }
+
+Theme.colors = {}
+for key, color in pairs(Theme.PALETTES.modern) do
+    Theme.colors[key] = {unpack(color)}
+end
 
 Theme.radius = {
     window = 8,
@@ -40,17 +77,44 @@ Theme.BUTTONKEYS = {"Left", "Middle", "Right", "Center", "Background"}
 Theme.TEXTUREGETTERS = {"GetNormalTexture", "GetPushedTexture", "GetHighlightTexture", "GetDisabledTexture"}
 
 function AzerothCompendium:GetDesign()
-    if self:GetConfig("DESIGN", "modern") == "forever" then return "forever" end
+    local value = self:GetConfig("DESIGN", "modern")
+    if value == "forever" or Theme.PALETTES[value] then return value end
     return "modern"
 end
 
 function AzerothCompendium:SetDesign(value)
-    self:SetConfig("DESIGN", value == "forever" and "forever" or "modern")
+    if value ~= "forever" and not Theme.PALETTES[value] then value = "modern" end
+    self:SetConfig("DESIGN", value)
     Theme:Refresh()
 end
 
 function Theme:IsModern()
-    return AzerothCompendium:GetDesign() == "modern"
+    return AzerothCompendium:GetDesign() ~= "forever"
+end
+
+function Theme:ApplyPalette()
+    local palette = self.PALETTES[AzerothCompendium:GetDesign()] or self.PALETTES.modern
+    if self.palette == palette then return end
+    self.palette = palette
+    for key, color in pairs(palette) do
+        local target = self.colors[key]
+        for i = 1, 4 do
+            target[i] = color[i]
+        end
+    end
+
+    for shape, color in pairs(self.shapes) do
+        self:Paint(shape, color)
+    end
+
+    for texture, color in pairs(self.tints) do
+        texture:SetVertexColor(unpack(color))
+    end
+end
+
+function Theme:Tint(texture, color)
+    self.tints[texture] = color
+    texture:SetVertexColor(unpack(color))
 end
 
 function Theme:Child(frame, key)
@@ -150,6 +214,7 @@ function Theme:Round(record, parent, layer, sublevel, color, radius, anchor, ins
     tinsert(shape, top)
     tinsert(shape, bottom)
     tinsert(shape, middle)
+    self.shapes[shape] = color
     self:Paint(shape, color)
     return shape
 end
@@ -255,7 +320,7 @@ function Theme:SkinClose(record, close)
     local cross = self:Piece(record, close, "OVERLAY", 0, self.MEDIA .. "close")
     cross:SetSize(20, 20)
     cross:SetPoint("CENTER", close, "CENTER", 0, 0)
-    cross:SetVertexColor(unpack(self.colors.muted))
+    Theme:Tint(cross, Theme.colors.muted)
     close:HookScript("OnEnter", function()
         if not Theme:IsModern() then return end
         Theme:ShowShape(hover, true)
@@ -517,7 +582,7 @@ function Theme:SkinDropdown(button)
     local chevron = self:Piece(record, button, "OVERLAY", 0, self.MEDIA .. "chevron")
     chevron:SetSize(16, 16)
     chevron:SetPoint("RIGHT", button, "RIGHT", -8, 0)
-    chevron:SetVertexColor(unpack(self.colors.muted))
+    Theme:Tint(chevron, Theme.colors.muted)
     local text = button.Text or (button.GetFontString and button:GetFontString())
     if text then
         record.textColor = {text:GetTextColor()}
@@ -555,7 +620,7 @@ function Theme:SkinSegment(button)
         chevron = self:Piece(record, button, "OVERLAY", 0, self.MEDIA .. "chevron")
         chevron:SetSize(14, 14)
         chevron:SetPoint("RIGHT", button, "RIGHT", -6, 0)
-        chevron:SetVertexColor(unpack(self.colors.muted))
+        Theme:Tint(chevron, Theme.colors.muted)
         text = button.Text or (button.GetFontString and button:GetFontString())
         if text then record.textPoints = self:SavePoints(text) end
     end
@@ -637,7 +702,7 @@ function Theme:Chevron(record, parent, rotation)
     local chevron = self:Piece(record, parent, "OVERLAY", 0, self.MEDIA .. "chevron")
     chevron:SetSize(14, 14)
     chevron:SetPoint("CENTER", parent, "CENTER", 0, 0)
-    chevron:SetVertexColor(unpack(self.colors.muted))
+    Theme:Tint(chevron, Theme.colors.muted)
     if rotation ~= 0 then pcall(chevron.SetRotation, chevron, rotation) end
     return chevron
 end
@@ -706,7 +771,7 @@ function Theme:SkinCategory(header)
     local chevron = self:Piece(record, header, "OVERLAY", 7, self.MEDIA .. "chevron")
     chevron:SetSize(16, 16)
     chevron:SetPoint("CENTER", header.Icon, "CENTER", 0, 0)
-    chevron:SetVertexColor(unpack(self.colors.muted))
+    Theme:Tint(chevron, Theme.colors.muted)
     local collapsed = self:IsTexture(header.Icon, "Interface\\Buttons\\UI-PlusButton-Up")
     record.iconPoints = self:SavePoints(header.Icon)
     record.update = function(modern)
@@ -730,7 +795,7 @@ end
 function Theme:SetCollapseIcon(texture, collapsed)
     if self:IsModern() then
         texture:SetTexture(self.MEDIA .. "chevron")
-        texture:SetVertexColor(unpack(self.colors.muted))
+        Theme:Tint(texture, Theme.colors.muted)
         pcall(texture.SetRotation, texture, collapsed and math.pi / 2 or 0)
     else
         texture:SetTexture(collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
@@ -750,7 +815,7 @@ function Theme:SkinCollapseButton(button)
     local chevron = self:Piece(record, button, "OVERLAY", 7, self.MEDIA .. "chevron")
     chevron:SetSize(16, 16)
     chevron:SetPoint("CENTER", button, "CENTER", 0, 0)
-    chevron:SetVertexColor(unpack(self.colors.muted))
+    Theme:Tint(chevron, Theme.colors.muted)
     local collapsed = self:IsTexture(button:GetNormalTexture(), "Interface\\Buttons\\UI-PlusButton-Up")
     local function HideArt()
         for _, getter in ipairs(Theme.TEXTUREGETTERS) do
@@ -849,6 +914,7 @@ end
 function Theme:Refresh()
     local modern = self:IsModern()
     if modern then
+        self:ApplyPalette()
         for _, root in ipairs(self.roots) do
             if root.acoTheme == nil then self:SkinWindow(root) end
             self:Scan(root)

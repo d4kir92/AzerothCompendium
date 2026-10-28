@@ -32,6 +32,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_CONTINENT_OUTLAND", "Запредель�
 AzerothCompendium:AddTrans("ruRU", "LID_CONTINENT_PANDARIA", "Пандария")
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGN", "Оформление")
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGNFOREVER", "Forever")
+AzerothCompendium:AddTrans("ruRU", "LID_DESIGNMATERIALDARK", "Material тёмное")
+AzerothCompendium:AddTrans("ruRU", "LID_DESIGNMATERIALLIGHT", "Material светлое")
 AzerothCompendium:AddTrans("ruRU", "LID_DESIGNMODERN", "Современное")
 AzerothCompendium:AddTrans("ruRU", "LID_DROPPEDBY", "Добывается с: %s")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONQUESTFOR", "Задание подземелья: %s")
