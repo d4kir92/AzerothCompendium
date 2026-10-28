@@ -1735,7 +1735,7 @@ end
 local function GetQuestGraph()
     if selectedInstance == nil then return {} end
     local filter = nil
-    if searchText ~= "" then filter = function(node) return Matches(node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)) end end
+    if searchText ~= "" then filter = function(node) return not AzerothCompendium:IsQuestNodeMasked(node) and Matches(node.quest and AzerothCompendium:GetQuestName(node.quest) or AzerothCompendium:GetQuestNameByID(node.id)) end end
     return AzerothCompendium:GetInstanceQuestGraph(selectedInstance, filter, type(ACOTABPC) == "table" and ACOTABPC.QUESTHIDECOMPLETED == true)
 end
 
@@ -2818,8 +2818,11 @@ local function RefreshDetail()
         compendium.empty:Hide()
         compendium.detailTitle:SetText("")
         compendium.detailCount:ClearAllPoints()
-        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.completedFilter.label, "LEFT", -12, 0)
-        compendium.detailCount:SetText(AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph)))
+        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.spoilerFilter.label, "LEFT", -12, 0)
+        local countText = AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph))
+        local masked = AzerothCompendium:CountMaskedQuests(compendium.questTree.graph)
+        if masked > 0 then countText = countText .. " · " .. AzerothCompendium:Trans("LID_QUESTSPOILERCOUNT", nil, masked) end
+        compendium.detailCount:SetText(countText)
         compendium.detailCount:Show()
         return
     end
@@ -2938,6 +2941,9 @@ local function RefreshBosses()
     end
     compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests") or listKind == "faction" and compendium.overviewActive or listKind == "pvp" or listKind == "sets")
     compendium.factionToggle.completedFilter:SetShown(not compendium.overviewActive and not lootToggle)
+    compendium.factionToggle.spoilerFilter:SetShown(not compendium.overviewActive and not lootToggle and (listKind == "dungeon" or listKind == "raid"))
+    compendium.factionToggle.spoilerFilter:SetChecked(AzerothCompendium:IsSpoilerFree())
+    compendium.factionToggle.spoilerFilter.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontHighlightSmall)
     compendium.factionToggle.classHeader:SetShown(not compendium.overviewActive and not lootToggle)
     if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
     for side, button in ipairs(compendium.factionToggle.buttons) do
@@ -6350,6 +6356,26 @@ local function CreateJournal()
     end)
 
     compendium.factionToggle.completedFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    compendium.factionToggle.spoilerFilter = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
+    compendium.factionToggle.spoilerFilter:SetSize(26, 26)
+    compendium.factionToggle.spoilerFilter:SetPoint("RIGHT", compendium.factionToggle.completedFilter.label, "LEFT", -8, -1)
+    compendium.factionToggle.spoilerFilter.label = compendium.factionToggle.spoilerFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    compendium.factionToggle.spoilerFilter.label:SetPoint("RIGHT", compendium.factionToggle.spoilerFilter, "LEFT", 0, 1)
+    compendium.factionToggle.spoilerFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
+    compendium.factionToggle.spoilerFilter:SetScript("OnClick", function(owner)
+        ACOTABPC = ACOTABPC or {}
+        ACOTABPC.SPOILERFREE = owner:GetChecked() == true
+        AzerothCompendium:RefreshCompendium()
+    end)
+
+    compendium.factionToggle.spoilerFilter:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_SPOILERFREE")))
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTSPOILERFREEHINT")), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+
+    compendium.factionToggle.spoilerFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.factionToggle:Hide()
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
     loot.rowGap = 0
@@ -6524,6 +6550,7 @@ local function CreateJournal()
         compendium.factionToggle.classFilter.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
         compendium.factionToggle.classHeader.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
         compendium.factionToggle.completedFilter.label:SetText(AzerothCompendium:Trans("LID_HIDECOMPLETEDQUESTS"))
+        compendium.factionToggle.spoilerFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE"))
     end)
 
     local empty = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
@@ -7384,7 +7411,21 @@ AzerothCompendium:RegisterEvent(loader, "PLAYER_TARGET_CHANGED")
 AzerothCompendium:RegisterEvent(loader, "UPDATE_MOUSEOVER_UNIT")
 AzerothCompendium:RegisterEvent(loader, "NAME_PLATE_UNIT_ADDED")
 AzerothCompendium:RegisterEvent(loader, "UPDATE_FACTION")
+AzerothCompendium:RegisterEvent(loader, "QUEST_ACCEPTED")
+AzerothCompendium:RegisterEvent(loader, "QUEST_DETAIL")
+AzerothCompendium:RegisterEvent(loader, "QUEST_PROGRESS")
+AzerothCompendium:RegisterEvent(loader, "QUEST_COMPLETE")
 loader:SetScript("OnEvent", function(sel, event, itemID, success)
+    if event == "QUEST_ACCEPTED" then
+        AzerothCompendium:MarkQuestSeen(success or itemID)
+        return
+    end
+
+    if event == "QUEST_DETAIL" or event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
+        if GetQuestID then AzerothCompendium:MarkQuestSeen(GetQuestID()) end
+        return
+    end
+
     if event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT" or event == "NAME_PLATE_UNIT_ADDED" then
         AzerothCompendium:MarkUnitSeen(event == "PLAYER_TARGET_CHANGED" and "target" or event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or itemID)
         return

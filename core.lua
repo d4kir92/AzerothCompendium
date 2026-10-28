@@ -338,6 +338,27 @@ function AzerothCompendium:IsLootSeen(itemID)
     return type(ACOTAB) == "table" and type(ACOTAB.SEENLOOT) == "table" and ACOTAB.SEENLOOT[itemID] == true
 end
 
+function AzerothCompendium:MarkQuestSeen(questID)
+    questID = tonumber(questID)
+    if questID == nil or questID <= 0 then return end
+    ACOTAB = ACOTAB or {}
+    ACOTAB.SEENQUESTS = ACOTAB.SEENQUESTS or {}
+    for _, id in ipairs(self:GetQuestVariants(questID)) do
+        ACOTAB.SEENQUESTS[id] = true
+    end
+    ACOTAB.SEENQUESTS[questID] = true
+end
+
+function AzerothCompendium:IsQuestKnown(questID)
+    if self:IsQuestCompleted(questID) or self:IsQuestActive(questID) then return true end
+    local seen = type(ACOTAB) == "table" and ACOTAB.SEENQUESTS
+    if type(seen) ~= "table" then return false end
+    for _, id in ipairs(self:GetQuestVariants(questID)) do
+        if seen[id] then return true end
+    end
+    return seen[questID] == true
+end
+
 function AzerothCompendium:MarkLootMessageSeen(message)
     if type(message) ~= "string" then return end
     if self.lootPatterns == nil then

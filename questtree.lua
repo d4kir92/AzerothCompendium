@@ -163,6 +163,60 @@ local function GetQuestStatus(questID, node)
     return status
 end
 
+local Spoiler = {}
+function Spoiler.IsMasked(node)
+    if node == nil or not AzerothCompendium:IsSpoilerFree() or AzerothCompendium:IsQuestKnown(node.id) then return false end
+
+    return IsQuestLocked(node)
+end
+
+function Spoiler.Name(node)
+    return Spoiler.IsMasked(node) and AzerothCompendium:Trans("LID_QUESTSPOILERNAME") or node.name
+end
+
+function Spoiler.FilterItems(list)
+    if list == nil then return nil, 0 end
+    local result, hidden = {}, 0
+    for _, entry in ipairs(list) do
+        if AzerothCompendium:IsLootSeen(entry[1]) then
+            tinsert(result, entry)
+        else
+            hidden = hidden + 1
+        end
+    end
+
+    return result, hidden
+end
+
+function Spoiler.Rewards(questID)
+    local rewards = AzerothCompendium:GetQuestRewards(questID)
+    if rewards == nil or not AzerothCompendium:IsSpoilerFree() or AzerothCompendium:IsQuestKnown(questID) then return rewards, 0 end
+    local copy = {}
+    for key, value in pairs(rewards) do
+        copy[key] = value
+    end
+
+    local hiddenItems, hiddenChoices
+    copy.items, hiddenItems = Spoiler.FilterItems(rewards.items)
+    copy.choices, hiddenChoices = Spoiler.FilterItems(rewards.choices)
+
+    return copy, hiddenItems + hiddenChoices
+end
+
+function AzerothCompendium:IsQuestNodeMasked(node)
+    return Spoiler.IsMasked(node)
+end
+
+function AzerothCompendium:CountMaskedQuests(graph)
+    local count = 0
+    if not self:IsSpoilerFree() then return count end
+    for _, node in ipairs(graph or {}) do
+        if node.instance and Spoiler.IsMasked(node) then count = count + 1 end
+    end
+
+    return count
+end
+
 local function IsGroupUnitOnQuest(unit, questID)
     if unit == "player" then return AzerothCompendium:IsQuestActive(questID) end
     if C_QuestLog and C_QuestLog.IsUnitOnQuest then
@@ -304,13 +358,14 @@ local function AddRewardItemsToTooltip(label, list)
 end
 
 local function AddRewardsToTooltip(questID)
-    local rewards = AzerothCompendium:GetQuestRewards(questID)
+    local rewards, hidden = Spoiler.Rewards(questID)
     local xp = AzerothCompendium:GetQuestRewardXP(questID)
     if rewards == nil and xp <= 0 then return end
     rewards = rewards or {}
     GameTooltip:AddLine(" ")
     AddRewardItemsToTooltip(AzerothCompendium:Trans("LID_QUESTREWARDS"), rewards.items)
     AddRewardItemsToTooltip(AzerothCompendium:Trans("LID_QUESTCHOICE"), rewards.choices)
+    if hidden > 0 then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTSPOILERREWARDS", nil, hidden)), 0.6, 0.6, 0.6) end
     if xp > 0 then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTXP")), tostring(xp), 0.9, 0.9, 0.9, 0.6, 0.4, 1) end
     if rewards.money then GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(_G.MONEY or "Money"), GetMoneyText(rewards.money), 0.9, 0.9, 0.9, 1, 1, 1) end
     for _, entry in ipairs(rewards.rep or {}) do
@@ -333,6 +388,16 @@ local function ShowNodeTooltip(button)
     local node = button.node
     if node == nil then return end
     GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    if Spoiler.IsMasked(node) then
+        GameTooltip:AddLine(Spoiler.Name(node), 1, 0.82, 0)
+        AddQuestStatusToTooltip(node.id, node.quest, node)
+        GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTSPOILERHINT")), 0.75, 0.75, 0.75, true)
+        AddRewardsToTooltip(node.id)
+        GameTooltip:Show()
+
+        return
+    end
+
     local shown = false
     if HasQuestTooltipData(node.id) then shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. node.id) end
     if not shown or not GameTooltip:IsOwned(button) or GameTooltip:NumLines() == 0 then
@@ -403,7 +468,7 @@ end
 
 local function OnNodeClick(button, mouseButton)
     local node = button.node
-    if node == nil or button.tree.dragMoved then return end
+    if node == nil or button.tree.dragMoved or Spoiler.IsMasked(node) then return end
     if mouseButton == "RightButton" then return ShareNodeQuest(node) end
     if ShowQuestWowheadLink(node.id) then return end
     ShowNodeOnMap(node)
@@ -584,7 +649,7 @@ local function CreateNode(canvas, tree)
 end
 
 local function GetRewardEntries(questID)
-    local rewards = AzerothCompendium:GetQuestRewards(questID)
+    local rewards = Spoiler.Rewards(questID)
     local entries = {}
     if rewards == nil then return entries, nil end
     for _, entry in ipairs(rewards.items or {}) do
@@ -618,7 +683,7 @@ end
 
 local function GetPhaseText(node)
     local phases = node.phases
-    if phases == nil then return nil end
+    if phases == nil or Spoiler.IsMasked(node) then return nil end
     if phases.accept then
         local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
         if startItem then
@@ -671,7 +736,8 @@ local function UpdateNode(button, node, width)
     button.statusIcon:SetVertexColor(tint and tint[1] or 1, tint and tint[2] or 1, tint and tint[3] or 1)
     local color = GetQuestDifficultyColorCode(node.level)
     local prefix = ""
-    local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+    local masked = Spoiler.IsMasked(node)
+    local startItem = not masked and AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
         local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
         prefix = format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
@@ -729,7 +795,7 @@ local function UpdateNode(button, node, width)
         button.title:SetPoint("RIGHT", button, "RIGHT", -rightInset, 0)
     end
 
-    button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. node.name .. "|r")
+    button.title:SetText(prefix .. color .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r")
     local border = STATUS_BORDER[status]
     button.border:SetColor(border[1], border[2], border[3], border[4])
     AzerothCompendium.Theme:Paint(button.accent, border)
@@ -771,7 +837,7 @@ local function UpdateNode(button, node, width)
         button.phaseText:Hide()
     end
 
-    local providedItem = GetProvidedItem(node.id)
+    local providedItem = not masked and GetProvidedItem(node.id)
     if providedItem then
         local name, _, quality, _, texture = AzerothCompendium:GetItemDisplay(providedItem)
         if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(providedItem) end
@@ -1496,7 +1562,7 @@ end
 
 local function GetListQuestTitle(node)
     local prefix = ""
-    local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+    local startItem = not Spoiler.IsMasked(node) and AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
         local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
         prefix = format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
@@ -1511,7 +1577,7 @@ local function GetListQuestTitle(node)
         end
     end
 
-    local text = prefix .. GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. node.name .. "|r"
+    local text = prefix .. GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r"
     local classText = AzerothCompendium:GetQuestClassText(node.id)
     if classText then text = text .. "  " .. classText end
     local phaseText = GetPhaseText(node)
@@ -1957,11 +2023,12 @@ local function CreateQuestDetail(tree)
         local function AddQuestLines(list)
             for _, other in ipairs(list) do
                 local icon = AzerothCompendium:IsQuestCompleted(other.id) and KEY_OWNED_ICON or STATUS_ICON.open[1]
-                AddBody(format("|T%s:%d|t ", icon, STATUS_ICON_SIZE) .. GetQuestDifficultyColorCode(other.level) .. "[" .. other.level .. "] " .. other.name .. "|r")
+                AddBody(format("|T%s:%d|t ", icon, STATUS_ICON_SIZE) .. GetQuestDifficultyColorCode(other.level) .. "[" .. other.level .. "] " .. Spoiler.Name(other) .. "|r")
             end
         end
 
-        AddText(GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. node.name .. "|r", "GameFontNormalLarge", 0)
+        local masked = Spoiler.IsMasked(node)
+        AddText(GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r", "GameFontNormalLarge", 0)
         local status = GetQuestStatus(node.id, node)
         local statusColor = status == "locked" and {1, 0.3, 0.3} or (status == "open" or status == "lowlevel") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
         AddText(format("|T%s:%d|t ", STATUS_ICON[status][1], STATUS_ICON_SIZE) .. AzerothCompendium:Trans(STATUS_TEXT[status]), "GameFontHighlightSmall", 4, statusColor[1], statusColor[2], statusColor[3])
@@ -1978,47 +2045,52 @@ local function CreateQuestDetail(tree)
         local classText = AzerothCompendium:GetQuestClassText(node.id)
         if classText then AddBody(classText) end
         if node.outside then AddBody(AzerothCompendium:Trans("LID_QUESTOUTSIDE"), 1, 0.82, 0) end
-        AddHeader(AzerothCompendium:Trans("LID_QUESTOBJECTIVE"))
-        local objective = GetQuestObjectiveText(node.id)
-        if objective then
-            AddBody(objective)
+        local giver = nil
+        if masked then
+            AddBody(AzerothCompendium:Trans("LID_QUESTSPOILERHINT"), 0.75, 0.75, 0.75)
         else
-            AddBody(AzerothCompendium:Trans("LID_LOADING"), 0.6, 0.6, 0.6)
-            RequestQuestData(node.id)
-            local retries = self.retries[node.id] or 0
-            if retries < DETAIL_RETRIES then
-                self.retries[node.id] = retries + 1
-                AzerothCompendium:After(1, function()
-                    if self.node == node and self:IsVisible() then self:SetNode(node) end
-                end, "AzerothCompendium:QuestDetail")
+            AddHeader(AzerothCompendium:Trans("LID_QUESTOBJECTIVE"))
+            local objective = GetQuestObjectiveText(node.id)
+            if objective then
+                AddBody(objective)
+            else
+                AddBody(AzerothCompendium:Trans("LID_LOADING"), 0.6, 0.6, 0.6)
+                RequestQuestData(node.id)
+                local retries = self.retries[node.id] or 0
+                if retries < DETAIL_RETRIES then
+                    self.retries[node.id] = retries + 1
+                    AzerothCompendium:After(1, function()
+                        if self.node == node and self:IsVisible() then self:SetNode(node) end
+                    end, "AzerothCompendium:QuestDetail")
+                end
             end
-        end
 
-        local providedItem = GetProvidedItem(node.id)
-        if providedItem then
-            AddHeader(AzerothCompendium:Trans("LID_QUESTPROVIDEDITEM"))
-            AddItem(providedItem)
-        end
+            local providedItem = GetProvidedItem(node.id)
+            if providedItem then
+                AddHeader(AzerothCompendium:Trans("LID_QUESTPROVIDEDITEM"))
+                AddItem(providedItem)
+            end
 
-        AddHeader(AzerothCompendium:Trans("LID_QUESTGIVER"))
-        local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
-        local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
-        if startItem then AddItem(startItem[1], 1, giver and giver[5]) end
-        if AzerothCompendium:IsQuestStartInInstance(node.id) then
-            AddBody(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name), 1, 0.82, 0)
-        elseif giver and not startItem then
-            local mapID, _, _, instanceID = AzerothCompendium:GetQuestGiverLocation(node.id)
-            local mapName = AzerothCompendium:GetQuestGiverInstanceName(instanceID) or (mapID and GetMapName(mapID))
-            AddBody(mapName and format("%s, %s", giver[5], mapName) or giver[5])
-        elseif not startItem then
-            AddBody("-", 0.6, 0.6, 0.6)
-        end
+            AddHeader(AzerothCompendium:Trans("LID_QUESTGIVER"))
+            giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
+            local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+            if startItem then AddItem(startItem[1], 1, giver and giver[5]) end
+            if AzerothCompendium:IsQuestStartInInstance(node.id) then
+                AddBody(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), node.name), 1, 0.82, 0)
+            elseif giver and not startItem then
+                local mapID, _, _, instanceID = AzerothCompendium:GetQuestGiverLocation(node.id)
+                local mapName = AzerothCompendium:GetQuestGiverInstanceName(instanceID) or (mapID and GetMapName(mapID))
+                AddBody(mapName and format("%s, %s", giver[5], mapName) or giver[5])
+            elseif not startItem then
+                AddBody("-", 0.6, 0.6, 0.6)
+            end
 
-        local ender = AzerothCompendium.QUESTENDERS and AzerothCompendium.QUESTENDERS[node.id]
-        if ender and ender[5] then
-            AddHeader(AzerothCompendium:Trans("LID_QUESTENDER"))
-            local mapName = ender[1] and GetMapName(ender[1])
-            AddBody(mapName and format("%s, %s", ender[5], mapName) or ender[5])
+            local ender = AzerothCompendium.QUESTENDERS and AzerothCompendium.QUESTENDERS[node.id]
+            if ender and ender[5] then
+                AddHeader(AzerothCompendium:Trans("LID_QUESTENDER"))
+                local mapName = ender[1] and GetMapName(ender[1])
+                AddBody(mapName and format("%s, %s", ender[5], mapName) or ender[5])
+            end
         end
 
         local first, last = GetPhaseEnds(node)
@@ -2034,7 +2106,8 @@ local function CreateQuestDetail(tree)
             AddQuestLines(followups)
         end
 
-        local rewards = AzerothCompendium:GetQuestRewards(node.id) or {}
+        local rewards, hiddenRewards = Spoiler.Rewards(node.id)
+        rewards = rewards or {}
         local xp = AzerothCompendium:GetQuestRewardXP(node.id)
         if #(rewards.items or {}) > 0 or xp > 0 or rewards.money or #(rewards.rep or {}) > 0 then
             AddHeader(AzerothCompendium:Trans("LID_QUESTREWARDS"))
@@ -2056,18 +2129,21 @@ local function CreateQuestDetail(tree)
             end
         end
 
+        if hiddenRewards > 0 then AddBody(AzerothCompendium:Trans("LID_QUESTSPOILERREWARDS", nil, hiddenRewards), 0.6, 0.6, 0.6) end
         y = y + 14
-        local buttonW = floor((width - 6) / 2)
-        for index, button in ipairs(self.buttons) do
-            button:ClearAllPoints()
-            button:SetWidth(buttonW)
-            button:SetPoint("TOPLEFT", content, "TOPLEFT", ((index - 1) % 2) * (buttonW + 6), -(y + floor((index - 1) / 2) * (DETAIL_BUTTON_H + 4)))
-            button:Show()
-        end
+        if not masked then
+            local buttonW = floor((width - 6) / 2)
+            for index, button in ipairs(self.buttons) do
+                button:ClearAllPoints()
+                button:SetWidth(buttonW)
+                button:SetPoint("TOPLEFT", content, "TOPLEFT", ((index - 1) % 2) * (buttonW + 6), -(y + floor((index - 1) / 2) * (DETAIL_BUTTON_H + 4)))
+                button:Show()
+            end
 
-        local mapButton = self.buttons[2]
-        if giver == nil or AzerothCompendium:IsQuestStartInInstance(node.id) then mapButton:Disable() else mapButton:Enable() end
-        y = y + 2 * DETAIL_BUTTON_H + 4
+            local mapButton = self.buttons[2]
+            if giver == nil or AzerothCompendium:IsQuestStartInInstance(node.id) then mapButton:Disable() else mapButton:Enable() end
+            y = y + 2 * DETAIL_BUTTON_H + 4
+        end
         content:SetHeight(max(1, y))
         if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
         if changed then
