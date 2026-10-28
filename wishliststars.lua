@@ -119,7 +119,7 @@ function AC:UpdateWishlistStar(button, icon, itemID)
 end
 
 function Stars:Update(button, entry)
-    if not AC:GetConfig("WISHLISTENABLED", true) then
+    if not AC:IsWishlistEnabled() then
         if entry.star and self:CanAccess(entry.star) then entry.star:Hide() end
         return
     end
@@ -154,7 +154,7 @@ function Stars:Update(button, entry)
 end
 
 function Stars:Track(button)
-    if type(button) ~= "table" or self.buttons[button] or not AC:GetConfig("WISHLISTENABLED", true) then return end
+    if type(button) ~= "table" or self.buttons[button] or not AC:IsWishlistEnabled() then return end
     if not self:CanAccess(button) or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
@@ -210,7 +210,7 @@ end
 
 function Stars:Refresh()
     self.full = false
-    if AC:GetConfig("WISHLISTENABLED", true) and self.discover and EnumerateFrames then
+    if AC:IsWishlistEnabled() and self.discover and EnumerateFrames then
         self.discover = false
         local frame = EnumerateFrames()
         while frame do
@@ -283,7 +283,7 @@ watcher:SetScript("OnUpdate", function(sel)
         sel:Hide()
         return
     end
-    if not AC:GetConfig("WISHLISTENABLED", true) then
+    if not AC:IsWishlistEnabled() then
         Stars.full, Stars.containers = false, false
         wipe(Stars.pending)
         sel:Hide()
@@ -301,7 +301,7 @@ watcher:SetScript("OnUpdate", function(sel)
 end)
 if C_Timer and C_Timer.NewTicker then
     C_Timer.NewTicker(Stars.fallbackInterval, function()
-        if not AC:GetConfig("WISHLISTENABLED", true) then return end
+        if not AC:IsWishlistEnabled() then return end
         Stars.full = true
         Stars:Wake()
     end)

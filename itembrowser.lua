@@ -232,7 +232,7 @@ function Browser:Render()
                 GameTooltip:SetHyperlink(button.entry.link or ("item:" .. button.entry.id))
                 GameTooltip:AddLine(button.entry.source, 0.7, 0.7, 0.7, true)
                 GameTooltip:AddLine(AC:Trans("LID_CATALOGSOURCEHINT"), 0.2, 1, 0.2, true)
-                if AC:GetConfig("WISHLISTENABLED", true) then
+                if AC:IsWishlistEnabled() then
                     GameTooltip:AddDoubleLine(AC:Trans("LID_RIGHTCLICK") .. ":", AC:Trans("LID_MARKFAVORITE") .. " / " .. AC:Trans("LID_NICETOHAVE"), 0.9, 0.9, 0.9, 1, 0.82, 0)
                 end
                 GameTooltip:Show()

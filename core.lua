@@ -529,6 +529,73 @@ function AzerothCompendium:GetRaidSize(inst)
     return AzerothCompendium.RAIDSIZES[id] or modern and "10/25" or nil
 end
 
+function AzerothCompendium:PrepareHeroicBosses()
+    for _, inst in ipairs(AzerothCompendium.INSTANCES or {}) do
+        if inst.heroic then
+            for _, boss in ipairs(inst.bosses or {}) do
+                if boss.heroicLoot and boss.normalLoot == nil then
+                    boss.normalLoot = boss.loot or {}
+                    local union, seen = {}, {}
+                    for _, list in ipairs({boss.normalLoot, boss.heroicLoot}) do
+                        for _, entry in ipairs(list) do
+                            if not seen[entry[1]] then
+                                seen[entry[1]] = true
+                                tinsert(union, entry)
+                            end
+                        end
+                    end
+
+                    boss.loot = union
+                end
+
+                if boss.minLevel and boss.maxLevel and boss.minLevel < boss.maxLevel then
+                    boss.normalLevel = boss.minLevel
+                    boss.heroicLevel = boss.maxLevel
+                end
+            end
+        end
+    end
+end
+
+AzerothCompendium:PrepareHeroicBosses()
+function AzerothCompendium:HasDifficulties(inst)
+    return inst ~= nil and inst.heroic == true and AzerothCompendium:GetFlavor() == "tbc"
+end
+
+function AzerothCompendium:IsHeroicSelected()
+    return type(ACOTABPC) == "table" and ACOTABPC.DIFFICULTY == "heroic"
+end
+
+function AzerothCompendium:SetHeroicSelected(heroic)
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.DIFFICULTY = heroic and "heroic" or "normal"
+end
+
+function AzerothCompendium:GetBossLoot(boss)
+    if boss.normalLoot == nil or AzerothCompendium:GetFlavor() ~= "tbc" then return boss.loot or {} end
+    return AzerothCompendium:IsHeroicSelected() and boss.heroicLoot or boss.normalLoot
+end
+
+function AzerothCompendium:GetBossLevel(boss)
+    if boss.learnedLevel or boss.heroicLevel == nil or AzerothCompendium:GetFlavor() ~= "tbc" then return boss.level end
+    return AzerothCompendium:IsHeroicSelected() and boss.heroicLevel or boss.normalLevel
+end
+
+function AzerothCompendium:SelectDifficultyForItem(boss, itemID)
+    if boss == nil or boss.normalLoot == nil or AzerothCompendium:GetFlavor() ~= "tbc" then return end
+    for _, entry in ipairs(AzerothCompendium:GetBossLoot(boss)) do
+        if entry[1] == itemID then return end
+    end
+
+    local other = AzerothCompendium:IsHeroicSelected() and boss.normalLoot or boss.heroicLoot
+    for _, entry in ipairs(other) do
+        if entry[1] == itemID then
+            AzerothCompendium:SetHeroicSelected(not AzerothCompendium:IsHeroicSelected())
+            return
+        end
+    end
+end
+
 function AzerothCompendium:GetContinents()
     local flavor = AzerothCompendium:GetFlavor()
     if flavor == "mists" then return {"kalimdor", "easternkingdoms", "outland", "northrend", "maelstrom", "pandaria"} end
@@ -596,6 +663,15 @@ function AzerothCompendium:SetFlavor(value)
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
 
+function AzerothCompendium:IsWishlistEnabled()
+    ACOTAB = ACOTAB or {}
+    if ACOTAB["WISHLISTENABLED"] ~= nil then
+        if ACOTAB["WISHLISTENABLED"] == false and ACOTAB["SHOWTAB_WISHLIST"] == nil then ACOTAB["SHOWTAB_WISHLIST"] = false end
+        ACOTAB["WISHLISTENABLED"] = nil
+    end
+    return AzerothCompendium:GetConfig("SHOWTAB_WISHLIST", true) ~= false
+end
+
 function AzerothCompendium:GetWishlist()
     ACOTAB = ACOTAB or {}
     ACOTABPC = ACOTABPC or {}
@@ -608,12 +684,12 @@ function AzerothCompendium:GetWishlist()
 end
 
 function AzerothCompendium:IsWishlisted(itemID)
-    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return false end
+    if not AzerothCompendium:IsWishlistEnabled() then return false end
     return AzerothCompendium:GetWishlist()[itemID] ~= nil
 end
 
 function AzerothCompendium:GetWishlistTexture(itemID)
-    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return nil end
+    if not AzerothCompendium:IsWishlistEnabled() then return nil end
     local source = AzerothCompendium:GetWishlist()[itemID]
     if source == nil then return nil end
     if type(source) == "table" and source.wishlistMark == "nice" then
@@ -622,7 +698,7 @@ function AzerothCompendium:GetWishlistTexture(itemID)
     return "Interface\\AddOns\\AzerothCompendium\\media\\star"
 end
 function AzerothCompendium:SetWishlistItem(itemID, source, mark)
-    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
+    if not AzerothCompendium:IsWishlistEnabled() then return end
     if type(itemID) ~= "number" then return end
     if type(source) == "table" then
         local saved = {}

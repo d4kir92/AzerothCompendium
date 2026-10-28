@@ -266,7 +266,7 @@ end
 
 local function VisibleLootCount(boss)
     local count = 0
-    for _, entry in ipairs(boss.loot or {}) do
+    for _, entry in ipairs(AzerothCompendium:GetBossLoot(boss)) do
         if IsItemVisible(entry[1]) then count = count + 1 end
     end
     return count
@@ -287,7 +287,7 @@ local function GetAllLoot(inst)
     local seen = {}
     if inst == nil then return list end
     for _, boss in ipairs(inst.bosses or {}) do
-        for _, entry in ipairs(boss.loot or {}) do
+        for _, entry in ipairs(AzerothCompendium:GetBossLoot(boss)) do
             local itemID = entry[1]
             if IsItemVisible(itemID) then
                 local row = seen[itemID]
@@ -323,7 +323,7 @@ local function GetAllLoot(inst)
                         model = boss.model,
                         classification = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or (not boss.trash and DEFAULT_BOSS_RANK or nil),
                         chance = entry[2],
-                        level = boss.level,
+                        level = AzerothCompendium:GetBossLevel(boss),
                         boss = boss
                     })
                 end
@@ -383,7 +383,7 @@ local function BossMatches(boss)
     if searchText == "" then return true end
     if Matches(AzerothCompendium:GetBossName(boss)) then return true end
     if Matches(boss.name) then return true end
-    for _, entry in ipairs(boss.loot or {}) do
+    for _, entry in ipairs(AzerothCompendium:GetBossLoot(boss)) do
         if IsItemVisible(entry[1]) and Matches(AzerothCompendium:GetItemDisplay(entry[1])) then return true end
     end
     return false
@@ -1532,15 +1532,16 @@ local function UpdateBossLevelBadge(row, boss)
         row.bossDragon:Show()
     end
 
-    local isSkull = rank == 3 or (boss.level ~= nil and boss.level >= LEVEL_SKULL_MIN)
-    if boss.level == nil and not isSkull then return end
+    local bossLevel = AzerothCompendium:GetBossLevel(boss)
+    local isSkull = rank == 3 or (bossLevel ~= nil and bossLevel >= LEVEL_SKULL_MIN)
+    if bossLevel == nil and not isSkull then return end
     row.levelRing:SetColorTexture(style.ring[1], style.ring[2], style.ring[3], 1)
     if isSkull then
         row.levelText:Hide()
         row.levelSkull:Show()
     else
-        row.levelText:SetText(boss.level)
-        row.levelText:SetTextColor(AzerothCompendium:GetLevelDifficultyColor(boss.level))
+        row.levelText:SetText(bossLevel)
+        row.levelText:SetTextColor(AzerothCompendium:GetLevelDifficultyColor(bossLevel))
         row.levelText:Show()
         row.levelSkull:Hide()
     end
@@ -1771,7 +1772,7 @@ local function GetLootList()
     if selectedBoss == nil then return list, hidden end
     local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", false)
     local class = select(2, UnitClass("player"))
-    local loot = selectedBoss.loot or {}
+    local loot = AzerothCompendium:GetBossLoot(selectedBoss)
     if selectedBoss.all then loot = GetAllLoot(selectedInstance) end
     for _, entry in ipairs(loot) do
         local itemID = entry[1]
@@ -1825,7 +1826,7 @@ local function GetLootList()
                         classification = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK,
                         chance = source.chance,
                         boss = boss,
-                        level = boss.level,
+                        level = AzerothCompendium:GetBossLevel(boss),
                         inst = source.inst,
                         kind = source.kind,
                         itemID = entry[1]
@@ -2206,7 +2207,7 @@ end
 AzerothCompendium.KindTabOrder = {"dashboard", "dungeon", "raid", "pvp", "faction", "sets", "worldquestitems", "allitems", "wishlist", "settings"}
 function AzerothCompendium:IsKindTabShown(kind)
     if kind == "settings" then return true end
-    if kind == "wishlist" and not self:GetConfig("WISHLISTENABLED", true) then return false end
+    if kind == "wishlist" then return self:IsWishlistEnabled() end
     return self:GetConfig("SHOWTAB_" .. strupper(kind), true) ~= false
 end
 
@@ -2574,7 +2575,7 @@ function MapPins.UpdateToggle(view)
     if last and compendium.detailCount and view:IsShown() then
         compendium.detailCount:ClearAllPoints()
         compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, 0)
-        local left = compendium.middleTabs.quests:GetRight()
+        local left = compendium.difficultyControl and compendium.difficultyControl:IsShown() and compendium.difficultyControl:GetRight() or compendium.middleTabs.quests:GetRight()
         local right = last:GetLeft()
         if left and right then
             compendium.detailCount:SetWidth(max(1, right - left - 16))
@@ -2667,7 +2668,8 @@ function MapPins.OnEnter(pin)
     if pin.kind == "boss" then
         pin.ring:SetVertexColor(1, 1, 1, 1)
         GameTooltip:SetText(AzerothCompendium:GetBossName(pin.boss))
-        if pin.boss.level ~= nil then GameTooltip:AddLine(AzerothCompendium:Trans("LID_LEVEL", nil, pin.boss.level), 1, 1, 1) end
+        local pinLevel = AzerothCompendium:GetBossLevel(pin.boss)
+        if pinLevel ~= nil then GameTooltip:AddLine(AzerothCompendium:Trans("LID_LEVEL", nil, pinLevel), 1, 1, 1) end
         GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINBOSSHINT"), 0.6, 0.6, 0.6)
     elseif pin.kind == "item" then
         GameTooltip:SetItemByID(pin.entry[4])
@@ -2978,6 +2980,7 @@ local function RefreshBosses()
         if compendium.model then compendium.model:Hide() end
         for _, tab in pairs(compendium.middleTabs) do tab:Hide() end
         for _, tab in pairs(compendium.detailTabs) do tab:Hide() end
+        if compendium.difficultyControl then compendium.difficultyControl:Hide() end
         compendium:RefreshOverview()
         compendium.overview:Show()
         return
@@ -2994,6 +2997,7 @@ local function RefreshBosses()
     end
 
     UpdateTabs(compendium.middleTabs, middleKind)
+    if compendium.difficultyControl then compendium.difficultyControl:Refresh() end
     if middleKind == "map" then
         compendium.bosses:Hide()
         compendium.bossTitle:Hide()
@@ -3273,7 +3277,7 @@ local function ShowItemTooltip(row)
 end
 
 local function ShowWishlistMenu(owner, itemID, source)
-    if not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
+    if not AzerothCompendium:IsWishlistEnabled() then return end
     itemID = tonumber(itemID)
     if itemID == nil then return end
     if owner.worldQuestItem then
@@ -4648,6 +4652,14 @@ local function SetSpecialMode(mode)
         end
     end
 
+    if compendium.difficultyControl then
+        if enabled then
+            compendium.difficultyControl:Hide()
+        else
+            compendium.difficultyControl:Refresh()
+        end
+    end
+
     for id, panel in pairs(compendium.modulePanels or {}) do
         panel:SetShown(mode == id)
     end
@@ -5043,7 +5055,7 @@ function AzerothCompendium:RefreshDashboard()
 end
 
 local function RefreshCurrentView()
-    if listKind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then
+    if listKind == "wishlist" and not AzerothCompendium:IsWishlistEnabled() then
         listKind = "dungeon"
         selectedInstance = nil
         selectedBoss = nil
@@ -5083,6 +5095,7 @@ NavigateToWishlistItem = function(entry)
 
     local kind, inst, boss = FindWishlistSource(entry.itemID, entry.source)
     if kind == nil or inst == nil or boss == nil then return end
+    AzerothCompendium:SelectDifficultyForItem(boss, entry.itemID)
     listKind = kind
     selectedInstance = inst
     selectedBoss = boss
@@ -5101,6 +5114,7 @@ end
 function AzerothCompendium:NavigateToCatalogItem(entry)
     if not compendium or not entry then return false end
     local kind, inst, boss = FindWishlistSource(entry.id)
+    AzerothCompendium:SelectDifficultyForItem(boss, entry.id)
     local questID, worldItem
     if not inst then
         for _, item in ipairs(self.WORLDQUESTITEMS or {}) do
@@ -6102,7 +6116,7 @@ local function CreateJournal()
     for _, info in ipairs({{"dashboard", "LID_OVERVIEW", "Interface\\Icons\\INV_Misc_Map_01"}, {"dungeon", "LID_DUNGEONS", "Interface\\AddOns\\AzerothCompendium\\media\\ui\\dungeons"}, {"raid", "LID_RAIDS", "Interface\\Icons\\INV_Misc_Head_Dragon_01"}, {"pvp", "LID_PVP", pvpIcon}, {"faction", "LID_REPUTATION", "Interface\\Icons\\INV_Shirt_GuildTabard_01"}, {"sets", "LID_SETS", "Interface\\Icons\\INV_Chest_Plate03"},{"worldquestitems", "LID_WORLDQUESTITEMS", "Interface\\Icons\\INV_Misc_Book_09"}, {"allitems", "LID_ALLITEMS", 134442}, {"wishlist", "LID_WISHLIST", "Interface\\Icons\\INV_Misc_Note_01"}, {"settings", "LID_SETTINGS", "Interface\\Icons\\INV_Misc_Gear_01"},}) do
         local kind = info[1]
         local tab = CreateSideTab(compendium, info[2], info[3], function()
-            if kind == "wishlist" and not AzerothCompendium:GetConfig("WISHLISTENABLED", true) then return end
+            if kind == "wishlist" and not AzerothCompendium:IsWishlistEnabled() then return end
             if listKind == kind then
                 UpdateKindTabs()
                 return
@@ -6286,6 +6300,55 @@ local function CreateJournal()
     end)
 
     AzerothCompendium:AnchorContentTab(questTab, bosses, bossTab)
+    if AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate") then
+        compendium.difficultyControl = CreateTemplated("DropdownButton", nil, compendium, {"WowStyle1DropdownTemplate"})
+        compendium.difficultyControl:SetupMenu(function(_, rootDescription)
+            for _, heroic in ipairs({false, true}) do
+                rootDescription:CreateRadio(AzerothCompendium:Trans(heroic and "LID_HEROIC" or "LID_NORMAL"), function() return AzerothCompendium:IsHeroicSelected() == heroic end, function() compendium.difficultyControl:Select(heroic) end)
+            end
+        end)
+    else
+        compendium.difficultyControl = CreateTemplated("Button", nil, compendium, {"UIPanelButtonTemplate"})
+        compendium.difficultyControl:SetScript("OnClick", function(sel)
+            local entries = {}
+            for _, heroic in ipairs({false, true}) do
+                tinsert(entries, {
+                    text = AzerothCompendium:Trans(heroic and "LID_HEROIC" or "LID_NORMAL"),
+                    checked = function() return AzerothCompendium:IsHeroicSelected() == heroic end,
+                    func = function() sel:Select(heroic) end
+                })
+            end
+
+            AzerothCompendium:ShowContextMenu(sel, entries)
+        end)
+        compendium.difficultyControl.arrow = compendium.difficultyControl:CreateTexture(nil, "ARTWORK")
+        compendium.difficultyControl.arrow:SetSize(16, 16)
+        compendium.difficultyControl.arrow:SetPoint("RIGHT", compendium.difficultyControl, "RIGHT", -3, 0)
+        compendium.difficultyControl.arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    end
+
+    compendium.difficultyControl:SetSize(120, 22)
+    compendium.difficultyControl:SetPoint("LEFT", questTab, "RIGHT", 10, 0)
+    compendium.difficultyControl:Hide()
+    function compendium.difficultyControl:Select(heroic)
+        AzerothCompendium:SetHeroicSelected(heroic)
+        self:Refresh()
+        RefreshBosses()
+    end
+
+    function compendium.difficultyControl:Refresh()
+        local shown = (listKind == "dungeon" or listKind == "raid") and not compendium.overviewActive and AzerothCompendium:HasDifficulties(selectedInstance)
+        self:SetShown(shown)
+        if shown then AzerothCompendium:SetDropdownText(self, AzerothCompendium:Trans(AzerothCompendium:IsHeroicSelected() and "LID_HEROIC" or "LID_NORMAL")) end
+    end
+
+    compendium.difficultyControl:HookScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_DIFFICULTY")))
+        GameTooltip:Show()
+    end)
+
+    compendium.difficultyControl:HookScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.middleTabs["map"] = mapTab
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
@@ -6558,6 +6621,7 @@ local function CreateJournal()
         if compendium.spoilerFilter then compendium.spoilerFilter.label:SetText(AzerothCompendium:Trans("LID_SPOILERFREE")) end
         compendium.filterDropdown:Refresh()
         compendium.continentControl:Refresh()
+        compendium.difficultyControl:Refresh()
         compendium.instanceControl:UpdateDropdownWidth()
         mapView.empty:SetText(AzerothCompendium:Trans("LID_NOMAP"))
         wishlistTitle:SetText(AzerothCompendium:Trans("LID_WISHLIST"))

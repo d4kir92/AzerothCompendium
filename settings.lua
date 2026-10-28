@@ -254,7 +254,15 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     AddCategory("SIDETABS", nil, "2026-10-27")
     for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"sets", "LID_SETS"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
-        AddCheckbox("SHOWTAB_" .. strupper(info[1]), true, function() AzerothCompendium:RefreshCompendium() end, info[2], "2026-10-27")
+        AddCheckbox("SHOWTAB_" .. strupper(info[1]), AzerothCompendium:IsKindTabShown(info[1]), function()
+            if info[1] == "wishlist" and AzerothCompendium.WishlistStars then
+                AzerothCompendium.WishlistStars.discover = true
+                AzerothCompendium.WishlistStars:Refresh()
+                AzerothCompendium.WishlistStars:RefreshBaganator()
+            end
+
+            AzerothCompendium:RefreshCompendium()
+        end, info[2], "2026-10-27")
     end
 
     AddCategory("TRAINERSPELLS", 2, "2026-10-07")
@@ -264,14 +272,6 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     end
 
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
-    AddCheckbox("WISHLISTENABLED", true, function()
-        if AzerothCompendium.WishlistStars then
-            AzerothCompendium.WishlistStars.discover = true
-            AzerothCompendium.WishlistStars:Refresh()
-            AzerothCompendium.WishlistStars:RefreshBaganator()
-        end
-        AzerothCompendium:RefreshCompendium()
-    end, nil, "2026-10-07")
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("MAPICONS", nil, "2026-10-04")
