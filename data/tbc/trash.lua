@@ -3668,20 +3668,6 @@ local lootByInstance = {
 			},
 		},
 		{
-			[1] = 2608,
-			[2] = 21.19,
-			["itemClass"] = 15,
-			["mobs"] = {
-				{
-					["name"] = "Deep Pool Threshfin",
-					["npcs"] = {4827},
-					["chance"] = 21.19,
-					["classification"] = 1,
-					["model"] = 2836,
-				},
-			},
-		},
-		{
 			[1] = 2674,
 			[2] = 43.06,
 			["itemClass"] = 7,
@@ -17740,62 +17726,6 @@ local lootByInstance = {
 			},
 		},
 		{
-			[1] = 9242,
-			[2] = 2.4,
-			["itemClass"] = 15,
-			["mobs"] = {
-				{
-					["name"] = "Sandfury Executioner",
-					["npcs"] = {7274},
-					["chance"] = 1.44,
-					["classification"] = 1,
-					["model"] = 6440,
-				},
-				{
-					["name"] = "Zul'Farrak Dead Hero",
-					["npcs"] = {7276},
-					["chance"] = 1.94,
-					["classification"] = 0,
-					["model"] = 6436,
-				},
-				{
-					["name"] = "Sandfury Shadowcaster",
-					["npcs"] = {5648},
-					["chance"] = 2.22,
-					["classification"] = 1,
-					["model"] = 6419,
-				},
-				{
-					["name"] = "Sandfury Blood Drinker",
-					["npcs"] = {5649},
-					["chance"] = 2.22,
-					["classification"] = 1,
-					["model"] = 6423,
-				},
-				{
-					["name"] = "Sandfury Witch Doctor",
-					["npcs"] = {5650},
-					["chance"] = 2.23,
-					["classification"] = 1,
-					["model"] = 6421,
-				},
-				{
-					["name"] = "Sandfury Shadowhunter",
-					["npcs"] = {7246},
-					["chance"] = 2.38,
-					["classification"] = 1,
-					["model"] = 6425,
-				},
-				{
-					["name"] = "Sandfury Soul Eater",
-					["npcs"] = {7247},
-					["chance"] = 2.4,
-					["classification"] = 1,
-					["model"] = 6427,
-				},
-			},
-		},
-		{
 			[1] = 9243,
 			[2] = 11.11,
 			["itemClass"] = 4,
@@ -21561,20 +21491,6 @@ local lootByInstance = {
 					["name"] = "Dark Screecher",
 					["npcs"] = {8927},
 					["chance"] = 13.38,
-					["classification"] = 0,
-					["model"] = 1955,
-				},
-			},
-		},
-		{
-			[1] = 11403,
-			[2] = 13.43,
-			["itemClass"] = 15,
-			["mobs"] = {
-				{
-					["name"] = "Dark Screecher",
-					["npcs"] = {8927},
-					["chance"] = 13.43,
 					["classification"] = 0,
 					["model"] = 1955,
 				},
@@ -29518,18 +29434,6 @@ local lootByInstance = {
 					["chance"] = 0.03,
 					["classification"] = 1,
 					["model"] = 17050,
-				},
-			},
-		},
-		{
-			[1] = 29561,
-			["itemClass"] = 15,
-			["mobs"] = {
-				{
-					["name"] = "Vazruden the Herald",
-					["npcs"] = {17307},
-					["classification"] = 1,
-					["model"] = 18944,
 				},
 			},
 		},

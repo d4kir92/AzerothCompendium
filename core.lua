@@ -2578,6 +2578,13 @@ function AzerothCompendium:GetItemDisplay(itemID)
     return name, link, quality, equipLoc, icon
 end
 
+function AzerothCompendium:IsJunkItem(itemID)
+    local quality = C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(itemID)
+    if quality == nil then quality = select(3, AzerothCompendium:GetItemInfo(itemID)) end
+    if quality == nil then AzerothCompendium.ItemJunkPending[itemID] = true end
+    return quality == 0
+end
+
 function AzerothCompendium:GetItemSlotText(itemID)
     local _, itemType, itemSubType, invType = AzerothCompendium:GetItemInfoInstant(itemID)
     local slot = nil
@@ -2595,6 +2602,7 @@ end
 
 AzerothCompendium.ItemClassRestrictions = {}
 AzerothCompendium.ItemClassPending = {}
+AzerothCompendium.ItemJunkPending = {}
 function AzerothCompendium:ReadItemTooltipLines(itemID)
     local texts = {}
     if C_TooltipInfo and C_TooltipInfo.GetItemByID then

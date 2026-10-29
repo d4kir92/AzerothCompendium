@@ -261,6 +261,7 @@ local function IsClassicEra()
 end
 
 local function IsItemVisible(itemID)
+    if AzerothCompendium:IsJunkItem(itemID) then return false end
     return not IsClassicEra() or not AzerothCompendium:IsForeverItem(itemID)
 end
 
@@ -7536,6 +7537,10 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         if AzerothCompendium.ItemClassPending[itemID] then
             AzerothCompendium.ItemClassPending[itemID] = nil
             if compendium ~= nil and compendium:IsShown() and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then AzerothCompendium:After(0.2, function() if compendium ~= nil and compendium:IsShown() then RefreshDetail() end end, "AzerothCompendium:ClassRestrictionRefresh") end
+        end
+        if AzerothCompendium.ItemJunkPending[itemID] then
+            AzerothCompendium.ItemJunkPending[itemID] = nil
+            if compendium ~= nil and compendium:IsShown() and AzerothCompendium:IsJunkItem(itemID) then AzerothCompendium:After(0.2, function() if compendium ~= nil and compendium:IsShown() then RefreshDetail() end end, "AzerothCompendium:ClassRestrictionRefresh") end
         end
     end
     if event == "GLOBAL_MOUSE_DOWN" then
