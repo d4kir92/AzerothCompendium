@@ -247,9 +247,8 @@ function Library:Refresh()
 end
 
 function Library:SyncTab()
-    local flavor = Addon:GetFlavor()
-    if (flavor == "forever" or flavor == "tbc" or flavor == "classic_era") and Addon:GetConfig("LIBRARYBOOKS_TAB", true) ~= false then
-        AzerothCompendiumAPI.RegisterTab("LibraryBooks", {label = "LibraryBooks", icon = "Interface\\Icons\\INV_Misc_Book_09", insertBefore = "wishlist", createPanel = function(host) self:Create(host) end})
+    if Addon:GetFlavor() == "forever" and Addon:GetConfig("LIBRARYBOOKS_TAB", true) ~= false then
+        AzerothCompendiumAPI.RegisterTab("LibraryBooks", {label = function() return Addon:Trans("LID_LIBRARYBOOKS_TAB") end, icon = "Interface\\Icons\\INV_Misc_Book_09", insertBefore = "wishlist", createPanel = function(host) self:Create(host) end})
     else
         AzerothCompendiumAPI.UnregisterTab("LibraryBooks")
     end

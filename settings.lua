@@ -254,7 +254,7 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     AddCategory("SIDETABS", nil, "2026-10-27")
     for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"sets", "LID_SETS"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
-        if info[1] == "wishlist" then AddCheckbox("LIBRARYBOOKS_TAB", true, function() if AzerothCompendium.Library then AzerothCompendium.Library:SyncTab() end end, nil, "2026-11-04") end
+        if info[1] == "wishlist" and AzerothCompendium.Library then AddCheckbox("LIBRARYBOOKS_TAB", true, function() if AzerothCompendium.Library then AzerothCompendium.Library:SyncTab() end end, nil, "2026-11-04") end
         AddCheckbox("SHOWTAB_" .. strupper(info[1]), AzerothCompendium:IsKindTabShown(info[1]), function()
             if info[1] == "wishlist" and AzerothCompendium.WishlistStars then
                 AzerothCompendium.WishlistStars.discover = true
