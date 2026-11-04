@@ -1,13 +1,34 @@
 local _, Addon = ...
-local Library = {bags = {}, categories = {"all", "starter", "l35", "l45", "l60", "rewards"}, levels = {starter = 20, l35 = 35, l45 = 45, l60 = 60}, icons = {all = "Interface\\Icons\\INV_Misc_Book_09", starter = "Interface\\Icons\\INV_Misc_Book_07", l35 = "Interface\\Icons\\INV_Misc_Book_11", l45 = "Interface\\Icons\\INV_Misc_Book_06", l60 = "Interface\\Icons\\INV_Misc_Book_04", rewards = "Interface\\Icons\\INV_Jewelry_Ring_03"}}
-Addon.Library = Library
+local Library = {
+    bags = {},
+    categories = {"all", "starter", "l35", "l45", "l60", "rewards"},
+    levels = {
+        starter = 20,
+        l35 = 35,
+        l45 = 45,
+        l60 = 60
+    },
+    icons = {
+        all = "Interface\\Icons\\INV_Misc_Book_09",
+        starter = "Interface\\Icons\\INV_Misc_Book_07",
+        l35 = "Interface\\Icons\\INV_Misc_Book_11",
+        l45 = "Interface\\Icons\\INV_Misc_Book_06",
+        l60 = "Interface\\Icons\\INV_Misc_Book_04",
+        rewards = "Interface\\Icons\\INV_Jewelry_Ring_03"
+    }
+}
 
+Addon.Library = Library
 function Library:Text(key)
     return Addon:Trans("LID_LIBRARY_" .. key)
 end
 
 function Library:DB()
-    ACOTABPC.LIBRARYBOOKS = ACOTABPC.LIBRARYBOOKS or {done = {}, manual = {}, bank = {}}
+    ACOTABPC.LIBRARYBOOKS = ACOTABPC.LIBRARYBOOKS or {
+        done = {},
+        manual = {},
+        bank = {}
+    }
     return ACOTABPC.LIBRARYBOOKS
 end
 
@@ -36,8 +57,12 @@ function Library:Scan(bank)
             if id then items[id] = true end
         end
     end
+
     if bank then read(-1) end
-    for bag = first, last do read(bag) end
+    for bag = first, last do
+        read(bag)
+    end
+
     if bank then
         self:DB().bank = items
         self:DB().bankScanned = time()
@@ -69,6 +94,7 @@ function Library:Tooltip(row, book)
     for _, source in ipairs(book.sources or {}) do
         GameTooltip:AddLine(string.format("%s — %s (%.1f, %.1f)", source.name, source.zone, source.x, source.y), 0.7, 0.8, 1, true)
     end
+
     GameTooltip:AddLine(self:Text(self:State(book)), 0.7, 0.85, 1)
     GameTooltip:AddLine(string.format("Quest: %d / Item: %d", book.questId, book.itemId), 0.6, 0.6, 0.6)
     if self:Flag(book) then GameTooltip:AddLine(self:Text("flaghint"), 1, 0.6, 0.2, true) end
@@ -99,6 +125,7 @@ function Library:Create(host)
         text:SetWordWrap(false)
         return text
     end
+
     host.tabs = {}
     local previous
     for _, key in ipairs(self.categories) do
@@ -107,16 +134,19 @@ function Library:Create(host)
             host.scroll:SetVerticalScroll(0)
             self:Refresh()
         end)
+
         tab.category = key
         tab:SetScript("OnEnter", function(button)
             GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
             GameTooltip:SetText(button.tooltip or self:CategoryText(key))
             GameTooltip:Show()
         end)
+
         api.PositionContentTab(tab, host, previous)
         host.tabs[#host.tabs + 1] = tab
         previous = tab
     end
+
     host.hideDone = CreateFrame("CheckButton", nil, host, "UICheckButtonTemplate")
     host.hideDone:SetSize(24, 24)
     host.hideDone:SetPoint("BOTTOMRIGHT", host, "TOPRIGHT", -2, 8)
@@ -136,9 +166,22 @@ function Library:Create(host)
     host.content = CreateFrame("Frame", nil, host.scroll)
     host.content:SetSize(400, 1)
     host.scroll:SetScrollChild(host.content)
-    host.scroll:SetScript("OnSizeChanged", function(_, width) host.content:SetWidth(width); self:Refresh() end)
-    host.OnSearchChanged = function(_, text) host.searchText = text; host.scroll:SetVerticalScroll(0); self:Refresh() end
-    host:SetScript("OnShow", function() self:Scan(false); self:Refresh() end)
+    host.scroll:SetScript("OnSizeChanged", function(_, width)
+        host.content:SetWidth(width)
+        self:Refresh()
+    end)
+
+    host.OnSearchChanged = function(_, text)
+        host.searchText = text
+        host.scroll:SetVerticalScroll(0)
+        self:Refresh()
+    end
+
+    host:SetScript("OnShow", function()
+        self:Scan(false)
+        self:Refresh()
+    end)
+
     host.NewRow = function(_, index)
         local row = CreateFrame("Button", nil, host.content)
         row:SetPoint("TOPLEFT", 0, -(index - 1) * 44)
@@ -160,6 +203,7 @@ function Library:Create(host)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
         return row
     end
+
     Addon.Theme:RegisterRoot(host)
     self:Refresh()
 end
@@ -172,9 +216,14 @@ function Library:Refresh()
         local state = self:State(book)
         counts[book.set] = counts[book.set] or {0, 0}
         counts[book.set][2] = counts[book.set][2] + 1
-        if state == "done" then done = done + 1; counts[book.set][1] = counts[book.set][1] + 1 end
+        if state == "done" then
+            done = done + 1
+            counts[book.set][1] = counts[book.set][1] + 1
+        end
+
         if state ~= "missing" and state ~= "questflag" then owned = owned + 1 end
     end
+
     local category = host.category
     host.title:SetText(self:CategoryText(category) .. (counts[category] and string.format(" (%d/%d)", counts[category][1], counts[category][2]) or ""))
     host.desc:SetText(string.format(self:Text("progress"), done, #Addon.LIBRARYBOOKS, owned))
@@ -186,7 +235,11 @@ function Library:Refresh()
         tab.tooltip = self:CategoryText(key) .. (counts[key] and string.format(" (%d/%d)", counts[key][1], counts[key][2]) or "")
         tab:SetTabSelected(category == key)
     end
-    for _, row in ipairs(host.rows) do row:Hide() end
+
+    for _, row in ipairs(host.rows) do
+        row:Hide()
+    end
+
     local index = 0
     local function row(icon, title, detail, click, enter)
         index = index + 1
@@ -199,6 +252,7 @@ function Library:Refresh()
         r:SetScript("OnEnter", enter)
         r:Show()
     end
+
     if host.category == "rewards" then
         row(self.icons.all, self:Text("turnin"), self:Text("rewardhint"))
         row("Interface\\Icons\\INV_BannerPVP_02", "Garion Wendell — " .. self:Text("Alliance"), "Stormwind / 37.6, 80.8", function() Addon:SetMapWaypoint(1453, 37.6, 80.8) end)
@@ -207,9 +261,7 @@ function Library:Refresh()
         for _, tier in ipairs(Addon.LIBRARYREWARDS) do
             row("Interface\\Icons\\INV_Misc_Note_01", tier.quest .. " — " .. tier.books, string.format(self:Text("level"), tier.req) .. " / Quest: " .. tier.questID)
             for _, item in ipairs(tier.items) do
-                row(self:Icon(item[1]), item[2], item[4], function()
-                    if IsControlKeyDown() and DressUpItemLink then DressUpItemLink("item:" .. item[1]) end
-                end, function(r)
+                row(self:Icon(item[1]), item[2], item[4], function() if IsControlKeyDown() and DressUpItemLink then DressUpItemLink("item:" .. item[1]) end end, function(r)
                     GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
                     GameTooltip:SetHyperlink("item:" .. item[1])
                     GameTooltip:Show()
@@ -223,11 +275,13 @@ function Library:Refresh()
             local haystack = string.lower(self:Name(book) .. " " .. book.name .. " " .. self:Zone(book) .. " " .. (book.subzone or "") .. " " .. (book.note or "") .. " " .. book.itemId .. " " .. book.questId)
             if (host.category == "all" or host.category == book.set) and (not host.hideDone:GetChecked() or self:State(book) ~= "done") and string.find(haystack, search, 1, true) then books[#books + 1] = book end
         end
+
         table.sort(books, function(a, b)
             if a.set ~= b.set then return self.levels[a.set] < self.levels[b.set] end
             if a.zone ~= b.zone then return self:Zone(a) < self:Zone(b) end
             return self:Name(a) < self:Name(b)
         end)
+
         for _, book in ipairs(books) do
             local state = self:State(book)
             local color = state == "done" and "|cff66dd66" or state == "questflag" and "|cffffaa44" or "|cffffffff"
@@ -241,14 +295,21 @@ function Library:Refresh()
                 end
             end, function(r) self:Tooltip(r, book) end)
         end
+
         if #books == 0 then row(self.icons.all, self:Text("empty"), "") end
     end
+
     host.content:SetHeight(math.max(1, index * 44))
 end
 
 function Library:SyncTab()
     if Addon:GetFlavor() == "forever" and Addon:GetConfig("LIBRARYBOOKS_TAB", true) ~= false then
-        AzerothCompendiumAPI.RegisterTab("LibraryBooks", {label = function() return Addon:Trans("LID_LIBRARYBOOKS_TAB") end, icon = "Interface\\Icons\\INV_Misc_Book_09", insertBefore = "wishlist", createPanel = function(host) self:Create(host) end})
+        AzerothCompendiumAPI.RegisterTab("LibraryBooks", {
+            label = function() return Addon:Trans("LID_LIBRARYBOOKS_TAB") end,
+            icon = "Interface\\Icons\\INV_Misc_Book_09",
+            insertBefore = "wishlist",
+            createPanel = function(host) self:Create(host) end
+        })
     else
         AzerothCompendiumAPI.UnregisterTab("LibraryBooks")
     end
@@ -258,6 +319,7 @@ Library.events = CreateFrame("Frame")
 for _, event in ipairs({"PLAYER_LOGIN", "QUEST_TURNED_IN", "BAG_UPDATE_DELAYED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "QUEST_LOG_UPDATE", "GET_ITEM_INFO_RECEIVED"}) do
     Library.events:RegisterEvent(event)
 end
+
 Library.events:SetScript("OnEvent", function(_, event, questID)
     if not ACOTABPC then return end
     if event == "PLAYER_LOGIN" then
@@ -277,5 +339,6 @@ Library.events:SetScript("OnEvent", function(_, event, questID)
         Library:Scan(false)
         if Library.bankOpen then Library:Scan(true) end
     end
+
     if Library.host and Library.host:IsShown() then Library:Refresh() end
 end)
