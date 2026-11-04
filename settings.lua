@@ -91,6 +91,12 @@ function AzerothCompendium:SyncSettingsFlavor()
     if acoset and acoset.flavor then acoset.flavor:SetValue(AzerothCompendium:GetFlavor()) end
 end
 
+function AzerothCompendium:SyncSettingsAppearance()
+    if acoset == nil then return end
+    if acoset.language then acoset.language:SetValue(AzerothCompendium:GetLanguage()) end
+    if acoset.design then acoset.design:SetValue(AzerothCompendium:GetDesign()) end
+end
+
 function AzerothCompendium:SyncSettingsClassFilter()
     if classFilterSetting == nil then return end
     classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
