@@ -1,5 +1,5 @@
 local _, Addon = ...
-local Library = {bags = {}, categories = {"all", "starter", "l35", "l45", "l60", "rewards"}, levels = {starter = 20, l35 = 35, l45 = 45, l60 = 60}}
+local Library = {bags = {}, categories = {"all", "starter", "l35", "l45", "l60", "rewards"}, levels = {starter = 20, l35 = 35, l45 = 45, l60 = 60}, icons = {all = "Interface\\Icons\\INV_Misc_Book_09", starter = "Interface\\Icons\\INV_Misc_Book_07", l35 = "Interface\\Icons\\INV_Misc_Book_11", l45 = "Interface\\Icons\\INV_Misc_Book_06", l60 = "Interface\\Icons\\INV_Misc_Book_04", rewards = "Interface\\Icons\\INV_Jewelry_Ring_03"}}
 Addon.Library = Library
 
 function Library:Text(key)
@@ -78,35 +78,61 @@ function Library:Tooltip(row, book)
     GameTooltip:Show()
 end
 
+function Library:CategoryText(key)
+    return self.levels[key] and string.format(self:Text("level"), self.levels[key]) or self:Text(key)
+end
+
+function Library:Icon(itemId)
+    local icon = C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(itemId) or GetItemIcon and GetItemIcon(itemId)
+    return icon or self.icons.all
+end
+
 function Library:Create(host)
     self.host = host
     host.category = "all"
     host.rows = {}
+    local api = AzerothCompendiumAPI
+    api.AddContentBorder(host)
     local function label(parent, font)
-        local text = parent:CreateFontString(nil, "OVERLAY", font or "GameFontHighlight")
+        local text = parent:CreateFontString(nil, "ARTWORK", font or "GameFontHighlight")
         text:SetJustifyH("LEFT")
+        text:SetWordWrap(false)
         return text
     end
-    host.summary = label(host, "GameFontNormalLarge")
-    host.summary:SetPoint("TOPLEFT", 14, -14)
-    host.summary:SetPoint("TOPRIGHT", -14, -14)
-    host.navigation = {}
-    for index, key in ipairs(self.categories) do
-        local button = CreateFrame("Button", nil, host, "UIPanelButtonTemplate")
-        button:SetSize(155, 26)
-        button:SetPoint("TOPLEFT", 12, -52 - (index - 1) * 31)
-        button:SetScript("OnClick", function() host.category = key; host.scroll:SetVerticalScroll(0); self:Refresh() end)
-        host.navigation[key] = button
+    host.tabs = {}
+    local previous
+    for _, key in ipairs(self.categories) do
+        local tab = api.CreateContentTab(host, key, self.icons[key], function()
+            host.category = key
+            host.scroll:SetVerticalScroll(0)
+            self:Refresh()
+        end)
+        tab.category = key
+        tab:SetScript("OnEnter", function(button)
+            GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+            GameTooltip:SetText(button.tooltip or self:CategoryText(key))
+            GameTooltip:Show()
+        end)
+        api.PositionContentTab(tab, host, previous)
+        host.tabs[#host.tabs + 1] = tab
+        previous = tab
     end
     host.hideDone = CreateFrame("CheckButton", nil, host, "UICheckButtonTemplate")
-    host.hideDone:SetPoint("TOPLEFT", 12, -245)
-    host.hideLabel = label(host, "GameFontHighlightSmall")
-    host.hideLabel:SetPoint("TOPLEFT", 16, -278)
-    host.hideLabel:SetWidth(150)
+    host.hideDone:SetSize(24, 24)
+    host.hideDone:SetPoint("BOTTOMRIGHT", host, "TOPRIGHT", -2, 8)
     host.hideDone:SetScript("OnClick", function() self:Refresh() end)
+    host.hideLabel = label(host, "GameFontHighlightSmall")
+    host.hideLabel:SetPoint("RIGHT", host.hideDone, "LEFT", -2, 0)
+    host.title = label(host, "GameFontNormal")
+    host.title:SetPoint("BOTTOMLEFT", previous, "BOTTOMRIGHT", 12, 17)
+    host.title:SetPoint("BOTTOMRIGHT", host, "TOPRIGHT", -240, 17)
+    host.desc = label(host, "GameFontHighlightSmall")
+    host.desc:SetTextColor(0.75, 0.75, 0.75)
+    host.desc:SetPoint("TOPLEFT", host.title, "BOTTOMLEFT", 0, -3)
+    host.desc:SetPoint("TOPRIGHT", host.title, "BOTTOMRIGHT", 0, -3)
     host.scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
-    host.scroll:SetPoint("TOPLEFT", 180, -50)
-    host.scroll:SetPoint("BOTTOMRIGHT", -30, 12)
+    host.scroll:SetPoint("TOPLEFT", 6, -6)
+    host.scroll:SetPoint("BOTTOMRIGHT", -28, 6)
     host.content = CreateFrame("Frame", nil, host.scroll)
     host.content:SetSize(400, 1)
     host.scroll:SetScrollChild(host.content)
@@ -115,19 +141,22 @@ function Library:Create(host)
     host:SetScript("OnShow", function() self:Scan(false); self:Refresh() end)
     host.NewRow = function(_, index)
         local row = CreateFrame("Button", nil, host.content)
-        row:SetPoint("TOPLEFT", 0, -(index - 1) * 52)
+        row:SetPoint("TOPLEFT", 0, -(index - 1) * 44)
         row:SetPoint("RIGHT", host.content, "RIGHT")
-        row:SetHeight(50)
+        row:SetHeight(42)
         row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
         row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        row.icon = row:CreateTexture(nil, "ARTWORK")
+        row.icon:SetSize(34, 34)
+        row.icon:SetPoint("LEFT", 6, 0)
+        row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         row.title = label(row)
-        row.title:SetPoint("TOPLEFT", 8, -5)
-        row.title:SetPoint("TOPRIGHT", -8, -5)
-        row.title:SetWordWrap(false)
+        row.title:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -2)
+        row.title:SetPoint("RIGHT", -8, 0)
         row.detail = label(row, "GameFontHighlightSmall")
-        row.detail:SetPoint("TOPLEFT", 8, -26)
-        row.detail:SetPoint("TOPRIGHT", -8, -26)
-        row.detail:SetWordWrap(false)
+        row.detail:SetTextColor(0.8, 0.8, 0.8)
+        row.detail:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 2)
+        row.detail:SetPoint("RIGHT", -8, 0)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
         return row
     end
@@ -146,20 +175,24 @@ function Library:Refresh()
         if state == "done" then done = done + 1; counts[book.set][1] = counts[book.set][1] + 1 end
         if state ~= "missing" and state ~= "questflag" then owned = owned + 1 end
     end
-    host.summary:SetText(string.format(self:Text("progress"), done, #Addon.LIBRARYBOOKS, owned))
+    local category = host.category
+    host.title:SetText(self:CategoryText(category) .. (counts[category] and string.format(" (%d/%d)", counts[category][1], counts[category][2]) or ""))
+    host.desc:SetText(string.format(self:Text("progress"), done, #Addon.LIBRARYBOOKS, owned))
     host.hideLabel:SetText(self:Text("hidedone"))
-    for key, button in pairs(host.navigation) do
-        local text = self.levels[key] and string.format(self:Text("level"), self.levels[key]) or self:Text(key)
-        if counts[key] then text = text .. string.format(" (%d/%d)", counts[key][1], counts[key][2]) end
-        button:SetText(text)
-        button:SetEnabled(host.category ~= key)
+    host.hideDone:SetShown(category ~= "rewards")
+    host.hideLabel:SetShown(category ~= "rewards")
+    for _, tab in ipairs(host.tabs) do
+        local key = tab.category
+        tab.tooltip = self:CategoryText(key) .. (counts[key] and string.format(" (%d/%d)", counts[key][1], counts[key][2]) or "")
+        tab:SetTabSelected(category == key)
     end
     for _, row in ipairs(host.rows) do row:Hide() end
     local index = 0
-    local function row(title, detail, click, enter)
+    local function row(icon, title, detail, click, enter)
         index = index + 1
         local r = host.rows[index] or host:NewRow(index)
         host.rows[index] = r
+        r.icon:SetTexture(icon)
         r.title:SetText(title)
         r.detail:SetText(detail)
         r:SetScript("OnClick", click)
@@ -167,14 +200,14 @@ function Library:Refresh()
         r:Show()
     end
     if host.category == "rewards" then
-        row(self:Text("turnin"), self:Text("rewardhint"))
-        row("Garion Wendell — " .. self:Text("Alliance"), "Stormwind / 37.6, 80.8", function() Addon:SetMapWaypoint(1453, 37.6, 80.8) end)
-        row("Owen Thadd — " .. self:Text("Horde"), "Undercity / 73.4, 33.0", function() Addon:SetMapWaypoint(1458, 73.4, 33.0) end)
-        row(self:Text("mage"), self:Text("beta"))
+        row(self.icons.all, self:Text("turnin"), self:Text("rewardhint"))
+        row("Interface\\Icons\\INV_BannerPVP_02", "Garion Wendell — " .. self:Text("Alliance"), "Stormwind / 37.6, 80.8", function() Addon:SetMapWaypoint(1453, 37.6, 80.8) end)
+        row("Interface\\Icons\\INV_BannerPVP_01", "Owen Thadd — " .. self:Text("Horde"), "Undercity / 73.4, 33.0", function() Addon:SetMapWaypoint(1458, 73.4, 33.0) end)
+        row("Interface\\Icons\\INV_Staff_13", self:Text("mage"), self:Text("beta"))
         for _, tier in ipairs(Addon.LIBRARYREWARDS) do
-            row(tier.quest .. " — " .. tier.books, string.format(self:Text("level"), tier.req) .. " / Quest: " .. tier.questID)
+            row("Interface\\Icons\\INV_Misc_Note_01", tier.quest .. " — " .. tier.books, string.format(self:Text("level"), tier.req) .. " / Quest: " .. tier.questID)
             for _, item in ipairs(tier.items) do
-                row(item[2], item[4], function()
+                row(self:Icon(item[1]), item[2], item[4], function()
                     if IsControlKeyDown() and DressUpItemLink then DressUpItemLink("item:" .. item[1]) end
                 end, function(r)
                     GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
@@ -198,7 +231,7 @@ function Library:Refresh()
         for _, book in ipairs(books) do
             local state = self:State(book)
             local color = state == "done" and "|cff66dd66" or state == "questflag" and "|cffffaa44" or "|cffffffff"
-            row(color .. self:Name(book) .. "|r", self:Text(state) .. " — " .. self:Zone(book) .. (book.x and string.format(" (%.1f, %.1f)", book.x, book.y) or ""), function(_, button)
+            row(self:Icon(book.itemId), color .. self:Name(book) .. "|r", self:Text(state) .. " — " .. self:Zone(book) .. (book.x and string.format(" (%.1f, %.1f)", book.x, book.y) or ""), function(_, button)
                 if button == "RightButton" then
                     local manual = self:DB().manual
                     manual[book.itemId] = not manual[book.itemId] or nil
@@ -208,13 +241,14 @@ function Library:Refresh()
                 end
             end, function(r) self:Tooltip(r, book) end)
         end
-        if #books == 0 then row(self:Text("empty"), "") end
+        if #books == 0 then row(self.icons.all, self:Text("empty"), "") end
     end
-    host.content:SetHeight(math.max(1, index * 52))
+    host.content:SetHeight(math.max(1, index * 44))
 end
 
 function Library:SyncTab()
-    if Addon:GetFlavor() == "forever" then
+    local flavor = Addon:GetFlavor()
+    if flavor == "forever" or flavor == "tbc" or flavor == "classic_era" then
         AzerothCompendiumAPI.RegisterTab("LibraryBooks", {label = "LibraryBooks", icon = "Interface\\Icons\\INV_Misc_Book_09", insertBefore = "wishlist", createPanel = function(host) self:Create(host) end})
     else
         AzerothCompendiumAPI.UnregisterTab("LibraryBooks")

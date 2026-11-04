@@ -324,7 +324,7 @@ AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_not-in-forever", "Reported unava
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_flaghint", "Server completion flag is set. Only an observed turn-in counts as confirmed.")
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_bankscan", "Last bank scan: ")
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_clickhint", "Left-click: waypoint. Right-click: toggle manual note.")
-AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_progress", "LibraryBooks — %d/%d turned in · %d owned or completed")
+AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_progress", "%d/%d turned in · %d owned or completed")
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_hidedone", "Hide turned-in books")
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_turnin", "Turn in each different book at your librarian.")
 AzerothCompendium:AddTrans("enUS", "LID_LIBRARY_rewardhint", "Each reward tier is a separate quest; choose one item per tier.")

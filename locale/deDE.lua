@@ -324,7 +324,7 @@ AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_not-in-forever", "In Forever als
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_flaghint", "Server-Questflag gesetzt. Nur eine beobachtete Abgabe zählt als bestätigt.")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_bankscan", "Letzter Bankbesuch: ")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_clickhint", "Linksklick: Wegpunkt. Rechtsklick: manuelle Markierung umschalten.")
-AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_progress", "LibraryBooks — %d/%d abgegeben · %d vorhanden oder erledigt")
+AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_progress", "%d/%d abgegeben · %d vorhanden oder erledigt")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_hidedone", "Abgegebene Bücher ausblenden")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_turnin", "Jedes unterschiedliche Buch beim Bibliothekar abgeben.")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_rewardhint", "Jede Belohnungsstufe ist eine eigene Quest; ein Gegenstand pro Stufe.")
