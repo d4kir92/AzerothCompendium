@@ -659,6 +659,7 @@ function AzerothCompendium:SetFlavor(value)
     end
 
     if valid and not AzerothCompendium:IsFlavorLocked() then AzerothCompendium:SetConfig("FLAVOR", value) end
+    if AzerothCompendium.Library then AzerothCompendium.Library:SyncTab() end
     if AzerothCompendium.SyncCompendiumFlavor then AzerothCompendium:SyncCompendiumFlavor() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
