@@ -5195,6 +5195,7 @@ AzerothCompendium.QUESTTAGS = {
 	[1653] = 81,
 	[79360] = 81,
 	[96264] = 81,
+	[98815] = 81,
 }
 
 AzerothCompendium.QUESTINSIDE = {
