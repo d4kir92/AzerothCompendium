@@ -22,10 +22,13 @@ local function AddMaps(id, levels)
     AzerothCompendium.INSTANCEMAPS[id] = maps
 end
 
-AddMaps(16544, {{2959, "City of Dalaran", 684}, {"2959_2", "Dalaran Sewers", 689, 2959002}})
-AddMaps(16732, {{2998}})
+AddMaps(16544, {{2959, "City of Dalaran", 684, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}, {"2959_2", "Dalaran Sewers", 689, 2959002, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(16732, {{2998, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(16611, {{2999, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(16919, {{3065, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(900001, {{900001, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(900002, {{900002, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(900005, {{900005, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(389, {{213}})
 AddMaps(36, {{291, "The Deadmines"}, {292, "Ironclad Cove"}})
 AddMaps(43, {{279}})

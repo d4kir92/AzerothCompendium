@@ -134,6 +134,7 @@ function WorldMap.GetLevels(instanceMapID)
                 ["height"] = info.height,
                 ["fileWidth"] = info.fileWidth,
                 ["fileHeight"] = info.fileHeight,
+                ["source"] = info.source,
                 ["inst"] = inst,
             })
         end
@@ -200,6 +201,7 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["getPins"] = WorldMap.GetPins,
     ["getBossHint"] = function() return AzerothCompendium:Trans("LID_MAPPINBOSSHINT") end,
     ["getLevelHint"] = function() return AzerothCompendium:Trans("LID_MAPPINLEVELHINT") end,
+    ["getCredit"] = function(level) return level.source and format(AzerothCompendium:Trans("LID_MAPSOURCE"), level.source) or nil end,
     ["getEntranceText"] = function() return AzerothCompendium:Trans("LID_ENTRANCE") end,
     ["getEntranceHint"] = function() return AzerothCompendium:Trans("LID_RIGHTCLICK") .. ": " .. AzerothCompendium:Trans("LID_SHOWENTRANCEMAP") end,
     ["getReturnMapID"] = function(level)
