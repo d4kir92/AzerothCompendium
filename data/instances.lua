@@ -1064,7 +1064,40 @@ AzerothCompendium.INSTANCES = {
 		["minLevel"] = 35,
 		["maxLevel"] = 40,
 		["forever"] = true,
-		["bosses"] = {},
+		["bosses"] = {
+			{
+				["name"] = "Zul'Alai",
+				["npcs"] = {270882},
+			},
+			{
+				["name"] = "Var'Taka",
+				["npcs"] = {270883},
+			},
+			{
+				["name"] = "Captain Dreadrise",
+				["npcs"] = {270884},
+			},
+			{
+				["name"] = "Deathless Marrow",
+				["npcs"] = {270885},
+			},
+			{
+				["name"] = "Gill",
+				["npcs"] = {270888},
+			},
+			{
+				["name"] = "Min'loth the Serpent",
+				["npcs"] = {270886},
+			},
+			{
+				["name"] = "Umbra",
+				["npcs"] = {264172},
+			},
+			{
+				["name"] = "Zin'aka",
+				["npcs"] = {263742},
+			},
+		},
 	},
 	{
 		["id"] = 129,
