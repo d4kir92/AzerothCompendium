@@ -6417,6 +6417,27 @@ local lootByInstance = {
 	},
 	["Scarlet Monastery"] = {
 		{
+			[1] = 870,
+			[2] = 0.01,
+			["itemClass"] = 2,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Champion",
+					["npcs"] = {4302},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2460,
+				},
+				{
+					["name"] = "Scarlet Abbot",
+					["npcs"] = {4303},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2492,
+				},
+			},
+		},
+		{
 			[1] = 1992,
 			[2] = 0.03,
 			["itemClass"] = 4,
@@ -6658,6 +6679,195 @@ local lootByInstance = {
 					["chance"] = 0.02,
 					["classification"] = 1,
 					["model"] = 2603,
+				},
+			},
+		},
+		{
+			[1] = 3871,
+			[2] = 0.01,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Soldier",
+					["npcs"] = {4286},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2522,
+				},
+				{
+					["name"] = "Scarlet Defender",
+					["npcs"] = {4298},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2462,
+				},
+				{
+					["name"] = "Scarlet Chaplain",
+					["npcs"] = {4299},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2501,
+				},
+				{
+					["name"] = "Unfettered Spirit",
+					["npcs"] = {4308},
+					["chance"] = 0,
+					["classification"] = 0,
+					["model"] = 5430,
+				},
+				{
+					["name"] = "Scarlet Monk",
+					["npcs"] = {4540},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2603,
+				},
+				{
+					["name"] = "Anguished Dead",
+					["npcs"] = {6426},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 10255,
+				},
+				{
+					["name"] = "Scarlet Beastmaster",
+					["npcs"] = {4288},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2497,
+				},
+			},
+		},
+		{
+			[1] = 3875,
+			[2] = 0.03,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Soldier",
+					["npcs"] = {4286},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2522,
+				},
+				{
+					["name"] = "Scarlet Diviner",
+					["npcs"] = {4291},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2507,
+				},
+				{
+					["name"] = "Scarlet Defender",
+					["npcs"] = {4298},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2462,
+				},
+				{
+					["name"] = "Scarlet Wizard",
+					["npcs"] = {4300},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2525,
+				},
+				{
+					["name"] = "Scarlet Beastmaster",
+					["npcs"] = {4288},
+					["chance"] = 0.03,
+					["classification"] = 1,
+					["model"] = 2497,
+				},
+			},
+		},
+		{
+			[1] = 4351,
+			[2] = 0.01,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Gallant",
+					["npcs"] = {4287},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2463,
+				},
+				{
+					["name"] = "Scarlet Myrmidon",
+					["npcs"] = {4295},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2514,
+				},
+				{
+					["name"] = "Scarlet Centurion",
+					["npcs"] = {4301},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2499,
+				},
+				{
+					["name"] = "Scarlet Torturer",
+					["npcs"] = {4306},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2607,
+				},
+				{
+					["name"] = "Scarlet Diviner",
+					["npcs"] = {4291},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2507,
+				},
+			},
+		},
+		{
+			[1] = 4354,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Defender",
+					["npcs"] = {4298},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2462,
+				},
+			},
+		},
+		{
+			[1] = 4356,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Protector",
+					["npcs"] = {4292},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2476,
+				},
+				{
+					["name"] = "Scarlet Chaplain",
+					["npcs"] = {4299},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2501,
+				},
+			},
+		},
+		{
+			[1] = 4415,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Torturer",
+					["npcs"] = {4306},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2607,
 				},
 			},
 		},
@@ -6959,6 +7169,20 @@ local lootByInstance = {
 					["chance"] = 0.66,
 					["classification"] = 1,
 					["model"] = 2503,
+				},
+			},
+		},
+		{
+			[1] = 6046,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Centurion",
+					["npcs"] = {4301},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2499,
 				},
 			},
 		},
@@ -9588,6 +9812,48 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 8384,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Soldier",
+					["npcs"] = {4286},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2522,
+				},
+				{
+					["name"] = "Scarlet Guardsman",
+					["npcs"] = {4290},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2511,
+				},
+			},
+		},
+		{
+			[1] = 9719,
+			[2] = 0.01,
+			["itemClass"] = 7,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Myrmidon",
+					["npcs"] = {4295},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2514,
+				},
+				{
+					["name"] = "Scarlet Champion",
+					["npcs"] = {4302},
+					["chance"] = 0.01,
+					["classification"] = 1,
+					["model"] = 2460,
+				},
+			},
+		},
+		{
 			[1] = 10328,
 			[2] = 0.3,
 			["itemClass"] = 4,
@@ -9812,6 +10078,27 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 12261,
+			[2] = 0,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Scarlet Guardsman",
+					["npcs"] = {4290},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2511,
+				},
+				{
+					["name"] = "Scarlet Centurion",
+					["npcs"] = {4301},
+					["chance"] = 0,
+					["classification"] = 1,
+					["model"] = 2499,
+				},
+			},
+		},
+		{
 			[1] = 14635,
 			[2] = 0.01,
 			["itemClass"] = 9,
@@ -9842,7 +10129,6 @@ local lootByInstance = {
 		{
 			[1] = 217276,
 			[2] = 0.02,
-			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Scarlet Protector",
@@ -9852,6 +10138,7 @@ local lootByInstance = {
 					["model"] = 2476,
 				},
 			},
+			["itemClass"] = 9,
 		},
 		{
 			[1] = 248690,
