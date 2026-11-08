@@ -15829,13 +15829,13 @@ local lootByInstance = {
 	["Excavation Site: Wetlands"] = {
 		{
 			[1] = 2084,
-			[2] = 5.9,
+			[2] = 6.21,
 			["itemClass"] = 2,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
 					["npcs"] = {275045},
-					["chance"] = 5.9,
+					["chance"] = 6.21,
 					["classification"] = 1,
 					["model"] = 4916,
 				},
@@ -15843,34 +15843,34 @@ local lootByInstance = {
 		},
 		{
 			[1] = 3667,
-			[2] = 40.56,
+			[2] = 38.77,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
-					["name"] = "Marsh Crocolisk",
-					["npcs"] = {260796},
-					["chance"] = 36.17,
+					["name"] = "Young Crocolisk",
+					["npcs"] = {260798},
+					["chance"] = 33.68,
 					["classification"] = 0,
 					["model"] = 1035,
 				},
 				{
-					["name"] = "Young Crocolisk",
-					["npcs"] = {260798},
-					["chance"] = 39.37,
+					["name"] = "Marsh Crocolisk",
+					["npcs"] = {260796},
+					["chance"] = 34.4,
 					["classification"] = 0,
 					["model"] = 1035,
 				},
 				{
 					["name"] = "Elder Crocolisk",
 					["npcs"] = {260797},
-					["chance"] = 40.45,
+					["chance"] = 37.97,
 					["classification"] = 1,
 					["model"] = 1038,
 				},
 				{
 					["name"] = "Marsh Skulker",
 					["npcs"] = {274715},
-					["chance"] = 40.56,
+					["chance"] = 38.77,
 					["classification"] = 1,
 					["model"] = 807,
 				},
@@ -15878,34 +15878,34 @@ local lootByInstance = {
 		},
 		{
 			[1] = 8365,
-			[2] = 10.78,
+			[2] = 10.84,
 			["itemClass"] = 7,
 			["mobs"] = {
 				{
-					["name"] = "Highland Tortoise",
-					["npcs"] = {260809},
-					["chance"] = 9.84,
-					["classification"] = 0,
-					["model"] = 4829,
-				},
-				{
 					["name"] = "Highland Snapper",
 					["npcs"] = {260810},
-					["chance"] = 10.78,
+					["chance"] = 10.28,
 					["classification"] = 1,
 					["model"] = 7114,
+				},
+				{
+					["name"] = "Highland Tortoise",
+					["npcs"] = {260809},
+					["chance"] = 10.84,
+					["classification"] = 0,
+					["model"] = 4829,
 				},
 			},
 		},
 		{
 			[1] = 11150,
-			[2] = 2.21,
+			[2] = 2.8,
 			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Saboteur",
 					["npcs"] = {275045},
-					["chance"] = 2.21,
+					["chance"] = 2.8,
 					["classification"] = 1,
 					["model"] = 4916,
 				},
@@ -15913,27 +15913,27 @@ local lootByInstance = {
 		},
 		{
 			[1] = 271100,
-			[2] = 19.98,
+			[2] = 19.09,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
-					["name"] = "Thicket Stalker",
-					["npcs"] = {271732},
-					["chance"] = 18.82,
-					["classification"] = 1,
-					["model"] = 1339,
-				},
-				{
 					["name"] = "Thicket Hunter",
 					["npcs"] = {260801},
-					["chance"] = 19.28,
+					["chance"] = 17.93,
 					["classification"] = 1,
 					["model"] = 11316,
 				},
 				{
+					["name"] = "Thicket Stalker",
+					["npcs"] = {271732},
+					["chance"] = 18.69,
+					["classification"] = 1,
+					["model"] = 1339,
+				},
+				{
 					["name"] = "Thicket Lurker",
 					["npcs"] = {260800},
-					["chance"] = 19.98,
+					["chance"] = 19.09,
 					["classification"] = 1,
 					["model"] = 1337,
 				},
@@ -15941,13 +15941,13 @@ local lootByInstance = {
 		},
 		{
 			[1] = 284844,
-			[2] = 37.5,
+			[2] = 38.05,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Dragonmaw Thaumaturgist",
 					["npcs"] = {275046},
-					["chance"] = 37.5,
+					["chance"] = 38.05,
 					["classification"] = 1,
 					["model"] = 4918,
 				},
@@ -15955,29 +15955,29 @@ local lootByInstance = {
 		},
 		{
 			[1] = 284845,
-			[2] = 14.85,
+			[2] = 13.84,
 			["itemClass"] = 12,
 			["mobs"] = {
 				{
 					["name"] = "Thicket Lurker",
 					["npcs"] = {260800},
-					["chance"] = 14.06,
+					["chance"] = 13.04,
 					["classification"] = 1,
 					["model"] = 1337,
 				},
 				{
-					["name"] = "Thicket Matriarch",
-					["npcs"] = {260802},
-					["chance"] = 14.44,
-					["classification"] = 1,
-					["model"] = 11315,
-				},
-				{
 					["name"] = "Thicket Hunter",
 					["npcs"] = {260801},
-					["chance"] = 14.85,
+					["chance"] = 13.52,
 					["classification"] = 1,
 					["model"] = 11316,
+				},
+				{
+					["name"] = "Thicket Matriarch",
+					["npcs"] = {260802},
+					["chance"] = 13.84,
+					["classification"] = 1,
+					["model"] = 11315,
 				},
 			},
 		},
@@ -15987,7 +15987,24 @@ local lootByInstance = {
 		},
 		{
 			[1] = 287068,
+			[2] = 0.21,
 			["itemClass"] = 2,
+			["mobs"] = {
+				{
+					["name"] = "Thicket Lurker",
+					["npcs"] = {260800},
+					["chance"] = 0.05,
+					["classification"] = 1,
+					["model"] = 1337,
+				},
+				{
+					["name"] = "Thicket Matriarch",
+					["npcs"] = {260802},
+					["chance"] = 0.21,
+					["classification"] = 1,
+					["model"] = 11315,
+				},
+			},
 		},
 	},
 	["Maraudon"] = {
