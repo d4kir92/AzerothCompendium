@@ -123,7 +123,7 @@ function Stars:Update(button, entry)
         if entry.star and self:CanAccess(entry.star) then entry.star:Hide() end
         return
     end
-    if not self:CanAccess(button) or not self:CanAccess(entry.icon) or (entry.star and not self:CanAccess(entry.star)) then return end
+    if not self:CanAccess(button) or button.AttachTexture or not self:CanAccess(entry.icon) or (entry.star and not self:CanAccess(entry.star)) then return end
     local visible = button:IsVisible()
     if issecretvalue and issecretvalue(visible) then return end
     if not visible then return end
@@ -155,7 +155,7 @@ end
 
 function Stars:Track(button)
     if type(button) ~= "table" or self.buttons[button] or not AC:IsWishlistEnabled() then return end
-    if not self:CanAccess(button) or not button.GetName or not button.CreateTexture then return end
+    if not self:CanAccess(button) or button.AttachTexture or not button.GetName or not button.CreateTexture then return end
     if self.baganatorRegistered and button.BGR then return end
     local name = button:GetName()
     local icon
