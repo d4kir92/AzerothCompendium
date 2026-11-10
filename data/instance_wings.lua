@@ -2011,6 +2011,13 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.04,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.04,
@@ -2023,13 +2030,6 @@ local SPLITS = {
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 4629,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.05,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Sentry",
@@ -5138,6 +5138,13 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.04,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.04,
@@ -5150,13 +5157,6 @@ local SPLITS = {
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 4629,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.05,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Sentry",
@@ -8334,6 +8334,13 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.04,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.04,
@@ -8346,13 +8353,6 @@ local SPLITS = {
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 4629,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.05,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Sentry",
@@ -8883,7 +8883,7 @@ local SPLITS = {
 				},
 				{
 					[1] = 10333,
-					[2] = 2.65,
+					[2] = 2.66,
 					["itemClass"] = 4,
 					["mobs"] = {
 						{
@@ -8896,7 +8896,7 @@ local SPLITS = {
 						{
 							["name"] = "Scarlet Guardsman",
 							["npcs"] = {4290},
-							["chance"] = 2.65,
+							["chance"] = 2.66,
 							["classification"] = 1,
 							["model"] = 2511,
 						},
@@ -11658,6 +11658,13 @@ local SPLITS = {
 							["model"] = 2503,
 						},
 						{
+							["name"] = "Unfettered Spirit",
+							["npcs"] = {4308},
+							["chance"] = 0.04,
+							["classification"] = 0,
+							["model"] = 5430,
+						},
+						{
 							["name"] = "Anguished Dead",
 							["npcs"] = {6426},
 							["chance"] = 0.04,
@@ -11670,13 +11677,6 @@ local SPLITS = {
 							["chance"] = 0.04,
 							["classification"] = 1,
 							["model"] = 4629,
-						},
-						{
-							["name"] = "Unfettered Spirit",
-							["npcs"] = {4308},
-							["chance"] = 0.05,
-							["classification"] = 0,
-							["model"] = 5430,
 						},
 						{
 							["name"] = "Scarlet Sentry",
