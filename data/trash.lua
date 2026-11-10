@@ -922,6 +922,27 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 14723,
+			[2] = 0.19,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Deviate Guardian",
+					["npcs"] = {3637},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 755,
+				},
+				{
+					["name"] = "Evolving Ectoplasm",
+					["npcs"] = {3640},
+					["chance"] = 0.19,
+					["classification"] = 1,
+					["model"] = 1751,
+				},
+			},
+		},
+		{
 			[1] = 16746,
 			["itemClass"] = 12,
 			["mobs"] = {

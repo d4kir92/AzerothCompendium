@@ -205,6 +205,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_QUESTLOWLEVEL", "Слишком низк
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTNOTACCEPTED", "Не принято")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTOBJECTIVE", "Цель")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTOUTSIDE", "Выполняется вне подземелья")
+AzerothCompendium:AddTrans("ruRU", "LID_QUESTOUTSIDESOLO", "Легко пройти в одиночку вне подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTPHASEDO", "Выполните цели")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTPREREQS", "Предварительные задания")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTPROVIDEDITEM", "Выдаваемый предмет")

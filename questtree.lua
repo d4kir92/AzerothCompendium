@@ -613,6 +613,11 @@ local function CreateNode(canvas, tree)
     node.phaseText:SetJustifyH("LEFT")
     node.phaseText:SetWordWrap(false)
     node.phaseText:SetTextColor(0.75, 0.75, 0.75)
+    node.soloText = node:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    node.soloText:SetJustifyH("LEFT")
+    node.soloText:SetWordWrap(true)
+    node.soloText:SetTextColor(1, 0.82, 0)
+    node.soloText:SetText(AzerothCompendium:Trans("LID_QUESTOUTSIDESOLO"))
     node.rewardLabel = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     node.rewardLabel:SetJustifyH("LEFT")
     node.rewardLabel:SetText(AzerothCompendium:Trans("LID_QUESTREWARDS") .. ":")
@@ -710,6 +715,7 @@ end
 local function GetNodeHeight(node)
     local height = NODE_PAD_TOP + TITLE_H + NODE_PAD_BOTTOM
     if GetPhaseText(node) then height = height + TEXT_LINE_H end
+    if node.id == 959 and not Spoiler.IsMasked(node) then height = height + 2 * TEXT_LINE_H end
     if GetProvidedItem(node.id) then height = height + REWARD_LINE_H end
     if not IsCompactNode(node) then height = height + REWARD_LINE_H + TEXT_LINE_H end
 
@@ -826,6 +832,14 @@ local function UpdateNode(button, node, width)
     end
 
     if requiredLevel or classText then y = y + TEXT_LINE_H end
+
+    if node.id == 959 and not masked then
+        PlaceLine(button.soloText, button, y, 2 * TEXT_LINE_H)
+        button.soloText:Show()
+        y = y + 2 * TEXT_LINE_H
+    else
+        button.soloText:Hide()
+    end
 
     local phaseText = GetPhaseText(node)
     if phaseText then

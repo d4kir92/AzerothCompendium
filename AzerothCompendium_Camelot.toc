@@ -50,6 +50,7 @@ locale\bosses_deDE.lua
 
 data\instances.lua
 data\instance_entrances.lua
+data\instance_entrances_forever.lua
 data\boss_ranks.lua
 data\trash.lua
 data\instance_maps.lua
