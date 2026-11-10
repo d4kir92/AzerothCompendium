@@ -1774,13 +1774,17 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     local inside = AzerothCompendium.QUESTINSIDE or {}
     local startInside = AzerothCompendium.QUESTSTARTINSIDE or {}
     local afterInstance = AzerothCompendium.QUESTAFTERINSTANCE or {}
+    local enders = AzerothCompendium.QUESTENDERS or {}
     local function HasInstanceAncestor(node, cache, stack)
         if cache[node] ~= nil then return cache[node] end
         if stack[node] then return false end
         stack[node] = true
         local result = false
         for _, parent in ipairs(node.parents) do
-            if parent.instance or HasInstanceAncestor(parent, cache, stack) then result = true end
+            local id = parent.id
+            local endInside = enders[id] and enders[id][7] ~= nil
+            local hasInstanceStep = parent.instance and (inside[id] ~= false or startInside[id] or endInside or afterInstance[id])
+            if hasInstanceStep or HasInstanceAncestor(parent, cache, stack) then result = true end
         end
 
         stack[node] = nil
@@ -1790,7 +1794,6 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     end
 
     local instanceAncestors = {}
-    local enders = AzerothCompendium.QUESTENDERS or {}
     local phaseKeys = {"accept", "objective", "turnin"}
     local function GetPhaseGroups(node)
         local id = node.id
