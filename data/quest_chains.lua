@@ -2171,6 +2171,14 @@ AzerothCompendium.QUESTGIVERS = {
 	[95111] = {1421, 43.4, 41, 248840, "Trevan Rol"},
 	[95125] = {1424, 60.4, 26, 3539, "Ott"},
 	[95126] = {1424, 60.4, 26, 3539, "Ott"},
+	[95775] = {1434, 32.2, 27.8, 2519, "Kin'weelay"},
+	[95776] = {1434, 32.2, 28.8, 2464, "Commander Aggro'gosh"},
+	[95787] = {1424, 50.4, 57, 2277, "Loremaster Dibbs"},
+	[95788] = {1424, 50.4, 57, 2277, "Loremaster Dibbs"},
+	[95789] = {1434, 27, 77.2, 773, "Krazek"},
+	[95791] = {1434, 27, 77.2, 773, "Krazek"},
+	[96774] = {1412, 34.1, 30.4, 264074, "Mazu'kon"},
+	[97130] = {1416, 15.4, 73.8, 31439, "Archmage Timear"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -3329,6 +3337,14 @@ AzerothCompendium.QUESTNAMES = {
 	[95111] = "An Underrated Talent",
 	[95125] = "Ott's Masterwork",
 	[95126] = "The Moonsilver Blade",
+	[95775] = "The Drowned City",
+	[95776] = "The Only Good Brinescale...",
+	[95787] = "Take Two With Water",
+	[95788] = "Magics of the Drowned City",
+	[95789] = "Shady Saltseers",
+	[95791] = "The Saltseer Captain",
+	[96774] = "Ancient Gurubashi Idol",
+	[97130] = "Ancient Gurubashi Secrets",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4190,6 +4206,14 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[95111] = 20,
 	[95125] = 20,
 	[95126] = 20,
+	[95775] = 30,
+	[95776] = 30,
+	[95787] = 30,
+	[95788] = 30,
+	[95789] = 34,
+	[95791] = 34,
+	[96774] = 30,
+	[97130] = 34,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -5051,6 +5075,14 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[95111] = 25,
 	[95125] = 25,
 	[95126] = 25,
+	[95775] = 40,
+	[95776] = 38,
+	[95787] = 40,
+	[95788] = 40,
+	[95789] = 40,
+	[95791] = 40,
+	[96774] = 40,
+	[97130] = 40,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -5830,6 +5862,14 @@ AzerothCompendium.QUESTENDERS = {
 	[92745] = {1436, 52.4, 53, 253092, "Alba Fairmoon"},
 	[92742] = {1436, 52.4, 53, 253092, "Alba Fairmoon"},
 	[92744] = {1436, 52.4, 53, 253092, "Alba Fairmoon"},
+	[95775] = {1434, 32.2, 27.8, 2519, "Kin'weelay"},
+	[95776] = {1434, 32.2, 28.8, 2464, "Commander Aggro'gosh"},
+	[95787] = {1424, 50.4, 57, 2277, "Loremaster Dibbs"},
+	[95788] = {1424, 50.4, 57, 2277, "Loremaster Dibbs"},
+	[95789] = {1434, 27, 77.2, 773, "Krazek"},
+	[95791] = {1434, 27, 77.2, 773, "Krazek"},
+	[96774] = {1412, 34.1, 30.4, 264074, "Mazu'kon"},
+	[97130] = {1416, 15.4, 73.8, 31439, "Archmage Timear"},
 }
 
 AzerothCompendium.QUESTCLASSES = {
