@@ -183,7 +183,7 @@ function AzerothCompendium:AnchorContentTab(tab, content, previous, offset)
         local layout = modern and self.ContentLayoutModern or self.ContentLayout
         tab:ClearAllPoints()
         if offset and offset > 0 then
-            tab:SetFrameLevel(modern and content:GetFrameLevel() + 4 or max(0, content:GetFrameLevel() - 1))
+            tab:SetFrameLevel(content:GetFrameLevel() + 4)
             if tab.chrome then tab.chrome:SetFrameLevel(modern and content:GetFrameLevel() or max(0, content:GetFrameLevel() - 1)) end
         end
         if previous then
