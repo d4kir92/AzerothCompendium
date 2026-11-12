@@ -20,6 +20,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_ATTUNEREQUIRED", "Necessária para entra
 AzerothCompendium:AddTrans("ptBR", "LID_BOSSCOUNT", "%d chefes")
 AzerothCompendium:AddTrans("ptBR", "LID_BOSSES", "Chefes")
 AzerothCompendium:AddTrans("ptBR", "LID_BOSSESFOUND", "%d/%d chefes encontrados")
+AzerothCompendium:AddTrans("ptBR", "LID_BOSSPINSCALE", "Marcadores de chefes: %d%%")
 AzerothCompendium:AddTrans("ptBR", "LID_CATALOGSOURCEHINT", "Clique para ir à origem do item.")
 AzerothCompendium:AddTrans("ptBR", "LID_CLASSES", "Classes")
 AzerothCompendium:AddTrans("ptBR", "LID_CLASSFILTER", "Apenas minha classe")

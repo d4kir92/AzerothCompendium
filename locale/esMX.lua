@@ -20,6 +20,7 @@ AzerothCompendium:AddTrans("esMX", "LID_ATTUNEREQUIRED", "Necesaria para entrar"
 AzerothCompendium:AddTrans("esMX", "LID_BOSSCOUNT", "%d jefes")
 AzerothCompendium:AddTrans("esMX", "LID_BOSSES", "Jefes")
 AzerothCompendium:AddTrans("esMX", "LID_BOSSESFOUND", "%d/%d jefes encontrados")
+AzerothCompendium:AddTrans("esMX", "LID_BOSSPINSCALE", "Marcadores de jefes: %d%%")
 AzerothCompendium:AddTrans("esMX", "LID_CATALOGSOURCEHINT", "Haz clic para ir al origen del objeto.")
 AzerothCompendium:AddTrans("esMX", "LID_CLASSES", "Clases")
 AzerothCompendium:AddTrans("esMX", "LID_CLASSFILTER", "Solo mi clase")

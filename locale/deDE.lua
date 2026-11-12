@@ -20,6 +20,7 @@ AzerothCompendium:AddTrans("deDE", "LID_ATTUNEREQUIRED", "Zum Betreten benötigt
 AzerothCompendium:AddTrans("deDE", "LID_BOSSCOUNT", "%d Bosse")
 AzerothCompendium:AddTrans("deDE", "LID_BOSSES", "Bosse")
 AzerothCompendium:AddTrans("deDE", "LID_BOSSESFOUND", "%d/%d Bosse gefunden")
+AzerothCompendium:AddTrans("deDE", "LID_BOSSPINSCALE", "Boss-Pins: %d%%")
 AzerothCompendium:AddTrans("deDE", "LID_CATALOGSOURCEHINT", "Klicken, um zur Fundstelle zu springen.")
 AzerothCompendium:AddTrans("deDE", "LID_CLASSES", "Klassen")
 AzerothCompendium:AddTrans("deDE", "LID_CLASSFILTER", "Nur meine Klasse")

@@ -155,18 +155,30 @@ function WorldMap.GetLabel(levels, level)
 end
 
 function WorldMap.GetPins(level)
+    local inst = level.inst
+    local spoiler = type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true and not (inst ~= nil and inst.vendor)
     local cached = WorldMap.pinCache[level.key]
-    if cached ~= nil then return cached end
+    if cached ~= nil and cached.spoiler == spoiler then
+        local revealed = false
+        for _, boss in ipairs(cached.hidden) do
+            if AzerothCompendium:IsBossFound(boss) then revealed = true end
+        end
+
+        if not revealed then return cached.rows end
+    end
+
     local MapPins = AzerothCompendium.MapPins
     MapPins.Init()
-    local inst = level.inst
     local rows = {}
+    local hidden = {}
     for _, entry in ipairs(AzerothCompendium.INSTANCEMAPPINS and AzerothCompendium.INSTANCEMAPPINS[level.key] or {}) do
         if not MapPins.IsHidden(entry) then
             local kind = entry[1]
             if kind == "boss" then
                 local boss = MapPins.FindBoss(entry[4], inst)
-                if boss ~= nil then
+                if boss ~= nil and spoiler and not AzerothCompendium:IsBossFound(boss) then
+                    tinsert(hidden, boss)
+                elseif boss ~= nil then
                     local npcID = boss.npcs and boss.npcs[1]
                     local rank = boss.classification or npcID and AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or DEFAULT_BOSS_RANK
                     tinsert(rows, {"boss", entry[2], entry[3], entry[4], AzerothCompendium:GetBossName(boss), boss.level, boss.model, rank})
@@ -181,7 +193,11 @@ function WorldMap.GetPins(level)
         end
     end
 
-    WorldMap.pinCache[level.key] = rows
+    WorldMap.pinCache[level.key] = {
+        ["rows"] = rows,
+        ["hidden"] = hidden,
+        ["spoiler"] = spoiler,
+    }
     return rows
 end
 
@@ -217,6 +233,9 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
         return WorldMap.returnMapID
     end,
     ["onBossClick"] = function(level, row) AzerothCompendiumAPI.ShowBossLoot(strmatch(level.file, "([^\\]+)$"), row[4]) end,
+    ["getBossScale"] = function() return tonumber(AzerothCompendium:GetConfig("MAPPINS_BOSSSCALE", 1)) or 1 end,
+    ["setBossScale"] = function(value) AzerothCompendium:SetConfig("MAPPINS_BOSSSCALE", value) end,
+    ["getBossScaleText"] = function(percent) return format(AzerothCompendium:Trans("LID_BOSSPINSCALE"), percent) end,
     ["isPinEnabled"] = function(kind) return AzerothCompendium.MapPins.IsEnabled(kind) end,
     ["setPinEnabled"] = function(kind, enabled) AzerothCompendium:SetSharedOption("INSTANCEPINS_" .. strupper(kind), enabled) end,
     ["getToggleText"] = function(kind, enabled)

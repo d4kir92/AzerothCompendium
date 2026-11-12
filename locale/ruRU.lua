@@ -20,6 +20,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_ATTUNEREQUIRED", "Нужно для вх
 AzerothCompendium:AddTrans("ruRU", "LID_BOSSCOUNT", "Боссов: %d")
 AzerothCompendium:AddTrans("ruRU", "LID_BOSSES", "Боссы")
 AzerothCompendium:AddTrans("ruRU", "LID_BOSSESFOUND", "Найдено боссов: %d/%d")
+AzerothCompendium:AddTrans("ruRU", "LID_BOSSPINSCALE", "Метки боссов: %d%%")
 AzerothCompendium:AddTrans("ruRU", "LID_CATALOGSOURCEHINT", "Нажмите, чтобы перейти к источнику предмета.")
 AzerothCompendium:AddTrans("ruRU", "LID_CLASSES", "Классы")
 AzerothCompendium:AddTrans("ruRU", "LID_CLASSFILTER", "Только мой класс")

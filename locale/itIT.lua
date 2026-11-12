@@ -20,6 +20,7 @@ AzerothCompendium:AddTrans("itIT", "LID_ATTUNEREQUIRED", "Necessaria per entrare
 AzerothCompendium:AddTrans("itIT", "LID_BOSSCOUNT", "%d boss")
 AzerothCompendium:AddTrans("itIT", "LID_BOSSES", "Boss")
 AzerothCompendium:AddTrans("itIT", "LID_BOSSESFOUND", "%d/%d boss trovati")
+AzerothCompendium:AddTrans("itIT", "LID_BOSSPINSCALE", "Segnalini dei boss: %d%%")
 AzerothCompendium:AddTrans("itIT", "LID_CATALOGSOURCEHINT", "Clicca per andare alla fonte dell'oggetto.")
 AzerothCompendium:AddTrans("itIT", "LID_CLASSES", "Classi")
 AzerothCompendium:AddTrans("itIT", "LID_CLASSFILTER", "Solo la mia classe")
