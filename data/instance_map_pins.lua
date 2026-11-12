@@ -1,5 +1,8 @@
 local _, AzerothCompendium = ...
 AzerothCompendium.INSTANCEMAPPINS = {
+    [900002] = {
+        {"entrance", 0.205, 0.807},
+    },
     [3065] = { -- The Hall of Thanes
         {"entrance", 0.511, 0.948},
         {"boss", 0.509, 0.666, 261306}, -- Faldrim Anvilmar
@@ -15,13 +18,13 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.406, 0.534, 250631}, -- The Abandoned
         {"boss", 0.424, 0.385, 256097}, -- Bjork
         {"boss", 0.463, 0.623, 250657}, -- Rath'mael
-        {"boss", 0.433, 0.269, 255699}, -- Lordaeron Captain
+        {"boss", 0.344, 0.429, 255699}, -- Lordaeron Captain
         {"item", 0.347, 0.207, 275521}, -- Crest of Lordaeron
-        {"item", 0.376, 0.493, 275521}, -- Crest of Lordaeron
+        {"item", 0.370, 0.493, 275521}, -- Crest of Lordaeron
         {"item", 0.433, 0.290, 275521}, -- Crest of Lordaeron
         {"item", 0.566, 0.596, 275521}, -- Crest of Lordaeron
         {"item", 0.591, 0.680, 280438}, -- Abominable Head
-        {"item", 0.671, 0.493, 275521}, -- Crest of Lordaeron
+        {"item", 0.664, 0.495, 275521}, -- Crest of Lordaeron
     },
     [2998] = { -- Excavation Site: Wetlands
         {"entrance", 0.889, 0.258},

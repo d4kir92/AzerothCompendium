@@ -28,6 +28,7 @@ AddMaps(16611, {{2999, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Foreve
 AddMaps(16919, {{3065, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900001, {{900001, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900002, {{900002, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(900003, {{900003, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900005, {{900005, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(389, {{213}})
 AddMaps(36, {{291, "The Deadmines"}, {292, "Ironclad Cove"}})
