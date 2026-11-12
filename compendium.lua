@@ -2461,12 +2461,64 @@ end
 function MapPins.Layout(view)
     local w = view.art:GetWidth()
     local h = view.art:GetHeight()
+    local bossScale = MapPins.bossScale.base * MapPins.GetBossScale()
     for _, pin in ipairs(MapPins.pool) do
         if pin:IsShown() then
+            local scale = pin.kind == "boss" and bossScale or 1
+            pin:SetScale(scale)
             pin:ClearAllPoints()
-            pin:SetPoint("CENTER", view.art, "TOPLEFT", w * pin.x, -h * pin.y)
+            pin:SetPoint("CENTER", view.art, "TOPLEFT", w * pin.x / scale, -h * pin.y / scale)
         end
     end
+end
+
+MapPins.bossScale = {
+    ["base"] = 0.6,
+    ["min"] = 0.5,
+    ["max"] = 1.5,
+    ["step"] = 0.05,
+    ["width"] = 100,
+}
+function MapPins.GetBossScale()
+    return tonumber(AzerothCompendium:GetConfig("MAPPINS_BOSSSCALE", 1)) or 1
+end
+
+function MapPins.UpdateBossScaleSlider(view, last)
+    local def = MapPins.bossScale
+    local slider = view.bossScaleSlider
+    if slider == nil then
+        local template = DoesTemplateExist ~= nil and (DoesTemplateExist("MinimalSliderTemplate") and "MinimalSliderTemplate" or DoesTemplateExist("UISliderTemplate") and "UISliderTemplate") or "OptionsSliderTemplate"
+        slider = CreateFrame("Slider", nil, view, template)
+        slider:SetSize(def.width, 16)
+        slider:SetMinMaxValues(def.min, def.max)
+        slider:SetValueStep(def.step)
+        if slider.SetObeyStepOnDrag ~= nil then slider:SetObeyStepOnDrag(true) end
+        for _, region in ipairs({slider:GetRegions()}) do
+            if region.GetObjectType ~= nil and region:GetObjectType() == "FontString" then region:SetText("") end
+        end
+
+        slider.label = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        slider.label:SetPoint("BOTTOM", slider, "TOP", 0, 1)
+        slider.UpdateLabel = function(value) slider.label:SetText(format(AzerothCompendium:Trans("LID_BOSSPINSCALE"), floor(value * 100 + 0.5))) end
+        slider:SetValue(MapPins.GetBossScale())
+        slider.UpdateLabel(slider:GetValue())
+        slider:SetScript("OnValueChanged", function(_, value)
+            value = floor(value / def.step + 0.5) * def.step
+            slider.UpdateLabel(value)
+            if abs(value - MapPins.GetBossScale()) < 0.001 then return end
+            AzerothCompendium:SetConfig("MAPPINS_BOSSSCALE", value)
+            MapPins.Layout(view)
+        end)
+
+        view.bossScaleSlider = slider
+    end
+
+    if abs(slider:GetValue() - MapPins.GetBossScale()) >= 0.001 then slider:SetValue(MapPins.GetBossScale()) end
+    slider:ClearAllPoints()
+    slider:SetPoint("RIGHT", last, "LEFT", -12, -4)
+    slider:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
+    slider:SetShown(view.info ~= nil)
+    return slider:IsShown() and slider or last
 end
 
 MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
@@ -2573,6 +2625,7 @@ function MapPins.UpdateToggle(view)
         spoilerToggle:SetShown(view.info ~= nil and (listKind == "dungeon" or listKind == "raid"))
         if spoilerToggle:IsShown() then last = spoilerToggle.label end
     end
+    if last then last = MapPins.UpdateBossScaleSlider(view, last) end
     if last and compendium.detailCount and view:IsShown() then
         compendium.detailCount:ClearAllPoints()
         compendium.detailCount:SetPoint("RIGHT", last, "LEFT", -8, 0)
