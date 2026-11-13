@@ -1408,10 +1408,12 @@ end
 function AzerothCompendium:GetQuestChain(questID)
     local quests = {}
     local seen = {}
+    local visiting = {}
     local function AddQuest(id, depth, prerequisiteChain)
         if not AzerothCompendium:IsQuestForFlavor(id) then return end
         if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[id] then return end
-        if seen[id] then return end
+        if seen[id] or visiting[id] then return end
+        visiting[id] = true
         local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
         for _, prerequisiteID in ipairs(prerequisites or {}) do
             AddQuest(prerequisiteID, prerequisiteChain and depth or depth + 1, true)
