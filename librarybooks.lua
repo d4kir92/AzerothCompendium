@@ -15,6 +15,10 @@ local Library = {
         l45 = "Interface\\Icons\\INV_Misc_Book_06",
         l60 = "Interface\\Icons\\INV_Misc_Book_04",
         rewards = "Interface\\Icons\\INV_Jewelry_Ring_03"
+    },
+    borderColors = {
+        owned = {0.2, 1, 0.2},
+        missing = {1, 0.15, 0.15}
     }
 }
 
@@ -465,12 +469,46 @@ function Library:CreatePin(parent)
     pin.icon = pin:CreateTexture(nil, "OVERLAY")
     pin.icon:SetAllPoints(pin)
     pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    pin.border = {}
+    for i = 1, 4 do
+        pin.border[i] = pin:CreateTexture(nil, "OVERLAY", nil, 1)
+    end
+
+    local top, bottom, left, right = unpack(pin.border)
+    top:SetPoint("TOPLEFT", pin, "TOPLEFT", 0, 0)
+    top:SetPoint("TOPRIGHT", pin, "TOPRIGHT", 0, 0)
+    bottom:SetPoint("BOTTOMLEFT", pin, "BOTTOMLEFT", 0, 0)
+    bottom:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 0, 0)
+    left:SetPoint("TOPLEFT", pin, "TOPLEFT", 0, 0)
+    left:SetPoint("BOTTOMLEFT", pin, "BOTTOMLEFT", 0, 0)
+    right:SetPoint("TOPRIGHT", pin, "TOPRIGHT", 0, 0)
+    right:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 0, 0)
     pin:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     pin:SetScript("OnClick", function(sel, button) self:OnPinClick(sel, button) end)
     pin:SetScript("OnEnter", function(sel) if sel.point then self:Tooltip(sel, sel.point.book) end end)
     pin:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
     return pin
+end
+
+function Library:StylePin(pin, state, pixel)
+    local owned = state == "bag" or state == "bank"
+    pin.icon:SetAlpha(owned and 0.5 or 1)
+    local color = owned and self.borderColors.owned or state == "missing" and self.borderColors.missing or nil
+    local t = pixel
+    local top, bottom, left, right = unpack(pin.border)
+    top:SetHeight(t)
+    bottom:SetHeight(t)
+    left:SetWidth(t)
+    right:SetWidth(t)
+    for _, edge in ipairs(pin.border) do
+        if color then
+            edge:SetColorTexture(color[1], color[2], color[3], 1)
+            edge:Show()
+        else
+            edge:Hide()
+        end
+    end
 end
 
 function Library:Project(point, mapID)
@@ -506,7 +544,8 @@ function Library:UpdateMap()
     for _, point in ipairs(self:Points()) do
         local book = point.book
         local x, y = self:Project(point, mapID)
-        if x ~= nil and self:State(book) ~= "done" and (not spoiler or self:IsSeen(book)) then
+        local state = x ~= nil and self:State(book) or nil
+        if x ~= nil and state ~= "done" and (not spoiler or self:IsSeen(book)) then
             count = count + 1
             local pin = self.map.pins[count]
             if pin == nil then
@@ -516,6 +555,7 @@ function Library:UpdateMap()
 
             pin.point = point
             pin.icon:SetTexture(self:Icon(book.itemId))
+            self:StylePin(pin, state, 1 / scale)
             pin:SetSize(size, size)
             pin:SetFrameLevel(child:GetFrameLevel() + self.map.level)
             pin:ClearAllPoints()
