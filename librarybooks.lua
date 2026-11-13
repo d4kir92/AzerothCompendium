@@ -103,6 +103,7 @@ function Library:Tooltip(row, book)
     GameTooltip:AddLine(self:Text(self:State(book)), 0.7, 0.85, 1)
     GameTooltip:AddLine(string.format("Quest: %d / Item: %d", book.questId, book.itemId), 0.6, 0.6, 0.6)
     if self:Flag(book) then GameTooltip:AddLine(self:Text("flaghint"), 1, 0.6, 0.2, true) end
+    GameTooltip:AddLine(self:Text("hidehint"), 0.7, 0.7, 0.7, true)
     local scanned = self:DB().bankScanned
     GameTooltip:AddLine(self:Text("bankscan") .. (scanned and date("%Y-%m-%d %H:%M", scanned) or self:Text("unknown")), 0.7, 0.7, 0.7, true)
     GameTooltip:AddLine(self:Text("clickhint"), 0.7, 0.7, 0.7, true)
