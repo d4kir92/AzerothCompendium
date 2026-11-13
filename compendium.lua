@@ -418,10 +418,20 @@ end
 
 local function AddContentBorder(frame)
     frame.contentBackground = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
-    frame.contentBackground:SetAtlas("collections-background-tile")
-    frame.contentBackground:SetHorizTile(true)
-    frame.contentBackground:SetVertTile(true)
+    local page = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("spellbook-Page-Right-C60")
+    if page then
+        local l, r, t, b = page.leftTexCoord, page.rightTexCoord, page.topTexCoord, page.bottomTexCoord
+        local w, h = r - l, b - t
+        frame.contentBackground:SetTexture(page.file or page.filename)
+        frame.contentBackground:SetTexCoord(l + w * 0.2, r - w * 0.2, t + h * 0.2, b - h * 0.2)
+    else
+        frame.contentBackground:SetAtlas("collections-background-tile")
+        frame.contentBackground:SetHorizTile(true)
+        frame.contentBackground:SetVertTile(true)
+    end
+
     frame.contentBackground:SetAllPoints(frame)
+    AzerothCompendium.Theme.PageText:Register(frame)
     frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
     TabSystemButtonArtMixinFallback.SetAtlasOrTexture(frame.border, "common-insideframe")
     frame.border:SetPoint("TOPLEFT", frame, "TOPLEFT", -4, 4)
@@ -501,6 +511,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         end
 
         if type(self.box) == "table" and self.box.FullUpdate and ScrollBoxConstants then self.box:FullUpdate(ScrollBoxConstants.UpdateImmediately) end
+        AzerothCompendium.Theme.PageText:Refresh(self)
     end
 
     function scroller:ScrollToTop()
@@ -556,6 +567,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         if not sel.refreshPending then return end
         sel.refreshPending = nil
         sel:Refresh()
+        AzerothCompendium.Theme.PageText:Refresh(sel)
     end
 
     function scroller:QueueRefresh()
@@ -1345,6 +1357,7 @@ end
 
 function AzerothCompendium:CreateReputationBar(parent, height)
     local bar = CreateFrame("StatusBar", nil, parent)
+    bar.acoKeepLight = true
     bar:SetHeight(height)
     bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     bar.background = bar:CreateTexture(nil, "BACKGROUND")
@@ -2693,6 +2706,7 @@ function MapPins.Update(view)
 
     if view.spoilerNotice == nil then
         view.spoilerNotice = CreateFrame("Frame", nil, view)
+        view.spoilerNotice.acoKeepLight = true
         view.spoilerNotice:SetHeight(24)
         view.spoilerNotice:SetPoint("BOTTOMLEFT", view, "BOTTOMLEFT", 8, 8)
         view.spoilerNotice:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", -8, 8)
@@ -4541,6 +4555,16 @@ function AzerothCompendiumAPI.UnregisterTab(id)
     return AzerothCompendium:RemoveModuleTab(id)
 end
 
+function AzerothCompendiumAPI.IsModernDesign()
+    return AzerothCompendium.Theme:IsModern()
+end
+
+function AzerothCompendium:RefreshModulePanels()
+    for _, panel in pairs(compendium and compendium.modulePanels or {}) do
+        if panel:IsShown() and panel.OnSearchChanged then panel.OnSearchChanged() end
+    end
+end
+
 function AzerothCompendiumAPI.RegisterTab(id, definition)
     if id == "MapUtils" then return false end
     if type(id) ~= "string" or id == "" or type(definition) ~= "table" then return false end
@@ -4988,6 +5012,7 @@ function AzerothCompendium:RefreshDashboard()
                     local tile = self.tiles[index]
                     if not tile then
                         tile = CreateFrame("Button", nil, self)
+                        tile.acoKeepLight = true
                         StyleRow(tile)
                         tile.icon = tile:CreateTexture(nil, "ARTWORK")
                         tile.icon:SetPoint("TOPLEFT", 16, -16)
@@ -6243,6 +6268,7 @@ local function CreateJournal()
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
     AddContentBorder(questTree)
+    questTree.acoKeepLight = true
     AzerothCompendium:AnchorContent(questTree)
     questTree:Hide()
     questTree.OpenInstance = function(id)
@@ -6261,6 +6287,7 @@ local function CreateJournal()
     compendium.questTree = questTree
     local mapView = CreateFrame("Frame", nil, compendium)
     AddContentBorder(mapView)
+    mapView.acoKeepLight = true
     AzerothCompendium:AnchorContent(mapView)
     mapView.viewport = CreateFrame("Frame", nil, mapView)
     mapView.viewport:SetPoint("TOPLEFT", mapView, "TOPLEFT", 4, -4)
@@ -6592,6 +6619,7 @@ local function CreateJournal()
     local model = CreateModelFrame(compendium)
     if model ~= nil then
         AddContentBorder(model)
+        model.acoKeepLight = true
         model:SetPoint("TOPLEFT", loot, "TOPLEFT", 0, 0)
         model:SetPoint("BOTTOMRIGHT", loot, "BOTTOMRIGHT", 0, 0)
         model:Hide()

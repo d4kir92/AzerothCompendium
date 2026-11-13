@@ -86,6 +86,8 @@ function AzerothCompendium:SetDesign(value)
     if value ~= "forever" and not Theme.PALETTES[value] then value = "modern" end
     self:SetConfig("DESIGN", value)
     Theme:Refresh()
+    Theme.PageText:RefreshAll()
+    if self.RefreshModulePanels then self:RefreshModulePanels() end
 end
 
 function Theme:IsModern()
@@ -908,6 +910,160 @@ function Theme:Scan(frame)
     self:Detect(frame)
     for _, child in ipairs({frame:GetChildren()}) do
         self:Scan(child)
+    end
+end
+
+local PageText = {
+    TEXT = {0, 0, 0},
+    DIM = {0.3, 0.3, 0.3},
+    TARGET_LUMINANCE = 0.3,
+    roots = {},
+    known = {},
+}
+Theme.PageText = PageText
+
+function PageText:IsControl(frame)
+    local kind = frame:GetObjectType()
+    if kind == "EditBox" or kind == "DropdownButton" then return true end
+    if frame.Arrow or frame.DecrementButton or frame.IncrementButton then return true end
+    if frame.Background and (frame.Text or frame.SetupMenu) then return true end
+    if frame.GetBackdrop and frame:GetBackdrop() ~= nil then return true end
+    return frame.Left ~= nil and frame.Right ~= nil and (frame.Middle ~= nil or frame.Center ~= nil)
+end
+
+function PageText:IsInside(fontString, root)
+    local x, y = fontString:GetCenter()
+    local left, bottom, width, height = root:GetRect()
+    if x == nil or left == nil then return false end
+    local scale = fontString:GetEffectiveScale() / root:GetEffectiveScale()
+    x, y = x * scale, y * scale
+    return x >= left and x <= left + width and y >= bottom and y <= bottom + height
+end
+
+function PageText:IsDark(fontString)
+    if Theme:IsModern() then return false end
+    local _, _, flags = fontString:GetFont()
+    if type(flags) == "string" and flags:find("OUTLINE") then return false end
+    local frame = fontString:GetParent()
+    while frame do
+        if frame.acoKeepLight or frame.vendorMap ~= nil or self:IsControl(frame) then return false end
+        if frame.loadingScreen and frame.loadingScreen:IsShown() then return false end
+        if frame.acoPageRoot then return self:IsInside(fontString, frame) end
+        frame = frame:GetParent()
+    end
+    return false
+end
+
+function PageText:ToDark(r, g, b)
+    local high, low = max(r, g, b), min(r, g, b)
+    if high - low < 0.15 then
+        local t = max(0, min(1, (1 - high) / 0.5))
+        local text, dim = self.TEXT, self.DIM
+        return text[1] + (dim[1] - text[1]) * t, text[2] + (dim[2] - text[2]) * t, text[3] + (dim[3] - text[3]) * t
+    end
+    local luminance = 0.299 * r + 0.587 * g + 0.114 * b
+    local scale = luminance > self.TARGET_LUMINANCE and self.TARGET_LUMINANCE / luminance or 1
+    return r * scale, g * scale, b * scale
+end
+
+function PageText:ToDarkText(text)
+    if type(text) ~= "string" or text == "" then return text end
+    return (text:gsub("|c(%x%x)(%x%x)(%x%x)(%x%x)", function(alpha, r, g, b)
+        local nr, ng, nb = self:ToDark(tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255)
+        return ("|c%s%02x%02x%02x"):format(alpha, floor(nr * 255 + 0.5), floor(ng * 255 + 0.5), floor(nb * 255 + 0.5))
+    end))
+end
+
+function PageText:Apply(fontString)
+    local state = fontString.acoPage
+    local dark = self:IsDark(fontString)
+    if not dark and not state.dark then return end
+    state.busy = true
+    if dark then
+        fontString:SetTextColor(self:ToDark(state.color[1], state.color[2], state.color[3]))
+        fontString:SetShadowColor(0, 0, 0, 0)
+        fontString:SetShadowOffset(0, 0)
+        if state.raw ~= nil and state.raw ~= "" then fontString:SetText(self:ToDarkText(state.raw)) end
+    else
+        local color, shadow = state.color, state.shadow
+        fontString:SetTextColor(color[1], color[2], color[3], color[4])
+        fontString:SetShadowColor(shadow[1], shadow[2], shadow[3], shadow[4])
+        fontString:SetShadowOffset(shadow[5], shadow[6])
+        if state.raw ~= nil then fontString:SetText(state.raw) end
+    end
+
+    state.dark = dark
+    state.busy = false
+end
+
+function PageText:Track(fontString)
+    if fontString.acoPage then return self:Apply(fontString) end
+    local sr, sg, sb, sa = fontString:GetShadowColor()
+    local sx, sy = fontString:GetShadowOffset()
+    local state = {color = {fontString:GetTextColor()}, shadow = {sr or 0, sg or 0, sb or 0, sa or 1, sx or 0, sy or 0}, raw = fontString:GetText()}
+    fontString.acoPage = state
+    hooksecurefunc(fontString, "SetTextColor", function(sel, r, g, b, a)
+        if state.busy then return end
+        state.color = {r, g, b, a or 1}
+        PageText:Apply(sel)
+    end)
+    hooksecurefunc(fontString, "SetText", function(sel, text)
+        if state.busy then return end
+        state.raw = text
+        if state.dark or PageText:IsDark(sel) then PageText:Apply(sel) end
+    end)
+    hooksecurefunc(fontString, "SetFormattedText", function(sel)
+        if state.busy then return end
+        state.raw = sel:GetText()
+        if state.dark or PageText:IsDark(sel) then PageText:Apply(sel) end
+    end)
+    hooksecurefunc(fontString, "SetFontObject", function(sel)
+        if state.busy then return end
+        state.color = {sel:GetTextColor()}
+        local r, g, b, a = sel:GetShadowColor()
+        local x, y = sel:GetShadowOffset()
+        state.shadow = {r or 0, g or 0, b or 0, a or 1, x or 0, y or 0}
+        state.dark = true
+        PageText:Apply(sel)
+    end)
+    self:Apply(fontString)
+end
+
+function PageText:Scan(frame)
+    if frame.acoKeepLight or self:IsControl(frame) then return end
+    for _, region in ipairs({frame:GetRegions()}) do
+        if region:GetObjectType() == "FontString" then self:Track(region) end
+    end
+    for _, child in ipairs({frame:GetChildren()}) do
+        self:Scan(child)
+    end
+end
+
+function PageText:Refresh(root)
+    if Theme:IsModern() and not root.acoPageTouched then return end
+    root.acoPageTouched = true
+    self:Scan(root)
+end
+
+function PageText:Register(root)
+    if root.acoPageRoot then return end
+    root.acoPageRoot = true
+    tinsert(self.roots, root)
+    root:HookScript("OnShow", function(sel) PageText:Refresh(sel) end)
+    local elapsed = 0
+    local ticker = CreateFrame("Frame", nil, root)
+    ticker:SetScript("OnUpdate", function(_, delta)
+        if Theme:IsModern() then return end
+        elapsed = elapsed + delta
+        if elapsed < 0.5 then return end
+        elapsed = 0
+        PageText:Refresh(root)
+    end)
+end
+
+function PageText:RefreshAll()
+    for _, root in ipairs(self.roots) do
+        if root:IsShown() then self:Refresh(root) end
     end
 end
 
