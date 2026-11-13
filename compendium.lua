@@ -418,18 +418,7 @@ end
 
 local function AddContentBorder(frame)
     frame.contentBackground = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
-    local page = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("spellbook-Page-Right-C60")
-    if page then
-        local l, r, t, b = page.leftTexCoord, page.rightTexCoord, page.topTexCoord, page.bottomTexCoord
-        local w, h = r - l, b - t
-        frame.contentBackground:SetTexture(page.file or page.filename)
-        frame.contentBackground:SetTexCoord(l + w * 0.2, r - w * 0.2, t + h * 0.2, b - h * 0.2)
-    else
-        frame.contentBackground:SetAtlas("collections-background-tile")
-        frame.contentBackground:SetHorizTile(true)
-        frame.contentBackground:SetVertTile(true)
-    end
-
+    AzerothCompendium.Theme:ApplyPageBackground(frame.contentBackground)
     frame.contentBackground:SetAllPoints(frame)
     AzerothCompendium.Theme.PageText:Register(frame)
     frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
@@ -4555,14 +4544,8 @@ function AzerothCompendiumAPI.UnregisterTab(id)
     return AzerothCompendium:RemoveModuleTab(id)
 end
 
-function AzerothCompendiumAPI.IsModernDesign()
-    return AzerothCompendium.Theme:IsModern()
-end
-
-function AzerothCompendium:RefreshModulePanels()
-    for _, panel in pairs(compendium and compendium.modulePanels or {}) do
-        if panel:IsShown() and panel.OnSearchChanged then panel.OnSearchChanged() end
-    end
+function AzerothCompendiumAPI.RegisterPageText(frame)
+    AzerothCompendium.Theme.PageText:Register(frame)
 end
 
 function AzerothCompendiumAPI.RegisterTab(id, definition)
@@ -6268,7 +6251,6 @@ local function CreateJournal()
     compendium.bosses = bosses
     local questTree = AzerothCompendium:CreateQuestTree(compendium)
     AddContentBorder(questTree)
-    questTree.acoKeepLight = true
     AzerothCompendium:AnchorContent(questTree)
     questTree:Hide()
     questTree.OpenInstance = function(id)
@@ -6434,6 +6416,7 @@ local function CreateJournal()
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     compendium.factionToggle = CreateFrame("Frame", nil, compendium)
+    AzerothCompendium.Theme.PageText:Register(compendium.factionToggle, true)
     compendium.factionToggle:SetSize(64, 28)
     compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.questTree, "TOPRIGHT", -2, 4)
     compendium.factionToggle:SetFrameLevel(compendium:GetFrameLevel() + 4)
