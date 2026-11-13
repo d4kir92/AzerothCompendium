@@ -473,6 +473,16 @@ function Library:CreatePin(parent)
     return pin
 end
 
+function Library:Project(point, mapID)
+    if point.mapID == mapID then return point.x, point.y end
+    if C_Map == nil or C_Map.GetMapRectOnMap == nil then return nil end
+    local minX, maxX, minY, maxY = C_Map.GetMapRectOnMap(point.mapID, mapID)
+    if minX == nil or maxX == nil or minY == nil or maxY == nil or maxX <= minX or maxY <= minY then return nil end
+    local x, y = minX + point.x * (maxX - minX), minY + point.y * (maxY - minY)
+    if x < 0 or x > 1 or y < 0 or y > 1 then return nil end
+    return x, y
+end
+
 function Library:UpdateMap()
     local worldMap = Addon.WorldMap
     local child = worldMap and worldMap.GetCanvas()
@@ -495,7 +505,8 @@ function Library:UpdateMap()
     local count = 0
     for _, point in ipairs(self:Points()) do
         local book = point.book
-        if point.mapID == mapID and self:State(book) ~= "done" and (not spoiler or self:IsSeen(book)) then
+        local x, y = self:Project(point, mapID)
+        if x ~= nil and self:State(book) ~= "done" and (not spoiler or self:IsSeen(book)) then
             count = count + 1
             local pin = self.map.pins[count]
             if pin == nil then
@@ -508,7 +519,7 @@ function Library:UpdateMap()
             pin:SetSize(size, size)
             pin:SetFrameLevel(child:GetFrameLevel() + self.map.level)
             pin:ClearAllPoints()
-            pin:SetPoint("CENTER", child, "TOPLEFT", w * point.x, -h * point.y)
+            pin:SetPoint("CENTER", child, "TOPLEFT", w * x, -h * y)
             pin:Show()
         end
     end
