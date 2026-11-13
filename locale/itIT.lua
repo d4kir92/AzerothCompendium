@@ -99,6 +99,7 @@ AzerothCompendium:AddTrans("itIT", "LID_LEGENDTAG", "Missione di spedizione o in
 AzerothCompendium:AddTrans("itIT", "LID_LEVEL", "Livello %d")
 AzerothCompendium:AddTrans("itIT", "LID_LEVELFILTER", "Livello")
 AzerothCompendium:AddTrans("itIT", "LID_LEVELGROUP", "Livello %d-%d")
+AzerothCompendium:AddTrans("itIT", "LID_LIBRARYBOOKMAPPINS", "Libri della biblioteca")
 AzerothCompendium:AddTrans("itIT", "LID_LIBRARYBOOKS_TAB", "Libri della biblioteca")
 AzerothCompendium:AddTrans("itIT", "LID_LIBRARY_Alliance", "Territorio dell'Alleanza")
 AzerothCompendium:AddTrans("itIT", "LID_LIBRARY_Contested", "Territorio conteso")

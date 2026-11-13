@@ -43,6 +43,7 @@ local WorldMap = {
         ["INSTANCEPINS_ITEM"] = "MAPPINS_ITEM",
         ["INSTANCEPINS_ENTRANCE"] = "MAPPINS_ENTRANCE",
         ["INSTANCEPINS_LEVEL"] = "MAPPINS_LEVEL",
+        ["LIBRARYBOOKWORLDMAPPINS"] = "LIBRARYBOOKWORLDMAPPINS",
     },
     checkboxes = {},
     instances = {},
@@ -80,7 +81,7 @@ function AzerothCompendium:SetSharedOption(key, value)
 end
 
 AzerothCompendium:RegisterSharedSettings({
-    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "DUNGEONMINIMAPPINS", "MEETINGSTONEMINIMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL"},
+    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "DUNGEONMINIMAPPINS", "MEETINGSTONEMINIMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL", "LIBRARYBOOKWORLDMAPPINS"},
     ["getDB"] = function() return ACOTAB end,
     ["get"] = function(key) return AzerothCompendium:GetSharedOption(key) end,
     ["set"] = function(key, value) AzerothCompendium:SetConfig(WorldMap.sharedKeys[key], value) end,

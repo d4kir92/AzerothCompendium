@@ -99,6 +99,7 @@ AzerothCompendium:AddTrans("esMX", "LID_LEGENDTAG", "Misión de calabozo o banda
 AzerothCompendium:AddTrans("esMX", "LID_LEVEL", "Nivel %d")
 AzerothCompendium:AddTrans("esMX", "LID_LEVELFILTER", "Nivel")
 AzerothCompendium:AddTrans("esMX", "LID_LEVELGROUP", "Nivel %d-%d")
+AzerothCompendium:AddTrans("esMX", "LID_LIBRARYBOOKMAPPINS", "Libros de la biblioteca")
 AzerothCompendium:AddTrans("esMX", "LID_LIBRARYBOOKS_TAB", "Libros de la biblioteca")
 AzerothCompendium:AddTrans("esMX", "LID_LIBRARY_Alliance", "Territorio de la Alianza")
 AzerothCompendium:AddTrans("esMX", "LID_LIBRARY_Contested", "Territorio en disputa")

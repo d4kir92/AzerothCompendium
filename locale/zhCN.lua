@@ -99,6 +99,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_LEGENDTAG", "地下城或团队副本任
 AzerothCompendium:AddTrans("zhCN", "LID_LEVEL", "等级 %d")
 AzerothCompendium:AddTrans("zhCN", "LID_LEVELFILTER", "等级")
 AzerothCompendium:AddTrans("zhCN", "LID_LEVELGROUP", "等级 %d-%d")
+AzerothCompendium:AddTrans("zhCN", "LID_LIBRARYBOOKMAPPINS", "图书馆书籍")
 AzerothCompendium:AddTrans("zhCN", "LID_LIBRARYBOOKS_TAB", "图书馆书籍")
 AzerothCompendium:AddTrans("zhCN", "LID_LIBRARY_Alliance", "联盟领地")
 AzerothCompendium:AddTrans("zhCN", "LID_LIBRARY_Contested", "争夺中的领土")

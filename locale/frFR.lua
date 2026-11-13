@@ -99,6 +99,7 @@ AzerothCompendium:AddTrans("frFR", "LID_LEGENDTAG", "Quête de donjon ou de raid
 AzerothCompendium:AddTrans("frFR", "LID_LEVEL", "Niveau %d")
 AzerothCompendium:AddTrans("frFR", "LID_LEVELFILTER", "Niveau")
 AzerothCompendium:AddTrans("frFR", "LID_LEVELGROUP", "Niveau %d-%d")
+AzerothCompendium:AddTrans("frFR", "LID_LIBRARYBOOKMAPPINS", "Livres de bibliothèque")
 AzerothCompendium:AddTrans("frFR", "LID_LIBRARYBOOKS_TAB", "Livres de bibliothèque")
 AzerothCompendium:AddTrans("frFR", "LID_LIBRARY_Alliance", "Territoire de l'Alliance")
 AzerothCompendium:AddTrans("frFR", "LID_LIBRARY_Contested", "Territoire contesté")

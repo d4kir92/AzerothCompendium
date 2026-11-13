@@ -29,6 +29,7 @@ function Library:DB()
         manual = {},
         bank = {}
     }
+    ACOTABPC.LIBRARYBOOKS.seen = ACOTABPC.LIBRARYBOOKS.seen or {}
     return ACOTABPC.LIBRARYBOOKS
 end
 
@@ -315,6 +316,237 @@ function Library:SyncTab()
     end
 end
 
+Library.map = {
+    radius = 60,
+    maxDepth = 6,
+    size = 20,
+    level = 2000,
+    interval = 0.05,
+    pins = {},
+    state = {},
+    version = 0
+}
+
+function Library:Changed()
+    self.map.version = self.map.version + 1
+end
+
+function Library:Points()
+    if self.points then return self.points end
+    local points = {}
+    for _, book in ipairs(Addon.LIBRARYBOOKS) do
+        if book.status ~= "not-in-forever" then
+            local list = {}
+            local function add(mapID, x, y)
+                if mapID == nil or type(x) ~= "number" or type(y) ~= "number" then return end
+                for _, point in ipairs(list) do
+                    if point.mapID == mapID and abs(point.x - x / 100) < 0.01 and abs(point.y - y / 100) < 0.01 then return end
+                end
+
+                tinsert(list, {book = book, mapID = mapID, x = x / 100, y = y / 100})
+            end
+
+            for _, source in ipairs(book.sources or {}) do
+                add(source.mapID or Addon.LIBRARYMAPS[source.zone], source.x, source.y)
+            end
+
+            if #list == 0 then add(Addon.LIBRARYMAPS[book.zone], book.x, book.y) end
+            for _, point in ipairs(list) do
+                tinsert(points, point)
+            end
+        end
+    end
+
+    self.points = points
+    return points
+end
+
+function Library:Book(itemId)
+    if self.byItem == nil then
+        self.byItem = {}
+        for _, book in ipairs(Addon.LIBRARYBOOKS) do
+            self.byItem[book.itemId] = book
+        end
+    end
+
+    return self.byItem[itemId]
+end
+
+function Library:IsSeen(book)
+    local state = self:State(book)
+    return self:DB().seen[book.itemId] == true or state ~= "missing" and state ~= "questflag"
+end
+
+function Library:IsSpoilerFree()
+    return type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
+end
+
+function Library:SyncSpoiler()
+    local spoiler = self:IsSpoilerFree()
+    if self.spoiler == nil then
+        self.spoiler = spoiler
+        return
+    end
+
+    if self.spoiler == spoiler then return end
+    self.spoiler = spoiler
+    Addon:SetSharedSetting("LIBRARYBOOKSHOWUNEXPLORED", not spoiler)
+end
+
+function Library:IsSecret(...)
+    if issecretvalue == nil then return false end
+    for i = 1, select("#", ...) do
+        if issecretvalue(select(i, ...)) then return true end
+    end
+
+    return false
+end
+
+function Library:Discover()
+    self:SyncSpoiler()
+    if C_Map == nil or C_Map.GetBestMapForUnit == nil or C_Map.GetWorldPosFromMapPos == nil or UnitPosition == nil then return end
+    if IsInInstance ~= nil and IsInInstance() then return end
+    local mapID = C_Map.GetBestMapForUnit("player")
+    local wx, wy = UnitPosition("player")
+    if mapID == nil or wx == nil or wy == nil or self:IsSecret(mapID, wx, wy) then return end
+    local maps, depth = {}, 0
+    while mapID ~= nil and depth < self.map.maxDepth do
+        local info = C_Map.GetMapInfo(mapID)
+        if info == nil or info.mapType == nil or info.mapType < 2 then break end
+        maps[mapID] = true
+        mapID = info.parentMapID
+        depth = depth + 1
+    end
+
+    local seen = self:DB().seen
+    local radius = self.map.radius * self.map.radius
+    local changed = false
+    for _, point in ipairs(self:Points()) do
+        if maps[point.mapID] and not seen[point.book.itemId] then
+            if point.world == nil then
+                local _, pos = C_Map.GetWorldPosFromMapPos(point.mapID, CreateVector2D(point.x, point.y))
+                point.world = pos or false
+            end
+
+            if point.world then
+                local x, y = point.world:GetXY()
+                if x ~= nil and y ~= nil and not self:IsSecret(x, y) and (x - wx) * (x - wx) + (y - wy) * (y - wy) <= radius then
+                    seen[point.book.itemId] = true
+                    changed = true
+                end
+            end
+        end
+    end
+
+    if changed then self:Changed() end
+end
+
+function Library:IsMapOwner()
+    if self.mapOwner == nil then self.mapOwner = not Addon:IsAddOnLoaded("MapUtils") end
+    return self.mapOwner
+end
+
+function Library:OnPinClick(pin, button)
+    local point = pin.point
+    if point == nil then return end
+    if button == "RightButton" then
+        local manual = self:DB().manual
+        manual[point.book.itemId] = not manual[point.book.itemId] or nil
+        self:Changed()
+        if self.host and self.host:IsShown() then self:Refresh() end
+    elseif button == "LeftButton" then
+        local _, reason = Addon:SetMapWaypoint(point.mapID, point.x * 100, point.y * 100)
+        if reason == "combat" then Addon:INFO(Addon:Trans("LID_WAYPOINTCOMBAT")) end
+    end
+end
+
+function Library:CreatePin(parent)
+    local pin = CreateFrame("Button", nil, parent)
+    pin.icon = pin:CreateTexture(nil, "OVERLAY")
+    pin.icon:SetAllPoints(pin)
+    pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    pin:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+    pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    pin:SetScript("OnClick", function(sel, button) self:OnPinClick(sel, button) end)
+    pin:SetScript("OnEnter", function(sel) if sel.point then self:Tooltip(sel, sel.point.book) end end)
+    pin:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
+    return pin
+end
+
+function Library:UpdateMap()
+    local worldMap = Addon.WorldMap
+    local child = worldMap and worldMap.GetCanvas()
+    if child == nil or WorldMapFrame.GetMapID == nil or type(ACOTABPC) ~= "table" then return end
+    local mapID = WorldMapFrame:GetMapID()
+    local scale = child:GetScale()
+    local poiScale = worldMap.GetPoiScale()
+    local enabled = Addon:GetFlavor() == "forever" and self:IsMapOwner() and Addon:GetSharedOption("LIBRARYBOOKWORLDMAPPINS")
+    local spoiler = self:IsSpoilerFree()
+    local last = self.map.state
+    if last.mapID == mapID and last.scale == scale and last.poiScale == poiScale and last.enabled == enabled and last.spoiler == spoiler and last.version == self.map.version then return end
+    last.mapID, last.scale, last.poiScale, last.enabled, last.spoiler, last.version = mapID, scale, poiScale, enabled, spoiler, self.map.version
+    for _, pin in ipairs(self.map.pins) do
+        pin:Hide()
+    end
+
+    if not enabled or scale == nil or scale <= 0 then return end
+    local w, h = child:GetWidth(), child:GetHeight()
+    local size = self.map.size * poiScale / scale
+    local count = 0
+    for _, point in ipairs(self:Points()) do
+        local book = point.book
+        if point.mapID == mapID and self:State(book) ~= "done" and (not spoiler or self:IsSeen(book)) then
+            count = count + 1
+            local pin = self.map.pins[count]
+            if pin == nil then
+                pin = self:CreatePin(child)
+                self.map.pins[count] = pin
+            end
+
+            pin.point = point
+            pin.icon:SetTexture(self:Icon(book.itemId))
+            pin:SetSize(size, size)
+            pin:SetFrameLevel(child:GetFrameLevel() + self.map.level)
+            pin:ClearAllPoints()
+            pin:SetPoint("CENTER", child, "TOPLEFT", w * point.x, -h * point.y)
+            pin:Show()
+        end
+    end
+end
+
+Addon:RegisterSharedSettings({
+    ["keys"] = {"LIBRARYBOOKSHOWUNEXPLORED"},
+    ["getDB"] = function() return ACOTABPC end,
+    ["get"] = function() return not Library:IsSpoilerFree() end,
+    ["set"] = function(_, value)
+        ACOTABPC.SPOILERFREE = value == false
+        Library.spoiler = value == false
+    end,
+    ["onChange"] = function()
+        Library:Changed()
+        Addon:RefreshCompendium()
+    end,
+})
+
+AzerothCompendiumAPI = AzerothCompendiumAPI or {}
+function AzerothCompendiumAPI.GetLibraryBookState(itemId)
+    if type(ACOTABPC) ~= "table" then return nil end
+    local book = Library:Book(itemId)
+    if book == nil then return nil end
+    return Library:State(book), Library:IsSeen(book)
+end
+
+if WorldMapFrame ~= nil then
+    Library.map.updater = CreateFrame("Frame", nil, WorldMapFrame)
+    Library.map.updater.elapsed = 0
+    Library.map.updater:SetScript("OnUpdate", function(sel, elapsed)
+        sel.elapsed = sel.elapsed + elapsed
+        if sel.elapsed < Library.map.interval then return end
+        sel.elapsed = 0
+        Library:UpdateMap()
+    end)
+end
+
 Library.events = CreateFrame("Frame")
 for _, event in ipairs({"PLAYER_LOGIN", "QUEST_TURNED_IN", "BAG_UPDATE_DELAYED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "QUEST_LOG_UPDATE", "GET_ITEM_INFO_RECEIVED"}) do
     Library.events:RegisterEvent(event)
@@ -326,6 +558,7 @@ Library.events:SetScript("OnEvent", function(_, event, questID)
         Library:Scan(false)
         Library:SyncTab()
         Addon:OnLanguage(function() Library:Refresh() end)
+        if Addon:GetFlavor() == "forever" and C_Timer ~= nil and C_Timer.NewTicker ~= nil then Library.ticker = C_Timer.NewTicker(1, function() Library:Discover() end) end
     elseif event == "QUEST_TURNED_IN" then
         for _, book in ipairs(Addon.LIBRARYBOOKS) do
             if book.questId == questID then Library:DB().done[book.itemId] = true end
@@ -340,5 +573,6 @@ Library.events:SetScript("OnEvent", function(_, event, questID)
         if Library.bankOpen then Library:Scan(true) end
     end
 
+    Library:Changed()
     if Library.host and Library.host:IsShown() then Library:Refresh() end
 end)

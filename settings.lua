@@ -288,6 +288,10 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddCategory("MEETINGSTONES", 2, "2026-10-04")
     AddSharedCheckbox("MEETINGSTONEWORLDMAPPINS", "LID_WORLDMAPPINS", "2026-10-04")
     AddSharedCheckbox("MEETINGSTONEMINIMAPPINS", "LID_MINIMAPPINS", "2026-10-04")
+    if AzerothCompendium.Library and AzerothCompendium:GetFlavor() == "forever" then
+        AddCategory("LIBRARYBOOKMAPPINS", 2, "2026-11-13")
+        AddSharedCheckbox("LIBRARYBOOKWORLDMAPPINS", "LID_WORLDMAPPINS", "2026-11-13")
+    end
     AddCategory("INSTANCEMAPS", 2, "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_BOSS", "LID_SHOWBOSSPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTPINS", "2026-10-04")
