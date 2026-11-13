@@ -953,11 +953,12 @@ end
 
 function PageText:ShouldStyle(fontString)
     if Theme:IsModern() then return false end
-    local frame = fontString:GetParent()
+    local frame, scrolled = fontString:GetParent(), false
     while frame do
         if frame.acoKeepLight or frame.vendorMap ~= nil or self:IsControl(frame) then return false end
         if frame.loadingScreen and frame.loadingScreen:IsShown() then return false end
-        if frame.acoPageRoot then return frame.acoPageWhole or self:IsInside(fontString, frame) end
+        if frame.ScrollTarget or frame:GetObjectType() == "ScrollFrame" then scrolled = true end
+        if frame.acoPageRoot then return frame.acoPageWhole or scrolled or self:IsInside(fontString, frame) end
         frame = frame:GetParent()
     end
     return false
