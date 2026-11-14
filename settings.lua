@@ -110,6 +110,8 @@ local function HandleSlash(args)
         AzerothCompendium:PrintMapPinDebugHelp()
     elseif sub == "debug" then
         AzerothCompendium:ToggleMapPinDebug()
+    elseif sub == "tracker" and AzerothCompendium.DungeonTracker then
+        AzerothCompendium.DungeonTracker:Toggle()
     else
         AzerothCompendium:ToggleCompendium()
     end
@@ -281,6 +283,8 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
+    AddCategory("DUNGEONTRACKER", nil, "2026-11-14")
+    AddCheckbox("DUNGEONTRACKER", true, function() if AzerothCompendium.DungeonTracker then AzerothCompendium.DungeonTracker:UpdateVisibility() end end, "LID_DUNGEONTRACKER_ENABLED", "2026-11-14")
     AddCategory("MAPICONS", nil, "2026-10-04")
     AddCategory("INSTANCEENTRANCES", 2, "2026-10-04")
     AddSharedCheckbox("DUNGEONWORLDMAPPINS", "LID_WORLDMAPPINS", "2026-10-04")

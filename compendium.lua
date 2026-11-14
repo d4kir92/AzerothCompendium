@@ -3625,6 +3625,7 @@ local function CreateLootRow(scroller)
         self.jumpBoss = entry.source
         self.boss = entry.source or selectedInstance and not selectedInstance.vendor and selectedBoss or nil
         self.wishlistSource = GetCurrentWishlistSource(entry.source)
+        if AzerothCompendium:IsSpoilerFree() then chance = AzerothCompendium:GetOwnDropChance(self.boss, itemID) or chance end
         local name, link, quality, _, icon = AzerothCompendium:GetItemDisplay(itemID)
         self.link = link
         self.icon:SetTexture(icon or 134400)
@@ -4674,6 +4675,12 @@ function AzerothCompendium:CreateCompendiumDialog(name, title)
     self.Theme:RegisterRoot(frame)
     return frame
 end
+
+AzerothCompendium.SharedUI = {
+    CreateScroller = CreateScroller,
+    AddContentBorder = AddContentBorder,
+    SetFrameTitle = SetFrameTitle,
+}
 
 local function CreateSettingsPanel()
     local panel = CreateFrame("Frame", nil, compendium)

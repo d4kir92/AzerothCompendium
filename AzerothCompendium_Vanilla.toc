@@ -86,4 +86,5 @@ theme.lua
 compendium.lua
 worldmap.lua
 settings.lua
+dungeontracker.lua
 welcome.lua

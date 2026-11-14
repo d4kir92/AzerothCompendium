@@ -89,4 +89,5 @@ compendium.lua
 librarybooks.lua
 worldmap.lua
 settings.lua
+dungeontracker.lua
 welcome.lua

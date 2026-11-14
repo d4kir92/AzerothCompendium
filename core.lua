@@ -317,11 +317,63 @@ function AzerothCompendium:MarkUnitSeen(unit)
     local guid = unit and UnitGUID and UnitGUID(unit)
     if type(guid) ~= "string" or (AzerothCompendium.IsSecret and AzerothCompendium:IsSecret(guid)) then return end
     local unitType, _, _, _, _, npcID = strsplit("-", guid)
+    if unitType ~= "Creature" and unitType ~= "Vehicle" then return end
+    self:MarkNpcSeen(npcID)
+end
+
+function AzerothCompendium:GetOwnDrops()
+    ACOTAB = ACOTAB or {}
+    ACOTAB.OWNDROPS = ACOTAB.OWNDROPS or {}
+    local own = ACOTAB.OWNDROPS
+    own.kills = own.kills or {}
+    own.drops = own.drops or {}
+
+    return own
+end
+
+function AzerothCompendium:RecordOwnKill(npcID)
     npcID = tonumber(npcID)
-    if (unitType ~= "Creature" and unitType ~= "Vehicle") or npcID == nil then return end
+    if npcID == nil then return end
+    local own = self:GetOwnDrops()
+    own.kills[npcID] = (own.kills[npcID] or 0) + 1
+end
+
+function AzerothCompendium:RecordOwnDrop(npcID, itemID)
+    npcID, itemID = tonumber(npcID), tonumber(itemID)
+    if npcID == nil or itemID == nil then return end
+    local own = self:GetOwnDrops()
+    own.drops[npcID] = own.drops[npcID] or {}
+    own.drops[npcID][itemID] = (own.drops[npcID][itemID] or 0) + 1
+end
+
+function AzerothCompendium:GetOwnDropChance(boss, itemID)
+    if type(boss) ~= "table" or type(boss.npcs) ~= "table" or itemID == nil then return nil end
+    local own = self:GetOwnDrops()
+    local kills, drops = 0, 0
+    for _, npcID in ipairs(boss.npcs) do
+        kills = max(kills, own.kills[npcID] or 0)
+        drops = drops + (own.drops[npcID] and own.drops[npcID][itemID] or 0)
+    end
+
+    if kills == 0 then return nil end
+
+    return min(100, drops / kills * 100)
+end
+
+function AzerothCompendium:MarkNpcSeen(npcID)
+    npcID = tonumber(npcID)
+    if npcID == nil then return end
     ACOTAB = ACOTAB or {}
     ACOTAB.SEENNPCS = ACOTAB.SEENNPCS or {}
+    if ACOTAB.SEENNPCS[npcID] then return end
     ACOTAB.SEENNPCS[npcID] = true
+    if type(ACOTABPC) ~= "table" or ACOTABPC.SPOILERFREE ~= true or self.seenRefreshPending or C_Timer == nil then return end
+    self.seenRefreshPending = true
+    C_Timer.After(1, function()
+        AzerothCompendium.seenRefreshPending = nil
+        if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
+        if AzerothCompendium.DungeonTracker and AzerothCompendium.DungeonTracker.Refresh then AzerothCompendium.DungeonTracker:Refresh() end
+    end)
 end
 
 function AzerothCompendium:IsBossFound(boss)
