@@ -621,7 +621,7 @@ function Tracker:PostToChat()
     end
 
     if channel == nil then
-        DEFAULT_CHAT_FRAME:AddMessage(msg)
+        DEFAULT_CHAT_FRAME:AddMessage(format("[%s] %s: %s %s: %s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), XP or "XP", self:FormatNumber(run.xp or 0), AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatMoney(run.gold or 0)))
 
         return
     end
