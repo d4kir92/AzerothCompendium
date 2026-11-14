@@ -1907,6 +1907,45 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
         node.level = AzerothCompendium:GetQuestRecommendedLevel(node.quest or node.id)
     end
 
+    local function ChainDepth(node, stack)
+        if node.chainDepth ~= nil then return node.chainDepth end
+        if stack[node] then return 0 end
+        stack[node] = true
+        local depth = 0
+        for _, parent in ipairs(node.parents) do
+            depth = math.max(depth, ChainDepth(parent, stack) + 1)
+        end
+
+        stack[node] = nil
+        node.chainDepth = depth
+
+        return depth
+    end
+
+    local sameNames = {}
+    for _, node in ipairs(list) do
+        node.nameIndex = nil
+        if node.name then
+            sameNames[node.name] = sameNames[node.name] or {}
+            tinsert(sameNames[node.name], node)
+        end
+    end
+
+    for _, group in pairs(sameNames) do
+        if #group > 1 then
+            table.sort(group, function(a, b)
+                local depthA, depthB = ChainDepth(a, {}), ChainDepth(b, {})
+                if depthA ~= depthB then return depthA < depthB end
+
+                return a.id < b.id
+            end)
+
+            for index, node in ipairs(group) do
+                node.nameIndex = index
+            end
+        end
+    end
+
     if hideCompleted then
         local keep = {}
         for _, node in ipairs(list) do
@@ -1929,6 +1968,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
                     section = node.groups[index].section,
                     phases = node.groups[index],
                     name = node.name,
+                    nameIndex = node.nameIndex,
                     level = node.level,
                     parents = previous and {previous} or node.parents,
                     children = {},

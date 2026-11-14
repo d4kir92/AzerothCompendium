@@ -171,7 +171,10 @@ function Spoiler.IsMasked(node)
 end
 
 function Spoiler.Name(node)
-    return Spoiler.IsMasked(node) and AzerothCompendium:Trans("LID_QUESTSPOILERNAME") or node.name
+    if Spoiler.IsMasked(node) then return AzerothCompendium:Trans("LID_QUESTSPOILERNAME") end
+    if node.nameIndex then return format("%s (%d)", node.name, node.nameIndex) end
+
+    return node.name
 end
 
 function Spoiler.FilterItems(list)
@@ -408,6 +411,7 @@ local function ShowNodeTooltip(button)
     end
 
     AddQuestStatusToTooltip(node.id, node.quest, node)
+    GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTID") .. ":"), tostring(node.id), 0.9, 0.9, 0.9, 1, 1, 1)
     if node.outside then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_QUESTOUTSIDE")), 1, 0.82, 0) end
     local giver = AzerothCompendium.QUESTGIVERS and AzerothCompendium.QUESTGIVERS[node.id]
     local startItem = AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
@@ -1471,20 +1475,55 @@ local function UpdateKeyLine(line, attunement, box)
     line:Show()
 end
 
+local function IsListPrepEnd(node)
+    if node.instance or node.phases ~= nil or (node.section or 2) > 2 then return false end
+    for _, child in ipairs(node.children) do
+        if child.phases == nil and not child.instance and (child.section or 2) <= 2 then return false end
+    end
+
+    return true
+end
+
 local function BuildListTree(graph)
-    local quests, roots = {}, {}
+    local quests, roots, objectiveSection = {}, {}, {}
     for _, node in ipairs(graph) do
-        if node.phases == nil or node.phases.turnin then
+        if node.phases and node.phases.objective then objectiveSection[node.id] = node.section end
+    end
+
+    local function GetListSection(node)
+        return objectiveSection[node.id] or node.section or 2
+    end
+
+    for _, node in ipairs(graph) do
+        local isMain = node.phases == nil or node.phases.turnin
+        if isMain then
             quests[node.id] = node
-            if node.instance or #node.children == 0 then tinsert(roots, node) end
+            if node.instance or #node.children == 0 or IsListPrepEnd(node) then tinsert(roots, {node = node, section = GetListSection(node), key = "quest:" .. node.id, prerequisites = true}) end
+        end
+
+        if node.phases and node.section ~= GetListSection(node) then
+            tinsert(roots, {node = node, section = node.section, key = "phase:" .. node.section .. ":" .. node.id, prerequisites = node.phases.accept == true})
         end
     end
 
-    table.sort(roots, SortNodes)
+    local progress = {}
+    for _, root in ipairs(roots) do
+        progress[root.section] = progress[root.section] or {done = 0, total = 0}
+        progress[root.section].total = progress[root.section].total + 1
+        if GetQuestStatus(root.node.id, root.node) == "complete" then progress[root.section].done = progress[root.section].done + 1 end
+    end
+
+    table.sort(roots, function(a, b)
+        if a.section ~= b.section then return a.section < b.section end
+        if a.node.id == b.node.id then return a.key < b.key end
+
+        return SortNodes(a.node, b.node)
+    end)
+
     local items = {}
-    for _, node in ipairs(roots) do
-        local key = "quest:" .. node.id
-        local item = {node = node, key = key, children = {}}
+    for _, root in ipairs(roots) do
+        local node, key = root.node, root.key
+        local item = {node = node, key = key, section = root.section, children = {}}
         local visited, added = {}, {[node.id] = true}
         local function AddPrerequisites(step)
             if visited[step] then return end
@@ -1499,9 +1538,11 @@ local function BuildListTree(graph)
             end
         end
 
-        AddPrerequisites(node)
+        if root.prerequisites then AddPrerequisites(node) end
         tinsert(items, item)
     end
+
+    items.progress = progress
 
     return items
 end
@@ -1675,7 +1716,17 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.icon:SetTexCoord(0, 1, 0, 1)
     row.bar:Hide()
     row.right:SetText("")
-    if entry.kind == "key" then
+    if entry.kind == "header" then
+        local progress = entry.progress or {done = 0, total = 0}
+        local finished = progress.total > 0 and progress.done >= progress.total
+        row.background:SetColorTexture(1, 0.82, 0, 0.12)
+        row.icon:SetTexture(STATUS_ICON.complete[1])
+        row.icon:SetDesaturated(STATUS_ICON.complete[2])
+        row.icon:SetShown(finished)
+        row.text:SetFontObject("GameFontNormal")
+        row.text:SetText(AzerothCompendium:Trans(SECTION_TITLES[entry.section] or SECTION_TITLES[2]))
+        row.right:SetText(format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total))
+    elseif entry.kind == "key" then
         row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
         local icon, status, text = GetKeyLineInfo(entry.attunement)
         row.icon:SetTexture(icon)
@@ -2140,7 +2191,7 @@ local function CreateLegend(tree, anchor)
     local legend = CreateFrame("Frame", nil, tree, AzerothCompendium:CheckTemplates("BackdropTemplate") and "BackdropTemplate" or nil)
     legend:SetFrameStrata("HIGH")
     legend:SetSize(320, 10)
-    legend:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -8, 8)
+    legend:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -SCROLLBAR_W - 8, BOTTOM_H + 8)
     legend:EnableMouse(true)
     if legend.SetBackdrop then
         legend:SetBackdrop({
@@ -2215,9 +2266,18 @@ local function CreateLegend(tree, anchor)
     legend:SetHeight(36 + #rows * 18 + 40)
     local function UpdateTexts()
         legend.title:SetText(AzerothCompendium:Trans("LID_QUESTLEGEND"))
+        local textWidth = 270
         for _, row in ipairs(rows) do
             row[1]:SetText(AzerothCompendium:Trans(row[2]))
+            local width = row[1].GetUnboundedStringWidth and row[1]:GetUnboundedStringWidth() or row[1]:GetStringWidth()
+            textWidth = max(textWidth, ceil(width or 0) + 4)
         end
+
+        for _, row in ipairs(rows) do
+            row[1]:SetWidth(textWidth)
+        end
+
+        legend:SetWidth(38 + textWidth + 14)
     end
 
     UpdateTexts()
@@ -2305,7 +2365,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     zoomIcon:SetSize(HBAR_H, HBAR_H)
     zoomIcon:SetPoint("RIGHT", zoomSlider, "LEFT", -2, 0)
     tree.zoomBar = zoomSlider
-    local legendButton = CreateLegend(tree, scroll)
+    local legendButton = CreateLegend(tree, tree)
     legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
     local viewSwitch = CreateViewSwitch(tree, function(mode) tree:SetViewMode(mode) end)
     tree.viewSwitch = viewSwitch
@@ -2407,6 +2467,19 @@ function AzerothCompendium:CreateQuestTree(parent)
         tree.boxes[section] = box
     end
 
+    function tree:UpdateBoxTitle(section)
+        local box = self.boxes[section]
+        local text = AzerothCompendium:Trans(SECTION_TITLES[section])
+        local progress = box.progress
+        if progress and progress.total > 0 then
+            local finished = progress.done >= progress.total
+            if finished then text = format("|T%s:%d|t ", STATUS_ICON.complete[1], STATUS_ICON_SIZE) .. text end
+            text = text .. format("  %s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total)
+        end
+
+        box.title:SetText(text)
+    end
+
     tree.keyLine = CreateKeyLine(tree.boxes[1], tree)
     tree.topBox = tree.boxes[1]
     tree.empty = tree:CreateFontString(nil, "ARTWORK", "GameFontDisableLarge")
@@ -2429,7 +2502,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     end)
     AzerothCompendium:OnLanguage(function()
         for section = 1, SECTION_COUNT do
-            tree.boxes[section].title:SetText(AzerothCompendium:Trans(SECTION_TITLES[section]))
+            tree:UpdateBoxTitle(section)
             tree.boxes[section].empty:SetText(AzerothCompendium:Trans(SECTION_EMPTY[section]))
         end
 
@@ -2546,7 +2619,16 @@ function AzerothCompendium:CreateQuestTree(parent)
             tinsert(entries, {kind = "key", attunement = attunement, depth = 0})
         end
 
-        FlattenList(items, 0, self.expanded, entries)
+        local lastSection
+        for _, item in ipairs(items) do
+            if item.section ~= lastSection then
+                lastSection = item.section
+                tinsert(entries, {kind = "header", section = item.section, progress = items.progress[item.section], depth = 0})
+            end
+
+            FlattenList({item}, 0, self.expanded, entries)
+        end
+
         if attunement and attunement.key and attunement.opens ~= nil then
             tinsert(entries, {kind = "key", attunement = attunement, depth = 0})
         end
@@ -2598,6 +2680,12 @@ function AzerothCompendium:CreateQuestTree(parent)
         scroll:SetScrollChild(list and listHolder or holder)
         zoomSlider:SetShown(not list)
         zoomIcon:SetShown(not list)
+        legendButton:ClearAllPoints()
+        if list then
+            legendButton:SetPoint("RIGHT", tree, "BOTTOMRIGHT", -8, BOTTOM_H / 2)
+        else
+            legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
+        end
         viewSwitch:SetMode(mode)
         self:Layout()
         SetHScroll(0)
@@ -2706,7 +2794,20 @@ function AzerothCompendium:CreateQuestTree(parent)
             canvasH = 1
         else
             self.empty:Hide()
+            for _, box in ipairs(self.boxes) do
+                box.progress = {done = 0, total = 0}
+            end
+
+            for _, node in ipairs(graph) do
+                local progress = self.boxes[node.section] and self.boxes[node.section].progress
+                if progress then
+                    progress.total = progress.total + 1
+                    if GetQuestStatus(node.id, node) == "complete" then progress.done = progress.done + 1 end
+                end
+            end
+
             for section, box in ipairs(self.boxes) do
+                self:UpdateBoxTitle(section)
                 box:ClearAllPoints()
                 box:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, -self.boxTops[section])
                 box:SetSize(canvasW, BoxHeight(section, rows[section]))
