@@ -101,6 +101,15 @@ function D4:CheckVersion(name, ver)
     end
 end
 
+-- Version messages are only sent to the group or the guild. Anything else, such
+-- as an addon whisper from a player outside of them, is ignored.
+local VERSION_CHANNELS = {
+    PARTY = true,
+    RAID = true,
+    INSTANCE_CHAT = true,
+    GUILD = true
+}
+
 local f = CreateFrame("FRAME")
 D4:RegisterEvent(f, "PLAYER_ENTERING_WORLD")
 D4:RegisterEvent(f, "PLAYER_REGEN_ENABLED")
@@ -111,8 +120,8 @@ D4:OnEvent(f, function(sel, event, ...)
     elseif event == "PLAYER_REGEN_DISABLED" then
         D4:UnregisterEvent(f, "CHAT_MSG_ADDON")
     elseif event == "CHAT_MSG_ADDON" then
-        local pref, msg = ...
-        if pref == pre and msg then
+        local pref, msg, channel = ...
+        if pref == pre and msg and VERSION_CHANNELS[channel] then
             local a, name, v, ver = string.split(";", msg)
             if a and name and v and ver and a == "A" and v == "V" and AddonName == name and not D4:FoundHigher(name) then D4:CheckVersion(name, ver) end
         end
