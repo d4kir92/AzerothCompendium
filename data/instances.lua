@@ -2751,6 +2751,7 @@ AzerothCompendium.INSTANCES = {
 		["type"] = "dungeon",
 		["minLevel"] = 55,
 		["maxLevel"] = 60,
+		["areaID"] = 1583,
 		["uiMapID"] = 250,
 		["bosses"] = {
 			{
@@ -3405,6 +3406,7 @@ AzerothCompendium.INSTANCES = {
 		["type"] = "raid",
 		["minLevel"] = 60,
 		["maxLevel"] = 60,
+		["areaID"] = 2159,
 		["uiMapID"] = 248,
 		["bosses"] = {
 			{
