@@ -1167,6 +1167,28 @@ function AzerothCompendium:IsQuestSideVisible(side)
     return self:GetConfig("QUESTFACTION", default) == side
 end
 
+AzerothCompendium.ITEMGATEDQUESTS = {
+    [7938] = 19424,
+    [7944] = 19443,
+}
+
+function AzerothCompendium:IsQuestUnavailable(questID)
+    if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
+    local itemID = AzerothCompendium.ITEMGATEDQUESTS[questID]
+    if itemID == nil or AzerothCompendium:IsQuestActive(questID) then return false end
+    local getCount = C_Item and C_Item.GetItemCount or GetItemCount
+    return getCount == nil or (getCount(itemID) or 0) == 0
+end
+
+function AzerothCompendium:GetItemGatedQuestState()
+    local state = ""
+    for questID in pairs(AzerothCompendium.ITEMGATEDQUESTS) do
+        if not AzerothCompendium:IsQuestUnavailable(questID) then state = state .. questID .. "," end
+    end
+
+    return state
+end
+
 local instanceQuestCache = {lists = {}}
 function AzerothCompendium:InvalidateInstanceQuests()
     instanceQuestCache.key = nil
@@ -1177,9 +1199,11 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local onlyOwnClass = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
     local alliance, horde = AzerothCompendium:IsQuestSideVisible(1), AzerothCompendium:IsQuestSideVisible(2)
     local flavor = AzerothCompendium:GetFlavor()
-    if instanceQuestCache.key ~= true or instanceQuestCache.flavor ~= flavor or instanceQuestCache.alliance ~= alliance or instanceQuestCache.horde ~= horde or instanceQuestCache.onlyOwnClass ~= onlyOwnClass then
+    local gated = AzerothCompendium:GetItemGatedQuestState()
+    if instanceQuestCache.key ~= true or instanceQuestCache.flavor ~= flavor or instanceQuestCache.alliance ~= alliance or instanceQuestCache.horde ~= horde or instanceQuestCache.onlyOwnClass ~= onlyOwnClass or instanceQuestCache.gated ~= gated then
         wipe(instanceQuestCache.lists)
         instanceQuestCache.key = true
+        instanceQuestCache.gated = gated
         instanceQuestCache.flavor = flavor
         instanceQuestCache.alliance = alliance
         instanceQuestCache.horde = horde
@@ -1191,7 +1215,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not (AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[quest[1]]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not AzerothCompendium:IsQuestUnavailable(quest[1]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             tinsert(available, quest)
         end
     end
@@ -1463,7 +1487,7 @@ function AzerothCompendium:GetQuestChain(questID)
     local visiting = {}
     local function AddQuest(id, depth, prerequisiteChain)
         if not AzerothCompendium:IsQuestForFlavor(id) then return end
-        if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[id] then return end
+        if AzerothCompendium:IsQuestUnavailable(id) then return end
         if seen[id] or visiting[id] then return end
         visiting[id] = true
         local prerequisites = AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[id]
@@ -1519,7 +1543,7 @@ end
 
 local function IsQuestHidden(questID)
     if not AzerothCompendium:IsQuestForFlavor(questID) then return true end
-    if AzerothCompendium.UNAVAILABLEQUESTS and AzerothCompendium.UNAVAILABLEQUESTS[questID] then return true end
+    if AzerothCompendium:IsQuestUnavailable(questID) then return true end
     if AzerothCompendium:IsPlaceholderQuest(questID) then return true end
 
     local quest = AzerothCompendium:GetQuestDataByID(questID)
