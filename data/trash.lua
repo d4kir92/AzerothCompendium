@@ -40119,9 +40119,912 @@ local lootByInstance = {
 			},
 		},
 		{
+			[1] = 1980,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 2802,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 4063,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 4080,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 4734,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 4737,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 6424,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 6426,
+			[2] = 0.2,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.2,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 6429,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 7469,
+			[2] = 0.16,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.16,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 7481,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 7486,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 7488,
+			[2] = 0.42,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.42,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 7496,
+			[2] = 0.08,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 7524,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 7544,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 8139,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 8142,
+			[2] = 0.08,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8156,
+			[2] = 0.29,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.29,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8157,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 8158,
+			[2] = 0.12,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8159,
+			[2] = 0.33,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.33,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8160,
+			[2] = 0.08,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8161,
+			[2] = 0.42,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.42,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 8162,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 8163,
+			[2] = 0.16,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.16,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9285,
+			[2] = 0.33,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.33,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9287,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9288,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9289,
+			[2] = 0.12,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9291,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9292,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9883,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9884,
+			[2] = 0.16,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.16,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9887,
+			[2] = 0.28,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.2,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.28,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9897,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9907,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9908,
+			[2] = 0.16,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.16,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9916,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9919,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9925,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9932,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9967,
+			[2] = 0.12,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.12,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9968,
+			[2] = 0.33,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.33,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9969,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9970,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 9971,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9972,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 9973,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.08,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 11998,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 12689,
+			[2] = 0.04,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
 			[1] = 13042,
 			[2] = 0.04,
 			["itemClass"] = 2,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 13117,
+			[2] = 0.04,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 13199,
+			[2] = 0.14,
+			["itemClass"] = 4,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+				{
+					["name"] = "Twilight Lieutenant",
+					["npcs"] = {258104},
+					["chance"] = 0.14,
+					["classification"] = 1,
+					["model"] = 143142,
+				},
+			},
+		},
+		{
+			[1] = 14467,
+			[2] = 0.04,
+			["itemClass"] = 9,
+			["mobs"] = {
+				{
+					["name"] = "Twilight Grunt",
+					["npcs"] = {258042},
+					["chance"] = 0.04,
+					["classification"] = 1,
+					["model"] = 140001,
+				},
+			},
+		},
+		{
+			[1] = 16043,
+			[2] = 0.04,
+			["itemClass"] = 9,
 			["mobs"] = {
 				{
 					["name"] = "Twilight Grunt",

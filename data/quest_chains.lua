@@ -3870,6 +3870,7 @@ AzerothCompendium.QUESTNAMES = {
 	[93787] = "Food for the Taking",
 	[94480] = "A Gift From Our Enemies",
 	[94481] = "A Serving of Strength",
+	[95056] = "Krol'dok No More!",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4897,6 +4898,7 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[93787] = 36,
 	[94480] = 36,
 	[94481] = 36,
+	[95056] = 40,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -5924,6 +5926,7 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[93787] = 36,
 	[94480] = 36,
 	[94481] = 38,
+	[95056] = 42,
 }
 
 AzerothCompendium.QUESTENDERS = {

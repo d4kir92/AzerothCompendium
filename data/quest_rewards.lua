@@ -5325,6 +5325,10 @@ AzerothCompendium.QUESTREWARDS = {
 	[94481] = {
 		["xp"] = 2150,
 	},
+	[95056] = {
+		["choices"] = {{279861, 1}, {279862, 1},},
+		["xp"] = 3450,
+	},
 }
 
 AzerothCompendium.QUESTTAGS = {
@@ -6088,6 +6092,7 @@ AzerothCompendium.QUESTTAGS = {
 	[97173] = 81,
 	[97198] = 81,
 	[97327] = 81,
+	[95056] = 81,
 }
 
 AzerothCompendium.QUESTINSIDE = {
