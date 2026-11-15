@@ -2527,7 +2527,7 @@ function MapPins.IsQuestPinVisible(entry)
     if AzerothCompendium:IsQuestCompleted(questID) then return false end
     local active = AzerothCompendium:IsQuestActive(questID)
     if entry[1] == "questend" then return active end
-    if active then return false end
+    if active or type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true then return false end
     for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[questID] or {}) do
         if not AzerothCompendium:IsQuestCompleted(prerequisiteID) then return false end
     end

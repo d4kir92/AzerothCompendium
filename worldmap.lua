@@ -192,6 +192,8 @@ function WorldMap.GetPins(level)
                 tinsert(rows, {"level", entry[2], entry[3], entry[4], entry[5] == true})
             elseif kind == "item" then
                 if type(entry[4]) == "number" then tinsert(rows, {"item", entry[2], entry[3], entry[4]}) end
+            elseif kind == "queststart" or kind == "questend" then
+                if type(entry[4]) == "number" then tinsert(rows, {kind, entry[2], entry[3], entry[4], AzerothCompendium:GetQuestNameByID(entry[4])}) end
             elseif kind == "entrance" then
                 tinsert(rows, {"entrance", entry[2], entry[3], inst ~= nil and inst.type == "raid" and "raid" or nil})
             end
@@ -242,6 +244,8 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["setBossScale"] = function(value) AzerothCompendium:SetConfig("MAPPINS_BOSSSCALE", value) end,
     ["getBossScaleText"] = function(percent) return format(AzerothCompendium:Trans("LID_BOSSPINSCALE"), percent) end,
     ["isPinEnabled"] = function(kind) return AzerothCompendium.MapPins.IsEnabled(kind) end,
+    ["isQuestPinVisible"] = function(row) return AzerothCompendium.MapPins.IsQuestPinVisible(row) end,
+    ["getQuestKindText"] = function(row) return AzerothCompendium:Trans(row[1] == "queststart" and "LID_MAPPINQUESTSTART" or "LID_MAPPINQUESTEND") end,
     ["setPinEnabled"] = function(kind, enabled) AzerothCompendium:SetSharedOption("INSTANCEPINS_" .. strupper(kind), enabled) end,
     ["getToggleText"] = function(kind, enabled)
         local def = WorldMap.GetPinType(kind)
