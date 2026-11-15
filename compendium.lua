@@ -2480,8 +2480,9 @@ MapPins.questIcons = {
 }
 MapPins.markerIcons = {
     {"Serpent", "Interface\\Icons\\Ability_Hunter_Pet_WindSerpent"},
-    {"Serpent statue", "Interface\\Icons\\INV_Misc_Idol_03"},
+    {"Serpent statue", "Interface\\AddOns\\AzerothCompendium\\media\\serpentstatue"},
     {"Idol", "Interface\\Icons\\INV_Misc_Idol_02"},
+    {"Idol 2", "Interface\\Icons\\INV_Misc_Idol_03"},
     {"Lever / gear", "Interface\\Icons\\INV_Misc_Gear_01"},
     {"Key", "Interface\\Icons\\INV_Misc_Key_03"},
     {"Chest", "Interface\\Icons\\INV_Box_02"},
