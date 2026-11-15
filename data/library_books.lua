@@ -76,7 +76,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a table partway up the tower.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=203755",
-        ["checkedAt"] = "2026-11-13T12:05:47.5872614+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:16.1778074+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -103,7 +103,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a table in the middle of the hall.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=203754",
-        ["checkedAt"] = "2026-11-13T12:05:47.6005881+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:16.5341370+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -150,7 +150,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside a house in Moonbrook.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209845",
-        ["checkedAt"] = "2026-11-13T12:05:47.6052813+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:16.9191247+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -197,7 +197,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside the Thelsamar inn. Alternative location: Westfall, Sentinel Hill 52.7, 53.8.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=208860",
-        ["checkedAt"] = "2026-11-13T12:05:47.6095888+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:17.3146107+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -234,7 +234,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Position from the Forever database; not yet fully confirmed during beta.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209849",
-        ["checkedAt"] = "2026-11-13T12:05:47.6156170+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:17.7052032+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -281,7 +281,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "At the ogre camp in the northeast.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209850",
-        ["checkedAt"] = "2026-11-13T12:05:47.6213187+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:18.1681893+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -317,7 +317,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Scrolls",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209848",
-        ["checkedAt"] = "2026-11-13T12:05:47.6257002+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:18.5377166+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -344,7 +344,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside the town hall.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209844",
-        ["checkedAt"] = "2026-11-13T12:05:47.6302678+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:18.8786060+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -381,7 +381,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a shelf next to Apothecary Johaan.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=208185",
-        ["checkedAt"] = "2026-11-13T12:05:47.6342930+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:19.2130826+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -418,7 +418,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "unknown",
         ["note"] = "Not confirmed yet; players did not find the book at the database position during earlier testing.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=210177",
-        ["checkedAt"] = "2026-11-13T12:05:47.6382650+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:19.5458710+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -444,7 +444,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Scrolls",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209843",
-        ["checkedAt"] = "2026-11-13T12:05:47.6431460+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:19.8791404+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -471,7 +471,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside the oil platform control room.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209847",
-        ["checkedAt"] = "2026-11-13T12:05:47.6476033+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:20.2402082+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -498,7 +498,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Next to Gazlowe.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=208800",
-        ["checkedAt"] = "2026-11-13T12:05:47.6531739+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:20.5858297+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -525,7 +525,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "confirmed",
         ["note"] = "The map X marks the cave entrance. Inside, near the Wailing Caverns portal: 52.8, 54.7 on the cave map.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209846",
-        ["checkedAt"] = "2026-11-13T12:05:47.6583719+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:20.9286453+00:00",
     },
     {
         ["set"] = "starter",
@@ -539,7 +539,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Scrolls",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=209851",
-        ["checkedAt"] = "2026-11-13T12:05:47.6635644+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:21.2802691+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -566,7 +566,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "confirmed",
         ["note"] = "Large tablet in front of the Darkbriar Lodge; click it to obtain the transcription.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=207972",
-        ["checkedAt"] = "2026-11-13T12:05:47.6686633+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:21.6269887+00:00",
     },
     {
         ["set"] = "l35",
@@ -581,7 +581,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Outside the mine on a platform.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=213165",
-        ["checkedAt"] = "2026-11-13T12:05:47.6709418+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:21.7985974+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -618,7 +618,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside a tower in the ogre ruins.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215815",
-        ["checkedAt"] = "2026-11-13T12:05:47.6749532+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:22.1539695+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -654,7 +654,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Scrolls",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215816",
-        ["checkedAt"] = "2026-11-13T12:05:47.6792494+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:22.4822276+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -680,7 +680,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside the crypt on the south side; approach is roughly around 56.0, 45.0.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215820",
-        ["checkedAt"] = "2026-11-13T12:05:47.6852198+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:22.8266076+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -720,7 +720,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside a hut; the climb starts roughly around 31.0, 37.0.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215683",
-        ["checkedAt"] = "2026-11-13T12:05:55.1986275+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:23.4469088+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -757,7 +757,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a bench inside the large building.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215817",
-        ["checkedAt"] = "2026-11-13T12:05:55.2027256+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:23.7675632+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -784,7 +784,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On the ground on the eastern edge of the murloc camp.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=215822",
-        ["checkedAt"] = "2026-11-13T12:05:55.2071869+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:24.0849698+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -811,7 +811,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "reported",
         ["note"] = "On top of the temple, outside the instance; player-reported location.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220345",
-        ["checkedAt"] = "2026-11-13T12:05:55.2104832+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:24.4224416+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -848,7 +848,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "reported",
         ["note"] = "On the altar inside the tomb; no dungeon entry required. Coordinates use the Burning Steppes map.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220349",
-        ["checkedAt"] = "2026-11-13T12:05:55.2137701+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:24.7513152+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -874,7 +874,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Book",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220350",
-        ["checkedAt"] = "2026-11-13T12:05:55.2171426+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:25.0891676+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -900,7 +900,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Book",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220352",
-        ["checkedAt"] = "2026-11-13T12:05:55.2225619+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:25.4227047+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -935,7 +935,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Book",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220353",
-        ["checkedAt"] = "2026-11-13T12:05:55.2271858+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:25.7554310+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -982,7 +982,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a bookshelf inside a pirate building.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220346",
-        ["checkedAt"] = "2026-11-13T12:05:55.2309488+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:26.0877301+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1009,7 +1009,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a crate next to a hut.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=220348",
-        ["checkedAt"] = "2026-11-13T12:05:55.2344187+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:26.4163563+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1049,7 +1049,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Inside the farmhouse.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228132",
-        ["checkedAt"] = "2026-11-13T12:07:34.9827719+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:29.8621475+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1076,7 +1076,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a table in the ruined building above Scholomance.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228141",
-        ["checkedAt"] = "2026-11-13T12:07:34.9883307+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:30.4245173+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1103,7 +1103,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "Database pins have conflicted; 71.8, 48.3 was also supported by player reports.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228135",
-        ["checkedAt"] = "2026-11-13T12:07:34.9937794+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:31.0645877+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1139,7 +1139,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Book",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228138",
-        ["checkedAt"] = "2026-11-13T12:07:34.9992843+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:31.6221465+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1185,7 +1185,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["container"] = "Book",
         ["status"] = "wowhead",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228140",
-        ["checkedAt"] = "2026-11-13T12:07:35.0035463+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:32.0039587+00:00",
     },
     {
         ["set"] = "l60",
@@ -1198,7 +1198,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "unknown",
         ["note"] = "No confirmed Forever position yet; in Season of Discovery it was near the Blackrock Depths entrance.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228133",
-        ["checkedAt"] = "2026-11-13T12:07:35.0066068+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:32.2060122+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1235,7 +1235,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "confirmed",
         ["note"] = "Inside the Timbermaw tunnel between Felwood and Winterspring.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228134",
-        ["checkedAt"] = "2026-11-13T12:07:35.0112359+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:32.6899394+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
@@ -1262,7 +1262,7 @@ AzerothCompendium.LIBRARYBOOKS = {
         ["status"] = "wowhead",
         ["note"] = "On a shelf behind the alchemy vendor.",
         ["sourceUrl"] = "https://www.wowhead.com/forever/item=228136",
-        ["checkedAt"] = "2026-11-13T12:07:35.0159880+00:00",
+        ["checkedAt"] = "2026-11-15T12:13:33.0902148+00:00",
         ["sources"] = {
             {
                 ["kind"] = "object",
