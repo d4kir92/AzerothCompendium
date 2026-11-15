@@ -49,6 +49,7 @@ locale\zhTW.lua
 locale\bosses_deDE.lua
 
 data\instances.lua
+data\dungeons\dungeons.xml
 data\instance_entrances.lua
 data\instance_entrances_forever.lua
 data\boss_ranks.lua
