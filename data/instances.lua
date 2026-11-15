@@ -470,6 +470,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Arugal's Voidwalker",
 				["npcs"] = {4627},
+				["model"] = 1131,
 				["forever"] = true,
 				["minLevel"] = 24,
 				["maxLevel"] = 25,
@@ -571,6 +572,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Ghamoo-ra",
 				["npcs"] = {201722},
+				["model"] = 111481,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -581,6 +583,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Baron Aquanis",
 				["npcs"] = {202699},
+				["model"] = 110,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -591,6 +594,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Lady Sarevess",
 				["npcs"] = {204068},
+				["model"] = 112103,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -601,6 +605,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Gelihast",
 				["npcs"] = {204921},
+				["model"] = 5243,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -611,6 +616,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Lorgus Jett",
 				["npcs"] = {207356},
+				["model"] = 12822,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -621,6 +627,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Twilight Lord Kelris",
 				["npcs"] = {209678},
+				["model"] = 4939,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -631,6 +638,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Old Serra'kis <The Devoured>",
 				["npcs"] = {212159},
+				["model"] = 114598,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -834,6 +842,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Crowd Pummeler 9-60",
 				["npcs"] = {215728},
+				["model"] = 6774,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -844,6 +853,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Grubbis",
 				["npcs"] = {217280},
+				["model"] = 117047,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -854,6 +864,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Mekgineer Thermaplugg",
 				["npcs"] = {218537},
+				["model"] = 117499,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -864,6 +875,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Viscous Fallout",
 				["npcs"] = {220007},
+				["model"] = 5497,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -874,6 +886,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Electrocutioner 6000",
 				["npcs"] = {220072},
+				["model"] = 118007,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -1188,6 +1201,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Razorfen Spearhide",
 				["npcs"] = {4438},
+				["model"] = 6078,
 				["forever"] = true,
 				["minLevel"] = 29,
 				["maxLevel"] = 30,
@@ -1209,48 +1223,56 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Var'Taka",
 				["npcs"] = {258924},
+				["model"] = 144487,
 				["spells"] = {1604, 15284, 1282615, 1282746},
 				["loot"] = {{271718, 0.3}, {274601, 38.45}, {274602, 30.7}, {274613, 30.85},},
 			},
 			{
 				["name"] = "Captain Dreadrise",
 				["npcs"] = {260042},
+				["model"] = 142144,
 				["spells"] = {1604, 1282842, 1282860},
 				["loot"] = {{271718, 0.72}, {274603, 33.85}, {274604, 30.85}, {274605, 35.3},},
 			},
 			{
 				["name"] = "Zul'Alai",
 				["npcs"] = {258905},
+				["model"] = 144475,
 				["spells"] = {1604, 1282504, 1282511, 1282519},
 				["loot"] = {{271718, 0.72}, {274598, 32.44}, {274599, 34.14}, {274600, 33.42},},
 			},
 			{
 				["name"] = "Deathless Marrow",
 				["npcs"] = {260202},
+				["model"] = 142245,
 				["spells"] = {1283027, 1283034},
 				["loot"] = {{271718, 0.56}, {274606, 29.27}, {274607, 27.87}, {274614, 33.05}, {276894, 51.26},},
 			},
 			{
 				["name"] = "Min'loth the Serpent",
 				["npcs"] = {260243},
+				["model"] = 142286,
 				["spells"] = {1604, 1283233, 1283239, 1283250, 1283295, 1283313, 1283327, 1313471},
 				["loot"] = {{271718, 1.68}, {274608, 32.59}, {274609, 34.83}, {274610, 32.59},},
 			},
 			{
 				["name"] = "Primeval Elemental",
 				["npcs"] = {263886},
+				["model"] = 143898,
 				["spells"] = {1290978, 1290980, 1290983},
 				["loot"] = {{271718, 1.61}, {274611, 32.18}, {274612, 25.98}, {274615, 41.84},},
 			},
 			{
 				["name"] = "Umbra",
 				["npcs"] = {264172},
+				["model"] = 144022,
 				["spells"] = {1283423},
 				["loot"] = {{286658, 41.82}, {286662, 58.18},},
 			},
 			{
 				["name"] = "Gill",
 				["npcs"] = {264177},
+				["model"] = 144023,
 				["spells"] = {1604, 1291692},
 				["loot"] = {{271718, 1.89}, {286646, 41.51}, {286649, 58.49},},
 			},
@@ -1328,6 +1350,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Henry Stern",
 				["npcs"] = {8696},
+				["model"] = 8029,
 				["forever"] = true,
 				["minLevel"] = 36,
 				["maxLevel"] = 36,
@@ -1530,6 +1553,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Stone Keeper",
 				["npcs"] = {4857},
+				["model"] = 10805,
 				["forever"] = true,
 				["minLevel"] = 46,
 				["maxLevel"] = 46,
@@ -1540,6 +1564,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Obsidian Sentinel",
 				["npcs"] = {7023},
+				["model"] = 5285,
 				["forever"] = true,
 				["minLevel"] = 42,
 				["maxLevel"] = 42,
@@ -1741,6 +1766,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Ferra",
 				["npcs"] = {14308},
+				["model"] = 1083,
 				["forever"] = true,
 				["minLevel"] = 60,
 				["maxLevel"] = 60,
@@ -1751,6 +1777,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Pimgib",
 				["npcs"] = {14349},
+				["model"] = 14380,
 				["forever"] = true,
 				["minLevel"] = 56,
 				["maxLevel"] = 56,
@@ -1761,6 +1788,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Shen'dralar Provisioner",
 				["npcs"] = {14371},
+				["model"] = 14412,
 				["forever"] = true,
 				["minLevel"] = 52,
 				["maxLevel"] = 52,
@@ -1771,6 +1799,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Lord Hel'nurath",
 				["npcs"] = {14506},
+				["model"] = 14556,
 				["forever"] = true,
 				["minLevel"] = 62,
 				["maxLevel"] = 62,
@@ -1781,6 +1810,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Isalien",
 				["npcs"] = {16097},
+				["model"] = 16000,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -1932,6 +1962,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Sandfury Executioner",
 				["npcs"] = {7274},
+				["model"] = 6440,
 				["forever"] = true,
 				["minLevel"] = 46,
 				["maxLevel"] = 46,
@@ -1942,6 +1973,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Witch Doctor Zum'rah",
 				["npcs"] = {220076},
+				["model"] = 6434,
 				["forever"] = true,
 				["minLevel"] = 46,
 				["maxLevel"] = 46,
@@ -1962,30 +1994,35 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Overseer Wrex",
 				["npcs"] = {255391},
+				["model"] = 7914,
 				["spells"] = {1604, 9128, 16856},
 				["loot"] = {{263992, 7.14}, {276732, 32.14}, {276733, 33.04}, {276734, 33.04},},
 			},
 			{
 				["name"] = "Blazeroar",
 				["npcs"] = {255702},
+				["model"] = 6374,
 				["spells"] = {1604, 3391, 9573, 12466, 15716, 18399, 1271593, 1271604, 1275847},
 				["loot"] = {{276744, 32.86}, {276745, 33.57}, {276746, 33.57}, {276890, 8.57},},
 			},
 			{
 				["name"] = "Tidemistress Ca'zass",
 				["npcs"] = {255997},
+				["model"] = 4973,
 				["spells"] = {1604, 8398, 15532, 1271375, 1271394},
 				["loot"] = {{273883, 22.73}, {276735, 33.33}, {276736, 30.3}, {276737, 32.58},},
 			},
 			{
 				["name"] = "The Questioner",
 				["npcs"] = {256236},
+				["model"] = 140092,
 				["spells"] = {12054, 17620},
 				["loot"] = {{274029, 11.45}, {276741, 31.93}, {276742, 29.52}, {276743, 37.95},},
 			},
 			{
 				["name"] = "Katerina the Cleaner",
 				["npcs"] = {257016},
+				["model"] = 2317,
 				["spells"] = {1604, 3583, 1271761},
 				["loot"] = {{276738, 27.19}, {276739, 42.11}, {276740, 30.7},},
 			},
@@ -2154,6 +2191,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Ezra Grimm",
 				["npcs"] = {11058},
+				["model"] = 10475,
 				["forever"] = true,
 				["minLevel"] = 61,
 				["maxLevel"] = 61,
@@ -2164,6 +2202,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Stratholme Courier",
 				["npcs"] = {11082},
+				["model"] = 10547,
 				["forever"] = true,
 				["minLevel"] = 57,
 				["maxLevel"] = 57,
@@ -2174,6 +2213,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Crimson Hammersmith",
 				["npcs"] = {11120},
+				["model"] = 10637,
 				["forever"] = true,
 				["minLevel"] = 60,
 				["maxLevel"] = 60,
@@ -2184,6 +2224,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Black Guard Swordsmith",
 				["npcs"] = {11121},
+				["model"] = 775,
 				["forever"] = true,
 				["minLevel"] = 61,
 				["maxLevel"] = 62,
@@ -2194,6 +2235,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Postmaster Malown",
 				["npcs"] = {11143},
+				["model"] = 10669,
 				["forever"] = true,
 				["minLevel"] = 60,
 				["maxLevel"] = 60,
@@ -2204,6 +2246,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Jarien",
 				["npcs"] = {16101},
+				["model"] = 16018,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -2214,6 +2257,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Sothos",
 				["npcs"] = {16102},
+				["model"] = 16003,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -2604,6 +2648,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Vorfalk",
 				["npcs"] = {9437},
+				["model"] = 8591,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2614,6 +2659,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Bethek",
 				["npcs"] = {9438},
+				["model"] = 8592,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2624,6 +2670,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Uggel",
 				["npcs"] = {9439},
+				["model"] = 8593,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2634,6 +2681,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Zimrel",
 				["npcs"] = {9441},
+				["model"] = 8594,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2644,6 +2692,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Ofgut",
 				["npcs"] = {9442},
+				["model"] = 8595,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2654,6 +2703,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Dark Keeper Pelver",
 				["npcs"] = {9443},
+				["model"] = 8596,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2664,6 +2714,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Watchman Doomgrip",
 				["npcs"] = {9476},
+				["model"] = 8655,
 				["forever"] = true,
 				["minLevel"] = 55,
 				["maxLevel"] = 55,
@@ -2674,6 +2725,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Theldren",
 				["npcs"] = {16059},
+				["model"] = 15981,
 				["forever"] = true,
 				["minLevel"] = 60,
 				["maxLevel"] = 60,
@@ -2934,6 +2986,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Burning Felguard",
 				["npcs"] = {10263},
+				["model"] = 5047,
 				["forever"] = true,
 				["minLevel"] = 56,
 				["maxLevel"] = 57,
@@ -2944,6 +2997,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Mor Grayhoof",
 				["npcs"] = {16080},
+				["model"] = 15997,
 				["forever"] = true,
 				["minLevel"] = 60,
 				["maxLevel"] = 60,
@@ -3236,6 +3290,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Lucifron",
 				["npcs"] = {228429},
+				["model"] = 13031,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3246,6 +3301,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Magmadar",
 				["npcs"] = {228430},
+				["model"] = 10193,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3256,6 +3312,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Gehennas",
 				["npcs"] = {228431},
+				["model"] = 13030,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3266,6 +3323,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Garr",
 				["npcs"] = {228432},
+				["model"] = 12110,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3276,6 +3334,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Baron Geddon",
 				["npcs"] = {228433},
+				["model"] = 12129,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3286,6 +3345,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Shazzrah",
 				["npcs"] = {228434},
+				["model"] = 13032,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3296,6 +3356,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Golemagg the Incinerator",
 				["npcs"] = {228435},
+				["model"] = 11986,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3306,6 +3367,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Sulfuron Harbinger",
 				["npcs"] = {228436},
+				["model"] = 13030,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3316,6 +3378,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Majordomo Executus",
 				["npcs"] = {228437},
+				["model"] = 12029,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
@@ -3326,6 +3389,7 @@ AzerothCompendium.INSTANCES = {
 			{
 				["name"] = "Ragnaros",
 				["npcs"] = {228438},
+				["model"] = 11121,
 				["forever"] = true,
 				["minLevel"] = 9999,
 				["maxLevel"] = 9999,
