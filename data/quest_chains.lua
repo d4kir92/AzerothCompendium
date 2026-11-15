@@ -2546,6 +2546,9 @@ AzerothCompendium.QUESTGIVERS = {
 	[93787] = {2548, 59.4, 45.6, 256418, "Krom'rosh"},
 	[94480] = {2548, 59.4, 45.6, 256418, "Krom'rosh"},
 	[94481] = {2548, 58.6, 44.6, 256655, "Gorg"},
+	[98325] = {1418, 5.8, 47.4, 9077, "Warlord Goretooth"},
+	[5306] = {1452, 61.2, 37, 11192, "Kilram"},
+	[84162] = {1454, 35, 38, 230317, "Mokvar"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -3871,6 +3874,9 @@ AzerothCompendium.QUESTNAMES = {
 	[94480] = "A Gift From Our Enemies",
 	[94481] = "A Serving of Strength",
 	[95056] = "Krol'dok No More!",
+	[98325] = "Blood and Thunder",
+	[5306] = "Snakestone of the Shadow Huntress",
+	[84162] = "An Earnest Proposition",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4899,6 +4905,9 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[94480] = 36,
 	[94481] = 36,
 	[95056] = 40,
+	[98325] = 55,
+	[5306] = 50,
+	[84162] = 58,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -5927,6 +5936,9 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[94480] = 36,
 	[94481] = 38,
 	[95056] = 42,
+	[98325] = 60,
+	[5306] = 60,
+	[84162] = 60,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -6873,6 +6885,9 @@ AzerothCompendium.QUESTENDERS = {
 	[93787] = {2548, 59.4, 45.6, 256418, "Krom'rosh"},
 	[94480] = {2548, 58.6, 44.6, 256655, "Gorg"},
 	[94481] = {2548, 58.6, 44.6, 256655, "Gorg"},
+	[98325] = {1418, 5.8, 47.4, 9077, "Warlord Goretooth"},
+	[5306] = {1452, 61.2, 37, 11192, "Kilram"},
+	[84162] = {1454, 35, 38, 230317, "Mokvar"},
 }
 
 AzerothCompendium.QUESTCLASSES = {

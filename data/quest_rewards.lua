@@ -5329,6 +5329,19 @@ AzerothCompendium.QUESTREWARDS = {
 		["choices"] = {{279861, 1}, {279862, 1},},
 		["xp"] = 3450,
 	},
+	[98325] = {
+		["money"] = 900,
+		["xp"] = 660,
+		["rep"] = {{76, 10},},
+	},
+	[5306] = {
+		["items"] = {{12821, 1},},
+		["xp"] = 8300,
+	},
+	[84162] = {
+		["choices"] = {{226863, 1}, {226865, 1},},
+		["xp"] = 6600,
+	},
 }
 
 AzerothCompendium.QUESTTAGS = {
@@ -6093,6 +6106,9 @@ AzerothCompendium.QUESTTAGS = {
 	[97198] = 81,
 	[97327] = 81,
 	[95056] = 81,
+	[98325] = 81,
+	[5306] = 81,
+	[84162] = 81,
 }
 
 AzerothCompendium.QUESTINSIDE = {
@@ -7332,6 +7348,9 @@ AzerothCompendium.QUESTINSIDE = {
 	[93787] = false,
 	[94480] = false,
 	[94481] = false,
+	[98325] = true,
+	[5306] = true,
+	[84162] = true,
 }
 
 AzerothCompendium.QUESTSTARTINSIDE = {
@@ -8386,6 +8405,9 @@ AzerothCompendium.QUESTSTARTINSIDE = {
 	[93787] = false,
 	[94480] = false,
 	[94481] = false,
+	[98325] = false,
+	[5306] = false,
+	[84162] = false,
 }
 
 AzerothCompendium.QUESTAFTERINSTANCE = {

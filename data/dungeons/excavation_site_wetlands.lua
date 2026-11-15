@@ -168,6 +168,20 @@ local trash = {
 		},
 	},
 	{
+		[1] = 270180,
+		[2] = 75.79,
+		["itemClass"] = 12,
+		["mobs"] = {
+			{
+				["name"] = "Highland Horror",
+				["npcs"] = {260808},
+				["chance"] = 75.79,
+				["classification"] = 1,
+				["model"] = 9010,
+			},
+		},
+	},
+	{
 		[1] = 271100,
 		[2] = 16.72,
 		["itemClass"] = 12,
@@ -466,6 +480,13 @@ local trash = {
 				["classification"] = 0,
 				["model"] = 1035,
 			},
+			{
+				["name"] = "Highland Horror",
+				["npcs"] = {260808},
+				["chance"] = 0.16,
+				["classification"] = 1,
+				["model"] = 9010,
+			},
 		},
 	},
 	{
@@ -591,19 +612,6 @@ local trash = {
 				["chance"] = 0.21,
 				["classification"] = 0,
 				["model"] = 1035,
-			},
-		},
-	},
-	{
-		[1] = 270180,
-		[2] = 75.79,
-		["mobs"] = {
-			{
-				["name"] = "Highland Horror",
-				["npcs"] = {260808},
-				["chance"] = 75.79,
-				["classification"] = 1,
-				["model"] = 9010,
 			},
 		},
 	},
