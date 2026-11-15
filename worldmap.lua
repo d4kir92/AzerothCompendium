@@ -19,6 +19,7 @@ local WorldMap = {
         [3065] = {16919},
         [189] = {189001, 189002, 189003, 189004},
         [429] = {429003, 429002, 429001},
+        [329] = {329001, 329002},
     },
     entranceMaps = {
         [16544] = 2959,
@@ -30,6 +31,8 @@ local WorldMap = {
         [429001] = 235,
         [429002] = 236,
         [429003] = 239,
+        [329001] = 317,
+        [329002] = 318,
     },
     dungeonIcon = {{"Dungeon", "DungeonSkull", "Dungeon-Normal"}, "Interface\\Icons\\INV_Misc_Bone_Skull_02"},
     raidIcon = {{"Raid", "Dungeon", "DungeonSkull", "Dungeon-Normal"}, "Interface\\Icons\\INV_Misc_Bone_Skull_02"},
@@ -188,7 +191,7 @@ function WorldMap.GetPins(level)
                 tinsert(rows, {"level", entry[2], entry[3], entry[4], entry[5] == true})
             elseif kind == "item" then
                 if type(entry[4]) == "number" then tinsert(rows, {"item", entry[2], entry[3], entry[4]}) end
-            else
+            elseif kind == "entrance" then
                 tinsert(rows, {"entrance", entry[2], entry[3], inst ~= nil and inst.type == "raid" and "raid" or nil})
             end
         end

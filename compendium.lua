@@ -2394,6 +2394,11 @@ function MapPins.Create(view)
     pin.levelSkull:SetPoint("CENTER", pin.levelBadge, "CENTER", 0, 0)
     pin.levelSkull:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Skull")
     pin.levelBadge:Hide()
+    pin.label = pin:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    pin.label:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 4, -2)
+    local labelFont, labelSize = pin.label:GetFont()
+    if labelFont then pin.label:SetFont(labelFont, labelSize + 2, "THICKOUTLINE") end
+    pin.label:Hide()
     if pin.CreateMaskTexture and pin.portrait.AddMaskTexture then
         for _, texture in ipairs({pin.portrait, pin.levelRing, pin.levelFill}) do
             local mask = pin:CreateMaskTexture()
@@ -2427,6 +2432,14 @@ function MapPins.Style(pin)
     pin.bossDragon:Hide()
     pin.levelBadge:Hide()
     pin.ring:Hide()
+    pin.label:Hide()
+    pin.icon:SetTexCoord(0, 1, 0, 1)
+    pin.highlight:SetTexCoord(0, 1, 0, 1)
+    if MapPins.extraKinds[pin.kind] then
+        MapPins.ApplyExtraIcon(pin)
+        return
+    end
+
     if isBoss then
         UpdateBossLevelBadge(pin, pin.boss)
         pin.ring:Show()
@@ -2458,6 +2471,112 @@ function MapPins.Style(pin)
 
     ApplyIcon(pin.icon, icon)
     ApplyIcon(pin.highlight, icon)
+end
+
+MapPins.extraKinds = {queststart = true, questend = true, marker = true}
+MapPins.questIcons = {
+    queststart = {{"QuestNormal", "Quest-Available"}, "Interface\\GossipFrame\\AvailableQuestIcon"},
+    questend = {{"QuestTurnin", "Quest-Complete"}, "Interface\\GossipFrame\\ActiveQuestIcon"},
+}
+MapPins.markerIcons = {
+    {"Serpent", "Interface\\Icons\\Ability_Hunter_Pet_WindSerpent"},
+    {"Serpent statue", "Interface\\Icons\\INV_Misc_Idol_03"},
+    {"Idol", "Interface\\Icons\\INV_Misc_Idol_02"},
+    {"Lever / gear", "Interface\\Icons\\INV_Misc_Gear_01"},
+    {"Key", "Interface\\Icons\\INV_Misc_Key_03"},
+    {"Chest", "Interface\\Icons\\INV_Box_02"},
+    {"Book", "Interface\\Icons\\INV_Misc_Book_09"},
+    {"Torch", "Interface\\Icons\\INV_Torch_Lit"},
+    {"Skull", "Interface\\TargetingFrame\\UI-TargetingFrame-Skull"},
+    {"Star", "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1"},
+    {"Exclamation", "Interface\\GossipFrame\\AvailableQuestIcon"},
+}
+
+function MapPins.SetIcon(texture, icon)
+    if type(icon) == "string" and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(icon) then
+        texture:SetAtlas(icon)
+    else
+        texture:SetTexture(tonumber(icon) or icon or 134400)
+    end
+end
+
+function MapPins.ApplyExtraIcon(pin)
+    local icon = pin.entry[4]
+    if pin.kind ~= "marker" then
+        local def = MapPins.questIcons[pin.kind]
+        icon = ResolveIcon(def[1], def[2])[1]
+    end
+
+    pin.icon:ClearAllPoints()
+    pin.icon:SetAllPoints(pin)
+    pin.highlight:ClearAllPoints()
+    pin.highlight:SetAllPoints(pin)
+    MapPins.SetIcon(pin.icon, icon)
+    MapPins.SetIcon(pin.highlight, icon)
+    local label = pin.kind == "marker" and pin.entry.label or nil
+    pin.label:SetText(label or "")
+    pin.label:SetShown(label ~= nil and label ~= "")
+end
+
+function MapPins.IsQuestPinVisible(entry)
+    if MapPins.debug then return true end
+    local questID = entry[4]
+    if type(questID) ~= "number" then return false end
+    local data = AzerothCompendium:GetQuestDataByID(questID)
+    if data ~= nil and not AzerothCompendium:IsQuestSideVisible(data[3]) then return false end
+    if AzerothCompendium:IsQuestCompleted(questID) then return false end
+    local active = AzerothCompendium:IsQuestActive(questID)
+    if entry[1] == "questend" then return active end
+    if active then return false end
+    for _, prerequisiteID in ipairs(AzerothCompendium.QUESTPREREQUISITES and AzerothCompendium.QUESTPREREQUISITES[questID] or {}) do
+        if not AzerothCompendium:IsQuestCompleted(prerequisiteID) then return false end
+    end
+    return true
+end
+
+function MapPins.ShowExtraTooltip(pin)
+    local entry = pin.entry
+    if entry[1] == "marker" then
+        GameTooltip:SetText(entry.label ~= nil and entry.label ~= "" and entry.label or " ")
+        if entry.tip ~= nil and entry.tip ~= "" then GameTooltip:AddLine(entry.tip, 1, 1, 1, true) end
+        return
+    end
+
+    local questID = entry[4]
+    local shown = false
+    local hasData = C_TooltipInfo == nil or C_TooltipInfo.GetHyperlink == nil
+    if not hasData then
+        local ok, data = pcall(C_TooltipInfo.GetHyperlink, "quest:" .. questID)
+        hasData = ok and type(data) == "table" and type(data.lines) == "table" and #data.lines > 0
+    end
+
+    if hasData then shown = pcall(GameTooltip.SetHyperlink, GameTooltip, "quest:" .. questID) end
+
+    if not shown or not GameTooltip:IsOwned(pin) or GameTooltip:NumLines() == 0 then
+        GameTooltip:SetOwner(pin, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetQuestNameByID(questID), 1, 0.82, 0)
+        if C_QuestLog and C_QuestLog.RequestLoadQuestByID then pcall(C_QuestLog.RequestLoadQuestByID, questID) end
+    end
+
+    GameTooltip:AddLine(AzerothCompendium:Trans(entry[1] == "queststart" and "LID_MAPPINQUESTSTART" or "LID_MAPPINQUESTEND"), 1, 0.82, 0)
+    if entry.hint ~= nil and entry.hint ~= "" then GameTooltip:AddLine(entry.hint, 0.6, 0.9, 1, true) end
+    GameTooltip:AddLine(AzerothCompendium:Trans("LID_MAPPINQUESTHINT"), 0.6, 0.6, 0.6)
+end
+
+function MapPins.GetQuestOptions()
+    local options = {}
+    local seen = {}
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(selectedInstance)) do
+        for _, step in ipairs(AzerothCompendium:GetQuestChain(quest[1])) do
+            if not seen[step[1]] then
+                seen[step[1]] = true
+                tinsert(options, {format("%s (%d)", step[2], step[1]), step[1]})
+            end
+        end
+    end
+
+    table.sort(options, function(a, b) return a[1] < b[1] end)
+    return options
 end
 
 function MapPins.Layout(view)
@@ -2526,6 +2645,7 @@ end
 MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
 function MapPins.IsEnabled(kind)
     if MapPins.debug then return true end
+    if kind == "queststart" or kind == "questend" then kind = "item" end
     for _, def in ipairs(MapPins.types) do
         if def[1] == kind then return AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) ~= false end
     end
@@ -2664,7 +2784,8 @@ function MapPins.Update(view)
             level = MapPins.FindLevel(maps, entry[4])
         end
 
-        if MapPins.IsEnabled(kind) and not MapPins.IsHidden(entry) and (kind == "entrance" or kind == "item" and type(entry[4]) == "number" or boss ~= nil or level ~= nil) then
+        local extra = kind == "marker" or (kind == "queststart" or kind == "questend") and MapPins.IsQuestPinVisible(entry)
+        if MapPins.IsEnabled(kind) and not MapPins.IsHidden(entry) and (kind == "entrance" or extra or kind == "item" and type(entry[4]) == "number" or boss ~= nil or level ~= nil) then
             count = count + 1
             local pin = MapPins.pool[count]
             if pin == nil then
@@ -2722,7 +2843,9 @@ end
 
 function MapPins.OnEnter(pin)
     GameTooltip:SetOwner(pin, "ANCHOR_RIGHT")
-    if pin.kind == "boss" then
+    if MapPins.extraKinds[pin.kind] then
+        MapPins.ShowExtraTooltip(pin)
+    elseif pin.kind == "boss" then
         pin.ring:SetVertexColor(1, 1, 1, 1)
         GameTooltip:SetText(AzerothCompendium:GetBossName(pin.boss))
         local pinLevel = AzerothCompendium:GetBossLevel(pin.boss)
@@ -3239,6 +3362,17 @@ function MapPins.OnClick(pin, mouse)
             MapPins.selected = pin.entry
             MapPins.Update(compendium.mapView)
         end
+        return
+    end
+
+    if pin.kind == "marker" then return end
+    if pin.kind == "queststart" or pin.kind == "questend" then
+        AzerothCompendium:HideGameTooltip()
+        middleKind = "quests"
+        if searchText ~= "" then compendium.search:SetText("") end
+        SaveNavigationState()
+        RefreshBosses()
+        compendium.questTree:FocusQuest(pin.entry[4])
         return
     end
 
@@ -6760,6 +6894,21 @@ function AzerothCompendium:RefreshCompendium()
     RefreshCurrentView()
 end
 
+MapPins.textKeys = {"hint", "label", "tip"}
+function MapPins.CopyTexts(source, target)
+    for _, key in ipairs(MapPins.textKeys) do
+        local value = source[key]
+        target[key] = type(value) == "string" and value ~= "" and value or nil
+    end
+end
+
+function MapPins.SameTexts(a, b)
+    for _, key in ipairs(MapPins.textKeys) do
+        if (a[key] or "") ~= (b[key] or "") then return false end
+    end
+    return true
+end
+
 function MapPins.Remove(list, value)
     for index, other in ipairs(list or {}) do
         if other == value then
@@ -6871,6 +7020,9 @@ function MapPins.Insert(save)
     entry.orig = {save.art, save.x, save.y, save.arg, save.up == true}
     entry.added = true
     entry.save = save
+    MapPins.CopyTexts(save, entry)
+    entry.origText = {}
+    MapPins.CopyTexts(save, entry.origText)
     data[save.art] = data[save.art] or {}
     tinsert(data[save.art], entry)
     tinsert(MapPins.entries, entry)
@@ -6890,6 +7042,8 @@ function MapPins.Init()
         for _, entry in ipairs(entries) do
             entry.art = art
             entry.orig = {art, entry[2], entry[3], entry[4], entry[5] == true}
+            entry.origText = {}
+            MapPins.CopyTexts(entry, entry.origText)
             entry.parked = MapPins.IsParked(entry[2], entry[3])
             tinsert(MapPins.entries, entry)
         end
@@ -6900,10 +7054,10 @@ function MapPins.Init()
         tinsert(fileEntries, entry)
     end
 
-    local function InFile(kind, art, x, y, arg, up)
+    local function InFile(kind, art, x, y, arg, up, texts)
         for _, entry in ipairs(fileEntries) do
             local orig = entry.orig
-            if entry[1] == kind and orig[1] == art and orig[4] == arg and orig[5] == (up == true) and abs(orig[2] - x) <= 0.0005 and abs(orig[3] - y) <= 0.0005 then return true end
+            if entry[1] == kind and orig[1] == art and orig[4] == arg and orig[5] == (up == true) and abs(orig[2] - x) <= 0.0005 and abs(orig[3] - y) <= 0.0005 and MapPins.SameTexts(entry.origText, texts or entry.origText) then return true end
         end
 
         return false
@@ -6918,7 +7072,7 @@ function MapPins.Init()
         local edit = ACOTAB["MAPPINEDITS"][entry.key]
         if type(edit) == "table" then
             local stale = edit.ox == nil and edit.del == true or edit.ox ~= nil and (abs(edit.ox - entry.orig[2]) > 0.0005 or abs((edit.oy or 0) - entry.orig[3]) > 0.0005)
-            local applied = not edit.del and tonumber(edit[1]) and InFile(entry[1], edit[1], edit[2], edit[3], edit.arg == nil and entry[4] or edit.arg, edit.up)
+            local applied = not edit.del and tonumber(edit[1]) and InFile(entry[1], edit[1], edit[2], edit[3], edit.arg == nil and entry[4] or edit.arg, edit.up, edit.text or entry.origText)
             if stale or applied then
                 ACOTAB["MAPPINEDITS"][entry.key] = nil
                 edit = nil
@@ -6928,6 +7082,7 @@ function MapPins.Init()
         if type(edit) == "table" and tonumber(edit[1]) and tonumber(edit[2]) and tonumber(edit[3]) then
             if edit.arg ~= nil then entry[4] = edit.arg end
             if edit.up ~= nil then entry[5] = edit.up == true or nil end
+            if type(edit.text) == "table" then MapPins.CopyTexts(edit.text, entry) end
             entry.deleted = edit.del == true or nil
         end
     end
@@ -6939,7 +7094,7 @@ function MapPins.Init()
 
     for index = #ACOTAB["MAPPINADDS"], 1, -1 do
         local save = ACOTAB["MAPPINADDS"][index]
-        if type(save) ~= "table" or type(save.kind) ~= "string" or not tonumber(save.art) or not tonumber(save.x) or not tonumber(save.y) or InFile(save.kind, save.art, save.x, save.y, save.arg, save.up) then tremove(ACOTAB["MAPPINADDS"], index) end
+        if type(save) ~= "table" or type(save.kind) ~= "string" or not tonumber(save.art) or not tonumber(save.x) or not tonumber(save.y) or InFile(save.kind, save.art, save.x, save.y, save.arg, save.up, save) then tremove(ACOTAB["MAPPINADDS"], index) end
     end
 
     for _, save in ipairs(ACOTAB["MAPPINADDS"]) do
@@ -6950,6 +7105,7 @@ end
 function MapPins.IsChanged(entry)
     if entry.added or entry.deleted then return true end
     if entry[4] ~= entry.orig[4] or (entry[5] == true) ~= entry.orig[5] then return true end
+    if not MapPins.SameTexts(entry, entry.origText or {}) then return true end
     return entry.art ~= entry.orig[1] or abs(entry[2] - entry.orig[2]) > 0.0005 or abs(entry[3] - entry.orig[3]) > 0.0005
 end
 
@@ -6963,7 +7119,10 @@ function MapPins.Edit(entry, art, x, y)
         entry.save.y = y
         entry.save.arg = entry[4]
         entry.save.up = entry[5] == true
+        MapPins.CopyTexts(entry, entry.save)
     elseif MapPins.IsChanged(entry) then
+        local text = {}
+        MapPins.CopyTexts(entry, text)
         ACOTAB["MAPPINEDITS"][entry.key] = {
             art,
             x,
@@ -6971,6 +7130,7 @@ function MapPins.Edit(entry, art, x, y)
             arg = entry[4],
             up = entry[5] == true,
             del = entry.deleted == true,
+            text = text,
             ox = entry.orig[2],
             oy = entry.orig[3],
         }
@@ -6984,12 +7144,15 @@ end
 function MapPins.Reset(entry)
     entry[4] = entry.orig[4]
     entry[5] = entry.orig[5] or nil
+    MapPins.CopyTexts(entry.origText or {}, entry)
     entry.deleted = nil
     MapPins.Edit(entry, entry.orig[1], entry.orig[2], entry.orig[3])
 end
 
 function MapPins.SetArg(entry, value)
     local valid = entry[1] == "boss" and MapPins.FindBoss(value) ~= nil or entry[1] == "level" and MapPins.FindLevel(GetInstanceMaps(), value) ~= nil
+    if entry[1] == "marker" then valid = value ~= nil and value ~= "" end
+    if entry[1] == "queststart" or entry[1] == "questend" then valid = type(value) == "number" and value > 0 end
     if entry[1] == "item" then
         for _, item in ipairs(MapPins.GetQuestItems()) do
             if item[2] == value then valid = true end
@@ -6997,7 +7160,7 @@ function MapPins.SetArg(entry, value)
     end
 
     if not valid then
-        if entry[1] ~= "entrance" then AzerothCompendium:INFO(format("%s is not a valid %s for this instance", tostring(value), entry[1] == "boss" and "NPC ID" or entry[1] == "item" and "item ID" or "map ID")) end
+        if entry[1] ~= "entrance" then AzerothCompendium:INFO(format("%s is not a valid %s for this instance", tostring(value), entry[1] == "boss" and "NPC ID" or entry[1] == "item" and "item ID" or entry[1] == "marker" and "icon" or (entry[1] == "queststart" or entry[1] == "questend") and "quest ID" or "map ID")) end
         MapPins.DebugRefresh()
         return
     end
@@ -7018,6 +7181,12 @@ function MapPins.ShowArgMenu(owner, entry)
         end
     elseif entry[1] == "item" then
         options = MapPins.GetQuestItems()
+    elseif entry[1] == "queststart" or entry[1] == "questend" then
+        options = MapPins.GetQuestOptions()
+    elseif entry[1] == "marker" then
+        for _, icon in ipairs(MapPins.markerIcons) do
+            tinsert(options, {icon[1], icon[2]})
+        end
     elseif entry[1] == "level" then
         local maps = GetInstanceMaps() or {}
         for index, info in ipairs(maps) do
@@ -7090,6 +7259,16 @@ function MapPins.Add(kind, up)
         end
 
         arg = items[1][2]
+    elseif kind == "queststart" or kind == "questend" then
+        local quests = MapPins.GetQuestOptions()
+        if #quests == 0 then
+            AzerothCompendium:INFO("This instance has no quests")
+            return
+        end
+
+        arg = quests[1][2]
+    elseif kind == "marker" then
+        arg = MapPins.markerIcons[1][2]
     elseif kind == "level" then
         local index = MapPins.FindLevel(maps, view.info.id)
         local target = index and (maps[index + 1] or maps[index - 1])
@@ -7108,12 +7287,13 @@ function MapPins.Add(kind, up)
         y = 0.5,
         arg = arg,
         up = up == true,
+        label = kind == "marker" and "1" or nil,
     }
 
     tinsert(ACOTAB["MAPPINADDS"], save)
     MapPins.selected = MapPins.Insert(save)
     MapPins.Update(view)
-    if kind == "item" then MapPins.ShowArgMenu(MapPins.editor.arg, MapPins.selected) end
+    if kind == "item" or kind == "queststart" or kind == "questend" then MapPins.ShowArgMenu(MapPins.editor.arg, MapPins.selected) end
 end
 
 function MapPins.GetNpcName(npcID)
@@ -7134,10 +7314,18 @@ function MapPins.FormatEntry(entry)
     local orig = entry.orig
     local src = entry.deleted and orig or {entry.art, entry[2], entry[3], entry[4], entry[5] == true}
     local text = format("[%d] {\"%s\", %.3f, %.3f", src[1], entry[1], src[2], src[3])
-    if src[4] ~= nil then text = text .. ", " .. src[4] end
+    if type(src[4]) == "string" then
+        text = text .. ", " .. format("%q", src[4])
+    elseif src[4] ~= nil then
+        text = text .. ", " .. src[4]
+    end
     if src[5] == true then text = text .. ", true" end
+    for _, key in ipairs(MapPins.textKeys) do
+        local value = (entry.deleted and entry.origText or entry)[key]
+        if value ~= nil then text = text .. format(", %s = %q", key, value) end
+    end
     text = text .. "},"
-    local name = entry[1] == "boss" and MapPins.GetNpcName(src[4]) or entry[1] == "item" and MapPins.GetItemName(src[4]) or nil
+    local name = entry[1] == "boss" and MapPins.GetNpcName(src[4]) or entry[1] == "item" and MapPins.GetItemName(src[4]) or (entry[1] == "queststart" or entry[1] == "questend") and type(src[4]) == "number" and AzerothCompendium:GetQuestNameByID(src[4]) or nil
     if name then text = text .. " -- " .. name end
     if entry.deleted then return text .. " (delete)" end
     if entry.added then return text .. " (add)" end
@@ -7152,6 +7340,8 @@ function MapPins.GetEntryTitle(entry)
     if entry[1] == "boss" then return format("boss: %s (%d)%s", MapPins.GetNpcName(entry[4]) or "?", entry[4], suffix) end
     if entry[1] == "level" then return format("level change -> %d%s", entry[4], suffix) end
     if entry[1] == "item" then return format("item: %s (%d)%s", MapPins.GetItemName(entry[4]), entry[4], suffix) end
+    if entry[1] == "queststart" or entry[1] == "questend" then return format("%s: %s (%d)%s", entry[1] == "queststart" and "quest start" or "quest end", AzerothCompendium:GetQuestNameByID(entry[4]), entry[4], suffix) end
+    if entry[1] == "marker" then return format("marker: %s%s", entry.label or "", suffix) end
     return "entrance" .. suffix
 end
 
@@ -7180,6 +7370,32 @@ function MapPins.CreateInput(parent, label, x, y, onApply)
         MapPins.DebugRefresh()
     end)
     return box
+end
+
+function MapPins.CreateTextInput(parent, label, y, onApply)
+    local box = CreateTemplated("EditBox", nil, parent, {"InputBoxTemplate"})
+    box:SetSize(206, 18)
+    box:SetPoint("TOPLEFT", parent, "TOPLEFT", 66, y)
+    box:SetAutoFocus(false)
+    if box:GetFontObject() == nil then box:SetFontObject(ChatFontNormal) end
+    box.label = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    box.label:SetPoint("RIGHT", box, "LEFT", -8, 0)
+    box.label:SetText(label)
+    box:SetScript("OnEnterPressed", function(sel)
+        sel:ClearFocus()
+        if MapPins.selected ~= nil then onApply(MapPins.selected, strtrim(sel:GetText())) end
+    end)
+
+    box:SetScript("OnEscapePressed", function(sel)
+        sel:ClearFocus()
+        MapPins.DebugRefresh()
+    end)
+    return box
+end
+
+function MapPins.SetText(entry, key, value)
+    entry[key] = value ~= "" and value or nil
+    MapPins.Edit(entry, entry.art, entry[2], entry[3])
 end
 
 function MapPins.CreateButton(parent, label, width, onClick)
@@ -7231,7 +7447,7 @@ function MapPins.CreateDebugUI()
 
     MapPins.cursor = cursor
     local editor = CreateFrame("Frame", nil, view)
-    editor:SetSize(282, 216)
+    editor:SetSize(282, 290)
     editor:SetPoint("BOTTOMLEFT", view, "BOTTOMLEFT", 4, 4)
     editor:SetFrameLevel(view:GetFrameLevel() + 10)
     editor:EnableMouse(true)
@@ -7293,9 +7509,15 @@ function MapPins.CreateDebugUI()
     end)
 
     editor.up:SetPoint("TOPLEFT", editor, "TOPLEFT", 116, -164)
+    editor.texts = {
+        icon = MapPins.CreateTextInput(editor, "Icon", -214, function(entry, value) MapPins.SetArg(entry, tonumber(value) or value) end),
+        label = MapPins.CreateTextInput(editor, "Text", -238, function(entry, value) MapPins.SetText(entry, "label", value) end),
+        tip = MapPins.CreateTextInput(editor, "Tooltip", -262, function(entry, value) MapPins.SetText(entry, "tip", value) end),
+        hint = MapPins.CreateTextInput(editor, "Hint", -214, function(entry, value) MapPins.SetText(entry, "hint", value) end),
+    }
     MapPins.editor = editor
     local output = CreateFrame("Frame", "AzerothCompendiumMapPinDebug", compendium)
-    output:SetSize(960, 190)
+    output:SetSize(1200, 190)
     output:SetPoint("TOP", compendium, "BOTTOM", 0, -4)
     output:SetFrameStrata("DIALOG")
     output:SetClampedToScreen(true)
@@ -7348,6 +7570,7 @@ function MapPins.CreateDebugUI()
             elseif MapPins.IsChanged(entry) then
                 entry[4] = entry.orig[4]
                 entry[5] = entry.orig[5] or nil
+                MapPins.CopyTexts(entry.origText or {}, entry)
                 entry.deleted = nil
                 MapPins.Place(entry, entry.orig[1], entry.orig[2], entry.orig[3])
             end
@@ -7361,7 +7584,7 @@ function MapPins.CreateDebugUI()
 
     output.reset:SetPoint("LEFT", output.select, "RIGHT", 6, 0)
     local last = output.reset
-    for _, def in ipairs({{"+ Entrance", 84, "entrance"}, {"+ Boss", 64, "boss"}, {"+ Quest item", 96, "item"}, {"+ Level up", 84, "level", true}, {"+ Level down", 96, "level"}}) do
+    for _, def in ipairs({{"+ Entrance", 84, "entrance"}, {"+ Boss", 64, "boss"}, {"+ Quest item", 96, "item"}, {"+ Level up", 84, "level", true}, {"+ Level down", 96, "level"}, {"+ Quest start", 96, "queststart"}, {"+ Quest end", 86, "questend"}, {"+ Marker", 70, "marker"}}) do
         local button = MapPins.CreateButton(output, def[1], def[2], function() MapPins.Add(def[3], def[4]) end)
         button:SetPoint("LEFT", last, "RIGHT", 6, 0)
         last = button
@@ -7422,7 +7645,20 @@ function MapPins.DebugRefresh()
         MapPins.editor.arg:SetText(format("Item: %s (%d)", MapPins.GetItemName(entry[4]), entry[4]))
     elseif entry[1] == "level" then
         MapPins.editor.arg:SetText(format("To: %s (%d)", GetMapLevelLabel(maps, MapPins.FindLevel(maps, entry[4])), entry[4]))
+    elseif entry[1] == "queststart" or entry[1] == "questend" then
+        MapPins.editor.arg:SetText(format("Quest: %s (%d)", AzerothCompendium:GetQuestNameByID(entry[4]), entry[4]))
+    elseif entry[1] == "marker" then
+        MapPins.editor.arg:SetText("Icon presets")
     end
+
+    local isQuest = entry[1] == "queststart" or entry[1] == "questend"
+    for key, box in pairs(MapPins.editor.texts) do
+        local shown = key == "hint" and isQuest or key ~= "hint" and entry[1] == "marker"
+        box:SetShown(shown)
+        box.label:SetShown(shown)
+        if shown and not box:HasFocus() then box:SetText(tostring((key == "icon" and entry[4] or entry[key]) or "")) end
+    end
+    MapPins.editor:SetHeight((entry[1] == "marker" and 290) or (isQuest and 242) or 216)
 
     MapPins.editor.up:SetShown(entry[1] == "level")
     MapPins.editor.up:SetText(entry[5] == true and "Up" or "Down")
@@ -7439,7 +7675,7 @@ function AzerothCompendium:ToggleMapPinDebug()
 end
 
 function AzerothCompendium:PrintMapPinDebugHelp()
-    for _, line in ipairs({"Map pin debug help:", "/ac debug - toggle the map pin editor (Map tab), /ac debug help - show this help", "While enabled every pin is shown, including unplaced and deleted ones (deleted are faded)", "Cursor on the map: map ID and coordinates, bottom right: map ID and unplaced pins of this map", "Right-click a pin: select it and open the editor (bottom left, movable)", "Editor X / Y: type a coordinate (0-1) and press Enter, Escape discards", "Editor Map button: move the pin to another map level", "Editor arrows: move the pin by 0.1, 0.01 or 0.001", "Editor Reset: restore the shipped pin, Delete: remove the pin", "Editor Up / Down: direction of a level change, Boss / Item / To button: boss, quest start item or target map of the pin", "Window below: changed pins as data rows, Select all then Ctrl+C to copy", "Window below: Unfinished maps lists the maps that still have unplaced pins", "Window below: + Entrance / + Boss / + Quest item / + Level up / + Level down add a pin at the map center", "Window below: Reset all discards every saved correction, Close leaves the debug mode",}) do
+    for _, line in ipairs({"Map pin debug help:", "/ac debug - toggle the map pin editor (Map tab), /ac debug help - show this help", "While enabled every pin is shown, including unplaced and deleted ones (deleted are faded)", "Cursor on the map: map ID and coordinates, bottom right: map ID and unplaced pins of this map", "Right-click a pin: select it and open the editor (bottom left, movable)", "Editor X / Y: type a coordinate (0-1) and press Enter, Escape discards", "Editor Map button: move the pin to another map level", "Editor arrows: move the pin by 0.1, 0.01 or 0.001", "Editor Reset: restore the shipped pin, Delete: remove the pin", "Editor Up / Down: direction of a level change, Boss / Item / To button: boss, quest start item or target map of the pin", "Window below: changed pins as data rows, Select all then Ctrl+C to copy", "Window below: Unfinished maps lists the maps that still have unplaced pins", "Window below: + Entrance / + Boss / + Quest item / + Level up / + Level down / + Quest start / + Quest end / + Marker add a pin at the map center", "Quest start / end pins: Quest button picks the quest, Hint adds an extra tooltip line; outside debug a start pin shows until the quest is accepted (and only after its prerequisites), an end pin while it is in the quest log", "Marker pins: Icon presets or Icon field (atlas, texture path or file ID), Text is drawn on the icon (e.g. 1, 2, 3), Tooltip is the hover text; press Enter to apply", "Window below: Reset all discards every saved correction, Close leaves the debug mode",}) do
         AzerothCompendium:INFO(line)
     end
 end
@@ -7689,6 +7925,7 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
             end
             if listKind == "dungeon" then RefreshInstances() end
             if middleKind == "quests" then compendium.questTree:Refresh() end
+            AzerothCompendium:RefreshMapPins()
             if listKind == "worldquestitems" then RefreshWorldQuestItemsView() end
         end, "AzerothCompendium:CompletedDungeons")
         return
