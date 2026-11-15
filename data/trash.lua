@@ -36855,6 +36855,19 @@ local lootByInstance = {
 				},
 			},
 		},
+		{
+			[1] = 270180,
+			[2] = 75.79,
+			["mobs"] = {
+				{
+					["name"] = "Highland Horror",
+					["npcs"] = {260808},
+					["chance"] = 75.79,
+					["classification"] = 1,
+					["model"] = 9010,
+				},
+			},
+		},
 	},
 	["Maraudon"] = {
 		{

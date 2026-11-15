@@ -31,7 +31,6 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"boss", 0.550, 0.360, 260322}, -- Saltspine
         {"boss", 0.325, 0.700, 260326}, -- Relic Guardian
         {"boss", 0.305, 0.480, 260325}, -- Shadetooth
-        {"boss", 0.770, 0.220, 260808}, -- Highland Horror
     },
     [2959] = { -- City of Dalaran
         {"level", 0.616, 0.542, 2959002},

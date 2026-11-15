@@ -751,16 +751,6 @@ AzerothCompendium.INSTANCES = {
 				["level"] = 29,
 			},
 			{
-				["name"] = "Highland Horror",
-				["npcs"] = {260808},
-				["model"] = 9010,
-				["loot"] = {{270180, 75.79}, {286985, 0.16},},
-				["minLevel"] = 28,
-				["maxLevel"] = 28,
-				["level"] = 28,
-				["spells"] = {1604, 9616, 1309071, 1309072, 1316480},
-			},
-			{
 				["name"] = "Relic Guardian",
 				["npcs"] = {260326},
 				["model"] = 144224,

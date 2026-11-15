@@ -27,6 +27,9 @@ Tracker.config = {
     scaleMax = 1.5,
     scaleStep = 0.01,
     restartDelay = 1800,
+    historyMax = 50,
+    runRow = 38,
+    runsHeight = 260,
     minQuality = 2,
     media = "Interface\\AddOns\\AzerothCompendium\\media\\",
     fallback = "Interface\\Icons\\INV_Misc_QuestionMark",
@@ -128,7 +131,7 @@ function Tracker:GetCurrentInstance()
     return instanceID, name
 end
 
-function Tracker:FindCandidates(instanceID, name)
+function Tracker:FindCandidates(instanceID, name, historic)
     local list = {}
     local instances = AzerothCompendium.INSTANCES or {}
     for _, inst in ipairs(instances) do
@@ -140,7 +143,7 @@ function Tracker:FindCandidates(instanceID, name)
         if inst.name == name or AzerothCompendium:GetInstanceBaseName(inst) == name then tinsert(list, inst) end
     end
 
-    if #list > 0 or C_Map == nil or C_Map.GetBestMapForUnit == nil then return list end
+    if #list > 0 or historic or C_Map == nil or C_Map.GetBestMapForUnit == nil then return list end
     local mapID = C_Map.GetBestMapForUnit("player")
     if mapID == nil or IsSecret(mapID) then return list end
     for _, inst in ipairs(instances) do
@@ -174,9 +177,86 @@ function Tracker:GetBossRank(boss)
     return boss.classification or AzerothCompendium.BOSSRANKS and AzerothCompendium.BOSSRANKS[npcID] or 1
 end
 
+function Tracker:GetRunCandidates(run)
+    if run == self:GetRun() then
+        if self.candidates == nil then
+            self.candidates = self:FindCandidates(run.instanceID, run.name)
+            self:IndexCandidates()
+        end
+
+        return self.candidates
+    end
+
+    self.runCandidates = self.runCandidates or setmetatable({}, {
+        __mode = "k"
+    })
+
+    local list = self.runCandidates[run]
+    if list == nil then
+        list = self:FindCandidates(run.instanceID, run.name, true)
+        self.runCandidates[run] = list
+    end
+
+    return list
+end
+
+function Tracker:GetRunTitle(run)
+    local candidates = self:GetRunCandidates(run)
+    local inst = candidates[1]
+    if run.wing then
+        for _, candidate in ipairs(candidates) do
+            if candidate.id == run.wing then inst = candidate end
+        end
+    end
+
+    if inst and (run.wing or #candidates == 1) then return AzerothCompendium:GetInstanceName(inst) end
+
+    return run.name or ""
+end
+
+function Tracker:GetHistory()
+    ACOTABPC = ACOTABPC or {}
+    if type(ACOTABPC.DUNGEONRUNS) ~= "table" then ACOTABPC.DUNGEONRUNS = {} end
+
+    return ACOTABPC.DUNGEONRUNS
+end
+
+function Tracker:ArchiveRun(run)
+    if type(run) ~= "table" or type(run.killed) ~= "table" or type(run.loot) ~= "table" then return end
+    if next(run.killed) == nil and #run.loot == 0 and (run.xp or 0) <= 0 and (run.gold or 0) <= 0 then return end
+    local history = self:GetHistory()
+    for _, entry in ipairs(history) do
+        if entry == run then return end
+    end
+
+    run.active = nil
+    run.closed = nil
+    run.reset = nil
+    run.left = run.left or time()
+    tinsert(history, 1, run)
+    for index = #history, self.config.historyMax + 1, -1 do
+        tremove(history, index)
+    end
+end
+
+function Tracker:GetAllRuns()
+    local list = {}
+    local current = self:GetRun()
+    if current then tinsert(list, current) end
+    for _, run in ipairs(self:GetHistory()) do
+        if run ~= current then tinsert(list, run) end
+    end
+
+    return list
+end
+
+function Tracker:GetShownRun()
+    return self.viewRun or self:GetRun()
+end
+
 function Tracker:GetBosses(run)
     local bosses, rares, seen = {}, {}, {}
-    for _, inst in ipairs(self.candidates or {}) do
+    for _, inst in ipairs(self:GetRunCandidates(run)) do
         if run.wing == nil or run.wing == inst.id then
             for index, boss in ipairs(inst.bosses or {}) do
                 local npcID = not boss.trash and not boss.all and type(boss.npcs) == "table" and boss.npcs[1]
@@ -238,7 +318,9 @@ function Tracker:StartRun(instanceID, name)
     }
 
     ACOTABPC = ACOTABPC or {}
+    self:ArchiveRun(ACOTABPC.DUNGEONRUN)
     ACOTABPC.DUNGEONRUN = run
+    if self.viewRun == nil then self.listMode = nil end
 
     return run
 end
@@ -608,7 +690,7 @@ function Tracker:FormatPlainMoney(amount)
 end
 
 function Tracker:PostToChat()
-    local run = self:GetRun()
+    local run = self:GetShownRun()
     if run == nil then return end
     local msg = format("[%s] %s: %s %s: %s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), XP or "XP", self:FormatNumber(run.xp or 0), AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatPlainMoney(run.gold))
     local channel = nil
@@ -879,8 +961,35 @@ function Tracker:CreateFrame()
     end)
 
     frame.post:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    frame.runsButton = CreateFrame("Button", nil, frame)
+    frame.runsButton:SetSize(16, 16)
+    frame.runsButton:SetPoint("RIGHT", frame.post, "LEFT", -4, 0)
+    frame.runsButton:SetFrameLevel(frame:GetFrameLevel() + 30)
+    frame.runsButton:SetNormalTexture("Interface\\Icons\\INV_Misc_PocketWatch_01")
+    frame.runsButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    frame.runsButton:SetScript("OnClick", function()
+        if Tracker.listMode then
+            Tracker:ShowRun(Tracker.lastViewed)
+        else
+            Tracker:ShowRuns()
+        end
+    end)
+
+    frame.runsButton:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_DT_RUNS"))
+        GameTooltip:Show()
+    end)
+
+    frame.runsButton:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     frame.headerTime = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.headerTime:SetPoint("RIGHT", frame.post, "LEFT", -6, 0)
+    frame.headerTime:SetPoint("RIGHT", frame.runsButton, "LEFT", -6, 0)
+    frame.runList = ui.CreateScroller(frame, c.runRow, function(parent) return Tracker:CreateRunRow(parent) end, 0, 4)
+    frame.runList:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
+    frame.runList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -c.side, c.bottom)
+    frame.runList:Hide()
+    frame.runsEmpty = frame.runList:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+    frame.runsEmpty:SetPoint("CENTER", frame.runList, "CENTER", 0, 0)
     frame.content = CreateFrame("Frame", nil, frame)
     frame.content:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
     frame.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -c.side, c.bottom)
@@ -1152,10 +1261,85 @@ function Tracker:CreateLootRow(parent)
     return row
 end
 
+function Tracker:CreateRunRow(parent)
+    local row = CreateFrame("Button", nil, parent)
+    row:SetHeight(self.config.runRow)
+    row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon:SetSize(16, 16)
+    row.icon:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -3)
+    row.date = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.date:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -5)
+    row.date:SetJustifyH("RIGHT")
+    row.date:SetWordWrap(false)
+    row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.title:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
+    row.title:SetPoint("RIGHT", row.date, "LEFT", -6, 0)
+    row.title:SetJustifyH("LEFT")
+    row.title:SetWordWrap(false)
+    row.info = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.info:SetPoint("TOPLEFT", row.icon, "BOTTOMLEFT", 2, -4)
+    row.info:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    row.info:SetJustifyH("LEFT")
+    row.info:SetWordWrap(false)
+    row:SetScript("OnClick", function(sel) Tracker:ShowRun(sel.run) end)
+    function row:Update(run)
+        self.run = run
+        local current = run == Tracker:GetRun()
+        local bosses = Tracker:GetBosses(run)
+        self.icon:SetTexture(run.finished and "Interface\\RaidFrame\\ReadyCheck-Ready" or "Interface\\RaidFrame\\ReadyCheck-Waiting")
+        self.title:SetText(Tracker:GetRunTitle(run))
+        self.date:SetText(current and AzerothCompendium:Trans("LID_DT_CURRENT") or date("%d.%m.%y %H:%M", run.start or 0))
+        self.info:SetText(format("%s   %s %d/%d   %s %s   %s", Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, Tracker:FormatNumber(run.xp or 0), XP or "XP", Tracker:FormatMoney(run.gold or 0)))
+    end
+
+    return row
+end
+
+function Tracker:ShowRuns()
+    self.listMode = true
+    self.forced = true
+    self:CreateFrame():Show()
+    self:Refresh()
+end
+
+function Tracker:ShowRun(run)
+    self.listMode = nil
+    self.viewRun = run ~= self:GetRun() and run or nil
+    self.lastViewed = run
+    self.forced = true
+    self:UpdateVisibility()
+end
+
+function Tracker:RefreshRuns()
+    local frame = self.frame
+    local c = self.config
+    local runs = self:GetAllRuns()
+    if frame.titleText then frame.titleText:SetText(format("%s (%d)", AzerothCompendium:Trans("LID_DT_RUNS"), #runs)) end
+    frame.content:Hide()
+    frame.headerTime:Hide()
+    frame.post:Hide()
+    frame.toggle:Hide()
+    frame.grip:Show()
+    frame.runList:Show()
+    frame.runsEmpty:SetText(AzerothCompendium:Trans("LID_DT_NORUNS"))
+    frame.runsEmpty:SetShown(#runs == 0)
+    local minHeight = c.top + c.bottom + c.runRow * 2
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(c.minWidth, minHeight, 0, 0)
+    elseif frame.SetMinResize then
+        frame:SetMinResize(c.minWidth, minHeight)
+    end
+
+    frame:SetHeight(max(minHeight, frame.userHeight or c.runsHeight))
+    frame.runList.data = runs
+    frame.runList:Refresh()
+end
+
 function Tracker:UpdateStats()
     local frame = self.frame
-    local run = self:GetRun()
-    if frame == nil or run == nil or not frame:IsShown() then return end
+    local run = self:GetShownRun()
+    if frame == nil or run == nil or not frame:IsShown() or self.listMode then return end
     local columns = frame.statColumns
     local best = self:GetBest(run)
     local elapsed = self:FormatTime(self:GetElapsed(run))
@@ -1176,9 +1360,18 @@ end
 function Tracker:Layout()
     local frame = self.frame
     if frame == nil or frame.layingOut then return end
+    if self.listMode then
+        self:RefreshRuns()
+
+        return
+    end
+
     frame.layingOut = true
     local c = self.config
     local collapsed = self:IsCollapsed()
+    frame.runList:Hide()
+    frame.post:Show()
+    frame.toggle:Show()
     AzerothCompendium.Theme:SetCollapseIcon(frame.toggle.icon, collapsed)
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
@@ -1200,7 +1393,7 @@ function Tracker:Layout()
         column.best:SetWidth(columnWidth - 8)
     end
 
-    local run = self:GetRun()
+    local run = self:GetShownRun()
     local bosses, rares = self.bossList or {}, self.rareList or {}
     local iconWidth = innerWidth - c.panelPad * 2
     local top = -c.panelPad
@@ -1265,22 +1458,17 @@ end
 
 function Tracker:Refresh()
     local frame = self.frame
-    local run = self:GetRun()
-    if frame == nil or run == nil or not frame:IsShown() then return end
-    if self.candidates == nil then
-        self.candidates = self:FindCandidates(run.instanceID, run.name)
-        self:IndexCandidates()
+    if frame == nil or not frame:IsShown() then return end
+    if self.listMode then
+        self:RefreshRuns()
+
+        return
     end
 
-    local inst = self.candidates[1]
-    local title = run.name or ""
-    if run.wing then
-        for _, candidate in ipairs(self.candidates) do
-            if candidate.id == run.wing then inst = candidate end
-        end
-    end
-
-    if inst and (run.wing or #self.candidates == 1) then title = AzerothCompendium:GetInstanceName(inst) end
+    local run = self:GetShownRun()
+    if run == nil then return end
+    local title = self:GetRunTitle(run)
+    if self.viewRun then title = format("%s - %s", title, date("%d.%m.%y", run.start or 0)) end
     if frame.titleText then frame.titleText:SetText(title) end
     local labels = {"LID_DT_TIME", "LID_DT_MOBXP", "LID_DT_GOLD"}
     for index, column in ipairs(frame.statColumns) do
@@ -1300,7 +1488,7 @@ end
 
 function Tracker:UpdateVisibility()
     local run = self:GetRun()
-    local show = run ~= nil and (self.forced or (self:IsEnabled() and (self:IsTracking() or (self.away and run.active)) and not run.closed))
+    local show = self.listMode or self.viewRun ~= nil or (run ~= nil and (self.forced or (self:IsEnabled() and (self:IsTracking() or (self.away and run.active)) and not run.closed)))
     if not show then
         if self.frame then self.frame:Hide() end
 
@@ -1312,6 +1500,15 @@ function Tracker:UpdateVisibility()
 end
 
 function Tracker:Close()
+    if self.listMode or self.viewRun then
+        self.listMode = nil
+        self.viewRun = nil
+        self.forced = false
+        self:UpdateVisibility()
+
+        return
+    end
+
     local run = self:GetRun()
     if run and (self:IsTracking() or self.away) then run.closed = true end
     self.forced = false
@@ -1326,7 +1523,12 @@ function Tracker:Toggle()
     end
 
     local run = self:GetRun()
-    if run == nil then return end
+    if run == nil then
+        self:ShowRuns()
+
+        return
+    end
+
     run.closed = nil
     self.forced = true
     self:UpdateVisibility()

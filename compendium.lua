@@ -5016,6 +5016,12 @@ function AzerothCompendium:RefreshDashboard()
                         tile.count:SetPoint("RIGHT", -12, 0)
                         tile.count:SetJustifyH("LEFT")
                         tile:SetScript("OnClick", function(sel)
+                            if sel.entry.open then
+                                sel.entry.open()
+
+                                return
+                            end
+
                             compendium.search:SetText("")
                             sel.entry.tab.OpenDashboardTarget()
                         end)
@@ -5105,6 +5111,17 @@ function AzerothCompendium:RefreshDashboard()
         end
     end
     table.sort(entries, function(a, b) return tabOrder[a.tab] < tabOrder[b.tab] end)
+    local tracker = self.DungeonTracker
+    local runsLabel = self:Trans("LID_DT_RUNS")
+    if tracker and Matches(runsLabel) then
+        tinsert(entries, {
+            label = runsLabel,
+            icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
+            count = format(self:Trans("LID_DT_RUNCOUNT"), #tracker:GetAllRuns()),
+            open = function() tracker:ShowRuns() end
+        })
+    end
+
     local viewport = panel.grid:GetViewport()
     local width = viewport and viewport:GetWidth() or 0
     if width <= 0 then
