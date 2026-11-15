@@ -53,7 +53,7 @@ data\wrath\instance_entrances.lua
 data\wrath\boss_ranks.lua
 data\wrath\trash.lua
 data\instance_maps.lua
-data\instance_map_pins.lua
+shared\InstancePins\instance_map_pins.lua
 data\meeting_stones.lua
 data\loadingscreens.lua
 

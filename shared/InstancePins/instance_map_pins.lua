@@ -1,5 +1,5 @@
-local _, AzerothCompendium = ...
-AzerothCompendium.INSTANCEMAPPINS = {
+local _, Addon = ...
+Addon.INSTANCEMAPPINS = {
     [900001] = {
         {"boss", 0.211, 0.535, 260243}, -- Min'loth the Serpent
         {"boss", 0.349, 0.538, 260202}, -- Deathless Marrow
@@ -11,6 +11,12 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [900002] = {
         {"entrance", 0.205, 0.807},
+        {"boss", 0.330, 0.700, 258966}, -- Slavecrusher Grox
+        {"boss", 0.397, 0.734, 258972}, -- Twilight Commander Zarmok
+        {"boss", 0.405, 0.576, 258964}, -- Nar'gurk <The Corruptor>
+        {"boss", 0.611, 0.440, 264773}, -- Bossman Toof
+        {"boss", 0.623, 0.526, 259281}, -- War Handler Ashka
+        {"boss", 0.683, 0.243, 258968}, -- Overlord Mugg
     },
     [3065] = { -- The Hall of Thanes
         {"entrance", 0.511, 0.948},
@@ -107,6 +113,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.355, 0.666, 316, true},
         {"boss", 0.650, 0.715, 3914}, -- Rethilgore
         {"boss", 0.278, 0.601, 4278}, -- Commander Springvale
+        {"questend", 0.576, 0.573, 1098}, -- Deathstalkers in Shadowfang
     },
     [311] = { -- Shadowfang Keep 2
         {"level", 0.593, 0.121, 310, true},
@@ -122,6 +129,7 @@ AzerothCompendium.INSTANCEMAPPINS = {
         {"level", 0.442, 0.749, 314, true},
         {"level", 0.526, 0.872, 312},
         {"boss", 0.544, 0.537, 4274}, -- Fenrus the Devourer
+        {"questend", 0.624, 0.436, 1013}, -- The Book of Ur
     },
     [315] = { -- Shadowfang Keep 6
         {"level", 0.420, 0.842, 314},

@@ -53,7 +53,7 @@ data\classic_era\instance_entrances.lua
 data\classic_era\boss_ranks.lua
 data\classic_era\trash.lua
 data\instance_maps.lua
-data\instance_map_pins.lua
+shared\InstancePins\instance_map_pins.lua
 data\meeting_stones.lua
 data\loadingscreens.lua
 

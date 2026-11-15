@@ -53,7 +53,7 @@ data\tbc\instance_entrances.lua
 data\tbc\boss_ranks.lua
 data\tbc\trash.lua
 data\instance_maps.lua
-data\instance_map_pins.lua
+shared\InstancePins\instance_map_pins.lua
 data\meeting_stones.lua
 data\loadingscreens.lua
 
