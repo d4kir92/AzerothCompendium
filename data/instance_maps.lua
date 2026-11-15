@@ -26,7 +26,7 @@ AddMaps(16544, {{2959, "City of Dalaran", 684, nil, "Santiago Reyes - Atlas de A
 AddMaps(16732, {{2998, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(16611, {{2999, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(16919, {{3065, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
-AddMaps(900001, {{900001, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
+AddMaps(900001, {{900001, "The Drowned City", nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}, {"900001_2", "Atal'Byzal", nil, 900001002, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900002, {{900002, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900003, {{900003, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})
 AddMaps(900005, {{900005, nil, nil, nil, "Santiago Reyes - Atlas de Azeroth: Forever"}})

@@ -1,5 +1,14 @@
 local _, AzerothCompendium = ...
 AzerothCompendium.INSTANCEMAPPINS = {
+    [900001] = {
+        {"boss", 0.211, 0.535, 260243}, -- Min'loth the Serpent
+        {"boss", 0.349, 0.538, 260202}, -- Deathless Marrow
+        {"boss", 0.516, 0.700, 258924}, -- Var'Taka
+        {"boss", 0.558, 0.340, 260042}, -- Captain Dreadrise
+        {"boss", 0.605, 0.640, 263886}, -- Primeval Elemental
+        {"boss", 0.700, 0.541, 258905}, -- Zul'Alai
+        {"entrance", 0.845, 0.522},
+    },
     [900002] = {
         {"entrance", 0.205, 0.807},
     },
