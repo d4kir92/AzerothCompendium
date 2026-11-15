@@ -2642,10 +2642,10 @@ function MapPins.UpdateBossScaleSlider(view, last)
     return slider:IsShown() and slider or last
 end
 
-MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
+MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTITEMPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"quest", "MAPPINS_QUEST", "QUESTPINS", {"Interface\\GossipFrame\\AvailableQuestIcon"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
 function MapPins.IsEnabled(kind)
     if MapPins.debug then return true end
-    if kind == "queststart" or kind == "questend" then kind = "item" end
+    if kind == "queststart" or kind == "questend" then kind = "quest" end
     for _, def in ipairs(MapPins.types) do
         if def[1] == kind then return AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) ~= false end
     end
@@ -2794,7 +2794,11 @@ function MapPins.Update(view)
             end
 
             local pinFrameLevel = view.viewport:GetFrameLevel() + 2 + count * 3
-            if kind == "boss" then pinFrameLevel = pinFrameLevel + #data * 3 end
+            if kind == "boss" then
+                pinFrameLevel = pinFrameLevel + #data * 3
+            elseif kind == "queststart" or kind == "questend" then
+                pinFrameLevel = pinFrameLevel + #data * 6
+            end
             pin:SetFrameLevel(pinFrameLevel)
             pin.levelBadge:SetFrameLevel(pinFrameLevel + 2)
             pin.kind = kind
@@ -2828,10 +2832,10 @@ function MapPins.Update(view)
         view.spoilerNotice.text:SetPoint("RIGHT", view.spoilerNotice, "RIGHT", -8, 0)
         view.spoilerNotice.text:SetWordWrap(false)
     end
-    view.spoilerNotice:SetFrameLevel(view.viewport:GetFrameLevel() + 8 + #(data or {}) * 6)
+    view.spoilerNotice:SetFrameLevel(view.viewport:GetFrameLevel() + 8 + #(data or {}) * 9)
     view.spoilerNotice.text:SetText(AzerothCompendium:Trans("LID_SPOILERFREEMAP", nil, spoilerHidden))
     view.spoilerNotice:SetShown(spoilerHidden > 0 and view.info ~= nil)
-    view.pinTopLevel = view.viewport:GetFrameLevel() + 4 + #(data or {}) * 6
+    view.pinTopLevel = view.viewport:GetFrameLevel() + 4 + #(data or {}) * 9
     MapPins.UpdateToggle(view)
     MapPins.Layout(view)
     MapPins.DebugRefresh()

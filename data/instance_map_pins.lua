@@ -60,10 +60,12 @@ AzerothCompendium.INSTANCEMAPPINS = {
     },
     [213] = { -- Ragefire Chasm
         {"entrance", 0.611, 0.072},
-        {"boss", 0.564, 0.372, 11517},
+        {"boss", 0.557, 0.380, 11517},
         {"boss", 0.406, 0.574, 11520},
         {"boss", 0.338, 0.840, 11518},
         {"boss", 0.422, 0.857, 11519},
+        {"questend", 0.578, 0.378, 5722}, -- Searching for the Lost Satchel
+        {"queststart", 0.578, 0.378, 5724}, -- Returning the Lost Satchel
     },
     [291] = { -- The Deadmines
         {"entrance", 0.297, 0.133},

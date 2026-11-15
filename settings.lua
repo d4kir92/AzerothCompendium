@@ -298,7 +298,8 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     end
     AddCategory("INSTANCEMAPS", 2, "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_BOSS", "LID_SHOWBOSSPINS", "2026-10-04")
-    AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTPINS", "2026-10-04")
+    AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTITEMPINS", "2026-10-04")
+    AddSharedCheckbox("INSTANCEPINS_QUEST", "LID_SHOWQUESTPINS", "2026-11-15")
     AddSharedCheckbox("INSTANCEPINS_ENTRANCE", "LID_SHOWENTRANCEPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_LEVEL", "LID_SHOWLEVELPINS", "2026-10-04")
 
