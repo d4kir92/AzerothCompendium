@@ -1,5 +1,9 @@
 local AddonName, D4 = ...
+-- Addon message prefixes can be at most 16 characters. Keep the old prefix when
+-- it fits (so older versions still understand each other), otherwise use a
+-- shorter one. Messages carry the addon name, so a shared prefix is harmless.
 local pre = AddonName .. "D4PREFIX"
+if #pre > 16 then pre = "D4V" .. string.sub(AddonName, 1, 13) end
 D4.VersionTab = D4.VersionTab or {}
 if C_ChatInfo then C_ChatInfo.RegisterAddonMessagePrefix(pre) end
 function D4:SetVersion(icon, ver)
