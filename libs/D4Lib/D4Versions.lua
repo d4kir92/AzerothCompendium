@@ -79,12 +79,19 @@ function D4:IsHigherVersion(ov1, ov2, ov3, cv1, cv2, cv3)
     return false
 end
 
+-- The version comes from other players and is printed to chat, so only plain
+-- version numbers made of digits and dots (e.g. "1.2.3") are accepted.
+local function IsPlainVersion(ver)
+    return type(ver) == "string" and #ver <= 16 and string.match(ver, "^%d[%d%.]*$") ~= nil
+end
+
 function D4:CheckVersion(name, ver)
     if name == nil then
         D4:MSG("|cffff0000[CheckVersion] MISSING NAME AT CheckVersion")
         return false
     end
 
+    if not IsPlainVersion(ver) then return false end
     local ov1, ov2, ov3 = string.split(".", ver)
     local cv1, cv2, cv3 = string.split(".", D4:GetVersion(name) or "0.0.0")
     local higher = D4:IsHigherVersion(ov1, ov2, ov3, cv1, cv2, cv3)
