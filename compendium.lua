@@ -283,7 +283,7 @@ local function GetAllEntry(inst)
     return allEntries[inst]
 end
 
-local function GetAllLoot(inst)
+local function GetAllLoot(inst, countOnly)
     local list = {}
     local seen = {}
     if inst == nil then return list end
@@ -304,7 +304,7 @@ local function GetAllLoot(inst)
                     tinsert(list, row)
                 end
 
-                if boss.trash and entry.mobs and #entry.mobs > 0 then
+                if not countOnly and boss.trash and entry.mobs and #entry.mobs > 0 then
                     for _, mob in ipairs(entry.mobs) do
                         tinsert(row.mobs, {
                             name = mob.name,
@@ -316,7 +316,7 @@ local function GetAllLoot(inst)
                             boss = boss
                         })
                     end
-                else
+                elseif not countOnly then
                     local npcID = boss.npcs and boss.npcs[1]
                     tinsert(row.mobs, {
                         name = AzerothCompendium:GetBossName(boss),
@@ -427,7 +427,7 @@ local function AddContentBorder(frame)
     frame.border:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 4, -4)
 end
 
-local function CreateScroller(parent, rowHeight, initRow, padding, inset)
+local function CreateScroller(parent, rowHeight, initRow, padding, inset, virtual)
     padding = padding or 0
     local scroller = CreateFrame("Frame", nil, parent)
     AddContentBorder(scroller)
@@ -446,7 +446,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
     scroller.rows = {}
     scroller.data = {}
     local content = nil
-    if HasModernScroll() then
+    if not virtual and HasModernScroll() then
         local box = CreateFrame("Frame", nil, scroller, "WowScrollBox")
         box:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
         box:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -SCROLLBAR_W - rightInset - 2, inset)
@@ -464,7 +464,14 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         scroller.view = view
     else
         local scroll = nil
-        if AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
+        if virtual and ScrollUtil and ScrollUtil.InitScrollFrameWithScrollBar and AzerothCompendium:CheckTemplates("MinimalScrollBar") then
+            scroll = CreateFrame("ScrollFrame", nil, scroller)
+            local bar = CreateFrame("EventFrame", nil, scroller, "MinimalScrollBar")
+            bar:SetPoint("TOPRIGHT", scroller, "TOPRIGHT", -7, -6)
+            bar:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", -7, 6)
+            ScrollUtil.InitScrollFrameWithScrollBar(scroll, bar)
+            scroller.bar = bar
+        elseif AzerothCompendium:CheckTemplates("UIPanelScrollFrameTemplate") then
             scroll = CreateFrame("ScrollFrame", nil, scroller, "UIPanelScrollFrameTemplate")
         else
             scroll = CreateFrame("ScrollFrame", nil, scroller)
@@ -545,10 +552,15 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         if type(self.view) == "table" and self.view.SetPanExtent then self.view:SetPanExtent(height + self.rowGap) end
     end
 
-    function scroller:SetData(data)
+    function scroller:SetData(data, keepScroll)
+        if virtual and not keepScroll then
+            self.layingOutRows = true
+            self:ScrollToTop()
+            self.layingOutRows = nil
+        end
         self.data = data or {}
         self:Refresh()
-        self:ScrollToTop()
+        if not virtual and not keepScroll then self:ScrollToTop() end
     end
 
     function scroller.OnRefreshUpdate(sel)
@@ -564,6 +576,55 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         self:SetScript("OnUpdate", self.OnRefreshUpdate)
     end
 
+    function scroller:GetOrCreateRow(index)
+        local row = self.rows[index]
+        if row == nil then
+            row = self.initRow(self.content)
+            self.rows[index] = row
+        end
+        if row.stripe == nil and row.loadingScreen == nil then
+            row.stripe = row:CreateTexture(nil, "BACKGROUND", nil, -8)
+            row.stripe:SetAllPoints(row)
+        end
+        return row
+    end
+
+    function scroller:RenderVisibleRows(force)
+        if self.rowOffsets == nil or self.layingOutRows then return end
+        local top = self.scroll:GetVerticalScroll()
+        local bottom = top + self.scroll:GetHeight()
+        local low, high = 1, #self.data + 1
+        while low < high do
+            local middle = math.floor((low + high) / 2)
+            local rowEnd = self.rowOffsets[middle + 1] or self.contentHeight
+            if rowEnd <= top then
+                low = middle + 1
+            else
+                high = middle
+            end
+        end
+
+        local first, last = low, low - 1
+        while self.rowOffsets[last + 1] and self.rowOffsets[last + 1] < bottom do
+            last = last + 1
+        end
+        if not force and first == self.firstVisibleRow and last == self.lastVisibleRow then return end
+        self.firstVisibleRow, self.lastVisibleRow = first, last
+        for index = first, last do
+            local row = self:GetOrCreateRow(index - first + 1)
+            local offset = self.rowOffsets[index]
+            row.stripe:SetColorTexture(1, 1, 1, index % 2 == 1 and 0.03 or 0.06)
+            row:SetHeight((self.rowOffsets[index + 1] or self.contentHeight) - offset - self.rowGap)
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -offset)
+            row:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", 0, -offset)
+            row:Update(self.data[index])
+            row:Show()
+        end
+        for slot = last - first + 2, #self.rows do self.rows[slot]:Hide() end
+        AzerothCompendium.Theme.PageText:Refresh(self)
+    end
+
     function scroller:Refresh()
         local viewport = self:GetViewport()
         local width = viewport and viewport:GetWidth() or 0
@@ -574,17 +635,21 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
         self.content:SetWidth(width)
         local offset = 0
         self.rowOffsets = {}
+        if virtual then
+            local row = #self.data > 0 and self:GetOrCreateRow(1)
+            for index, entry in ipairs(self.data) do
+                self.rowOffsets[index] = offset
+                offset = offset + row:GetRowHeight(entry, width, entry.rowHeight or self.rowHeight) + self.rowGap
+            end
+            self.contentHeight = offset
+            self.layingOutRows = true
+            self:UpdateScroll()
+            self.layingOutRows = nil
+            self:RenderVisibleRows(true)
+            return
+        end
         for index, entry in ipairs(self.data) do
-            local row = self.rows[index]
-            if row == nil then
-                row = self.initRow(self.content)
-                self.rows[index] = row
-            end
-
-            if row.stripe == nil and row.loadingScreen == nil then
-                row.stripe = row:CreateTexture(nil, "BACKGROUND", nil, -8)
-                row.stripe:SetAllPoints(row)
-            end
+            local row = self:GetOrCreateRow(index)
 
             if row.stripe then row.stripe:SetColorTexture(1, 1, 1, index % 2 == 1 and 0.03 or 0.06) end
             self.rowOffsets[index] = offset
@@ -686,6 +751,7 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset)
     scroller:SetScript("OnSizeChanged", function(sel) sel:QueueRefresh() end)
     local viewport = scroller:GetViewport()
     if viewport then viewport:HookScript("OnSizeChanged", function() scroller:QueueRefresh() end) end
+    if virtual then scroller.scroll:HookScript("OnVerticalScroll", function() scroller:RenderVisibleRows() end) end
     return scroller
 end
 
@@ -1589,7 +1655,7 @@ local function UpdateBossRow(row, boss)
     row.entry = boss
     UpdateBossPortrait(row, boss)
     row.text:SetText(AzerothCompendium:GetBossName(boss))
-    local count = boss.all and #GetAllLoot(selectedInstance) or VisibleLootCount(boss)
+    local count = boss.all and #GetAllLoot(selectedInstance, true) or VisibleLootCount(boss)
     if count > 0 then
         row.info:SetText(AzerothCompendium:Trans("LID_ITEMCOUNT", nil, count))
     else
@@ -1772,6 +1838,8 @@ end
 
 local function GetLootList()
     local list, hidden = {}, 0
+    local filterItems = {}
+    compendium.loot.filterItems = filterItems
     if selectedBoss == nil then return list, hidden end
     local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", false)
     local class = select(2, UnitClass("player"))
@@ -1779,11 +1847,11 @@ local function GetLootList()
     if selectedBoss.all then loot = GetAllLoot(selectedInstance) end
     for _, entry in ipairs(loot) do
         local itemID = entry[1]
+        filterItems[itemID] = true
         local boss = entry.source or selectedBoss
-        local bossMatched = Matches(AzerothCompendium:GetBossName(boss)) or Matches(boss.name)
         local ok = IsItemVisible(itemID)
         if ok and (listKind == "pvp" or listKind == "sets") and not AzerothCompendium:IsQuestSideVisible(AzerothCompendium.ITEMSIDES and AzerothCompendium.ITEMSIDES[itemID]) then ok = false end
-        if ok and searchText ~= "" and not bossMatched and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
+        if ok and searchText ~= "" and not Matches(AzerothCompendium:GetBossName(boss)) and not Matches(boss.name) and not Matches(AzerothCompendium:GetItemDisplay(itemID)) then ok = false end
         if ok and onlyClass and not AzerothCompendium:IsUsableByClass(itemID, class) then
             ok = false
             hidden = hidden + 1
@@ -2987,7 +3055,7 @@ local function ShowMapLevelMenu(owner)
     AzerothCompendium:ShowContextMenu(owner, entries)
 end
 
-local function RefreshDetail()
+local function RefreshDetail(keepLootScroll)
     if compendium == nil then return end
     compendium.detailCount:ClearAllPoints()
     compendium.detailCount:SetPoint("BOTTOMRIGHT", compendium.loot, "TOPRIGHT", 0, 6)
@@ -3065,7 +3133,7 @@ local function RefreshDetail()
             compendium.loot:SetBanner(nil)
         end
 
-        compendium.loot:SetData(lootList)
+        compendium.loot:SetData(lootList, keepLootScroll)
         compendium.loot:Show()
         compendium.spells:Hide()
         if compendium.model then compendium.model:Hide() end
@@ -6686,7 +6754,7 @@ local function CreateJournal()
 
     compendium.factionToggle.spoilerFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.factionToggle:Hide()
-    local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2)
+    local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2, nil, true)
     loot.rowGap = 0
     loot:SetRowHeight(LOOT_ROW_H + 6)
     AzerothCompendium:AnchorContent(loot, bosses)
@@ -7863,13 +7931,14 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
 
     if event == "GET_ITEM_INFO_RECEIVED" then
         AzerothCompendium.ItemBrowser:ItemInfoReceived(itemID, success)
-        if AzerothCompendium.ItemClassPending[itemID] then
-            AzerothCompendium.ItemClassPending[itemID] = nil
-            if compendium ~= nil and compendium:IsShown() and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then AzerothCompendium:After(0.2, function() if compendium ~= nil and compendium:IsShown() then RefreshDetail() end end, "AzerothCompendium:ClassRestrictionRefresh") end
-        end
-        if AzerothCompendium.ItemJunkPending[itemID] then
-            AzerothCompendium.ItemJunkPending[itemID] = nil
-            if compendium ~= nil and compendium:IsShown() and AzerothCompendium:IsJunkItem(itemID) then AzerothCompendium:After(0.2, function() if compendium ~= nil and compendium:IsShown() then RefreshDetail() end end, "AzerothCompendium:ClassRestrictionRefresh") end
+        local classChanged = AzerothCompendium.ItemClassPending[itemID]
+        local junkPending = AzerothCompendium.ItemJunkPending[itemID]
+        AzerothCompendium.ItemClassPending[itemID] = nil
+        AzerothCompendium.ItemJunkPending[itemID] = nil
+        local loot = compendium and compendium.loot
+        if success and loot and compendium:IsShown() and loot:IsShown() and loot.filterItems and loot.filterItems[itemID]
+            and (classChanged and AzerothCompendium:GetConfig("CLASSFILTER", false) or junkPending and AzerothCompendium:IsJunkItem(itemID)) then
+            sel.lootFilterRefreshPending = true
         end
     end
     if event == "GLOBAL_MOUSE_DOWN" then
@@ -7942,6 +8011,8 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
     refreshPending = true
     AzerothCompendium:After(0.25, function()
         refreshPending = false
+        local refreshLootFilters = sel.lootFilterRefreshPending
+        sel.lootFilterRefreshPending = nil
         if compendium ~= nil and compendium:IsShown() then
             if listKind == "dashboard" then
                 AzerothCompendium:RefreshDashboard()
@@ -7954,12 +8025,11 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
             else
                 compendium.instances:Refresh()
                 compendium.bosses:Refresh()
-                if compendium.loot.sharedPending and compendium.loot:IsShown() then
-                    local lootList, _, pending = GetLootList()
-                    compendium.loot.data = lootList
-                    compendium.loot.sharedPending = pending
+                if compendium.loot:IsShown() and (refreshLootFilters or compendium.loot.sharedPending) then
+                    RefreshDetail(true)
+                elseif compendium.loot:IsShown() then
+                    compendium.loot:Refresh()
                 end
-                compendium.loot:Refresh()
                 compendium.questTree:Refresh()
                 if compendium.mapView:IsShown() then MapPins.Update(compendium.mapView) end
             end
