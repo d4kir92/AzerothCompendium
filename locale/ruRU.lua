@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONQUESTFOR", "Задание под
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONS", "Подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONTRACKER", "Трекер подземелий")
 AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONTRACKER_ENABLED", "Показывать окно трекера в подземельях и рейдах")
+AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONVISIBILITY", "Настроить видимость")
+AzerothCompendium:AddTrans("ruRU", "LID_DUNGEONVISIBILITYDONE", "Готово")
 AzerothCompendium:AddTrans("ruRU", "LID_ENTRANCE", "Вход в подземелье")
 AzerothCompendium:AddTrans("ruRU", "LID_FACTIONCAT_ARGENT", "Турнир Серебряного Авангарда")
 AzerothCompendium:AddTrans("ruRU", "LID_FACTIONCAT_DAILY", "Ежедневные задания")

@@ -1690,16 +1690,36 @@ function AzerothCompendium:GetLevelFilterMode()
     return "all"
 end
 
-local function GetInstanceList()
+local function GetInstanceKey(inst)
+    if inst == nil then return nil end
+    if inst.honor then return "honor" end
+    if inst.factionID ~= nil then return "faction:" .. inst.factionID end
+    if inst.id ~= nil then return "instance:" .. inst.id end
+    return "name:" .. (inst.name or "")
+end
+
+local function IsDungeonHidden(inst)
+    return type(ACOTABPC) == "table" and type(ACOTABPC.HIDDENDUNGEONS) == "table" and ACOTABPC.HIDDENDUNGEONS[GetInstanceKey(inst)] == true
+end
+
+local function GetInstanceList(editVisibility)
     local list, hidden = {}, 0
+    if editVisibility then
+        for _, inst in ipairs(AzerothCompendium:GetInstances("dungeon")) do
+            if IsInstanceVisible(inst) then tinsert(list, inst) end
+        end
+        return list, hidden
+    end
+
     local continent = (listKind == "dungeon" or listKind == "raid") and AzerothCompendium:GetSelectedContinent() or nil
     local levelMode = AzerothCompendium:GetLevelFilterMode()
     local onlyMaxLevel = levelMode == "max"
     for _, inst in ipairs(AzerothCompendium:GetInstances(listKind)) do
         local relevant = true
+        if listKind == "dungeon" and IsDungeonHidden(inst) then relevant = false end
         if levelMode == "mine" then
             local level = UnitLevel("player")
-            relevant = inst.minLevel ~= nil and inst.maxLevel ~= nil and level >= inst.minLevel and level <= inst.maxLevel
+            relevant = relevant and inst.minLevel ~= nil and inst.maxLevel ~= nil and level >= inst.minLevel and level <= inst.maxLevel
         end
 
         if onlyMaxLevel and not AzerothCompendium:IsMaxLevelInstance(inst) then relevant = false end
@@ -1967,14 +1987,6 @@ local function GetSpellList()
         if AzerothCompendium:GetSpellInfo(spellID) ~= nil then tinsert(list, spellID) end
     end
     return list
-end
-
-local function GetInstanceKey(inst)
-    if inst == nil then return nil end
-    if inst.honor then return "honor" end
-    if inst.factionID ~= nil then return "faction:" .. inst.factionID end
-    if inst.id ~= nil then return "instance:" .. inst.id end
-    return "name:" .. (inst.name or "")
 end
 
 local function GetBossKey(boss)
@@ -2291,6 +2303,7 @@ end
 
 local function UpdateKindTabs()
     if compendium == nil then return end
+    if listKind ~= "dungeon" then compendium.editDungeonVisibility = nil end
     for kind, tab in pairs(compendium.kindTabs) do
         tab:SetShown(AzerothCompendium:IsKindTabShown(kind))
         tab:SetChecked(kind == listKind)
@@ -3203,6 +3216,7 @@ end
 
 local function RefreshBosses()
     if compendium == nil then return end
+    if not compendium.overviewActive then compendium.editDungeonVisibility = nil end
     compendium.foreverNotice:SetShown(listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
     compendium.foreverNotice:ClearAllPoints()
     compendium.foreverNotice:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
@@ -5789,6 +5803,15 @@ function AzerothCompendium:CreateInstanceControls()
         local grouped = listKind == "dungeon" or listKind == "raid"
         filterPopup.spoilerFilter:SetChecked(type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true)
         local rows = {}
+        local visibilityButton = compendium.dungeonVisibilityButton
+        if visibilityButton then
+            visibilityButton:SetShown(inline and dungeon)
+            if inline and dungeon then
+                visibilityButton:SetText(AzerothCompendium:Trans(compendium.editDungeonVisibility and "LID_DUNGEONVISIBILITYDONE" or "LID_DUNGEONVISIBILITY"))
+                visibilityButton:SetWidth(visibilityButton:GetFontString():GetStringWidth() + 24)
+                tinsert(rows, visibilityButton)
+            end
+        end
         if continent and grouped then
             continent:SetSize(170, 22)
             tinsert(rows, continent)
@@ -5821,7 +5844,7 @@ function AzerothCompendium:CreateInstanceControls()
         if inline and scaleSlider then firstLimit = firstLimit - scaleSlider:GetWidth() - sliderLabelWidth - 18 end
         for index, check in ipairs(rows) do
             local label = check == hideForeverFilter and hideForeverLabel or check == hideCompletedFilter and hideCompletedLabel or check.label
-            local rowWidth = (check == levelFilter or check == continent) and check:GetWidth() or label:GetStringWidth() + 28
+            local rowWidth = (check == levelFilter or check == continent or check == visibilityButton) and check:GetWidth() or label:GetStringWidth() + 28
             check:ClearAllPoints()
             if inline then
                 local limit = inlineLine == 1 and firstLimit or overviewWidth
@@ -6063,8 +6086,8 @@ function AzerothCompendium:CreateInstanceControls()
         row.headerLine:SetColorTexture(1, 0.82, 0, 0.35)
         function row:Update(entries)
             local header = entries.overviewHeader == true
-            self.headerEntry = header and entries or nil
-            self:EnableMouse(header)
+            self.headerEntry = header and not compendium.editDungeonVisibility and entries or nil
+            self:EnableMouse(self.headerEntry ~= nil)
             self.header:SetShown(header)
             self.headerIcon:SetShown(header)
             self.headerCount:SetShown(header)
@@ -6084,11 +6107,22 @@ function AzerothCompendium:CreateInstanceControls()
                 local tile = self.tiles[index]
                 if tile == nil then
                     tile = CreateTextRow(self, function(entry)
+                        if compendium.editDungeonVisibility then
+                            ACOTABPC = ACOTABPC or {}
+                            ACOTABPC.HIDDENDUNGEONS = ACOTABPC.HIDDENDUNGEONS or {}
+                            ACOTABPC.HIDDENDUNGEONS[GetInstanceKey(entry)] = not IsDungeonHidden(entry) or nil
+                            RefreshInstances()
+                            return
+                        end
                         middleKind = "map"
                         OnInstanceClick(entry)
                     end)
                     AddLoadingScreen(tile)
                     TILE_STYLE.Apply(tile)
+                    tile.visibility = CreateFrame("CheckButton", nil, tile, "UICheckButtonTemplate")
+                    tile.visibility:SetSize(28, 28)
+                    tile.visibility:SetPoint("TOPRIGHT", tile, "TOPRIGHT", -4, -4)
+                    tile.visibility:EnableMouse(false)
                     self.tiles[index] = tile
                 end
                 tile.entry = inst
@@ -6096,6 +6130,9 @@ function AzerothCompendium:CreateInstanceControls()
                 tile:SetPoint("TOPLEFT", self, "TOPLEFT", (index - 1) * (width + 8), 0)
                 tile:SetSize(width, 150 * scale)
                 UpdateInstanceRow(tile, inst)
+                tile.visibility:SetShown(compendium.editDungeonVisibility == true)
+                tile.visibility:SetChecked(not IsDungeonHidden(inst))
+                tile:SetAlpha(compendium.editDungeonVisibility and IsDungeonHidden(inst) and 0.55 or 1)
                 tile:Show()
             end
             for index = #entries + 1, #self.tiles do self.tiles[index]:Hide() end
@@ -6111,6 +6148,16 @@ function AzerothCompendium:CreateInstanceControls()
         end, "AzerothCompendium:OverviewFilterBar")
     end)
     compendium.overview = overview
+    compendium.dungeonVisibilityButton = CreateTemplated("Button", nil, overview, {"UIPanelButtonTemplate"})
+    compendium.dungeonVisibilityButton:SetHeight(24)
+    compendium.dungeonVisibilityButton:Hide()
+    compendium.dungeonVisibilityButton:SetScript("OnClick", function()
+        compendium.editDungeonVisibility = not compendium.editDungeonVisibility or nil
+        instancePopup:Hide()
+        compendium:RefreshOverview()
+        filterDropdown:Refresh()
+        overview:ScrollToTop()
+    end)
     local scaleSlider = CreateTemplated("Slider", "AzerothCompendiumOverviewScaleSlider", overview, {"MinimalSliderTemplate", "UISliderTemplate", "OptionsSliderTemplate"})
     scaleSlider:SetOrientation("HORIZONTAL")
     scaleSlider:SetSize(110, 16)
@@ -6159,8 +6206,12 @@ function AzerothCompendium:CreateInstanceControls()
         self.overviewColumns = max(1, floor((width + 8) / (300 * scale + 8)))
         self.overviewTileWidth = max(1, (width - (self.overviewColumns - 1) * 8) / self.overviewColumns)
         local rows = {}
-        local list, hidden = GetInstanceList()
-        AzerothCompendium:UpdateInstanceFilterBanner(self.overview, hidden)
+        local list, hidden = GetInstanceList(self.editDungeonVisibility)
+        if self.editDungeonVisibility then
+            self.overview:SetBanner(nil)
+        else
+            AzerothCompendium:UpdateInstanceFilterBanner(self.overview, hidden)
+        end
         local groups = {{entries = list}}
         if #list > 0 and AzerothCompendium:HasKindCategories(listKind) then groups = AzerothCompendium:GetKindCategoryGroups(listKind, list) end
         ACOTABPC = ACOTABPC or {}
@@ -6169,7 +6220,7 @@ function AzerothCompendium:CreateInstanceControls()
             local collapsed = false
             if group.label then
                 local key = listKind .. ":" .. group.category
-                collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
+                collapsed = not self.editDungeonVisibility and ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
                 tinsert(rows, {
                     overviewHeader = true,
                     key = key,

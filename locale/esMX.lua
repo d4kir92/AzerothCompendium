@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("esMX", "LID_DUNGEONQUESTFOR", "Misión de calabozo p
 AzerothCompendium:AddTrans("esMX", "LID_DUNGEONS", "Calabozos")
 AzerothCompendium:AddTrans("esMX", "LID_DUNGEONTRACKER", "Seguimiento de calabozos")
 AzerothCompendium:AddTrans("esMX", "LID_DUNGEONTRACKER_ENABLED", "Mostrar la ventana de seguimiento en calabozos y bandas")
+AzerothCompendium:AddTrans("esMX", "LID_DUNGEONVISIBILITY", "Editar visibilidad")
+AzerothCompendium:AddTrans("esMX", "LID_DUNGEONVISIBILITYDONE", "Listo")
 AzerothCompendium:AddTrans("esMX", "LID_ENTRANCE", "Entrada de la instancia")
 AzerothCompendium:AddTrans("esMX", "LID_FACTIONCAT_ARGENT", "Torneo Argenta")
 AzerothCompendium:AddTrans("esMX", "LID_FACTIONCAT_DAILY", "Misiones diarias")

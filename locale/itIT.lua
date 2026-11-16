@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("itIT", "LID_DUNGEONQUESTFOR", "Missione di spedizion
 AzerothCompendium:AddTrans("itIT", "LID_DUNGEONS", "Dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_DUNGEONTRACKER", "Tracciamento dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_DUNGEONTRACKER_ENABLED", "Mostra la finestra di tracciamento nei dungeon e nelle incursioni")
+AzerothCompendium:AddTrans("itIT", "LID_DUNGEONVISIBILITY", "Modifica visibilità")
+AzerothCompendium:AddTrans("itIT", "LID_DUNGEONVISIBILITYDONE", "Fatto")
 AzerothCompendium:AddTrans("itIT", "LID_ENTRANCE", "Ingresso dell'istanza")
 AzerothCompendium:AddTrans("itIT", "LID_FACTIONCAT_ARGENT", "Torneo d'Argento")
 AzerothCompendium:AddTrans("itIT", "LID_FACTIONCAT_DAILY", "Missioni giornaliere")

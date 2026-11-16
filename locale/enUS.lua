@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("enUS", "LID_DUNGEONQUESTFOR", "Dungeon quest for %s"
 AzerothCompendium:AddTrans("enUS", "LID_DUNGEONS", "Dungeons")
 AzerothCompendium:AddTrans("enUS", "LID_DUNGEONTRACKER", "Dungeon Tracker")
 AzerothCompendium:AddTrans("enUS", "LID_DUNGEONTRACKER_ENABLED", "Show the tracker window in dungeons and raids")
+AzerothCompendium:AddTrans("enUS", "LID_DUNGEONVISIBILITY", "Edit visibility")
+AzerothCompendium:AddTrans("enUS", "LID_DUNGEONVISIBILITYDONE", "Done")
 AzerothCompendium:AddTrans("enUS", "LID_ENTRANCE", "Instance entrance")
 AzerothCompendium:AddTrans("enUS", "LID_FACTIONCAT_ARGENT", "Argent Tournament")
 AzerothCompendium:AddTrans("enUS", "LID_FACTIONCAT_DAILY", "Daily Quests")

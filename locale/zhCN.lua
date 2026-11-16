@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONQUESTFOR", "%s的地下城任务"
 AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONS", "地下城")
 AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONTRACKER", "地下城追踪器")
 AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONTRACKER_ENABLED", "在地下城和团队副本中显示追踪窗口")
+AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONVISIBILITY", "编辑可见性")
+AzerothCompendium:AddTrans("zhCN", "LID_DUNGEONVISIBILITYDONE", "完成")
 AzerothCompendium:AddTrans("zhCN", "LID_ENTRANCE", "副本入口")
 AzerothCompendium:AddTrans("zhCN", "LID_FACTIONCAT_ARGENT", "银色锦标赛")
 AzerothCompendium:AddTrans("zhCN", "LID_FACTIONCAT_DAILY", "日常任务")

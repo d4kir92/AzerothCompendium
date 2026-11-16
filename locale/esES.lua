@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("esES", "LID_DUNGEONQUESTFOR", "Misión de mazmorra p
 AzerothCompendium:AddTrans("esES", "LID_DUNGEONS", "Mazmorras")
 AzerothCompendium:AddTrans("esES", "LID_DUNGEONTRACKER", "Seguimiento de mazmorras")
 AzerothCompendium:AddTrans("esES", "LID_DUNGEONTRACKER_ENABLED", "Mostrar la ventana de seguimiento en mazmorras y bandas")
+AzerothCompendium:AddTrans("esES", "LID_DUNGEONVISIBILITY", "Editar visibilidad")
+AzerothCompendium:AddTrans("esES", "LID_DUNGEONVISIBILITYDONE", "Listo")
 AzerothCompendium:AddTrans("esES", "LID_ENTRANCE", "Entrada de la instancia")
 AzerothCompendium:AddTrans("esES", "LID_FACTIONCAT_ARGENT", "Torneo Argenta")
 AzerothCompendium:AddTrans("esES", "LID_FACTIONCAT_DAILY", "Misiones diarias")

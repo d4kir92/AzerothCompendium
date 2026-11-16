@@ -54,6 +54,8 @@ AzerothCompendium:AddTrans("frFR", "LID_DUNGEONQUESTFOR", "Quête de donjon pour
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONS", "Donjons")
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONTRACKER", "Suivi de donjon")
 AzerothCompendium:AddTrans("frFR", "LID_DUNGEONTRACKER_ENABLED", "Afficher la fenêtre de suivi dans les donjons et raids")
+AzerothCompendium:AddTrans("frFR", "LID_DUNGEONVISIBILITY", "Modifier la visibilité")
+AzerothCompendium:AddTrans("frFR", "LID_DUNGEONVISIBILITYDONE", "Terminé")
 AzerothCompendium:AddTrans("frFR", "LID_ENTRANCE", "Entrée de l'instance")
 AzerothCompendium:AddTrans("frFR", "LID_FACTIONCAT_ARGENT", "Tournoi d'argent")
 AzerothCompendium:AddTrans("frFR", "LID_FACTIONCAT_DAILY", "Quêtes journalières")
