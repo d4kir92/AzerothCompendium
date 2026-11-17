@@ -319,7 +319,7 @@ function AzerothCompendium:InitSetting()
     AzerothCompendium:CreateMinimapButton({
         ["name"] = "AzerothCompendium",
         ["icon"] = ICON,
-        ["noalpha"] = true,
+        ["noalpha"] = type(LeaPlusDB) ~= "table",
         ["dbtab"] = ACOTAB,
         ["vTT"] = minimapTooltip,
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
