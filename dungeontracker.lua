@@ -222,8 +222,8 @@ function Tracker:GetHistory()
 end
 
 function Tracker:ArchiveRun(run)
-    if type(run) ~= "table" or type(run.killed) ~= "table" or type(run.loot) ~= "table" then return end
-    if next(run.killed) == nil and #run.loot == 0 and (run.xp or 0) <= 0 and (run.gold or 0) <= 0 then return end
+    if type(run) ~= "table" or not run.start or type(run.killed) ~= "table" or type(run.loot) ~= "table" then return end
+    if not run.mode and next(run.killed) == nil and #run.loot == 0 and (run.xp or 0) <= 0 and (run.gold or 0) <= 0 then return end
     local history = self:GetHistory()
     for _, entry in ipairs(history) do
         if entry == run then return end
@@ -242,7 +242,7 @@ end
 function Tracker:GetAllRuns()
     local list = {}
     local current = self:GetRun()
-    if current then tinsert(list, current) end
+    if current and current.start then tinsert(list, current) end
     for _, run in ipairs(self:GetHistory()) do
         if run ~= current then tinsert(list, run) end
     end
@@ -305,11 +305,10 @@ function Tracker:CountKilled(run, list)
     return count
 end
 
-function Tracker:StartRun(instanceID, name)
+function Tracker:PrepareRun(instanceID, name)
     local run = {
         instanceID = instanceID,
         name = name,
-        start = time(),
         xp = 0,
         gold = 0,
         killed = {},
@@ -320,7 +319,6 @@ function Tracker:StartRun(instanceID, name)
     ACOTABPC = ACOTABPC or {}
     self:ArchiveRun(ACOTABPC.DUNGEONRUN)
     ACOTABPC.DUNGEONRUN = run
-    if self.viewRun == nil then self.listMode = nil end
 
     return run
 end
@@ -331,7 +329,7 @@ function Tracker:CheckZone()
     local now = time()
     if instanceID == nil then
         self.instanceID = nil
-        if run and run.active and not run.finished and self:ShouldStayAway() then
+        if run and run.active and not run.ended and (not run.finished or run.mode == "unranked") and self:ShouldStayAway() then
             self.away = true
         else
             self:EndRun(run)
@@ -345,14 +343,76 @@ function Tracker:CheckZone()
 
     self.away = false
 
-    if run == nil or run.instanceID ~= instanceID or run.reset or (not run.active and run.left and now - run.left > self.config.restartDelay) then run = self:StartRun(instanceID, name) end
+    local entering = self.instanceID ~= instanceID
+    if run == nil or run.instanceID ~= instanceID or run.reset or (not run.active and run.left and now - run.left > self.config.restartDelay) then
+        run = self:PrepareRun(instanceID, name)
+        entering = true
+    end
+
+    if entering and self:IsEnabled() then
+        run.closed = nil
+        self.listMode = nil
+        self.viewRun = nil
+        self.forced = false
+    end
+
     run.active = true
     run.left = nil
     self.instanceID = instanceID
     self.candidates = self:FindCandidates(instanceID, name)
     self:IndexCandidates()
     if GetMoney then self.money = GetMoney() end
+    local inCombat = UnitAffectingCombat("player")
+    if not IsSecret(inCombat) and inCombat then self:StartRankedRun() end
     self:UpdateVisibility()
+end
+
+function Tracker:StartRankedRun()
+    local run = self:GetRun()
+    if not run or run.start or run.mode or not self:IsCurrentInstance(run) then return end
+    run.start = time()
+    run.mode = "ranked"
+    if GetMoney then self.money = GetMoney() end
+end
+
+function Tracker:IsCurrentInstance(run)
+    return run.active == true and self.instanceID ~= nil and run.instanceID == self.instanceID
+end
+
+function Tracker:ControlRun(action)
+    local run = self:GetRun()
+    if not run or not self:IsCurrentInstance(run) or run.ended or (run.finished and run.mode ~= "unranked") then return end
+
+    local now = time()
+    if action == "start" then
+        if run.mode == "unranked" and not run.paused then return end
+        run.mode = "unranked"
+        run.start = run.start or now
+        if run.paused then
+            run.pauseTime = (run.pauseTime or 0) + now - run.paused
+            run.paused = nil
+        end
+        if GetMoney then self.money = GetMoney() end
+    elseif run.mode == "unranked" then
+        if action == "pause" then
+            run.paused = run.paused or now
+        elseif action == "end" then
+            run.ended = now
+        end
+    end
+
+    self:Refresh()
+end
+
+function Tracker:GetModeLabel(run)
+    local key = "LID_DT_LEGACY"
+    if run.mode == "unranked" then
+        key = "LID_DT_UNRANKED"
+    elseif run.mode == "ranked" or not run.start then
+        key = "LID_DT_RANKED"
+    end
+
+    return AzerothCompendium:Trans(key)
 end
 
 function Tracker:ShouldStayAway()
@@ -366,6 +426,7 @@ end
 function Tracker:EndRun(run)
     self.away = false
     if run == nil or not run.active then return end
+    if run.mode == "unranked" and not run.ended then run.paused = run.paused or time() end
     run.active = false
     run.left = time()
 end
@@ -381,7 +442,7 @@ end
 function Tracker:IsTracking()
     local run = self:GetRun()
 
-    return run ~= nil and run.active == true and self.instanceID ~= nil and run.instanceID == self.instanceID
+    return run ~= nil and run.start ~= nil and not run.paused and not run.ended and self:IsCurrentInstance(run)
 end
 
 function Tracker:NarrowWing(npcID)
@@ -405,6 +466,7 @@ function Tracker:GetBest(run)
     ACOTABPC = ACOTABPC or {}
     if type(ACOTABPC.DUNGEONBESTS) ~= "table" then ACOTABPC.DUNGEONBESTS = {} end
     local key = tostring(run.wing or run.instanceID)
+    if run.mode or not run.start then key = "ranked:" .. key end
     local best = ACOTABPC.DUNGEONBESTS[key]
     if type(best) ~= "table" then
         best = {}
@@ -415,13 +477,12 @@ function Tracker:GetBest(run)
 end
 
 function Tracker:UpdateBest(run)
+    if run.mode ~= "ranked" or not run.finished then return end
     local best = self:GetBest(run)
     if (run.xp or 0) > (best.xp or 0) then best.xp = run.xp end
     if (run.gold or 0) > (best.gold or 0) then best.gold = run.gold end
-    if run.finished then
-        local duration = run.finished - run.start
-        if best.time == nil or duration < best.time then best.time = duration end
-    end
+    local duration = self:GetElapsed(run)
+    if best.time == nil or duration < best.time then best.time = duration end
 end
 
 function Tracker:MarkKilled(npcID)
@@ -652,9 +713,11 @@ function Tracker:FormatTime(seconds)
 end
 
 function Tracker:GetElapsed(run)
-    local stop = run.finished or (run.active and time()) or run.left or time()
+    if not run.start then return 0 end
+    local finished = run.mode ~= "unranked" and run.finished
+    local stop = run.paused or run.ended or finished or (run.active and time()) or run.left or time()
 
-    return stop - run.start
+    return max(0, stop - run.start - (run.pauseTime or 0))
 end
 
 function Tracker:FormatMoney(amount)
@@ -1003,10 +1066,19 @@ function Tracker:CreateFrame()
         frame.statColumns[index] = self:CreateStat(frame.stats)
     end
 
+    frame.controls = CreateFrame("Frame", nil, frame.content)
+    frame.controls:SetPoint("TOPLEFT", frame.stats, "BOTTOMLEFT", 0, -c.gap)
+    frame.controls:SetPoint("TOPRIGHT", frame.stats, "BOTTOMRIGHT", 0, -c.gap)
+    frame.controls:SetHeight(22)
+    for index, action in ipairs({"start", "pause", "end"}) do
+        local button = CreateFrame("Button", nil, frame.controls, "UIPanelButtonTemplate")
+        button:SetHeight(22)
+        button:SetScript("OnClick", function() Tracker:ControlRun(action) end)
+        frame.controls[index] = button
+    end
+
     frame.bosses = CreateFrame("Frame", nil, frame.content)
     ui.AddContentBorder(frame.bosses)
-    frame.bosses:SetPoint("TOPLEFT", frame.stats, "BOTTOMLEFT", 0, -c.gap)
-    frame.bosses:SetPoint("TOPRIGHT", frame.stats, "BOTTOMRIGHT", 0, -c.gap)
     frame.bossLabel = frame.bosses:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.rareLabel = frame.bosses:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.lootHeader = CreateFrame("Button", nil, frame.content)
@@ -1287,10 +1359,10 @@ function Tracker:CreateRunRow(parent)
         self.run = run
         local current = run == Tracker:GetRun()
         local bosses = Tracker:GetBosses(run)
-        self.icon:SetTexture(run.finished and "Interface\\RaidFrame\\ReadyCheck-Ready" or "Interface\\RaidFrame\\ReadyCheck-Waiting")
+        self.icon:SetTexture((run.finished or run.ended) and "Interface\\RaidFrame\\ReadyCheck-Ready" or "Interface\\RaidFrame\\ReadyCheck-Waiting")
         self.title:SetText(Tracker:GetRunTitle(run))
         self.date:SetText(current and AzerothCompendium:Trans("LID_DT_CURRENT") or date("%d.%m.%y %H:%M", run.start or 0))
-        self.info:SetText(format("%s   %s %d/%d   %s %s   %s", Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, Tracker:FormatNumber(run.xp or 0), XP or "XP", Tracker:FormatMoney(run.gold or 0)))
+        self.info:SetText(format("%s   %s   %s %d/%d   %s %s   %s", Tracker:GetModeLabel(run), Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, Tracker:FormatNumber(run.xp or 0), XP or "XP", Tracker:FormatMoney(run.gold or 0)))
     end
 
     return row
@@ -1341,7 +1413,7 @@ function Tracker:UpdateStats()
     local run = self:GetShownRun()
     if frame == nil or run == nil or not frame:IsShown() or self.listMode then return end
     local columns = frame.statColumns
-    local best = self:GetBest(run)
+    local best = run.mode == "unranked" and {} or self:GetBest(run)
     local elapsed = self:FormatTime(self:GetElapsed(run))
     columns[1].value:SetText(elapsed)
     columns[2].value:SetText(self:FormatNumber(run.xp or 0))
@@ -1349,8 +1421,8 @@ function Tracker:UpdateStats()
     columns[1].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.time and self:FormatTime(best.time) or "-"))
     columns[2].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.xp and self:FormatNumber(best.xp) or "-"))
     columns[3].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.gold and self:FormatMoney(best.gold) or "-"))
-    frame.headerTime:SetText(elapsed)
-    if run.finished then
+    frame.headerTime:SetText(format("%s · %s", self:GetModeLabel(run), elapsed))
+    if run.ended or (run.finished and run.mode ~= "unranked") then
         columns[1].value:SetTextColor(0.25, 1, 0.25)
     else
         columns[1].value:SetTextColor(1, 1, 1)
@@ -1394,6 +1466,27 @@ function Tracker:Layout()
     end
 
     local run = self:GetShownRun()
+    local unranked = run.mode == "unranked"
+    local controls = not self.viewRun and self:IsCurrentInstance(run) and not run.ended and (unranked or not run.finished)
+    frame.controls:SetShown(controls)
+    local anchor = controls and frame.controls or frame.stats
+    if controls then
+        for index, button in ipairs(frame.controls) do
+            button:SetWidth(columnWidth - 2)
+            button:SetPoint("TOPLEFT", frame.controls, "TOPLEFT", (index - 1) * columnWidth + 1, 0)
+        end
+        frame.controls[1]:SetWidth(unranked and columnWidth - 2 or innerWidth - 2)
+        frame.controls[1]:SetText(AzerothCompendium:Trans(unranked and "LID_DT_RESUME" or "LID_DT_STARTUNRANKED"))
+        frame.controls[2]:SetShown(unranked)
+        frame.controls[3]:SetShown(unranked)
+        frame.controls[1]:SetEnabled(not unranked or run.paused ~= nil)
+        frame.controls[2]:SetText(AzerothCompendium:Trans("LID_DT_PAUSE"))
+        frame.controls[2]:SetEnabled(unranked and not run.paused)
+        frame.controls[3]:SetText(AzerothCompendium:Trans("LID_DT_END"))
+        frame.controls[3]:SetEnabled(unranked)
+    end
+    frame.bosses:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -c.gap)
+    frame.bosses:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -c.gap)
     local bosses, rares = self.bossList or {}, self.rareList or {}
     local iconWidth = innerWidth - c.panelPad * 2
     local top = -c.panelPad
@@ -1418,7 +1511,7 @@ function Tracker:Layout()
     end
 
     local bossHeight = 0
-    local lootAnchor = frame.stats
+    local lootAnchor = anchor
     if index > 0 then
         bossHeight = -top + 2
         frame.bosses:SetHeight(bossHeight)
@@ -1437,7 +1530,7 @@ function Tracker:Layout()
     frame.loot:SetPoint("TOPLEFT", lootAnchor, "BOTTOMLEFT", 0, -c.gap - c.label - 4)
     frame.loot:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.loot:SetShown(not lootCollapsed)
-    local fixed = c.top + c.stats + c.gap + (index > 0 and bossHeight + c.gap or 0) + c.label + 4 + c.bottom
+    local fixed = c.top + c.stats + (controls and frame.controls:GetHeight() + c.gap or 0) + c.gap + (index > 0 and bossHeight + c.gap or 0) + c.label + 4 + c.bottom
     local minHeight = lootCollapsed and fixed or fixed + c.lootMin
     if frame.SetResizeBounds then
         frame:SetResizeBounds(c.minWidth, minHeight, 0, 0)
@@ -1470,11 +1563,9 @@ function Tracker:Refresh()
     local title = self:GetRunTitle(run)
     if self.viewRun then title = format("%s - %s", title, date("%d.%m.%y", run.start or 0)) end
     if frame.titleText then frame.titleText:SetText(title) end
-    local labels = {"LID_DT_TIME", "LID_DT_MOBXP", "LID_DT_GOLD"}
-    for index, column in ipairs(frame.statColumns) do
-        column.label:SetText(AzerothCompendium:Trans(labels[index]))
-    end
-
+    frame.statColumns[1].label:SetText(self:GetModeLabel(run))
+    frame.statColumns[2].label:SetText(AzerothCompendium:Trans("LID_DT_MOBXP"))
+    frame.statColumns[3].label:SetText(AzerothCompendium:Trans("LID_DT_GOLD"))
     self.bossList, self.rareList = self:GetBosses(run)
     frame.bossLabel:SetText(format("%s (%d/%d)", AzerothCompendium:Trans("LID_BOSSES"), self:CountKilled(run, self.bossList), #self.bossList))
     frame.rareLabel:SetText(format("%s (%d/%d)", AzerothCompendium:Trans("LID_DT_RARES"), self:CountKilled(run, self.rareList), #self.rareList))
@@ -1488,7 +1579,7 @@ end
 
 function Tracker:UpdateVisibility()
     local run = self:GetRun()
-    local show = self.listMode or self.viewRun ~= nil or (run ~= nil and (self.forced or (self:IsEnabled() and (self:IsTracking() or (self.away and run.active)) and not run.closed)))
+    local show = self.listMode or self.viewRun ~= nil or (run ~= nil and (self.forced or (self:IsEnabled() and (self:IsCurrentInstance(run) or (self.away and run.active)) and not run.closed)))
     if not show then
         if self.frame then self.frame:Hide() end
 
@@ -1510,7 +1601,7 @@ function Tracker:Close()
     end
 
     local run = self:GetRun()
-    if run and (self:IsTracking() or self.away) then run.closed = true end
+    if run and (self:IsCurrentInstance(run) or self.away) then run.closed = true end
     self.forced = false
     if self.frame then self.frame:Hide() end
 end
@@ -1538,6 +1629,11 @@ function Tracker:OnEvent(event, ...)
     if event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
         self:CheckZone()
         if C_Timer and C_Timer.After then C_Timer.After(2, function() Tracker:CheckZone() end) end
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        if self:GetCurrentInstance() == self.instanceID then
+            self:StartRankedRun()
+            self:Refresh()
+        end
     elseif event == "UNIT_HEALTH" then
         self:OnUnitHealth(...)
     elseif event == "ENCOUNTER_END" then
@@ -1568,7 +1664,7 @@ function Tracker:OnEvent(event, ...)
 end
 
 Tracker.eventFrame = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST"}) do
+for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_DISABLED", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST"}) do
     pcall(Tracker.eventFrame.RegisterEvent, Tracker.eventFrame, event)
 end
 
