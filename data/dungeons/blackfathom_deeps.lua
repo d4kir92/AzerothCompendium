@@ -1996,6 +1996,7 @@ local trash = {
 	},
 	{
 		[1] = 5881,
+		["itemClass"] = 12,
 		["mobs"] = {
 			{
 				["name"] = "Twilight Lord Kelris",
@@ -2004,7 +2005,6 @@ local trash = {
 				["model"] = 4939,
 			},
 		},
-		["itemClass"] = 12,
 	},
 	{
 		[1] = 5952,

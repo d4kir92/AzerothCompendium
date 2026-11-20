@@ -632,6 +632,12 @@ AzerothCompendium.QUESTCHAINS = {
 	[93787] = {93786, 93787},
 	[94480] = {94480},
 	[94481] = {94480, 94481},
+	[84166] = {84166},
+	[97179] = {97178, 97179},
+	[97412] = {97412},
+	[97169] = {97168, 97169},
+	[97178] = {97178},
+	[97168] = {97168},
 }
 
 AzerothCompendium.QUESTPREREQUISITES = {
@@ -697,7 +703,7 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[7637] = {7638, 7670},
 	[7639] = {7637},
 	[7640] = {7639},
-	[7641] = {7638, 7640},
+	[7641] = {7640},
 	[7642] = {7641},
 	[7643] = {7642},
 	[8042] = {8041},
@@ -972,7 +978,7 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[5846] = {5845},
 	[5861] = {5848},
 	[5862] = {5861},
-	[6136] = {5961, 6022, 6042, 6133},
+	[6136] = {6022, 6042, 6133},
 	[1429] = {1424},
 	[1444] = {1429},
 	[3374] = {3373},
@@ -1329,6 +1335,9 @@ AzerothCompendium.QUESTPREREQUISITES = {
 	[93787] = {93786},
 	[94480] = {93787},
 	[94481] = {94480},
+	[97179] = {97178},
+	[97169] = {97168},
+	[99435] = {6402},
 }
 
 AzerothCompendium.QUESTGIVERS = {
@@ -2549,6 +2558,16 @@ AzerothCompendium.QUESTGIVERS = {
 	[98325] = {1418, 5.8, 47.4, 9077, "Warlord Goretooth"},
 	[5306] = {1452, 61.2, 37, 11192, "Kilram"},
 	[84162] = {1454, 35, 38, 230317, "Mokvar"},
+	[84151] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84158] = {1454, 35, 38, 230317, "Mokvar"},
+	[84166] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[97179] = {1424, 60.4, 26, 3539, "Ott"},
+	[84153] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84154] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84161] = {1454, 35, 38, 230317, "Mokvar"},
+	[97169] = {1455, 47.4, 13.6, 258098, "Eldrun Stormbreaker"},
+	[97178] = {1420, 22, 44.6, 246378, "Danitha Morr"},
+	[97168] = {1455, 47.4, 13.6, 258098, "Eldrun Stormbreaker"},
 }
 
 AzerothCompendium.QUESTSTARTITEMS = {
@@ -3877,6 +3896,17 @@ AzerothCompendium.QUESTNAMES = {
 	[98325] = "Blood and Thunder",
 	[5306] = "Snakestone of the Shadow Huntress",
 	[84162] = "An Earnest Proposition",
+	[84151] = "An Earnest Proposition",
+	[84158] = "An Earnest Proposition",
+	[84166] = "Just Compensation",
+	[97179] = "Collection of Goods",
+	[97412] = "Just Compensation",
+	[84153] = "An Earnest Proposition",
+	[84154] = "An Earnest Proposition",
+	[84161] = "An Earnest Proposition",
+	[97169] = "The Darkreaver Menace",
+	[97178] = "Ott of Tarren Mill",
+	[97168] = "Material Assistance",
 }
 
 AzerothCompendium.QUESTREQUIREDLEVELS = {
@@ -4908,6 +4938,17 @@ AzerothCompendium.QUESTREQUIREDLEVELS = {
 	[98325] = 55,
 	[5306] = 50,
 	[84162] = 58,
+	[84151] = 58,
+	[84158] = 58,
+	[84166] = 58,
+	[97179] = 60,
+	[97412] = 58,
+	[84153] = 58,
+	[84154] = 58,
+	[84161] = 58,
+	[97169] = 58,
+	[97178] = 60,
+	[97168] = 58,
 }
 
 AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
@@ -5939,6 +5980,17 @@ AzerothCompendium.QUESTRECOMMENDEDLEVELS = {
 	[98325] = 60,
 	[5306] = 60,
 	[84162] = 60,
+	[84151] = 60,
+	[84158] = 60,
+	[84166] = 60,
+	[97179] = 60,
+	[97412] = 60,
+	[84153] = 60,
+	[84154] = 60,
+	[84161] = 60,
+	[97169] = 60,
+	[97178] = 60,
+	[97168] = 60,
 }
 
 AzerothCompendium.QUESTENDERS = {
@@ -6888,6 +6940,16 @@ AzerothCompendium.QUESTENDERS = {
 	[98325] = {1418, 5.8, 47.4, 9077, "Warlord Goretooth"},
 	[5306] = {1452, 61.2, 37, 11192, "Kilram"},
 	[84162] = {1454, 35, 38, 230317, "Mokvar"},
+	[84151] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84158] = {1454, 35, 38, 230317, "Mokvar"},
+	[84166] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[97179] = {1424, 60.4, 26, 3539, "Ott"},
+	[84153] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84154] = {1455, 43.4, 51.4, 230319, "Deliana"},
+	[84161] = {1454, 35, 38, 230317, "Mokvar"},
+	[97169] = {1455, 47.4, 13.6, 258098, "Eldrun Stormbreaker"},
+	[97178] = {1424, 60.4, 26, 3539, "Ott"},
+	[97168] = {1455, 47.4, 13.6, 258098, "Eldrun Stormbreaker"},
 }
 
 AzerothCompendium.QUESTCLASSES = {
@@ -7040,6 +7102,10 @@ AzerothCompendium.QUESTCLASSES = {
 	[1531] = 64,
 	[1532] = 64,
 	[96136] = 64,
+	[97179] = 2,
+	[97169] = 64,
+	[97178] = 2,
+	[97168] = 64,
 }
 
 AzerothCompendium.QUESTPREANY = {
@@ -7081,7 +7147,6 @@ AzerothCompendium.QUESTPREANY = {
 	[9033] = {9121, 9122, 9123},
 	[9120] = {9121, 9122, 9123},
 	[9233] = {9121, 9122, 9123},
-	[7641] = {7638, 7640},
 	[4001] = {3981, 3982},
 	[97287] = {92458, 96984},
 	[92459] = {92458, 96984},
@@ -7148,4 +7213,6 @@ AzerothCompendium.QUESTEXCLUSIVE = {
 	[1532] = {1531, 96136},
 	[96136] = {1531, 1532},
 	[98338] = {79364},
+	[6403] = {99435},
+	[99435] = {6403},
 }

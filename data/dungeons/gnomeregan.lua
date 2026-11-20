@@ -487,6 +487,7 @@ local trash = {
 	},
 	{
 		[1] = 9299,
+		["itemClass"] = 12,
 		["mobs"] = {
 			{
 				["name"] = "Mekgineer Thermaplugg",
@@ -495,7 +496,6 @@ local trash = {
 				["model"] = 117499,
 			},
 		},
-		["itemClass"] = 12,
 	},
 	{
 		[1] = 9308,
