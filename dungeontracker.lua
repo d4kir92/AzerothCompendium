@@ -755,7 +755,8 @@ end
 function Tracker:PostToChat()
     local run = self:GetShownRun()
     if run == nil then return end
-    local msg = format("[%s] %s: %s %s: %s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), XP or "XP", self:FormatNumber(run.xp or 0), AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatPlainMoney(run.gold))
+    local xpText = self:ShowsXP() and format(" %s: %s", XP or "XP", self:FormatNumber(run.xp or 0)) or ""
+    local msg = format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), xpText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatPlainMoney(run.gold))
     local channel = nil
     if IsInGroup and LE_PARTY_CATEGORY_INSTANCE and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
         channel = "INSTANCE_CHAT"
@@ -766,7 +767,7 @@ function Tracker:PostToChat()
     end
 
     if channel == nil then
-        DEFAULT_CHAT_FRAME:AddMessage(format("[%s] %s: %s %s: %s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), XP or "XP", self:FormatNumber(run.xp or 0), AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatMoney(run.gold or 0)))
+        DEFAULT_CHAT_FRAME:AddMessage(format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), xpText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatMoney(run.gold or 0)))
 
         return
     end
@@ -871,6 +872,19 @@ function Tracker:CreateStat(parent)
     stat.best:SetWordWrap(false)
 
     return stat
+end
+
+function Tracker:ShowsXP()
+    if type(IsPlayerAtEffectiveMaxLevel) == "function" then
+        local ok, atMax = pcall(IsPlayerAtEffectiveMaxLevel)
+        if ok and type(atMax) == "boolean" then return not atMax end
+    end
+
+    local maxLevel = type(GetMaxPlayerLevel) == "function" and GetMaxPlayerLevel() or AzerothCompendium:GetMaxLevel()
+    local level = UnitLevel("player")
+    if type(level) ~= "number" or type(maxLevel) ~= "number" then return true end
+
+    return level < maxLevel
 end
 
 function Tracker:CreateResizeGrip(frame)
@@ -1362,7 +1376,8 @@ function Tracker:CreateRunRow(parent)
         self.icon:SetTexture((run.finished or run.ended) and "Interface\\RaidFrame\\ReadyCheck-Ready" or "Interface\\RaidFrame\\ReadyCheck-Waiting")
         self.title:SetText(Tracker:GetRunTitle(run))
         self.date:SetText(current and AzerothCompendium:Trans("LID_DT_CURRENT") or date("%d.%m.%y %H:%M", run.start or 0))
-        self.info:SetText(format("%s   %s   %s %d/%d   %s %s   %s", Tracker:GetModeLabel(run), Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, Tracker:FormatNumber(run.xp or 0), XP or "XP", Tracker:FormatMoney(run.gold or 0)))
+        local xpText = Tracker:ShowsXP() and format("%s %s   ", Tracker:FormatNumber(run.xp or 0), XP or "XP") or ""
+        self.info:SetText(format("%s   %s   %s %d/%d   %s%s", Tracker:GetModeLabel(run), Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, xpText, Tracker:FormatMoney(run.gold or 0)))
     end
 
     return row
@@ -1457,12 +1472,22 @@ function Tracker:Layout()
 
     local innerWidth = frame:GetWidth() - c.side * 2
     local columnWidth = innerWidth / 3
+    local showXP = self:ShowsXP()
+    local statWidth = innerWidth / (showXP and 3 or 2)
+    local slot = 0
     for index, column in ipairs(frame.statColumns) do
-        column.label:ClearAllPoints()
-        column.label:SetPoint("TOP", frame.stats, "TOPLEFT", columnWidth * (index - 0.5), -8)
-        column.label:SetWidth(columnWidth - 8)
-        column.value:SetWidth(columnWidth - 8)
-        column.best:SetWidth(columnWidth - 8)
+        local visible = index ~= 2 or showXP
+        column.label:SetShown(visible)
+        column.value:SetShown(visible)
+        column.best:SetShown(visible)
+        if visible then
+            slot = slot + 1
+            column.label:ClearAllPoints()
+            column.label:SetPoint("TOP", frame.stats, "TOPLEFT", statWidth * (slot - 0.5), -8)
+            column.label:SetWidth(statWidth - 8)
+            column.value:SetWidth(statWidth - 8)
+            column.best:SetWidth(statWidth - 8)
+        end
     end
 
     local run = self:GetShownRun()
@@ -1660,11 +1685,13 @@ function Tracker:OnEvent(event, ...)
         self:OnUnit(...)
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" then
         self:CheckAway()
+    elseif event == "PLAYER_LEVEL_UP" then
+        if C_Timer and C_Timer.After then C_Timer.After(0, function() Tracker:Refresh() end) else self:Refresh() end
     end
 end
 
 Tracker.eventFrame = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_DISABLED", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST"}) do
+for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_DISABLED", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_LEVEL_UP"}) do
     pcall(Tracker.eventFrame.RegisterEvent, Tracker.eventFrame, event)
 end
 
