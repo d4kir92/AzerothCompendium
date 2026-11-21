@@ -276,10 +276,11 @@ function D4:CreateInstanceMap(provider)
             local info = shownLevels ~= nil and shownLevels[shownIndex] or nil
             local mapID = provider.getReturnMapID(info)
             if mapID ~= nil and WorldMapFrame.SetMapID ~= nil then
-                hiddenFor = shownInstance
+                hiddenFor = shownInstance or select(2, GetInstanceArt())
                 ClearForced()
                 overlay:Hide()
                 levelButton:Hide()
+                mapPinKey = nil
                 if mapPinSet ~= nil then mapPinSet:Hide() end
                 WorldMapFrame:SetMapID(mapID)
                 Refresh()
