@@ -11,6 +11,7 @@ local POI_START_SCALE = 1
 local POI_END_SCALE = 1.2
 local UPDATE_INTERVAL = 0.05
 local GROUP_DISTANCE = 0.5
+local OPENMAP_CLICK_DISTANCE = 6
 local WorldMap = {
     instanceMaps = {
         [2959] = {16544},
@@ -699,15 +700,16 @@ function WorldMap.UpdateLocations()
     local poiScale = WorldMap.GetPoiScale()
     local entrancesOn = AzerothCompendium:GetSharedOption("DUNGEONWORLDMAPPINS")
     local meetingStonesOn = AzerothCompendium:GetSharedOption("MEETINGSTONEWORLDMAPPINS")
+    local stitched = OpenMapAPI ~= nil and OpenMapAPI.IsStitched ~= nil and OpenMapAPI.IsStitched() or false
     local last = WorldMap.locationState
-    if WorldMap.locationKey == true and last.mapID == mapID and abs((last.scale or 0) - (scale or 0)) < 0.00005 and abs(last.poiScale - poiScale) < 0.00005 and last.entrancesOn == entrancesOn and last.meetingStonesOn == meetingStonesOn then return end
+    if WorldMap.locationKey == true and last.mapID == mapID and abs((last.scale or 0) - (scale or 0)) < 0.00005 and abs(last.poiScale - poiScale) < 0.00005 and last.entrancesOn == entrancesOn and last.meetingStonesOn == meetingStonesOn and last.stitched == stitched then return end
     WorldMap.locationKey = true
-    last.mapID, last.scale, last.poiScale, last.entrancesOn, last.meetingStonesOn = mapID, scale, poiScale, entrancesOn, meetingStonesOn
+    last.mapID, last.scale, last.poiScale, last.entrancesOn, last.meetingStonesOn, last.stitched = mapID, scale, poiScale, entrancesOn, meetingStonesOn, stitched
     for _, pin in ipairs(WorldMap.pins) do
         pin:Hide()
     end
 
-    local groups = WorldMap.IsLocationOwner() and WorldMap.GetLocations(mapID) or nil
+    local groups = WorldMap.IsLocationOwner() and not stitched and WorldMap.GetLocations(mapID) or nil
     if groups == nil or scale == nil or scale <= 0 then return end
     local w = child:GetWidth()
     local h = child:GetHeight()
@@ -750,6 +752,70 @@ if WorldMapFrame ~= nil then
         local openMapView = OpenMapAPI ~= nil and _G["OpenMapDungeonView"] or nil
         if openMapView ~= nil and openMapView:IsShown() and WorldMap.map:IsShown() then openMapView:Hide() end
     end)
+
+    local clicks = CreateFrame("FRAME")
+    clicks:RegisterEvent("GLOBAL_MOUSE_DOWN")
+    clicks:RegisterEvent("GLOBAL_MOUSE_UP")
+    clicks:SetScript("OnEvent", function(_, event, button)
+        if button ~= "LeftButton" then return end
+        if event == "GLOBAL_MOUSE_DOWN" then
+            local insts, focus = WorldMap.GetOpenMapEntrance()
+            local x, y = GetCursorPosition()
+            WorldMap.openMapDown = insts ~= nil and {insts, x, y, focus} or nil
+            return
+        end
+
+        local down = WorldMap.openMapDown
+        WorldMap.openMapDown = nil
+        if down == nil or select(2, WorldMap.GetOpenMapEntrance()) ~= down[4] then return end
+        local x, y = GetCursorPosition()
+        if abs(x - down[2]) > OPENMAP_CLICK_DISTANCE or abs(y - down[3]) > OPENMAP_CLICK_DISTANCE then return end
+        C_Timer.After(0, function() WorldMap.ShowOpenMapEntrance(down[1]) end)
+    end)
+end
+
+function WorldMap.IsOpenMapMapsOff()
+    if OpenMapAPI == nil or type(OpenMapDB) ~= "table" or type(OpenMapDB.worldmap) ~= "table" then return false end
+    return OpenMapDB.worldmap.dungeonMaps == false
+end
+
+function WorldMap.GetOpenMapEntrance()
+    if WorldMapFrame == nil or not WorldMapFrame:IsShown() or not WorldMap.IsOpenMapMapsOff() then return nil end
+    local focus = nil
+    if GetMouseFoci ~= nil then
+        focus = GetMouseFoci()[1]
+    elseif GetMouseFocus ~= nil then
+        focus = GetMouseFocus()
+    end
+
+    if type(focus) ~= "table" or focus.IsForbidden ~= nil and focus:IsForbidden() then return nil end
+    if type(focus.instances) == "table" and focus.OnClick ~= nil then
+        if #focus.instances == 1 then return focus.instances, focus end
+        return nil
+    end
+
+    local parent = focus.GetParent ~= nil and focus:GetParent() or nil
+    if type(focus.inst) == "table" and type(parent) == "table" and type(parent.pin) == "table" and type(parent.pin.instances) == "table" then return {focus.inst}, focus end
+    return nil
+end
+
+function WorldMap.ShowOpenMapEntrance(insts)
+    local ids = {}
+    for _, inst in ipairs(insts) do
+        if type(inst[1]) == "number" and WorldMap.GetLevels(inst[1]) ~= nil then tinsert(ids, inst[1]) end
+    end
+
+    if #ids == 0 then return end
+    local level = nil
+    local wanted = #ids == 1 and type(insts[1][2]) == "string" and strlower(insts[1][2]) or nil
+    for index, info in ipairs(wanted ~= nil and WorldMap.GetLevels(ids[1]) or {}) do
+        local wing = info.inst ~= nil and info.inst.wing or nil
+        local wingName = wing ~= nil and AzerothCompendium:Trans(wing, "enUS") or nil
+        if level == nil and type(wingName) == "string" and wingName ~= "" and strfind(wanted, strlower(wingName), 1, true) then level = index end
+    end
+
+    WorldMap.returnMapID = WorldMapFrame:GetMapID()
+    WorldMap.map:Show(ids, level)
 end
 
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
