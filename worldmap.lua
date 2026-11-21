@@ -219,6 +219,7 @@ end
 WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["media"] = MEDIA_PATH,
     ["isDisabled"] = WorldMap.IsNative,
+    ["keepShown"] = function() return OpenMapAPI ~= nil end,
     ["getLevels"] = WorldMap.GetLevels,
     ["getLabel"] = WorldMap.GetLabel,
     ["getPins"] = WorldMap.GetPins,
@@ -746,6 +747,8 @@ if WorldMapFrame ~= nil then
         if sel.elapsed < UPDATE_INTERVAL then return end
         sel.elapsed = 0
         WorldMap.UpdateLocations()
+        local openMapView = OpenMapAPI ~= nil and _G["OpenMapDungeonView"] or nil
+        if openMapView ~= nil and openMapView:IsShown() and WorldMap.map:IsShown() then openMapView:Hide() end
     end)
 end
 

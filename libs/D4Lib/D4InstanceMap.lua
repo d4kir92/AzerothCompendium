@@ -566,6 +566,7 @@ function D4:CreateInstanceMap(provider)
         local levels, instanceMapID = GetInstanceArt()
         if levels == nil then return nil end
         if hiddenFor == instanceMapID then return nil end
+        if provider.keepShown ~= nil and provider.keepShown() then return levels, selected[instanceMapID] or 1, instanceMapID end
         local playerMapID = GetPlayerMapID()
         if playerMapID ~= nil and WorldMapFrame:GetMapID() ~= playerMapID then return nil end
         return levels, selected[instanceMapID] or 1, instanceMapID
