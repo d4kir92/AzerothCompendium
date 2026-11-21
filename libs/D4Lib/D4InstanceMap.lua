@@ -283,6 +283,7 @@ function D4:CreateInstanceMap(provider)
                 if mapPinSet ~= nil then mapPinSet:Hide() end
                 WorldMapFrame:SetMapID(mapID)
                 Refresh()
+                if provider.onReturn ~= nil then provider.onReturn(info) end
                 return
             end
         end

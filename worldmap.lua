@@ -221,6 +221,12 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["media"] = MEDIA_PATH,
     ["isDisabled"] = WorldMap.IsNative,
     ["keepShown"] = function() return OpenMapAPI ~= nil end,
+    ["onReturn"] = function()
+        local view = WorldMap.openMapReturnView
+        WorldMap.openMapReturnView = nil
+        if view == nil or OpenMapAPI == nil or OpenMapAPI.ShowWorld == nil then return end
+        C_Timer.After(0, function() OpenMapAPI.ShowWorld(view[1], view[2], view[3]) end)
+    end,
     ["getLevels"] = WorldMap.GetLevels,
     ["getLabel"] = WorldMap.GetLabel,
     ["getPins"] = WorldMap.GetPins,
@@ -738,6 +744,7 @@ end
 
 if WorldMapFrame ~= nil then
     WorldMapFrame:HookScript("OnShow", function()
+        WorldMap.openMapReturnView = nil
         wipe(WorldMap.pinCache)
         WorldMap.map:Invalidate()
     end)
@@ -761,7 +768,8 @@ if WorldMapFrame ~= nil then
         if event == "GLOBAL_MOUSE_DOWN" then
             local insts, focus = WorldMap.GetOpenMapEntrance()
             local x, y = GetCursorPosition()
-            WorldMap.openMapDown = insts ~= nil and {insts, x, y, focus} or nil
+            local view = insts ~= nil and OpenMapAPI.GetView ~= nil and {OpenMapAPI.GetView()} or nil
+            WorldMap.openMapDown = insts ~= nil and {insts, x, y, focus, view} or nil
             return
         end
 
@@ -770,7 +778,7 @@ if WorldMapFrame ~= nil then
         if down == nil or select(2, WorldMap.GetOpenMapEntrance()) ~= down[4] then return end
         local x, y = GetCursorPosition()
         if abs(x - down[2]) > OPENMAP_CLICK_DISTANCE or abs(y - down[3]) > OPENMAP_CLICK_DISTANCE then return end
-        C_Timer.After(0, function() WorldMap.ShowOpenMapEntrance(down[1]) end)
+        C_Timer.After(0, function() WorldMap.ShowOpenMapEntrance(down[1], down[5]) end)
     end)
 end
 
@@ -799,7 +807,7 @@ function WorldMap.GetOpenMapEntrance()
     return nil
 end
 
-function WorldMap.ShowOpenMapEntrance(insts)
+function WorldMap.ShowOpenMapEntrance(insts, view)
     local ids = {}
     for _, inst in ipairs(insts) do
         if type(inst[1]) == "number" and WorldMap.GetLevels(inst[1]) ~= nil then tinsert(ids, inst[1]) end
@@ -815,7 +823,7 @@ function WorldMap.ShowOpenMapEntrance(insts)
     end
 
     WorldMap.returnMapID = WorldMapFrame:GetMapID()
-    WorldMap.map:Show(ids, level)
+    if WorldMap.map:Show(ids, level) then WorldMap.openMapReturnView = view ~= nil and view[1] ~= nil and view or nil end
 end
 
 AzerothCompendiumAPI = AzerothCompendiumAPI or {}
