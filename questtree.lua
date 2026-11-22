@@ -11,7 +11,7 @@ local STATUS_ICON_SIZE = 14
 local GAP_X = 14
 local GAP_Y = 22
 local PAD = 10
-local HEADER_H = 22
+local HEADER_H = 32
 local BOX_GAP = 24
 local EMPTY_H = 26
 local ICON_SIZE = 16
@@ -28,8 +28,6 @@ local HBAR_H = 12
 local HBAR_MIN_THUMB = 30
 local DRAG_THRESHOLD = 4
 local WHEEL_STEP = 60
-local QUEST_TAG_ATLAS_SIZE = 22
-local QUEST_TAG_ATLAS_INSET = 4
 local QUEST_TAG_DEFAULT_ICON = "Interface\\Icons\\INV_Misc_Bone_Skull_02"
 local QUEST_TAG_PLAIN_ATLASES = {
     ["questlog-questtypeicon-dungeon"] = true,
@@ -74,6 +72,8 @@ local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
 local ZOOM_BAR_W = 130
 local LIST_ROW_H = 18
+local LIST_HEADER_H = 28
+local LIST_HEADER_GAP = 8
 local LIST_INDENT = 14
 local LIST_TOGGLE_SIZE = 14
 local VIEW_BUTTON_W = 60
@@ -591,8 +591,6 @@ local function CreateNode(canvas, tree)
     node.statusIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
     node.statusIcon:SetPoint("TOPLEFT", node, "TOPLEFT", NODE_PAD_X - 1, -NODE_PAD_TOP)
     node.title = node:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    node.tagIcon = node:CreateTexture(nil, "ARTWORK")
-    node.tagIcon:Hide()
     node.title:SetPoint("LEFT", node.statusIcon, "RIGHT", 3, 0)
     node.outsideIcon = node:CreateTexture(nil, "ARTWORK")
     node.outsideIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
@@ -754,35 +752,8 @@ local function UpdateNode(button, node, width)
     end
 
     if node.outside then button.outsideIcon:Show() else button.outsideIcon:Hide() end
-    local tagIcon = AzerothCompendium.QUESTTAGS and GetQuestTagIcon(AzerothCompendium.QUESTTAGS[node.id])
     button.title:ClearAllPoints()
-    if tagIcon then
-        button.tagIcon:ClearAllPoints()
-        if tagIcon[3] then
-            button.tagIcon:SetTexCoord(0, 1, 0, 1)
-            button.tagIcon:SetAtlas(tagIcon[1])
-            button.tagIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
-            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
-            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3, 0)
-        elseif tagIcon[2] then
-            button.tagIcon:SetTexCoord(0, 1, 0, 1)
-            button.tagIcon:SetAtlas(tagIcon[1])
-            button.tagIcon:SetSize(QUEST_TAG_ATLAS_SIZE, QUEST_TAG_ATLAS_SIZE)
-            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3 - QUEST_TAG_ATLAS_INSET, 0)
-            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3 - QUEST_TAG_ATLAS_INSET, 0)
-        else
-            button.tagIcon:SetTexture(tagIcon[1])
-            button.tagIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-            button.tagIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
-            button.tagIcon:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
-            button.title:SetPoint("LEFT", button.tagIcon, "RIGHT", 3, 0)
-        end
-
-        button.tagIcon:Show()
-    else
-        button.tagIcon:Hide()
-        button.title:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
-    end
+    button.title:SetPoint("LEFT", button.statusIcon, "RIGHT", 3, 0)
 
     local rightInset = node.outside and NODE_PAD_X + STATUS_ICON_SIZE + 3 or NODE_PAD_X
     local groupCount, groupTotal = GetGroupQuestCount(node.id)
@@ -1012,7 +983,7 @@ local function ComputeLayers(nodes)
     end
 end
 
-local function BuildComponents(nodes)
+local function BuildComponents(nodes, include)
     local owner = {}
     local components = {}
     for _, start in ipairs(nodes) do
@@ -1032,7 +1003,7 @@ local function BuildComponents(nodes)
                 if node.instance and node.level < component.level then component.level = node.level end
                 for _, list in ipairs({node.parents, node.children}) do
                     for _, other in ipairs(list) do
-                        if owner[other] == nil then
+                        if owner[other] == nil and (include == nil or include[other]) then
                             owner[other] = component
                             tinsert(stack, other)
                         end
@@ -1117,9 +1088,24 @@ local function CreateBox(canvas, titleText)
     box.background:SetColorTexture(0, 0, 0, 0.3)
     box.border = CreateBorder(box, "BACKGROUND", -6)
     box.border:SetColor(0.75, 0.6, 0.25, 0.7)
-    box.title = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    box.title:SetPoint("TOPLEFT", box, "TOPLEFT", 8, -5)
-    box.title:SetPoint("TOPRIGHT", box, "TOPRIGHT", -8, -5)
+    box.header = CreateFrame("Button", nil, box)
+    box.header:SetPoint("TOPLEFT", box, "TOPLEFT", 1, -1)
+    box.header:SetPoint("TOPRIGHT", box, "TOPRIGHT", -1, -1)
+    box.header:SetHeight(HEADER_H - 2)
+    box.header.background = box.header:CreateTexture(nil, "BACKGROUND")
+    box.header.background:SetAllPoints(box.header)
+    box.header.background:SetColorTexture(0.75, 0.6, 0.25, 0.16)
+    box.header.highlight = box.header:CreateTexture(nil, "HIGHLIGHT")
+    box.header.highlight:SetAllPoints(box.header)
+    box.header.highlight:SetColorTexture(1, 1, 1, 0.06)
+    box.header.toggle = box.header:CreateTexture(nil, "ARTWORK")
+    box.header.toggle:SetSize(16, 16)
+    box.header.toggle:SetPoint("LEFT", box.header, "LEFT", 8, 0)
+    box.title = box.header:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    local font, size = box.title:GetFont()
+    if font then box.title:SetFont(font, (size or 16) + 1, "OUTLINE") end
+    box.title:SetPoint("LEFT", box.header, "LEFT", 8, 0)
+    box.title:SetPoint("RIGHT", box.header, "RIGHT", -8, 0)
     box.title:SetJustifyH("LEFT")
     box.title:SetWordWrap(false)
     box.title:SetText(titleText)
@@ -1547,17 +1533,29 @@ local function BuildListTree(graph)
     return items
 end
 
+local function IsListItemOpen(item, expanded)
+    local open = expanded[item.key]
+    if open ~= nil then return open end
+    for _, child in ipairs(item.children) do
+        if child.node and GetQuestStatus(child.node.id, child.node) ~= "complete" then return true end
+    end
+
+    return false
+end
+
 local function FlattenList(items, depth, expanded, out)
     for _, item in ipairs(items) do
+        local open = #item.children > 0 and IsListItemOpen(item, expanded)
         tinsert(out, {
             kind = "quest",
             item = item,
             key = item.key,
             depth = depth,
-            hasChildren = #item.children > 0
+            hasChildren = #item.children > 0,
+            open = open
         })
 
-        if #item.children > 0 and expanded[item.key] then FlattenList(item.children, depth + 1, expanded, out) end
+        if open then FlattenList(item.children, depth + 1, expanded, out) end
     end
 end
 
@@ -1583,37 +1581,13 @@ local function FindListItem(items, key)
     return nil
 end
 
-local function GetListQuestTitle(node, status)
-    local prefix = ""
-    local startItem = not Spoiler.IsMasked(node) and AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
-    if startItem then
-        local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
-        prefix = format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
-    end
+local function GetListQuestTitle(node)
+    local text = GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r"
 
-    local tagIcon = AzerothCompendium.QUESTTAGS and GetQuestTagIcon(AzerothCompendium.QUESTTAGS[node.id])
-    if tagIcon then
-        if tagIcon[2] and CreateAtlasMarkup then
-            prefix = prefix .. CreateAtlasMarkup(tagIcon[1], STATUS_ICON_SIZE, STATUS_ICON_SIZE) .. " "
-        elseif not tagIcon[2] then
-            prefix = prefix .. format("|T%s:%d:%d:0:0:64:64:5:59:5:59|t ", tagIcon[1], STATUS_ICON_SIZE, STATUS_ICON_SIZE)
-        end
-    end
-
-    local text = prefix .. GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r"
     local classText = AzerothCompendium:GetQuestClassText(node.id)
     if classText then text = text .. "  " .. classText end
-    local phaseText
-    if status == "lowlevel" then
-        phaseText = GetNodeRequiredLevel(node) and AzerothCompendium:Trans("LID_REQUIRESLEVEL", nil, GetNodeRequiredLevel(node))
-    elseif status == "active" then
-        phaseText = AzerothCompendium:Trans("LID_QUESTPHASEDO")
-    elseif status == "open" then
-        phaseText = GetPhaseText(node, {accept = true})
-    end
 
-    phaseText = phaseText or AzerothCompendium:Trans(STATUS_TEXT[status])
-    return text .. "  |cffa0a0a0" .. phaseText .. "|r"
+    return text
 end
 
 local function GetListQuestRight(node)
@@ -1625,6 +1599,11 @@ local function GetListQuestRight(node)
     end
 
     if node.outside then text = text .. format(" |T%s:%d:%d:0:0:64:64:5:59:5:59|t", OUTSIDE_ICON, STATUS_ICON_SIZE, STATUS_ICON_SIZE) end
+    local startItem = not Spoiler.IsMasked(node) and AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
+    if startItem then
+        local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
+        text = text .. format(" |T%s:%d:%d:0:0:64:64:5:59:5:59|t", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    end
 
     return text
 end
@@ -1647,7 +1626,13 @@ local function CreateListRow(parent, tree)
     row.toggle:SetSize(LIST_TOGGLE_SIZE, LIST_TOGGLE_SIZE)
     row.toggle:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
     row.toggle:SetNormalTexture(PLUS_TEXTURE)
-    row.toggle:SetScript("OnClick", function() tree:ToggleListKey(row.key) end)
+    row.toggle:SetScript("OnClick", function()
+        if row.kind == "header" then
+            tree:ToggleListSection(row.section)
+        else
+            tree:ToggleListKey(row.key)
+        end
+    end)
     local theme = AzerothCompendium.Theme
     theme:SkinCollapseButton(row.toggle)
     theme:ApplyRecord(row.toggle.acoTheme, theme:IsModern())
@@ -1666,6 +1651,19 @@ local function CreateListRow(parent, tree)
     row.text:SetPoint("RIGHT", row.right, "LEFT", -6, 0)
     row.text:SetJustifyH("LEFT")
     row.text:SetWordWrap(false)
+    row.headerRight = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    row.headerRight:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+    row.headerRight:SetJustifyH("RIGHT")
+    row.headerRight:SetWordWrap(false)
+    row.headerText = row:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    local font, size = row.headerText:GetFont()
+    if font then row.headerText:SetFont(font, (size or 16) + 1, "OUTLINE") end
+    row.headerText:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
+    row.headerText:SetPoint("RIGHT", row.headerRight, "LEFT", -6, 0)
+    row.headerText:SetJustifyH("LEFT")
+    row.headerText:SetWordWrap(false)
+    row.headerText:Hide()
+    row.headerRight:Hide()
     row:SetScript("OnMouseDown", function() tree.dragMoved = false end)
     row:SetScript("OnEnter", function(sel)
         if sel.kind == "quest" then
@@ -1690,6 +1688,8 @@ local function CreateListRow(parent, tree)
             end
         elseif sel.kind == "key" then
             tree.keyLine:GetScript("OnClick")(sel)
+        elseif sel.kind == "header" then
+            tree:ToggleListSection(sel.section)
         end
     end)
 
@@ -1699,13 +1699,18 @@ end
 local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.kind = entry.kind
     row.key = entry.key
+    row.section = entry.section
+    row.collapsed = entry.collapsed
     row.selected:SetShown(entry.kind == "quest" and entry.key == selectedKey)
     row.node = entry.item and entry.item.node or nil
     row.attunement = entry.attunement
     row.toggle:ClearAllPoints()
     row.toggle:SetPoint("LEFT", row, "LEFT", 6 + (entry.depth or 0) * LIST_INDENT, 0)
-    if entry.hasChildren then
-        row.toggle:SetNormalTexture(expanded[entry.key] and MINUS_TEXTURE or PLUS_TEXTURE)
+    if entry.kind == "header" then
+        row.toggle:SetNormalTexture(entry.collapsed and PLUS_TEXTURE or MINUS_TEXTURE)
+        row.toggle:SetShown(entry.collapsible == true)
+    elseif entry.hasChildren then
+        row.toggle:SetNormalTexture(entry.open and MINUS_TEXTURE or PLUS_TEXTURE)
         row.toggle:Show()
     else
         row.toggle:Hide()
@@ -1716,16 +1721,29 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.icon:SetTexCoord(0, 1, 0, 1)
     row.bar:Hide()
     row.right:SetText("")
+    row.headerText:Hide()
+    row.headerRight:Hide()
+    row.text:Show()
+    row.right:Show()
+    row:SetHeight(entry.height or LIST_ROW_H)
     if entry.kind == "header" then
         local progress = entry.progress or {done = 0, total = 0}
-        local finished = progress.total > 0 and progress.done >= progress.total
-        row.background:SetColorTexture(1, 0.82, 0, 0.12)
+        local finished = progress.done >= progress.total
+        row.background:SetColorTexture(0.75, 0.6, 0.25, 0.22)
         row.icon:SetTexture(STATUS_ICON.complete[1])
         row.icon:SetDesaturated(STATUS_ICON.complete[2])
         row.icon:SetShown(finished)
-        row.text:SetFontObject("GameFontNormal")
-        row.text:SetText(AzerothCompendium:Trans(SECTION_TITLES[entry.section] or SECTION_TITLES[2]))
-        row.right:SetText(format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total))
+        row.text:Hide()
+        row.right:Hide()
+        row.headerText:SetText(AzerothCompendium:Trans(SECTION_TITLES[entry.section] or SECTION_TITLES[2]))
+        row.headerRight:SetText(progress.total > 0 and format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total) or "")
+        row.headerText:Show()
+        row.headerRight:Show()
+    elseif entry.kind == "empty" then
+        row.background:SetColorTexture(0, 0, 0, 0)
+        row.icon:Hide()
+        row.text:SetFontObject("GameFontDisableSmall")
+        row.text:SetText(AzerothCompendium:Trans(SECTION_EMPTY[entry.section]))
     elseif entry.kind == "key" then
         row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
         local icon, status, text = GetKeyLineInfo(entry.attunement)
@@ -1747,7 +1765,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         if info[3] then row.icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
         row.icon:Show()
         row.text:SetFontObject("GameFontNormalSmall")
-        row.text:SetText(GetListQuestTitle(node, status))
+        row.text:SetText(GetListQuestTitle(node))
         row.right:SetText(GetListQuestRight(node))
     end
 
@@ -2464,8 +2482,17 @@ function AzerothCompendium:CreateQuestTree(parent)
     for section = 1, SECTION_COUNT do
         local box = CreateBox(canvas, AzerothCompendium:Trans(SECTION_TITLES[section]))
         box.empty:SetText(AzerothCompendium:Trans(SECTION_EMPTY[section]))
+        box.header:SetScript("OnMouseDown", function(_, mouseButton) tree:StartDrag(mouseButton) end)
+        box.header:SetScript("OnMouseUp", function() tree:StopDrag() end)
+        box.header:SetScript("OnClick", function()
+            if tree.dragMoved or not box.collapsible then return end
+            tree.collapseOverride[section] = not box.collapsed
+            tree:Layout()
+        end)
         tree.boxes[section] = box
     end
+
+    tree.collapseOverride = {}
 
     function tree:UpdateBoxTitle(section)
         local box = self.boxes[section]
@@ -2475,6 +2502,8 @@ function AzerothCompendium:CreateQuestTree(parent)
             local finished = progress.done >= progress.total
             if finished then text = format("|T%s:%d|t ", STATUS_ICON.complete[1], STATUS_ICON_SIZE) .. text end
             text = text .. format("  %s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total)
+        elseif progress then
+            text = format("|T%s:%d|t ", STATUS_ICON.complete[1], STATUS_ICON_SIZE) .. text
         end
 
         box.title:SetText(text)
@@ -2536,7 +2565,7 @@ function AzerothCompendium:CreateQuestTree(parent)
                 root = root.parents[1]
             end
 
-            if root == parentNode or root.y > cy then return end
+            if root == parentNode or root.y == nil or root.y > cy then return end
             if root.y + root.h < cy then return AddEdge(root, childNode, nodeW, gapY) end
             local rx = root.x + nodeW / 2
             local firstRow = cy <= tree.boxTops[childNode.section] + HEADER_H + KEY_LINE_H + PAD
@@ -2571,6 +2600,13 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     function tree:SetGraph(graph)
         self.graph = graph or {}
+        local graphKey = (self.graph[1] and self.graph[1].id or 0) .. ":" .. #self.graph
+        if graphKey ~= self.graphKey then
+            self.graphKey = graphKey
+            self.collapseOverride = {}
+            self.listCollapseOverride = {}
+        end
+
         self:Layout()
         SetHScroll(0)
         scroll:SetVerticalScroll(0)
@@ -2581,7 +2617,22 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.listItems = {}
     function tree:ToggleListKey(key)
         if key == nil then return end
-        self.expanded[key] = not self.expanded[key] or nil
+        local item = FindListItem(self.listItems, key)
+        if item == nil then return end
+        self.expanded[key] = not IsListItemOpen(item, self.expanded)
+        self:Layout()
+    end
+
+    tree.listCollapseOverride = {}
+    function tree:ToggleListSection(section)
+        if section == nil then return end
+        for _, row in ipairs(self.listRows) do
+            if row:IsShown() and row.kind == "header" and row.section == section then
+                self.listCollapseOverride[section] = not row.collapsed
+                break
+            end
+        end
+
         self:Layout()
     end
 
@@ -2609,8 +2660,25 @@ function AzerothCompendium:CreateQuestTree(parent)
             scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
         end
 
+        local activeSection = 0
+        for section = 1, SECTION_COUNT do
+            local progress = items.progress[section]
+            if progress and progress.done < progress.total then
+                activeSection = section
+                break
+            end
+        end
+
+        local firstActive = items[1]
+        for _, item in ipairs(items) do
+            if item.section == activeSection then
+                firstActive = item
+                break
+            end
+        end
+
         local selected = self.selectedKey and FindListItem(items, self.selectedKey)
-        selected = selected or self.selectedQuestID and FindListPath(items, self.selectedQuestID, {}) or items[1]
+        selected = selected or self.selectedQuestID and FindListPath(items, self.selectedQuestID, {}) or firstActive
         self.selectedKey = selected and selected.key or nil
         self.selectedQuestID = selected and selected.node.id or nil
         local entries = {}
@@ -2619,14 +2687,37 @@ function AzerothCompendium:CreateQuestTree(parent)
             tinsert(entries, {kind = "key", attunement = attunement, depth = 0})
         end
 
-        local lastSection
-        for _, item in ipairs(items) do
-            if item.section ~= lastSection then
-                lastSection = item.section
-                tinsert(entries, {kind = "header", section = item.section, progress = items.progress[item.section], depth = 0})
+        if activeSection ~= self.listActiveSection then
+            self.listActiveSection = activeSection
+            self.listCollapseOverride = {}
+        end
+
+        if #items > 0 or attunement ~= nil then
+            local bySection = {}
+            for _, item in ipairs(items) do
+                bySection[item.section] = bySection[item.section] or {}
+                tinsert(bySection[item.section], item)
             end
 
-            FlattenList({item}, 0, self.expanded, entries)
+            for section = 1, SECTION_COUNT do
+                local sectionItems = bySection[section]
+                if sectionItems or section > 1 then
+                    local progress = items.progress[section]
+                    local collapsible = sectionItems ~= nil
+                    local collapsed = false
+                    if collapsible then
+                        collapsed = self.listCollapseOverride[section]
+                        if collapsed == nil then collapsed = section ~= activeSection end
+                    end
+
+                    tinsert(entries, {kind = "header", section = section, progress = progress, depth = 0, height = LIST_HEADER_H, gap = #entries > 0 and LIST_HEADER_GAP or 0, collapsible = collapsible, collapsed = collapsed})
+                    if sectionItems == nil then
+                        tinsert(entries, {kind = "empty", section = section, depth = 0})
+                    elseif not collapsed then
+                        FlattenList(sectionItems, 0, self.expanded, entries)
+                    end
+                end
+            end
         end
 
         if attunement and attunement.key and attunement.opens ~= nil then
@@ -2634,6 +2725,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local width = max(1, scroll:GetWidth() or 0)
+        local listY = 0
         for index, entry in ipairs(entries) do
             local row = self.listRows[index]
             if row == nil then
@@ -2641,10 +2733,13 @@ function AzerothCompendium:CreateQuestTree(parent)
                 self.listRows[index] = row
             end
 
+            listY = listY + (entry.gap or 0)
+            row.listY = listY
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -(index - 1) * LIST_ROW_H)
+            row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -listY)
             row:SetWidth(width)
             UpdateListRow(row, entry, index, self.expanded, self.selectedKey)
+            listY = listY + (entry.height or LIST_ROW_H)
         end
 
         detail:SetNode(selected and selected.node or nil)
@@ -2653,7 +2748,7 @@ function AzerothCompendium:CreateQuestTree(parent)
             self.listRows[index]:Hide()
         end
 
-        listHolder:SetSize(width, max(1, #entries * LIST_ROW_H))
+        listHolder:SetSize(width, max(1, listY))
         self.hint:Hide()
         if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
         SetHScroll(0)
@@ -2703,8 +2798,62 @@ function AzerothCompendium:CreateQuestTree(parent)
         lineLayer:SetFrameLevel(baseLevel + 2)
         local viewW = (scroll:GetWidth() or 0) / self.zoom
         if viewW <= 0 then viewW = NODE_MIN_W + 2 * PAD end
+        local attunement = graph.attunement
+        local keySection = attunement ~= nil and attunement.key ~= nil and (attunement.opens ~= nil and 3 or 1) or nil
+        local function IsBoxVisible(section)
+            return section ~= 1 or attunement ~= nil and attunement.opens == nil
+        end
+
+        for _, box in ipairs(self.boxes) do
+            box.progress = {done = 0, total = 0}
+        end
+
+        for _, node in ipairs(graph) do
+            local progress = self.boxes[node.section] and self.boxes[node.section].progress
+            if progress then
+                progress.total = progress.total + 1
+                if GetQuestStatus(node.id, node) == "complete" then progress.done = progress.done + 1 end
+            end
+        end
+
+        local activeSection = 0
+        for section = 1, SECTION_COUNT do
+            local progress = self.boxes[section].progress
+            if IsBoxVisible(section) and progress.done < progress.total then
+                activeSection = section
+                break
+            end
+        end
+
+        if activeSection ~= self.activeSection then
+            self.activeSection = activeSection
+            self.collapseOverride = {}
+        end
+
+        for section, box in ipairs(self.boxes) do
+            box.collapsible = box.progress.total > 0
+            box.collapsed = false
+            if box.collapsible then
+                local override = self.collapseOverride[section]
+                if override == nil then override = section ~= activeSection end
+                box.collapsed = override
+            end
+        end
+
+        local visible = {}
+        local visibleSet = {}
+        for _, node in ipairs(graph) do
+            node.x = nil
+            node.y = nil
+            local box = self.boxes[node.section]
+            if not (box and box.collapsed) then
+                tinsert(visible, node)
+                visibleSet[node] = true
+            end
+        end
+
         ComputeLayers(graph)
-        local components = BuildComponents(graph)
+        local components = BuildComponents(visible, visibleSet)
         local connected = {}
         local loose = {}
         for _, component in ipairs(components) do
@@ -2735,7 +2884,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         local nodeH = 0
         for _, node in ipairs(graph) do
             node.h = GetNodeHeight(node)
-            nodeH = max(nodeH, node.h)
+            if visibleSet[node] then nodeH = max(nodeH, node.h) end
         end
 
         local viewCols = max(1, floor((viewW - 2 * PAD + GAP_X) / (NODE_MIN_W + GAP_X)))
@@ -2744,15 +2893,14 @@ function AzerothCompendium:CreateQuestTree(parent)
         if cols == viewCols then nodeW = max(NODE_MIN_W, min(NODE_MAX_W, floor((viewW - 2 * PAD - (cols - 1) * GAP_X) / cols))) end
         local rowStep = nodeH + GAP_Y
         local colStep = nodeW + GAP_X
-        local attunement = graph.attunement
-        local keySection = attunement ~= nil and attunement.key ~= nil and (attunement.opens ~= nil and 3 or 1) or nil
         local function HeaderHeight(section)
-            if section == keySection then return HEADER_H + KEY_LINE_H end
+            if section == keySection and not self.boxes[section].collapsed then return HEADER_H + KEY_LINE_H end
 
             return HEADER_H
         end
 
         local function BoxHeight(section, count)
+            if self.boxes[section].collapsed then return HEADER_H end
             if count <= 0 then
                 if section == 1 then return HeaderHeight(section) + 4 end
 
@@ -2760,10 +2908,6 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
 
             return HeaderHeight(section) + PAD + count * nodeH + (count - 1) * GAP_Y + PAD
-        end
-
-        local function IsBoxVisible(section)
-            return section ~= 1 or attunement ~= nil and attunement.opens == nil
         end
 
         local canvasW = max(viewW, 2 * PAD + cols * nodeW + (cols - 1) * GAP_X)
@@ -2785,6 +2929,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         UpdateKeyLine(self.keyLine, attunement, self.boxes[keySection or 1])
+        if keySection and self.boxes[keySection].collapsed then self.keyLine:Hide() end
         if #graph == 0 and attunement == nil then
             for _, box in ipairs(self.boxes) do
                 box:Hide()
@@ -2794,26 +2939,17 @@ function AzerothCompendium:CreateQuestTree(parent)
             canvasH = 1
         else
             self.empty:Hide()
-            for _, box in ipairs(self.boxes) do
-                box.progress = {done = 0, total = 0}
-            end
-
-            for _, node in ipairs(graph) do
-                local progress = self.boxes[node.section] and self.boxes[node.section].progress
-                if progress then
-                    progress.total = progress.total + 1
-                    if GetQuestStatus(node.id, node) == "complete" then progress.done = progress.done + 1 end
-                end
-            end
-
             for section, box in ipairs(self.boxes) do
                 self:UpdateBoxTitle(section)
+                box.header.toggle:SetTexture(box.collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+                box.header.toggle:SetShown(box.collapsible)
+                box.title:SetPoint("LEFT", box.header, "LEFT", box.collapsible and 30 or 8, 0)
                 box:ClearAllPoints()
                 box:SetPoint("TOPLEFT", canvas, "TOPLEFT", 0, -self.boxTops[section])
                 box:SetSize(canvasW, BoxHeight(section, rows[section]))
                 box.empty:ClearAllPoints()
                 box.empty:SetPoint("TOPLEFT", box, "TOPLEFT", 10, -HeaderHeight(section) - 2)
-                if rows[section] == 0 and section ~= 1 then box.empty:Show() else box.empty:Hide() end
+                if rows[section] == 0 and section ~= 1 and not box.collapsed then box.empty:Show() else box.empty:Hide() end
                 box:SetShown(IsBoxVisible(section))
             end
         end
@@ -2826,11 +2962,17 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
 
             button:SetFrameLevel(baseLevel + 3)
-            button:ClearAllPoints()
-            button:SetPoint("TOPLEFT", canvas, "TOPLEFT", node.x, -node.y)
-            UpdateNode(button, node, nodeW)
-            for _, parentNode in ipairs(node.parents) do
-                AddEdge(parentNode, node, nodeW, GAP_Y)
+            if not visibleSet[node] then
+                button.node = node
+                button:Hide()
+            else
+                button:ClearAllPoints()
+                button:SetPoint("TOPLEFT", canvas, "TOPLEFT", node.x, -node.y)
+                UpdateNode(button, node, nodeW)
+                for _, parentNode in ipairs(node.parents) do
+                    local parentBox = self.boxes[parentNode.section]
+                    if not (parentBox and parentBox.collapsed) then AddEdge(parentNode, node, nodeW, GAP_Y) end
+                end
             end
         end
 
@@ -2861,10 +3003,11 @@ function AzerothCompendium:CreateQuestTree(parent)
                     self.expanded[key] = true
                 end
 
+                if found.section then self.listCollapseOverride[found.section] = false end
                 self:Layout()
-                for index, row in ipairs(self.listRows) do
+                for _, row in ipairs(self.listRows) do
                     if row:IsShown() and row.key == found.key then
-                        scroll:SetVerticalScroll(ClampScroll(scroll, false, (index - 0.5) * LIST_ROW_H - scroll:GetHeight() / 2))
+                        scroll:SetVerticalScroll(ClampScroll(scroll, false, (row.listY or 0) + LIST_ROW_H / 2 - scroll:GetHeight() / 2))
 
                         return true
                     end
@@ -2876,6 +3019,12 @@ function AzerothCompendium:CreateQuestTree(parent)
 
         for index, node in ipairs(self.graph) do
             if node.id == questID then
+                local nodeBox = self.boxes[node.section]
+                if nodeBox and nodeBox.collapsed then
+                    self.collapseOverride[node.section] = false
+                    self:Layout()
+                end
+
                 local button = self.nodes[index]
                 SetHScroll((node.x + button:GetWidth() / 2) * self.zoom - scroll:GetWidth() / 2)
                 scroll:SetVerticalScroll(ClampScroll(scroll, false, (node.y + node.h / 2) * self.zoom - scroll:GetHeight() / 2))
