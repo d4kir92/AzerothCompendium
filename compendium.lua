@@ -547,6 +547,24 @@ local function CreateScroller(parent, rowHeight, initRow, padding, inset, virtua
         AzerothCompendium:After(0, Apply, "AzerothCompendium:ScrollToIndex")
     end
 
+    function scroller:GetScrollOffset()
+        local viewport = self:GetViewport()
+        if viewport == nil then return 0 end
+        if type(self.box) == "table" and self.box.GetScrollPercentage then
+            local range = max(0, (self.contentHeight or #self.data * (self.rowHeight + self.rowGap)) - self.rowGap - viewport:GetHeight())
+            return (self.box:GetScrollPercentage() or 0) * range
+        elseif type(self.scroll) == "table" then
+            return self.scroll:GetVerticalScroll()
+        end
+        return 0
+    end
+
+    function scroller:SetScrollOffset(offset)
+        local step = self.rowHeight + self.rowGap
+        self:Scroll(offset / step)
+        AzerothCompendium:After(0, function() self:Scroll(offset / step) end, "AzerothCompendium:SetScrollOffset")
+    end
+
     function scroller:SetRowHeight(height)
         self.rowHeight = height
         if type(self.view) == "table" and self.view.SetPanExtent then self.view:SetPanExtent(height + self.rowGap) end
@@ -1757,11 +1775,12 @@ function AzerothCompendium:GetGroupedInstanceList(list)
     if listKind ~= "dungeon" and listKind ~= "raid" and not categorized then return list end
     ACOTABPC = ACOTABPC or {}
     ACOTABPC.INSTANCEGROUPS = ACOTABPC.INSTANCEGROUPS or {}
+    local searching = searchText ~= "" or (compendium and compendium.instances and compendium.instances.popupSearch or "") ~= ""
     local groups, levels, result = {}, {}, {}
     if categorized then
         for _, group in ipairs(AzerothCompendium:GetKindCategoryGroups(listKind, list)) do
             local key = listKind .. ":" .. group.category
-            local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
+            local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and not searching
             tinsert(result, {
                 levelGroup = true,
                 key = key,
@@ -1793,7 +1812,7 @@ function AzerothCompendium:GetGroupedInstanceList(list)
     table.sort(levels)
     for _, level in ipairs(levels) do
         local key = listKind .. ":" .. level
-        local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and searchText == ""
+        local collapsed = ACOTABPC.INSTANCEGROUPS[key] == true and not searching
         tinsert(result, {
             levelGroup = true,
             key = key,
@@ -1983,8 +2002,13 @@ end
 local function GetSpellList()
     local list = {}
     if selectedBoss == nil then return list end
+    local seen = {}
     for _, spellID in ipairs(selectedBoss.spells or {}) do
-        if AzerothCompendium:GetSpellInfo(spellID) ~= nil then tinsert(list, spellID) end
+        local name = AzerothCompendium:GetSpellInfo(spellID)
+        if name ~= nil and not seen[name] then
+            seen[name] = true
+            tinsert(list, spellID)
+        end
     end
     return list
 end
@@ -3339,6 +3363,16 @@ local function RefreshBosses()
     RefreshDetail()
 end
 
+function AzerothCompendium:GetInstancePopupList(list)
+    local query = compendium and compendium.instances and compendium.instances.popupSearch or ""
+    if query == "" then return self:GetGroupedInstanceList(list) end
+    local filtered = {}
+    for _, inst in ipairs(list or {}) do
+        if strfind(Lower(self:GetInstanceName(inst)), query, 1, true) or type(inst.name) == "string" and strfind(Lower(inst.name), query, 1, true) then tinsert(filtered, inst) end
+    end
+    return self:GetGroupedInstanceList(filtered)
+end
+
 local function RefreshInstances()
     if compendium == nil then return end
     local list, hidden = GetInstanceList()
@@ -3349,8 +3383,21 @@ local function RefreshInstances()
         compendium.instances:SetRowHeight(ROW_H)
     end
 
+    local keys = {listKind or ""}
+    for _, inst in ipairs(list) do
+        tinsert(keys, tostring(GetInstanceKey(inst)))
+    end
+    local signature = table.concat(keys, "|")
+    local sameList = compendium.instances.listSignature == signature
+    if not sameList then compendium.instances.savedScroll = nil end
+    if compendium.instances.searchKind ~= listKind then
+        compendium.instances.searchKind = listKind
+        compendium.instances.popupSearch = ""
+        if compendium.instancePopup and compendium.instancePopup.search then compendium.instancePopup.search:SetText("") end
+    end
+    compendium.instances.listSignature = signature
     compendium.instances.fullList = list
-    compendium.instances:SetData(AzerothCompendium:GetGroupedInstanceList(list))
+    compendium.instances:SetData(AzerothCompendium:GetInstancePopupList(list), sameList)
     local restoredIndex = nil
     if selectedInstance == nil and restoreInstanceKey ~= nil then
         for index, inst in ipairs(list) do
@@ -3411,7 +3458,7 @@ function AzerothCompendium:UpdateInstanceFilterBanner(scroller, hidden)
         RefreshInstances()
         if compendium.overviewActive and compendium.RefreshOverview then compendium:RefreshOverview() end
         if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
-        if compendium.instancePopup and compendium.instancePopup:IsShown() then compendium.instancePopup:SetHeight(min(600, max(ROW_H, compendium.instances.contentHeight or 0) + compendium.instances.bannerHeight + 10)) end
+        if compendium.instancePopup and compendium.instancePopup:IsShown() then compendium.instancePopup:UpdateHeight() end
     end)
 end
 
@@ -5503,9 +5550,9 @@ function AzerothCompendium:CreateInstanceControls()
             if entry.levelGroup then
                 ACOTABPC.INSTANCEGROUPS[entry.key] = not ACOTABPC.INSTANCEGROUPS[entry.key]
                 local listScroller = compendium.instances
-                listScroller.data = AzerothCompendium:GetGroupedInstanceList(listScroller.fullList)
+                listScroller.data = AzerothCompendium:GetInstancePopupList(listScroller.fullList)
                 listScroller:Refresh()
-                compendium.instancePopup:SetHeight(min(600, listScroller.contentHeight + 10))
+                compendium.instancePopup:UpdateHeight()
             else
                 OnInstanceClick(entry)
             end
@@ -5576,21 +5623,57 @@ function AzerothCompendium:CreateInstanceControls()
     instances:SetParent(instancePopup)
     instances:SetFrameStrata("DIALOG")
     instances:SetFrameLevel(instancePopup:GetFrameLevel() + 1)
+    local popupSearch = CreateTemplated("EditBox", nil, instancePopup, {"InputBoxTemplate", "SearchBoxTemplate"})
+    popupSearch.acoSearch = true
+    popupSearch.acoPlaceholder = function() return AzerothCompendium:Trans("LID_SEARCH") end
+    popupSearch:SetHeight(22)
+    popupSearch:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 10, -5)
+    popupSearch:SetPoint("TOPRIGHT", instancePopup, "TOPRIGHT", -8, -5)
+    popupSearch:SetFontObject("ChatFontNormal")
+    popupSearch:SetAutoFocus(false)
+    popupSearch:SetScript("OnTextChanged", function(sel)
+        local query = Lower(strtrim(sel:GetText() or ""))
+        if query == (instances.popupSearch or "") then return end
+        instances.popupSearch = query
+        instances.savedScroll = nil
+        instances:SetData(AzerothCompendium:GetInstancePopupList(instances.fullList))
+        instancePopup:UpdateHeight()
+    end)
+
+    popupSearch:SetScript("OnEscapePressed", function(sel)
+        sel:SetText("")
+        sel:ClearFocus()
+    end)
+
+    popupSearch:SetScript("OnEnterPressed", function(sel) sel:ClearFocus() end)
+    instancePopup.search = popupSearch
     instances:ClearAllPoints()
-    instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -5)
+    instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -32)
     instances:SetPoint("BOTTOMRIGHT", instancePopup, "BOTTOMRIGHT", -5, 5)
+    function instancePopup:UpdateHeight()
+        self:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 37))
+    end
+
     instancePopup:Hide()
     instancePopup.closeOwner = instanceControl
+    instancePopup:HookScript("OnHide", function()
+        popupSearch:ClearFocus()
+        instances.savedScroll = instances:GetScrollOffset()
+    end)
     compendium.autoClosePopups = {instancePopup}
     instanceDropdown:SetScript("OnClick", function()
         if instancePopup:IsShown() then
             instancePopup:Hide()
         else
-            instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10))
+            instancePopup:UpdateHeight()
             instancePopup:Show()
             instances:Refresh()
-            for index, inst in ipairs(instances.data) do
-                if inst == selectedInstance then instances:ScrollToIndex(index) end
+            if instances.savedScroll ~= nil then
+                instances:SetScrollOffset(instances.savedScroll)
+            else
+                for index, inst in ipairs(instances.data) do
+                    if inst == selectedInstance then instances:ScrollToIndex(index) end
+                end
             end
         end
     end)
@@ -5680,7 +5763,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC.ONLYRELEVANT = mode == "mine"
         ACOTABPC.ONLYMAXLEVEL = mode == "max"
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
+        if instancePopup:IsShown() then instancePopup:UpdateHeight() end
         filterDropdown:Refresh()
     end
 
@@ -5712,7 +5795,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.HIDENEWFOREVER = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
+        if instancePopup:IsShown() then instancePopup:UpdateHeight() end
     end)
     hideForeverFilter:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -5734,7 +5817,7 @@ function AzerothCompendium:CreateInstanceControls()
         ACOTABPC = ACOTABPC or {}
         ACOTABPC.HIDECOMPLETED = sel:GetChecked() == true
         RefreshInstances()
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
+        if instancePopup:IsShown() then instancePopup:UpdateHeight() end
     end)
     hideCompletedFilter:SetScript("OnEnter", function(sel)
         GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
@@ -5935,7 +6018,7 @@ function AzerothCompendium:CreateInstanceControls()
         AzerothCompendium:SetSelectedContinent(continent)
         RefreshInstances()
         if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
-        if instancePopup:IsShown() then instancePopup:SetHeight(min(600, max(ROW_H, instances.contentHeight or 0) + instances.bannerHeight + 10)) end
+        if instancePopup:IsShown() then instancePopup:UpdateHeight() end
     end
 
     local function GetContinentChoices()
