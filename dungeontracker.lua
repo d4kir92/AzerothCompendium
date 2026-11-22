@@ -12,13 +12,13 @@ Tracker.config = {
     stats = 66,
     label = 18,
     panelPad = 8,
-    portrait = 31,
-    cellW = 62,
-    cellH = 62,
-    iconX = 26,
-    iconY = 23,
-    badge = 17,
-    badgeFont = 10,
+    portrait = 25,
+    cellW = 50,
+    cellH = 50,
+    iconX = 21,
+    iconY = 19,
+    badge = 14,
+    badgeFont = 8,
     skullLevel = 63,
     lootRow = 20,
     lootMin = 64,
@@ -823,6 +823,24 @@ function Tracker:SetCollapsed(collapsed)
     self:Layout()
 end
 
+function Tracker:IsBossesCollapsed()
+    return AzerothCompendium:GetConfig("DUNGEONTRACKERBOSSESCOLLAPSED", false) == true
+end
+
+function Tracker:SetBossesCollapsed(collapsed)
+    AzerothCompendium:SetConfig("DUNGEONTRACKERBOSSESCOLLAPSED", collapsed == true)
+    self:Layout()
+end
+
+function Tracker:IsRaresCollapsed()
+    return AzerothCompendium:GetConfig("DUNGEONTRACKERRARESCOLLAPSED", false) == true
+end
+
+function Tracker:SetRaresCollapsed(collapsed)
+    AzerothCompendium:SetConfig("DUNGEONTRACKERRARESCOLLAPSED", collapsed == true)
+    self:Layout()
+end
+
 function Tracker:IsLootCollapsed()
     return AzerothCompendium:GetConfig("DUNGEONTRACKERLOOTCOLLAPSED", false) == true
 end
@@ -983,6 +1001,19 @@ function Tracker:CreateResizeGrip(frame)
     return grip
 end
 
+function Tracker:CreateSectionHeader(parent, onClick)
+    local header = CreateFrame("Button", nil, parent)
+    header:SetHeight(self.config.label)
+    header.icon = header:CreateTexture(nil, "ARTWORK")
+    header.icon:SetSize(14, 14)
+    header.icon:SetPoint("LEFT", header, "LEFT", 0, 0)
+    header.label = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    header.label:SetPoint("LEFT", header.icon, "RIGHT", 4, 0)
+    header:SetScript("OnClick", onClick)
+
+    return header
+end
+
 function Tracker:CreateFrame()
     if self.frame then return self.frame end
     local c = self.config
@@ -1093,16 +1124,12 @@ function Tracker:CreateFrame()
 
     frame.bosses = CreateFrame("Frame", nil, frame.content)
     ui.AddContentBorder(frame.bosses)
-    frame.bossLabel = frame.bosses:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.rareLabel = frame.bosses:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.lootHeader = CreateFrame("Button", nil, frame.content)
-    frame.lootHeader:SetHeight(c.label)
-    frame.lootHeader.icon = frame.lootHeader:CreateTexture(nil, "ARTWORK")
-    frame.lootHeader.icon:SetSize(14, 14)
-    frame.lootHeader.icon:SetPoint("LEFT", frame.lootHeader, "LEFT", 0, 0)
-    frame.lootLabel = frame.lootHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.lootLabel:SetPoint("LEFT", frame.lootHeader.icon, "RIGHT", 4, 0)
-    frame.lootHeader:SetScript("OnClick", function() Tracker:SetLootCollapsed(not Tracker:IsLootCollapsed()) end)
+    frame.bossHeader = self:CreateSectionHeader(frame.bosses, function() Tracker:SetBossesCollapsed(not Tracker:IsBossesCollapsed()) end)
+    frame.bossLabel = frame.bossHeader.label
+    frame.rareHeader = self:CreateSectionHeader(frame.bosses, function() Tracker:SetRaresCollapsed(not Tracker:IsRaresCollapsed()) end)
+    frame.rareLabel = frame.rareHeader.label
+    frame.lootHeader = self:CreateSectionHeader(frame.content, function() Tracker:SetLootCollapsed(not Tracker:IsLootCollapsed()) end)
+    frame.lootLabel = frame.lootHeader.label
     frame.loot = ui.CreateScroller(frame.content, c.lootRow, function(parent) return Tracker:CreateLootRow(parent) end, 0, 4)
     frame.loot:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.lootEmpty = frame.loot:CreateFontString(nil, "OVERLAY", "GameFontDisable")
@@ -1510,35 +1537,56 @@ function Tracker:Layout()
         frame.controls[3]:SetText(AzerothCompendium:Trans("LID_DT_END"))
         frame.controls[3]:SetEnabled(unranked)
     end
+    frame.bosses:ClearAllPoints()
     frame.bosses:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -c.gap)
     frame.bosses:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -c.gap)
     local bosses, rares = self.bossList or {}, self.rareList or {}
+    local bossesCollapsed = self:IsBossesCollapsed()
+    local raresCollapsed = self:IsRaresCollapsed()
     local iconWidth = innerWidth - c.panelPad * 2
     local top = -c.panelPad
     local index = 0
-    frame.bossLabel:SetShown(#bosses > 0)
+    local lastCollapsed = false
+    frame.bossHeader:SetShown(#bosses > 0)
     if #bosses > 0 then
-        frame.bossLabel:ClearAllPoints()
-        frame.bossLabel:SetPoint("TOPLEFT", frame.bosses, "TOPLEFT", c.panelPad + 2, top)
-        top, index = self:PlaceIcons(run, bosses, index, top - c.label, iconWidth)
+        AzerothCompendium.Theme:SetCollapseIcon(frame.bossHeader.icon, bossesCollapsed)
+        frame.bossHeader:ClearAllPoints()
+        frame.bossHeader:SetPoint("TOPLEFT", frame.bosses, "TOPLEFT", c.panelPad + 2, top)
+        frame.bossHeader:SetPoint("TOPRIGHT", frame.bosses, "TOPRIGHT", -c.panelPad, top)
+        top = top - c.label
+        if bossesCollapsed then
+            lastCollapsed = true
+        else
+            top, index = self:PlaceIcons(run, bosses, index, top, iconWidth)
+            lastCollapsed = false
+        end
     end
 
-    frame.rareLabel:SetShown(#rares > 0)
+    frame.rareHeader:SetShown(#rares > 0)
     if #rares > 0 then
         if #bosses > 0 then top = top - 4 end
-        frame.rareLabel:ClearAllPoints()
-        frame.rareLabel:SetPoint("TOPLEFT", frame.bosses, "TOPLEFT", c.panelPad + 2, top)
-        top, index = self:PlaceIcons(run, rares, index, top - c.label, iconWidth)
+        AzerothCompendium.Theme:SetCollapseIcon(frame.rareHeader.icon, raresCollapsed)
+        frame.rareHeader:ClearAllPoints()
+        frame.rareHeader:SetPoint("TOPLEFT", frame.bosses, "TOPLEFT", c.panelPad + 2, top)
+        frame.rareHeader:SetPoint("TOPRIGHT", frame.bosses, "TOPRIGHT", -c.panelPad, top)
+        top = top - c.label
+        if raresCollapsed then
+            lastCollapsed = true
+        else
+            top, index = self:PlaceIcons(run, rares, index, top, iconWidth)
+            lastCollapsed = false
+        end
     end
 
     for i = index + 1, #self.icons do
         self.icons[i]:Hide()
     end
 
+    local hasBosses = #bosses > 0 or #rares > 0
     local bossHeight = 0
     local lootAnchor = anchor
-    if index > 0 then
-        bossHeight = -top + 2
+    if hasBosses then
+        bossHeight = -top + (lastCollapsed and c.panelPad or 2)
         frame.bosses:SetHeight(bossHeight)
         frame.bosses:Show()
         lootAnchor = frame.bosses
@@ -1555,7 +1603,7 @@ function Tracker:Layout()
     frame.loot:SetPoint("TOPLEFT", lootAnchor, "BOTTOMLEFT", 0, -c.gap - c.label - 4)
     frame.loot:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.loot:SetShown(not lootCollapsed)
-    local fixed = c.top + c.stats + (controls and frame.controls:GetHeight() + c.gap or 0) + c.gap + (index > 0 and bossHeight + c.gap or 0) + c.label + 4 + c.bottom
+    local fixed = c.top + c.stats + (controls and frame.controls:GetHeight() + c.gap or 0) + c.gap + (hasBosses and bossHeight + c.gap or 0) + c.label + 4 + c.bottom
     local minHeight = lootCollapsed and fixed or fixed + c.lootMin
     if frame.SetResizeBounds then
         frame:SetResizeBounds(c.minWidth, minHeight, 0, 0)
