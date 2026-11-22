@@ -71,6 +71,7 @@ function AzerothCompendium:RefreshSettingsLanguage()
     minimapTooltip[1] = {AzerothCompendium:GetCompendiumTooltipLabel("AzerothCompendium", 16), "v" .. AzerothCompendium:GetAddonVersion()}
     minimapTooltip[2] = {AzerothCompendium:Trans("LID_LEFTCLICK"), AzerothCompendium:Trans("LID_OPENCOMPENDIUM")}
     minimapTooltip[3] = {AzerothCompendium:Trans("LID_RIGHTCLICK"), AzerothCompendium:Trans("LID_OPENSETTINGS")}
+    minimapTooltip[4] = {AzerothCompendium:Trans("LID_SHIFTRIGHTCLICK"), AzerothCompendium:Trans("LID_HIDEMINIMAPBUTTON")}
     for _, info in ipairs(labels) do
         local text = AzerothCompendium:Trans(info[3])
         info[1]:SetText(text)
@@ -324,6 +325,10 @@ function AzerothCompendium:InitSetting()
         ["vTT"] = minimapTooltip,
         ["funcL"] = function() AzerothCompendium:ToggleCompendium() end,
         ["funcR"] = function() AzerothCompendium:ToggleSettings() end,
+        ["funcSR"] = function()
+            AzerothCompendium:SV(ACOTAB, "MMBTN", false)
+            AzerothCompendium:HideMMBtn("AzerothCompendium")
+        end,
         ["dbkey"] = "MMBTN"
     })
 
