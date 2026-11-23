@@ -110,7 +110,7 @@ function Tracker:BuildPattern(fmt, full)
     if type(fmt) ~= "string" or fmt == "" then return nil end
     fmt = fmt:gsub("%%%d%$", "%%")
     fmt = fmt:gsub("([%(%)%.%+%-%*%?%[%]%^%$])", "%%%1")
-    fmt = fmt:gsub("%%s", "(.-)"):gsub("%%d", "(%%d+)")
+    fmt = fmt:gsub("%%s", "(.-)"):gsub("%%d", "(%%d+)"):gsub("%%%%%.%d*f", "[%%d%%.%%,]+"):gsub("%%f", "[%%d%%.%%,]+")
 
     return "^" .. fmt .. (full and "$" or "")
 end
@@ -119,9 +119,15 @@ function Tracker:GetPatterns()
     if self.patterns then return self.patterns end
     local patterns = {
         loot = {},
+        rep = {},
         xp = self:BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON),
         reset = self:BuildPattern(INSTANCE_RESET_SUCCESS)
     }
+
+    for _, fmt in ipairs({FACTION_STANDING_INCREASED_DOUBLE_BONUS, FACTION_STANDING_INCREASED_ACH_BONUS, FACTION_STANDING_INCREASED_BONUS, FACTION_STANDING_INCREASED_ACCOUNT_WIDE_ACH_BONUS, FACTION_STANDING_INCREASED_ACCOUNT_WIDE, FACTION_STANDING_INCREASED}) do
+        local pattern = self:BuildPattern(fmt)
+        if pattern then tinsert(patterns.rep, pattern) end
+    end
 
     for _, info in ipairs({{LOOT_ITEM_SELF_MULTIPLE, true}, {LOOT_ITEM_SELF, true}, {LOOT_ITEM_MULTIPLE, false}, {LOOT_ITEM, false}}) do
         local pattern = self:BuildPattern(info[1], true)
@@ -240,7 +246,7 @@ end
 
 function Tracker:ArchiveRun(run)
     if type(run) ~= "table" or not run.start or type(run.killed) ~= "table" or type(run.loot) ~= "table" then return end
-    if not run.mode and next(run.killed) == nil and #run.loot == 0 and (run.xp or 0) <= 0 and (run.gold or 0) <= 0 then return end
+    if not run.mode and next(run.killed) == nil and #run.loot == 0 and (run.xp or 0) <= 0 and (run.rep or 0) <= 0 and (run.gold or 0) <= 0 then return end
     local history = self:GetHistory()
     for _, entry in ipairs(history) do
         if entry == run then return end
@@ -327,6 +333,8 @@ function Tracker:PrepareRun(instanceID, name)
         instanceID = instanceID,
         name = name,
         xp = 0,
+        rep = 0,
+        factions = {},
         gold = 0,
         killed = {},
         loot = {},
@@ -379,6 +387,7 @@ function Tracker:CheckZone()
     self.candidates = self:FindCandidates(instanceID, name)
     self:IndexCandidates()
     if GetMoney then self.money = GetMoney() end
+    self.repSnapshot = self:SnapshotReputation()
     local inCombat = UnitAffectingCombat("player")
     if not IsSecret(inCombat) and inCombat then self:StartRankedRun() end
     self:UpdateVisibility()
@@ -390,6 +399,7 @@ function Tracker:StartRankedRun()
     run.start = time()
     run.mode = "ranked"
     if GetMoney then self.money = GetMoney() end
+    self.repSnapshot = self:SnapshotReputation()
 end
 
 function Tracker:IsCurrentInstance(run)
@@ -410,6 +420,7 @@ function Tracker:ControlRun(action)
             run.paused = nil
         end
         if GetMoney then self.money = GetMoney() end
+        self.repSnapshot = self:SnapshotReputation()
     elseif run.mode == "unranked" then
         if action == "pause" then
             run.paused = run.paused or now
@@ -497,6 +508,7 @@ function Tracker:UpdateBest(run)
     if run.mode ~= "ranked" or not run.finished then return end
     local best = self:GetBest(run)
     if (run.xp or 0) > (best.xp or 0) then best.xp = run.xp end
+    if (run.rep or 0) > (best.rep or 0) then best.rep = run.rep end
     if (run.gold or 0) > (best.gold or 0) then best.gold = run.gold end
     local duration = self:GetElapsed(run)
     if best.time == nil or duration < best.time then best.time = duration end
@@ -603,6 +615,83 @@ function Tracker:OnXP(msg)
 
             return
         end
+    end
+end
+
+function Tracker:SnapshotReputation()
+    local snapshot = {}
+    local count = 0
+    if C_Reputation and C_Reputation.GetNumFactions then
+        count = C_Reputation.GetNumFactions() or 0
+    elseif GetNumFactions then
+        count = GetNumFactions() or 0
+    end
+
+    if IsSecret(count) or type(count) ~= "number" then return snapshot end
+    for index = 1, count do
+        local id, name, _, _, _, value, hasRep = AzerothCompendium:ReadReputationEntry(index)
+        if id and id ~= 0 and hasRep and not IsSecret(id) and not IsSecret(name) and not IsSecret(value) and type(name) == "string" and type(value) == "number" then
+            snapshot[id] = {
+                name = name,
+                value = value
+            }
+        end
+    end
+
+    return snapshot
+end
+
+function Tracker:AddReputation(faction, amount)
+    if type(amount) ~= "number" or amount <= 0 or not self:IsTracking() then return end
+    local run = self:GetRun()
+    run.rep = (run.rep or 0) + amount
+    if type(faction) == "string" and faction ~= "" then
+        run.factions = type(run.factions) == "table" and run.factions or {}
+        run.factions[faction] = (run.factions[faction] or 0) + amount
+    end
+
+    self:UpdateBest(run)
+    self:UpdateStats()
+end
+
+function Tracker:OnReputation(msg)
+    if not self:IsTracking() then return end
+    if IsSecret(msg) then
+        self.repSecret = true
+
+        return
+    end
+
+    if type(msg) ~= "string" then return end
+    for _, pattern in ipairs(self:GetPatterns().rep) do
+        local first, second = strmatch(msg, pattern)
+        if first then
+            local faction, amount = nil, nil
+            if tonumber(first) then
+                amount = tonumber(first)
+                faction = second
+            elseif tonumber(second) then
+                faction = first
+                amount = tonumber(second)
+            end
+
+            if amount and amount > 0 then
+                self:AddReputation(faction, amount)
+
+                return
+            end
+        end
+    end
+end
+
+function Tracker:OnUpdateFaction()
+    local current = self:SnapshotReputation()
+    local previous = self.repSnapshot
+    self.repSnapshot = current
+    if not self.repSecret or previous == nil or not self:IsTracking() then return end
+    for id, data in pairs(current) do
+        local old = previous[id]
+        if old and data.value > old.value then self:AddReputation(data.name, data.value - old.value) end
     end
 end
 
@@ -773,8 +862,8 @@ end
 function Tracker:PostToChat()
     local run = self:GetShownRun()
     if run == nil then return end
-    local xpText = self:ShowsXP() and format(" %s: %s", XP or "XP", self:FormatNumber(run.xp or 0)) or ""
-    local msg = format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), xpText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatPlainMoney(run.gold))
+    local secondText = self:ShowsXP() and format(" %s: %s", XP or "XP", self:FormatNumber(run.xp or 0)) or format(" %s: %s", AzerothCompendium:Trans("LID_REPUTATION"), self:FormatNumber(run.rep or 0))
+    local msg = format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), secondText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatPlainMoney(run.gold))
     local channel = nil
     if IsInGroup and LE_PARTY_CATEGORY_INSTANCE and IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
         channel = "INSTANCE_CHAT"
@@ -785,7 +874,7 @@ function Tracker:PostToChat()
     end
 
     if channel == nil then
-        DEFAULT_CHAT_FRAME:AddMessage(format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), xpText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatMoney(run.gold or 0)))
+        DEFAULT_CHAT_FRAME:AddMessage(format("[%s] %s: %s%s %s: %s", AzerothCompendium:Trans("LID_TITLE"), AzerothCompendium:Trans("LID_DT_TIME"), self:FormatTime(self:GetElapsed(run)), secondText, AzerothCompendium:Trans("LID_DT_GOLD"), self:FormatMoney(run.gold or 0)))
 
         return
     end
@@ -973,15 +1062,45 @@ function Tracker:CreateStat(parent)
     return stat
 end
 
+function Tracker:ShowReputationTooltip(owner)
+    if self:ShowsXP() then return end
+    local run = self:GetShownRun()
+    if run == nil or type(run.factions) ~= "table" or next(run.factions) == nil then return end
+    local list = {}
+    for faction, amount in pairs(run.factions) do
+        if type(amount) == "number" and amount > 0 then
+            tinsert(list, {
+                name = faction,
+                amount = amount
+            })
+        end
+    end
+
+    if #list == 0 then return end
+    sort(list, function(a, b)
+        if a.amount ~= b.amount then return a.amount > b.amount end
+
+        return a.name < b.name
+    end)
+
+    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+    GameTooltip:SetText(AzerothCompendium:Trans("LID_REPUTATION"))
+    for _, entry in ipairs(list) do
+        GameTooltip:AddDoubleLine(entry.name, "+" .. self:FormatNumber(entry.amount), 0.9, 0.9, 0.9, 0.3, 0.8, 1)
+    end
+
+    GameTooltip:Show()
+end
+
 function Tracker:ShowsXP()
     if type(IsPlayerAtEffectiveMaxLevel) == "function" then
         local ok, atMax = pcall(IsPlayerAtEffectiveMaxLevel)
-        if ok and type(atMax) == "boolean" then return not atMax end
+        if ok and not IsSecret(atMax) and type(atMax) == "boolean" then return not atMax end
     end
 
     local maxLevel = type(GetMaxPlayerLevel) == "function" and GetMaxPlayerLevel() or AzerothCompendium:GetMaxLevel()
     local level = UnitLevel("player")
-    if type(level) ~= "number" or type(maxLevel) ~= "number" then return true end
+    if IsSecret(level) or IsSecret(maxLevel) or type(level) ~= "number" or type(maxLevel) ~= "number" then return true end
 
     return level < maxLevel
 end
@@ -1261,6 +1380,19 @@ function Tracker:CreateFrame()
     for index = 1, 3 do
         frame.statColumns[index] = self:CreateStat(frame.stats)
     end
+
+    local repHit = CreateFrame("Frame", nil, frame.stats)
+    repHit:EnableMouse(true)
+    repHit:RegisterForDrag("LeftButton")
+    repHit:SetScript("OnDragStart", function() frame:StartMoving() end)
+    repHit:SetScript("OnDragStop", function()
+        frame:StopMovingOrSizing()
+        Tracker:SavePosition()
+        Tracker:RestorePosition()
+    end)
+    repHit:SetScript("OnEnter", function(sel) Tracker:ShowReputationTooltip(sel) end)
+    repHit:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    frame.statColumns[2].hit = repHit
 
     frame.controls = CreateFrame("Frame", nil, frame.content)
     frame.controls:SetPoint("TOPLEFT", frame.stats, "BOTTOMLEFT", 0, -c.gap)
@@ -1558,8 +1690,8 @@ function Tracker:CreateRunRow(parent)
         self.icon:SetTexture((run.finished or run.ended) and "Interface\\RaidFrame\\ReadyCheck-Ready" or "Interface\\RaidFrame\\ReadyCheck-Waiting")
         self.title:SetText(Tracker:GetRunTitle(run))
         self.date:SetText(current and AzerothCompendium:Trans("LID_DT_CURRENT") or date("%d.%m.%y %H:%M", run.start or 0))
-        local xpText = Tracker:ShowsXP() and format("%s %s   ", Tracker:FormatNumber(run.xp or 0), XP or "XP") or ""
-        self.info:SetText(format("%s   %s   %s %d/%d   %s%s", Tracker:GetModeLabel(run), Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, xpText, Tracker:FormatMoney(run.gold or 0)))
+        local secondText = Tracker:ShowsXP() and format("%s %s   ", Tracker:FormatNumber(run.xp or 0), XP or "XP") or format("%s %s   ", Tracker:FormatNumber(run.rep or 0), AzerothCompendium:Trans("LID_REPUTATION"))
+        self.info:SetText(format("%s   %s   %s %d/%d   %s%s", Tracker:GetModeLabel(run), Tracker:FormatTime(Tracker:GetElapsed(run)), AzerothCompendium:Trans("LID_BOSSES"), Tracker:CountKilled(run, bosses), #bosses, secondText, Tracker:FormatMoney(run.gold or 0)))
     end
 
     return row
@@ -1612,11 +1744,14 @@ function Tracker:UpdateStats()
     local columns = frame.statColumns
     local best = run.mode == "unranked" and {} or self:GetBest(run)
     local elapsed = self:FormatTime(self:GetElapsed(run))
+    local showXP = self:ShowsXP()
+    local secondValue = showXP and (run.xp or 0) or (run.rep or 0)
+    local secondBest = showXP and best.xp or best.rep
     columns[1].value:SetText(elapsed)
-    columns[2].value:SetText(self:FormatNumber(run.xp or 0))
+    columns[2].value:SetText(self:FormatNumber(secondValue))
     columns[3].value:SetText(self:FormatMoney(run.gold or 0))
     columns[1].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.time and self:FormatTime(best.time) or "-"))
-    columns[2].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.xp and self:FormatNumber(best.xp) or "-"))
+    columns[2].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, secondBest and self:FormatNumber(secondBest) or "-"))
     columns[3].best:SetText(AzerothCompendium:Trans("LID_DT_BEST", nil, best.gold and self:FormatMoney(best.gold) or "-"))
     frame.headerTime:SetText(format("%s · %s", self:GetModeLabel(run), elapsed))
     if run.ended or (run.finished and run.mode ~= "unranked") then
@@ -1654,21 +1789,20 @@ function Tracker:Layout()
 
     local innerWidth = frame:GetWidth() - c.side * 2
     local columnWidth = innerWidth / 3
-    local showXP = self:ShowsXP()
-    local statWidth = innerWidth / (showXP and 3 or 2)
-    local slot = 0
     for index, column in ipairs(frame.statColumns) do
-        local visible = index ~= 2 or showXP
-        column.label:SetShown(visible)
-        column.value:SetShown(visible)
-        column.best:SetShown(visible)
-        if visible then
-            slot = slot + 1
-            column.label:ClearAllPoints()
-            column.label:SetPoint("TOP", frame.stats, "TOPLEFT", statWidth * (slot - 0.5), -8)
-            column.label:SetWidth(statWidth - 8)
-            column.value:SetWidth(statWidth - 8)
-            column.best:SetWidth(statWidth - 8)
+        column.label:Show()
+        column.value:Show()
+        column.best:Show()
+        column.label:ClearAllPoints()
+        column.label:SetPoint("TOP", frame.stats, "TOPLEFT", columnWidth * (index - 0.5), -8)
+        column.label:SetWidth(columnWidth - 8)
+        column.value:SetWidth(columnWidth - 8)
+        column.best:SetWidth(columnWidth - 8)
+        if column.hit then
+            column.hit:ClearAllPoints()
+            column.hit:SetPoint("TOPLEFT", frame.stats, "TOPLEFT", columnWidth * (index - 1), 0)
+            column.hit:SetPoint("BOTTOMLEFT", frame.stats, "BOTTOMLEFT", columnWidth * (index - 1), 0)
+            column.hit:SetWidth(columnWidth)
         end
     end
 
@@ -1794,8 +1928,9 @@ function Tracker:Refresh()
     local title = self:GetRunTitle(run)
     if self.viewRun then title = format("%s - %s", title, date("%d.%m.%y", run.start or 0)) end
     if frame.titleText then frame.titleText:SetText(title) end
+    local showXP = self:ShowsXP()
     frame.statColumns[1].label:SetText(self:GetModeLabel(run))
-    frame.statColumns[2].label:SetText(AzerothCompendium:Trans("LID_DT_MOBXP"))
+    frame.statColumns[2].label:SetText(AzerothCompendium:Trans(showXP and "LID_DT_MOBXP" or "LID_REPUTATION"))
     frame.statColumns[3].label:SetText(AzerothCompendium:Trans("LID_DT_GOLD"))
     self.bossList, self.rareList = self:GetBosses(run)
     frame.bossLabel:SetText(format("%s (%d/%d)", AzerothCompendium:Trans("LID_BOSSES"), self:CountKilled(run, self.bossList), #self.bossList))
@@ -1876,6 +2011,10 @@ function Tracker:OnEvent(event, ...)
         self:OnEncounterEnd(encounterName, true)
     elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
         self:OnXP(...)
+    elseif event == "CHAT_MSG_COMBAT_FACTION_CHANGE" then
+        self:OnReputation(...)
+    elseif event == "UPDATE_FACTION" then
+        self:OnUpdateFaction()
     elseif event == "PLAYER_MONEY" then
         self:OnMoney()
     elseif event == "CHAT_MSG_LOOT" then
@@ -1898,7 +2037,7 @@ function Tracker:OnEvent(event, ...)
 end
 
 Tracker.eventFrame = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_DISABLED", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_LEVEL_UP"}) do
+for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_DISABLED", "UNIT_HEALTH", "ENCOUNTER_END", "BOSS_KILL", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_COMBAT_FACTION_CHANGE", "UPDATE_FACTION", "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "LOOT_OPENED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "GROUP_ROSTER_UPDATE", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_LEVEL_UP"}) do
     pcall(Tracker.eventFrame.RegisterEvent, Tracker.eventFrame, event)
 end
 
