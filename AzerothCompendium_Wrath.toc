@@ -91,4 +91,5 @@ compendium.lua
 worldmap.lua
 settings.lua
 dungeontracker.lua
+questwidget.lua
 welcome.lua

@@ -103,6 +103,11 @@ function AzerothCompendium:SyncSettingsClassFilter()
     classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
 end
 
+function AzerothCompendium:SyncSettingsQuestWidget()
+    if acoset == nil or acoset.questWidget == nil then return end
+    acoset.questWidget:SetChecked(AzerothCompendium:GetConfig("QUESTWIDGET", false) == true)
+end
+
 local function HandleSlash(args)
     local sub = strlower(strtrim(args or "")):gsub("%s+", " ")
     if sub == "settings" or sub == "options" or sub == "config" then
@@ -113,6 +118,8 @@ local function HandleSlash(args)
         AzerothCompendium:ToggleMapPinDebug()
     elseif sub == "tracker" and AzerothCompendium.DungeonTracker then
         AzerothCompendium.DungeonTracker:Toggle()
+    elseif (sub == "quests" or sub == "questwidget" or sub == "widget") and AzerothCompendium.QuestWidget then
+        AzerothCompendium.QuestWidget:Toggle()
     else
         AzerothCompendium:ToggleCompendium()
     end
@@ -286,6 +293,8 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("DUNGEONTRACKER", nil, "2026-11-14")
     AddCheckbox("DUNGEONTRACKER", true, function() if AzerothCompendium.DungeonTracker then AzerothCompendium.DungeonTracker:UpdateVisibility() end end, "LID_DUNGEONTRACKER_ENABLED", "2026-11-14")
+    AddCategory("QUESTWIDGET", nil, "2026-11-23")
+    acoset.questWidget = AddCheckbox("QUESTWIDGET", false, function() if AzerothCompendium.QuestWidget then AzerothCompendium.QuestWidget:UpdateVisibility() end end, "LID_QUESTWIDGET_ENABLED", "2026-11-23")
     AddCategory("MAPICONS", nil, "2026-10-04")
     AddCategory("INSTANCEENTRANCES", 2, "2026-10-04")
     AddSharedCheckbox("DUNGEONWORLDMAPPINS", "LID_WORLDMAPPINS", "2026-10-04")

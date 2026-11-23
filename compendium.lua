@@ -5390,6 +5390,16 @@ function AzerothCompendium:RefreshDashboard()
         })
     end
 
+    local questWidget = self.QuestWidget
+    local widgetLabel = self:Trans("LID_QUESTWIDGET")
+    if questWidget and Matches(widgetLabel) then
+        tinsert(entries, {
+            label = widgetLabel,
+            icon = "Interface\\Icons\\INV_Misc_Book_09",
+            open = function() questWidget:Toggle() end
+        })
+    end
+
     local viewport = panel.grid:GetViewport()
     local width = viewport and viewport:GetWidth() or 0
     if width <= 0 then
@@ -7945,6 +7955,22 @@ function AzerothCompendium:OpenCompendium()
     compendium:Show()
     UpdateKindTabs()
     RefreshCurrentView()
+end
+
+function AzerothCompendium:OpenInstanceQuests(instID, questID)
+    local inst = AzerothCompendium:GetInstanceByID(instID)
+    if inst == nil then return false end
+    AzerothCompendium:OpenCompendium()
+    compendium.overviewActive = false
+    listKind, selectedInstance, selectedBoss, middleKind = inst.type == "raid" and "raid" or "dungeon", inst, nil, "quests"
+    searchText = ""
+    UpdateKindTabs()
+    compendium.search:SetText("")
+    RefreshCurrentView()
+    SaveNavigationState()
+    if questID and compendium.questTree and compendium.questTree.FocusQuest then compendium.questTree:FocusQuest(questID) end
+
+    return true
 end
 
 function MapPins.GetArt(key)
