@@ -32,6 +32,7 @@ Tracker.config = {
     runRow = 38,
     runsHeight = 260,
     minQuality = 2,
+    defaultQuality = 3,
     media = "Interface\\AddOns\\AzerothCompendium\\media\\",
     fallback = "Interface\\Icons\\INV_Misc_QuestionMark",
     deadMark = "Interface\\RaidFrame\\ReadyCheck-NotReady",
@@ -70,6 +71,21 @@ Tracker.qualities = {
     ["a335ee"] = 4,
     ["ff8000"] = 5,
     ["e6cc80"] = 6,
+}
+
+Tracker.qualityOrder = {2, 3, 4, 5}
+Tracker.qualityFallbacks = {
+    [2] = {0.12, 1, 0},
+    [3] = {0, 0.44, 0.87},
+    [4] = {0.64, 0.21, 0.93},
+    [5] = {1, 0.5, 0},
+}
+
+Tracker.qualityNames = {
+    [2] = "Uncommon",
+    [3] = "Rare",
+    [4] = "Epic",
+    [5] = "Legendary",
 }
 
 Tracker.icons = {}
@@ -692,7 +708,8 @@ function Tracker:OnLoot(msg, ...)
                     tinsert(self:GetRun().loot, 1, {
                         link = link,
                         winner = winner,
-                        class = self:GetUnitClass(winner, guid)
+                        class = self:GetUnitClass(winner, guid),
+                        quality = quality
                     })
 
                     self:Refresh()
@@ -849,6 +866,69 @@ end
 function Tracker:SetLootCollapsed(collapsed)
     AzerothCompendium:SetConfig("DUNGEONTRACKERLOOTCOLLAPSED", collapsed == true)
     self:Layout()
+end
+
+function Tracker:IsQualityEnabled(quality)
+    if quality < self.config.minQuality then return false end
+    local filter = AzerothCompendium:GetConfig("DUNGEONTRACKERQUALITIES", nil)
+    if type(filter) == "table" and filter[quality] ~= nil then return filter[quality] == true end
+
+    return quality >= self.config.defaultQuality
+end
+
+function Tracker:SetQualityEnabled(quality, enabled)
+    local filter = AzerothCompendium:GetConfig("DUNGEONTRACKERQUALITIES", nil)
+    if type(filter) ~= "table" then
+        filter = {}
+        for _, q in ipairs(self.qualityOrder) do
+            filter[q] = q >= self.config.defaultQuality
+        end
+    end
+
+    filter[quality] = enabled == true
+    AzerothCompendium:SetConfig("DUNGEONTRACKERQUALITIES", filter)
+    self:Refresh()
+end
+
+function Tracker:GetQualityColor(quality)
+    local color = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+    if color then return color.r, color.g, color.b end
+    local fallback = self.qualityFallbacks[quality]
+    if fallback then return fallback[1], fallback[2], fallback[3] end
+
+    return 1, 1, 1
+end
+
+function Tracker:GetQualityName(quality)
+    return _G["ITEM_QUALITY" .. quality .. "_DESC"] or self.qualityNames[quality] or tostring(quality)
+end
+
+function Tracker:GetEntryQuality(entry)
+    if type(entry) ~= "table" then return nil end
+    if type(entry.quality) == "number" then return entry.quality end
+    if type(entry.link) == "string" then
+        local quality = self:GetLinkQuality(entry.link)
+        if quality ~= nil then entry.quality = quality end
+
+        return quality
+    end
+
+    return nil
+end
+
+function Tracker:GetFilteredLoot(run)
+    local list = {}
+    local total = 0
+    if type(run) ~= "table" or type(run.loot) ~= "table" then return list, total end
+    for _, entry in ipairs(run.loot) do
+        local quality = self:GetEntryQuality(entry)
+        if quality == nil or quality >= self.config.minQuality then
+            total = total + 1
+            if quality == nil or self:IsQualityEnabled(min(5, quality)) then tinsert(list, entry) end
+        end
+    end
+
+    return list, total
 end
 
 function Tracker:GetSavedSize()
@@ -1015,6 +1095,76 @@ function Tracker:CreateSectionHeader(parent, onClick)
     return header
 end
 
+function Tracker:ShowQualityTooltip(button)
+    local quality = button.quality
+    local r, g, b = self:GetQualityColor(quality)
+    local enabled = self:IsQualityEnabled(quality)
+    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:ClearLines()
+    GameTooltip:AddLine(self:GetQualityName(quality), r, g, b)
+    if enabled then
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_DT_QUALITYSHOWN"), 0.25, 1, 0.25)
+    else
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_DT_QUALITYHIDDEN"), 0.65, 0.65, 0.65)
+    end
+
+    GameTooltip:Show()
+end
+
+function Tracker:CreateQualityFilters(parent)
+    local size = 14
+    local gap = 3
+    local circle = AzerothCompendium.Theme.MEDIA .. "circle"
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetSize(#self.qualityOrder * size + (#self.qualityOrder - 1) * gap, self.config.label)
+    local buttons = {}
+    for index, quality in ipairs(self.qualityOrder) do
+        local button = CreateFrame("Button", nil, container)
+        button:SetSize(size, size)
+        button:SetPoint("LEFT", container, "LEFT", (index - 1) * (size + gap), 0)
+        button.quality = quality
+        button.outline = button:CreateTexture(nil, "BACKGROUND")
+        button.outline:SetAllPoints()
+        button.outline:SetTexture(circle)
+        button.outline:SetVertexColor(0, 0, 0, 0.65)
+        button.fill = button:CreateTexture(nil, "BORDER")
+        button.fill:SetSize(size - 2, size - 2)
+        button.fill:SetPoint("CENTER", button, "CENTER", 0, 0)
+        button.fill:SetTexture(circle)
+        button.hole = button:CreateTexture(nil, "ARTWORK")
+        button.hole:SetSize(size - 6, size - 6)
+        button.hole:SetPoint("CENTER", button, "CENTER", 0, 0)
+        button.hole:SetTexture(circle)
+        button.hole:SetVertexColor(0.08, 0.09, 0.11, 0.95)
+        button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
+        button.highlight:SetAllPoints()
+        button.highlight:SetTexture(circle)
+        button.highlight:SetBlendMode("ADD")
+        button.highlight:SetVertexColor(1, 1, 1, 0.25)
+        button:SetScript("OnClick", function(sel)
+            Tracker:SetQualityEnabled(sel.quality, not Tracker:IsQualityEnabled(sel.quality))
+            if GameTooltip:IsOwned(sel) then Tracker:ShowQualityTooltip(sel) end
+        end)
+
+        button:SetScript("OnEnter", function(sel) Tracker:ShowQualityTooltip(sel) end)
+        button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+        buttons[index] = button
+    end
+
+    return container, buttons
+end
+
+function Tracker:UpdateQualityFilters()
+    local frame = self.frame
+    if frame == nil or frame.qualityButtons == nil then return end
+    for _, button in ipairs(frame.qualityButtons) do
+        local r, g, b = self:GetQualityColor(button.quality)
+        local enabled = self:IsQualityEnabled(button.quality)
+        button.fill:SetVertexColor(r, g, b, enabled and 1 or 0.55)
+        button.hole:SetShown(not enabled)
+    end
+end
+
 function Tracker:CreateFrame()
     if self.frame then return self.frame end
     local c = self.config
@@ -1131,6 +1281,10 @@ function Tracker:CreateFrame()
     frame.rareLabel = frame.rareHeader.label
     frame.lootHeader = self:CreateSectionHeader(frame.content, function() Tracker:SetLootCollapsed(not Tracker:IsLootCollapsed()) end)
     frame.lootLabel = frame.lootHeader.label
+    frame.lootLabel:SetPoint("RIGHT", frame.lootHeader, "RIGHT", 0, 0)
+    frame.lootLabel:SetJustifyH("LEFT")
+    frame.lootLabel:SetWordWrap(false)
+    frame.lootFilters, frame.qualityButtons = self:CreateQualityFilters(frame.content)
     frame.loot = ui.CreateScroller(frame.content, c.lootRow, function(parent) return Tracker:CreateLootRow(parent) end, 0, 4)
     frame.loot:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.lootEmpty = frame.loot:CreateFontString(nil, "OVERLAY", "GameFontDisable")
@@ -1597,9 +1751,12 @@ function Tracker:Layout()
 
     local lootCollapsed = self:IsLootCollapsed()
     AzerothCompendium.Theme:SetCollapseIcon(frame.lootHeader.icon, lootCollapsed)
+    frame.lootFilters:ClearAllPoints()
+    frame.lootFilters:SetPoint("TOPRIGHT", lootAnchor, "BOTTOMRIGHT", 0, -c.gap - 2)
     frame.lootHeader:ClearAllPoints()
     frame.lootHeader:SetPoint("TOPLEFT", lootAnchor, "BOTTOMLEFT", 2, -c.gap - 2)
-    frame.lootHeader:SetPoint("RIGHT", lootAnchor, "RIGHT", 0, 0)
+    frame.lootHeader:SetPoint("RIGHT", frame.lootFilters, "LEFT", -6, 0)
+    self:UpdateQualityFilters()
     frame.loot:ClearAllPoints()
     frame.loot:SetPoint("TOPLEFT", lootAnchor, "BOTTOMLEFT", 0, -c.gap - c.label - 4)
     frame.loot:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
@@ -1643,10 +1800,11 @@ function Tracker:Refresh()
     self.bossList, self.rareList = self:GetBosses(run)
     frame.bossLabel:SetText(format("%s (%d/%d)", AzerothCompendium:Trans("LID_BOSSES"), self:CountKilled(run, self.bossList), #self.bossList))
     frame.rareLabel:SetText(format("%s (%d/%d)", AzerothCompendium:Trans("LID_DT_RARES"), self:CountKilled(run, self.rareList), #self.rareList))
-    frame.lootLabel:SetText(format("%s (%d)", AzerothCompendium:Trans("LID_LOOT"), #run.loot))
-    frame.lootEmpty:SetText(AzerothCompendium:Trans("LID_DT_NOLOOT"))
-    frame.lootEmpty:SetShown(#run.loot == 0)
-    frame.loot.data = run.loot
+    local loot, total = self:GetFilteredLoot(run)
+    frame.lootLabel:SetText(format("%s (%d)", AzerothCompendium:Trans("LID_LOOT"), #loot))
+    frame.lootEmpty:SetText(AzerothCompendium:Trans(total == 0 and "LID_DT_NOLOOT" or "LID_DT_NOLOOTFILTERED"))
+    frame.lootEmpty:SetShown(#loot == 0)
+    frame.loot.data = loot
     self:Layout()
     self:UpdateStats()
 end
