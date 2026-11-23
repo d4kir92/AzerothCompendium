@@ -23,6 +23,7 @@ Tracker.config = {
     lootRow = 20,
     lootMin = 64,
     collapsed = 30,
+    collapsedModern = 40,
     scaleMin = 0.5,
     scaleMax = 1.5,
     scaleStep = 0.01,
@@ -1491,7 +1492,7 @@ function Tracker:Layout()
     frame.grip:SetShown(not collapsed)
     frame.headerTime:SetShown(collapsed)
     if collapsed then
-        frame:SetHeight(c.collapsed)
+        frame:SetHeight(AzerothCompendium.Theme:IsModern() and c.collapsedModern or c.collapsed)
         frame.layingOut = false
 
         return
