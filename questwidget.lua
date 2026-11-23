@@ -923,9 +923,82 @@ function Widget:ShowQuestTooltip(row)
     GameTooltip:Show()
 end
 
+function Widget:IsCategoryCollapsed(key)
+    if key == nil then return false end
+    if type(ACOTABPC) == "table" and type(ACOTABPC.QUESTWIDGETCOLLAPSEDGROUPS) == "table" then return ACOTABPC.QUESTWIDGETCOLLAPSEDGROUPS[key] == true end
+
+    return self.collapsedGroups ~= nil and self.collapsedGroups[key] == true
+end
+
+function Widget:ToggleCategoryCollapsed(key)
+    if key == nil or InCombat() then return end
+    local store
+    if type(ACOTABPC) == "table" then
+        if type(ACOTABPC.QUESTWIDGETCOLLAPSEDGROUPS) ~= "table" then ACOTABPC.QUESTWIDGETCOLLAPSEDGROUPS = {} end
+        store = ACOTABPC.QUESTWIDGETCOLLAPSEDGROUPS
+    else
+        self.collapsedGroups = self.collapsedGroups or {}
+        store = self.collapsedGroups
+    end
+
+    if store[key] then
+        store[key] = nil
+    else
+        store[key] = true
+    end
+
+    self:Refresh()
+    self:RefreshEmbedded()
+end
+
+function Widget:UpdateListScrollbar(scroller, inset)
+    if scroller == nil or scroller.adjustingScroll or InCombat() then return end
+    local viewport = scroller.GetViewport and scroller:GetViewport()
+    if viewport == nil then return end
+    inset = inset or 0
+    local viewH = viewport:GetHeight() or 0
+    local contentH = scroller.contentHeight or 0
+    local needsScroll = viewH > 0 and contentH > viewH + 1
+    if scroller.bar then
+        if scroller.bar.SetHideIfUnscrollable then scroller.bar:SetHideIfUnscrollable(true) end
+        scroller.bar:SetShown(needsScroll)
+    end
+
+    if scroller.scroll then
+        local sb = scroller.scroll.ScrollBar or (scroller.scroll:GetName() and _G[scroller.scroll:GetName() .. "ScrollBar"])
+        if sb and sb.SetShown then sb:SetShown(needsScroll) end
+    end
+
+    if scroller.lastNeedsScroll ~= needsScroll then
+        scroller.lastNeedsScroll = needsScroll
+        local rightOffset = needsScroll and (-18 - inset) or -inset
+        viewport:ClearAllPoints()
+        viewport:SetPoint("TOPLEFT", scroller, "TOPLEFT", inset, -inset)
+        viewport:SetPoint("BOTTOMRIGHT", scroller, "BOTTOMRIGHT", rightOffset, inset)
+        if not scroller.adjustingScroll then
+            scroller.adjustingScroll = true
+            scroller:Refresh()
+            scroller.adjustingScroll = nil
+            local newViewH = viewport:GetHeight() or 0
+            local newContentH = scroller.contentHeight or 0
+            local stillNeeds = newViewH > 0 and newContentH > newViewH + 1
+            if scroller.bar then scroller.bar:SetShown(stillNeeds) end
+            if scroller.scroll then
+                local sb = scroller.scroll.ScrollBar or (scroller.scroll:GetName() and _G[scroller.scroll:GetName() .. "ScrollBar"])
+                if sb and sb.SetShown then sb:SetShown(stillNeeds) end
+            end
+        end
+    end
+end
+
 function Widget:OnQuestClick(row, mouseButton)
     local entry = row.entry
-    if entry == nil or entry.isHeader then return end
+    if entry == nil then return end
+    if entry.isHeader then
+        if mouseButton == "LeftButton" and entry.key then self:ToggleCategoryCollapsed(entry.key) end
+
+        return
+    end
     if mouseButton == "RightButton" then
         if AzerothCompendium.OpenInstanceQuests then AzerothCompendium:OpenInstanceQuests(entry.inst.id, entry.id) end
 
@@ -1032,13 +1105,20 @@ function Widget:BuildCategorizedList(entries, allMode)
 
     local result = {}
     for index, group in ipairs(groups) do
+        local key = (allMode and "all:" or "zone:") .. group.title
+        local collapsed = self:IsCategoryCollapsed(key)
         tinsert(result, {
             isHeader = true,
+            key = key,
             title = group.title,
+            count = #group.items,
+            collapsed = collapsed,
             firstHeader = index == 1,
         })
-        for _, entry in ipairs(group.items) do
-            tinsert(result, entry)
+        if not collapsed then
+            for _, entry in ipairs(group.items) do
+                tinsert(result, entry)
+            end
         end
     end
 
@@ -1224,8 +1304,12 @@ function Widget:CreateQuestRow(parent, secureItems)
     row.highlightTex:SetAllPoints()
     row.highlightTex:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
     row.highlightTex:SetBlendMode("ADD")
+    row.headerIcon = row:CreateTexture(nil, "ARTWORK")
+    row.headerIcon:SetSize(12, 12)
+    row.headerIcon:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -5)
+    row.headerIcon:Hide()
     row.headerText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    row.headerText:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -4)
+    row.headerText:SetPoint("LEFT", row.headerIcon, "RIGHT", 4, 0)
     row.headerText:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.headerText:SetJustifyH("LEFT")
     row.headerText:SetWordWrap(false)
@@ -1511,7 +1595,7 @@ function Widget:CreateQuestRow(parent, secureItems)
     function row:Update(entry)
         self.entry = entry
         if entry.isHeader then
-            self.highlightTex:SetAlpha(0)
+            self.highlightTex:SetAlpha(0.45)
             self.icon:Hide()
             self.focusBtn:Hide()
             self.title:Hide()
@@ -1530,10 +1614,20 @@ function Widget:CreateQuestRow(parent, secureItems)
                 self.itemBtn:Hide()
             end
 
+            local topY = entry.firstHeader and -3 or -9
+            self.headerIcon:ClearAllPoints()
+            self.headerIcon:SetPoint("TOPLEFT", self, "TOPLEFT", 4, topY)
+            AzerothCompendium.Theme:SetCollapseIcon(self.headerIcon, entry.collapsed == true)
+            self.headerIcon:Show()
             self.headerText:ClearAllPoints()
-            self.headerText:SetPoint("TOPLEFT", self, "TOPLEFT", 6, entry.firstHeader and -2 or -8)
+            self.headerText:SetPoint("LEFT", self.headerIcon, "RIGHT", 4, 0)
             self.headerText:SetPoint("RIGHT", self, "RIGHT", -6, 0)
-            self.headerText:SetText(entry.title or "")
+            if entry.collapsed and entry.count then
+                self.headerText:SetText(format("%s (%d)", entry.title or "", entry.count))
+            else
+                self.headerText:SetText(entry.title or "")
+            end
+
             self.headerText:Show()
             if self.stripe then
                 self.stripe:SetAlpha(0)
@@ -1544,6 +1638,7 @@ function Widget:CreateQuestRow(parent, secureItems)
         end
 
         self.highlightTex:SetAlpha(1)
+        self.headerIcon:Hide()
         self.headerText:Hide()
         self.title:Show()
         local rightPad = entry.questItem and (c.itemSize + 12) or 6
@@ -1974,7 +2069,10 @@ function Widget:CreateFrame()
     frame.openButton:SetSize(16, 16)
     frame.openButton:SetPoint("RIGHT", frame.settingsButton, "LEFT", -4, 0)
     frame.openButton:SetFrameLevel(frame:GetFrameLevel() + 30)
-    frame.openButton:SetNormalTexture("Interface\\Icons\\INV_Misc_Book_09")
+    frame.openButton.icon = frame.openButton:CreateTexture(nil, "ARTWORK")
+    frame.openButton.icon:SetAllPoints()
+    frame.openButton.icon:SetTexture(AzerothCompendium:GetIcon())
+    frame.openButton.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     frame.openButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
     frame.openButton:SetScript("OnClick", function()
         if Widget.selectedInstance and AzerothCompendium.OpenInstanceQuests then
@@ -2043,6 +2141,11 @@ function Widget:CreateFrame()
     frame.list = ui.CreateScroller(frame.content, c.rowH, function(parent) return Widget:CreateQuestRow(parent, true) end, 0, 0)
     frame.list.acoTheme = {}
     frame.list.acoKeepLight = true
+    if frame.list.bar and frame.list.bar.SetHideIfUnscrollable then frame.list.bar:SetHideIfUnscrollable(true) end
+    if hooksecurefunc and frame.list.UpdateScroll then
+        hooksecurefunc(frame.list, "UpdateScroll", function(sel) Widget:UpdateListScrollbar(sel, 0) end)
+    end
+
     if frame.list.contentBackground then frame.list.contentBackground:Hide() end
     if frame.list.border then frame.list.border:Hide() end
     if frame.list.borderOverlay then frame.list.borderOverlay:Hide() end
@@ -2289,6 +2392,10 @@ function Widget:CreateEmbeddedView(parent, getInstance)
     pane.zoneLabel:SetJustifyH("LEFT")
     pane.zoneLabel:SetWordWrap(false)
     pane.list = ui.CreateScroller(pane, c.rowH, function(scrollerParent) return Widget:CreateQuestRow(scrollerParent, false) end, 0, 4)
+    if pane.list.bar and pane.list.bar.SetHideIfUnscrollable then pane.list.bar:SetHideIfUnscrollable(true) end
+    if hooksecurefunc and pane.list.UpdateScroll then
+        hooksecurefunc(pane.list, "UpdateScroll", function(sel) Widget:UpdateListScrollbar(sel, 4) end)
+    end
     pane.list:SetPoint("TOPLEFT", pane.bar, "BOTTOMLEFT", 0, -c.gap)
     pane.list:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", 0, 0)
     pane.empty = pane.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
