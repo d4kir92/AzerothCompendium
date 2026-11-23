@@ -1089,7 +1089,7 @@ function Theme:Refresh()
 end
 
 function Theme:Nudge(frame)
-    if frame.acoNudging or not frame:IsShown() or frame:GetNumPoints() == 0 then return end
+    if frame.acoNudging or not frame:IsShown() or frame:GetNumPoints() == 0 or (InCombatLockdown and InCombatLockdown()) then return end
     local points = self:SavePoints(frame)
     frame.acoNudging = true
     frame:ClearAllPoints()
@@ -1099,6 +1099,7 @@ function Theme:Nudge(frame)
 
     C_Timer.After(0, function()
         frame.acoNudging = nil
+        if InCombatLockdown and InCombatLockdown() then return end
         Theme:RestorePoints(frame, points)
     end)
 end

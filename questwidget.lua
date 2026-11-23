@@ -13,6 +13,10 @@ Widget.config = {
     dropdownH = 24,
     barH = 22,
     rowH = 38,
+    focusSize = 20,
+    itemSize = 24,
+    lineGap = 2,
+    padY = 5,
     collapsed = 30,
     collapsedModern = 40,
     scaleMin = 0.5,
@@ -26,11 +30,94 @@ Widget.statusIcons = {
     open = "Interface\\GossipFrame\\AvailableQuestIcon",
 }
 
+Widget.poiAtlases = {
+    normal = "UI-QuestPoi-QuestNumber",
+    pushed = "UI-QuestPoi-QuestNumber-Pressed",
+    focused = "UI-QuestPoi-QuestNumber-SuperTracked",
+    focusedPushed = "UI-QuestPoi-QuestNumber-Pressed-SuperTracked",
+    highlight = "UI-QuestPoi-InnerGlow",
+    turnIn = "UI-QuestIcon-TurnIn-Normal",
+    turnInFallback = "QuestTurnin",
+}
+
 Widget.statusOrder = {
     ready = 1,
     active = 2,
     open = 3,
 }
+
+local function IsSecret(value)
+    return issecretvalue ~= nil and issecretvalue(value)
+end
+
+local function InCombat()
+    return InCombatLockdown ~= nil and InCombatLockdown() == true
+end
+
+local function HasAtlas(name)
+    return name ~= nil and C_Texture ~= nil and C_Texture.GetAtlasInfo ~= nil and C_Texture.GetAtlasInfo(name) ~= nil
+end
+
+local function GetItemCountCompat(itemID, includeCharges)
+    if itemID == nil then return 0 end
+    local fn = C_Item and C_Item.GetItemCount or GetItemCount
+    if fn == nil then return 0 end
+    local ok, count = pcall(fn, itemID, false, includeCharges == true)
+    if ok and type(count) == "number" and not IsSecret(count) then return count end
+
+    return 0
+end
+
+local function GetItemIconCompat(itemID)
+    if itemID == nil then return "Interface\\Icons\\INV_Misc_QuestionMark" end
+    if C_Item and C_Item.GetItemIconByID then
+        local ok, icon = pcall(C_Item.GetItemIconByID, itemID)
+        if ok and icon and not IsSecret(icon) then return icon end
+    end
+
+    if GetItemIcon then
+        local ok, icon = pcall(GetItemIcon, itemID)
+        if ok and icon and not IsSecret(icon) then return icon end
+    end
+
+    return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+local function GetItemCooldownCompat(itemID, logIndex)
+    if logIndex and logIndex > 0 and GetQuestLogSpecialItemCooldown then
+        local ok, start, duration, enable = pcall(GetQuestLogSpecialItemCooldown, logIndex)
+        if ok and type(start) == "number" and type(duration) == "number" and not IsSecret(start) and not IsSecret(duration) then
+            return start, duration, enable
+        end
+    end
+
+    local fn = (C_Container and C_Container.GetItemCooldown) or (C_Item and C_Item.GetItemCooldown) or GetItemCooldown
+    if itemID and fn then
+        local ok, start, duration, enable = pcall(fn, itemID)
+        if ok and type(start) == "number" and type(duration) == "number" and not IsSecret(start) and not IsSecret(duration) then
+            return start, duration, enable
+        end
+    end
+
+    return 0, 0, 0
+end
+
+local function IsItemInRangeCompat(itemID)
+    if itemID == nil or not UnitExists or not UnitExists("target") then return nil end
+    if UnitIsFriend and InCombat() then
+        local okF, isFriend = pcall(UnitIsFriend, "player", "target")
+        if not okF or IsSecret(isFriend) or isFriend then return nil end
+    end
+
+    local fn = C_Item and C_Item.IsItemInRange or IsItemInRange
+    if fn == nil then return nil end
+    local ok, inRange = pcall(fn, itemID, "target")
+    if not ok or IsSecret(inRange) then return nil end
+    if inRange == true or inRange == 1 then return true end
+    if inRange == false or inRange == 0 then return false end
+
+    return nil
+end
 
 local function GetMapName(mapID)
     if mapID == nil or C_Map == nil or C_Map.GetMapInfo == nil then return nil end
@@ -63,8 +150,75 @@ function Widget:IsCollapsed()
 end
 
 function Widget:SetCollapsed(collapsed)
+    if InCombat() then return end
     AzerothCompendium:SetConfig("QUESTWIDGETCOLLAPSED", collapsed == true)
     self:Layout()
+end
+
+function Widget:GetBackgroundAlpha()
+    local value = tonumber(AzerothCompendium:GetConfig("QUESTWIDGETALPHA", 0.3))
+    if value == nil then return 0.3 end
+
+    return min(1, max(0, value))
+end
+
+function Widget:SetBackgroundAlpha(value)
+    value = tonumber(value) or 0.3
+    value = floor(min(1, max(0, value)) * 100 + 0.5) / 100
+    AzerothCompendium:SetConfig("QUESTWIDGETALPHA", value)
+    self:ApplyBackgroundAlpha()
+end
+
+function Widget:ApplyBackgroundAlpha()
+    local frame = self.frame
+    if frame == nil then return end
+    local alpha = self:GetBackgroundAlpha()
+    local theme = AzerothCompendium.Theme
+    local modern = theme and theme:IsModern()
+    if frame.titleText then
+        frame.titleText:SetText("")
+        frame.titleText:Hide()
+    end
+
+    if frame.list then frame.list.acoKeepLight = true end
+    if modern then
+        local winRec = frame.acoTheme
+        if winRec and winRec.show then
+            for _, region in ipairs(winRec.show) do
+                if region.GetDrawLayer then
+                    local layer = region:GetDrawLayer()
+                    if layer == "BACKGROUND" and region.SetAlpha then
+                        region:SetAlpha(alpha)
+                    elseif layer == "ARTWORK" and region.Hide then
+                        region:Hide()
+                    end
+                end
+            end
+        end
+
+        local listRec = frame.list and frame.list.acoTheme
+        if listRec and listRec.show then
+            for _, region in ipairs(listRec.show) do
+                if region.GetDrawLayer and region:GetDrawLayer() == "BACKGROUND" and region.SetAlpha then region:SetAlpha(alpha) end
+            end
+        end
+    else
+        for _, key in ipairs(theme and theme.WINDOWKEYS or {}) do
+            local region = theme:Child(frame, key)
+            if region and region.SetAlpha then region:SetAlpha(alpha) end
+        end
+
+        if frame.list then
+            if frame.list.contentBackground then frame.list.contentBackground:SetAlpha(alpha) end
+            if frame.list.border then frame.list.border:SetAlpha(alpha) end
+        end
+    end
+
+    if frame.list and frame.list.rows then
+        for _, row in ipairs(frame.list.rows) do
+            if row.stripe then row.stripe:SetAlpha(alpha) end
+        end
+    end
 end
 
 function Widget:IsZoneOnly()
@@ -151,36 +305,141 @@ function Widget:IsNodeLocked(node)
     return hasAny and not anyDone
 end
 
-function Widget:GetQuestObjectiveSummary(questID)
+function Widget:GetActiveQuestID(questID)
+    for _, id in ipairs(AzerothCompendium:GetQuestVariants(questID)) do
+        if C_QuestLog and C_QuestLog.IsOnQuest then
+            local ok, active = pcall(C_QuestLog.IsOnQuest, id)
+            if ok and active == true then return id end
+        elseif GetQuestLogIndexByID then
+            local ok, index = pcall(GetQuestLogIndexByID, id)
+            if ok and type(index) == "number" and index > 0 then return id end
+        end
+    end
+
+    return questID
+end
+
+function Widget:GetQuestLogIndex(questID)
+    if questID == nil then return nil end
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, index = pcall(C_QuestLog.GetLogIndexForQuestID, questID)
+        if ok and type(index) == "number" and not IsSecret(index) and index > 0 then return index end
+    end
+
+    if GetQuestLogIndexByID then
+        local ok, index = pcall(GetQuestLogIndexByID, questID)
+        if ok and type(index) == "number" and not IsSecret(index) and index > 0 then return index end
+    end
+
+    return nil
+end
+
+function Widget:GetQuestObjectives(questID)
+    local list = {}
+    if questID == nil then return list end
     if C_QuestLog and C_QuestLog.GetQuestObjectives then
         local ok, objectives = pcall(C_QuestLog.GetQuestObjectives, questID)
         if ok and type(objectives) == "table" and #objectives > 0 then
             for _, obj in ipairs(objectives) do
-                if type(obj) == "table" and not obj.finished and type(obj.text) == "string" and obj.text ~= "" then return obj.text end
-            end
-
-            if type(objectives[1]) == "table" and type(objectives[1].text) == "string" and objectives[1].text ~= "" then return objectives[1].text end
-        end
-    end
-
-    if GetQuestLogIndexByID and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
-        local index = GetQuestLogIndexByID(questID)
-        if index and index > 0 then
-            local count = GetNumQuestLeaderBoards(index) or 0
-            local first = nil
-            for i = 1, count do
-                local text, _, done = GetQuestLogLeaderBoard(i, index)
-                if type(text) == "string" and text ~= "" then
-                    first = first or text
-                    if not done then return text end
+                if type(obj) == "table" and type(obj.text) == "string" and not IsSecret(obj.text) then
+                    local text = obj.text:match("^%s*(.-)%s*$")
+                    if text and text ~= "" then
+                        local finished = not IsSecret(obj.finished) and obj.finished == true
+                        tinsert(list, {
+                            text = text,
+                            finished = finished,
+                        })
+                    end
                 end
             end
 
-            return first
+            if #list > 0 then return list end
         end
     end
 
-    return nil
+    local index = self:GetQuestLogIndex(questID)
+    if index and GetNumQuestLeaderBoards and GetQuestLogLeaderBoard then
+        local okCount, count = pcall(GetNumQuestLeaderBoards, index)
+        if okCount and type(count) == "number" and not IsSecret(count) then
+            for i = 1, count do
+                local okLine, text, _, done = pcall(GetQuestLogLeaderBoard, i, index)
+                if okLine and type(text) == "string" and not IsSecret(text) then
+                    local trimmed = text:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        local finished = not IsSecret(done) and (done == true or done == 1)
+                        tinsert(list, {
+                            text = trimmed,
+                            finished = finished,
+                        })
+                    end
+                end
+            end
+        end
+    end
+
+    return list
+end
+
+function Widget:GetQuestObjectiveSummary(questID)
+    local objectives = self:GetQuestObjectives(questID)
+    for _, obj in ipairs(objectives) do
+        if not obj.finished then return obj.text end
+    end
+
+    return objectives[1] and objectives[1].text or nil
+end
+
+function Widget:GetQuestUsableItem(activeID, logIndex, status)
+    if status ~= "active" and status ~= "ready" then return nil end
+    if GetQuestLogSpecialItemInfo == nil then return nil end
+    logIndex = logIndex or self:GetQuestLogIndex(activeID)
+    if logIndex == nil or logIndex <= 0 then return nil end
+    local ok, link, texture, charges, showWhenComplete = pcall(GetQuestLogSpecialItemInfo, logIndex)
+    if not ok or type(link) ~= "string" or IsSecret(link) then return nil end
+    local itemID = tonumber(link:match("item:(%d+)"))
+    if itemID == nil then return nil end
+    if status == "ready" and (IsSecret(showWhenComplete) or not showWhenComplete) then return nil end
+    if GetItemCountCompat(itemID, false) <= 0 then return nil end
+    local count = GetItemCountCompat(itemID, true)
+    if count <= 0 and type(charges) == "number" and not IsSecret(charges) then count = charges end
+
+    return {
+        itemID = itemID,
+        texture = (not IsSecret(texture) and texture) or GetItemIconCompat(itemID),
+        charges = count,
+        logIndex = logIndex,
+    }
+end
+
+function Widget:CanSuperTrack()
+    return C_SuperTrack ~= nil and type(C_SuperTrack.SetSuperTrackedQuestID) == "function"
+end
+
+function Widget:GetSuperTrackedQuestID()
+    if C_SuperTrack == nil or type(C_SuperTrack.GetSuperTrackedQuestID) ~= "function" then return 0 end
+    local ok, questID = pcall(C_SuperTrack.GetSuperTrackedQuestID)
+    if ok and type(questID) == "number" and not IsSecret(questID) and questID > 0 then return questID end
+
+    return 0
+end
+
+function Widget:IsQuestFocused(activeID)
+    return activeID ~= nil and activeID > 0 and self:GetSuperTrackedQuestID() == activeID
+end
+
+function Widget:ToggleQuestFocus(entry)
+    if entry == nil or (entry.status ~= "active" and entry.status ~= "ready") then return false end
+    if not self:CanSuperTrack() then return false end
+    local activeID = entry.activeID or self:GetActiveQuestID(entry.id)
+    if self:IsQuestFocused(activeID) then
+        pcall(C_SuperTrack.SetSuperTrackedQuestID, 0)
+    else
+        pcall(C_SuperTrack.SetSuperTrackedQuestID, activeID)
+    end
+
+    self:UpdateAllFocusStates()
+
+    return true
 end
 
 function Widget:ResolveTarget(inst, group, status)
@@ -347,10 +606,16 @@ function Widget:CollectActionable(inst, location)
             end
 
             if status then
+                local activeID = (status == "active" or status == "ready") and self:GetActiveQuestID(id) or id
+                local logIndex = (status == "active" or status == "ready") and self:GetQuestLogIndex(activeID) or nil
+                local objectives = (status == "active" or status == "ready") and self:GetQuestObjectives(activeID) or nil
+                local questItem = (status == "active" or status == "ready") and self:GetQuestUsableItem(activeID, logIndex, status) or nil
                 local target = self:ResolveTarget(inst, group, status)
                 local match = self:IsTargetInLocation(inst, target, location)
                 local entry = {
                     id = id,
+                    activeID = activeID,
+                    logIndex = logIndex,
                     inst = inst,
                     quest = group.quest,
                     name = group.nameIndex and format("%s (%d)", group.name, group.nameIndex) or group.name,
@@ -359,8 +624,11 @@ function Widget:CollectActionable(inst, location)
                     section = status == "ready" and group.last.section or status == "active" and (group.objective and group.objective.section or group.last.section) or group.first.section,
                     target = target,
                     inZone = match,
+                    objectives = objectives,
+                    questItem = questItem,
                 }
 
+                entry.displayLines = self:BuildEntryLines(entry)
                 tinsert(all, entry)
                 if match then tinsert(inZone, entry) end
             end
@@ -426,6 +694,7 @@ function Widget:CollectAllInZone(location)
                 if not seen[entry.id] then
                     seen[entry.id] = true
                     entry.allMode = true
+                    entry.displayLines = self:BuildEntryLines(entry)
                     tinsert(list, entry)
                 end
             end
@@ -547,6 +816,7 @@ function Widget:CreateResizeGrip(frame)
 
     grip:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     grip:SetScript("OnMouseDown", function(sel, button)
+        if InCombat() then return end
         if button == "RightButton" then
             sel.sizing = nil
             Widget:ApplyScale(1)
@@ -591,8 +861,8 @@ function Widget:CreateResizeGrip(frame)
     grip:SetScript("OnHide", StopSizing)
     function grip.OnSizingUpdate(sel)
         local sizing = sel.sizing
-        if sizing == nil then
-            sel:SetScript("OnUpdate", nil)
+        if sizing == nil or InCombat() then
+            StopSizing(sel)
 
             return
         end
@@ -649,9 +919,16 @@ function Widget:ShowQuestTooltip(row)
 
     GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(statusKey)), sr, sg, sb)
     if entry.allMode and entry.inst then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetInstanceName(entry.inst)), 1, 0.82, 0) end
-    if entry.status == "active" then
-        local summary = self:GetQuestObjectiveSummary(id)
-        if summary then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(summary), 0.9, 0.9, 0.9, true) end
+    if entry.status == "active" or entry.status == "ready" then
+        local objectives = self:GetQuestObjectives(entry.activeID or id)
+        for _, obj in ipairs(objectives) do
+            local line = obj.text:sub(1, 2) == "- " and obj.text or ("- " .. obj.text)
+            if obj.finished then
+                GameTooltip:AddLine(line, 0.25, 1, 0.25, true)
+            else
+                GameTooltip:AddLine(line, 0.92, 0.92, 0.92, true)
+            end
+        end
     end
 
     local target = entry.target
@@ -760,40 +1037,661 @@ function Widget:FormatRowSubtext(entry)
     return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), where), 0.72, 0.72, 0.76
 end
 
-function Widget:CreateQuestRow(parent)
+function Widget:BuildEntryLines(entry)
+    local lines = {}
+    if entry.status == "active" then
+        local objectives = entry.objectives
+        if type(objectives) == "table" and #objectives > 0 then
+            for _, obj in ipairs(objectives) do
+                local text = obj.text:sub(1, 2) == "- " and obj.text or ("- " .. obj.text)
+                if obj.finished then
+                    tinsert(lines, {text, 0.25, 1, 0.25})
+                else
+                    tinsert(lines, {text, 0.92, 0.92, 0.92})
+                end
+            end
+        else
+            local text, r, g, b = self:FormatRowSubtext(entry)
+            tinsert(lines, {text, r, g, b})
+        end
+
+        if entry.allMode and entry.inst then
+            tinsert(lines, {AzerothCompendium:GetInstanceName(entry.inst), 0.78, 0.72, 0.50})
+        elseif not entry.inZone and entry.target and entry.target.zone and entry.target.zone ~= "" then
+            tinsert(lines, {entry.target.zone, 0.65, 0.65, 0.70})
+        end
+
+        return lines
+    end
+
+    if entry.status == "ready" then
+        local objectives = entry.objectives
+        if type(objectives) == "table" and #objectives > 0 then
+            for _, obj in ipairs(objectives) do
+                local text = obj.text:sub(1, 2) == "- " and obj.text or ("- " .. obj.text)
+                tinsert(lines, {text, 0.25, 1, 0.25})
+            end
+        end
+
+        local text, r, g, b = self:FormatRowSubtext(entry)
+        tinsert(lines, {text, r, g, b})
+
+        return lines
+    end
+
+    local text, r, g, b = self:FormatRowSubtext(entry)
+    tinsert(lines, {text, r, g, b})
+
+    return lines
+end
+
+function Widget:ReleaseEmbeddedItemOverlay()
+    local overlay = self.embeddedItemOverlay
+    if overlay == nil or InCombat() then return end
+    local owner = overlay.owner
+    overlay.owner = nil
+    overlay:SetAttribute("type1", nil)
+    overlay:SetAttribute("item1", nil)
+    overlay:Hide()
+    if owner and owner.row and owner.row.UnlockHighlight then owner.row:UnlockHighlight() end
+end
+
+function Widget:AttachEmbeddedItemOverlay(button)
+    if button == nil or button.itemID == nil or InCombat() then return end
+    local overlay = self.embeddedItemOverlay
+    if overlay == nil then
+        overlay = CreateFrame("Button", nil, UIParent, "SecureActionButtonTemplate")
+        overlay:SetFrameStrata("FULLSCREEN_DIALOG")
+        if SecureActionButton_ShouldUseOnKeyDown then
+            overlay:RegisterForClicks("LeftButtonUp", "LeftButtonDown")
+        else
+            overlay:RegisterForClicks("LeftButtonUp")
+        end
+
+        overlay:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        overlay:SetScript("OnEnter", function(sel)
+            local owner = sel.owner
+            if owner == nil then return end
+            if owner.row and owner.row.LockHighlight then owner.row:LockHighlight() end
+            local onEnter = owner:GetScript("OnEnter")
+            if onEnter then onEnter(owner, true) end
+        end)
+
+        overlay:SetScript("OnLeave", function(sel)
+            local owner = sel.owner
+            Widget:ReleaseEmbeddedItemOverlay()
+            local onLeave = owner and owner:GetScript("OnLeave")
+            if onLeave then onLeave(owner) end
+        end)
+
+        overlay:SetScript("OnUpdate", function(sel)
+            local owner = sel.owner
+            if owner == nil or not owner:IsVisible() or not owner:IsMouseOver() then
+                Widget:ReleaseEmbeddedItemOverlay()
+                local onLeave = owner and owner:GetScript("OnLeave")
+                if onLeave then onLeave(owner) end
+            end
+        end)
+
+        overlay:RegisterEvent("PLAYER_REGEN_DISABLED")
+        overlay:SetScript("OnEvent", function() Widget:ReleaseEmbeddedItemOverlay() end)
+        overlay:Hide()
+        self.embeddedItemOverlay = overlay
+    end
+
+    overlay.owner = button
+    overlay:SetAttribute("type1", "item")
+    overlay:SetAttribute("item1", "item:" .. button.itemID)
+    overlay:ClearAllPoints()
+    overlay:SetAllPoints(button)
+    overlay:Show()
+end
+
+function Widget:ForEachVisibleRow(fn)
+    if self.frame and self.frame:IsShown() and self.frame.list and self.frame.list.rows then
+        for _, row in ipairs(self.frame.list.rows) do
+            if row:IsShown() and row.entry then fn(row) end
+        end
+    end
+
+    for _, pane in ipairs(self.embeddedViews or {}) do
+        if pane:IsShown() and pane.list and pane.list.rows then
+            for _, row in ipairs(pane.list.rows) do
+                if row:IsShown() and row.entry then fn(row) end
+            end
+        end
+    end
+end
+
+function Widget:UpdateAllFocusStates()
+    self:ForEachVisibleRow(function(row)
+        if row.UpdateFocusState then row:UpdateFocusState() end
+    end)
+end
+
+function Widget:UpdateAllItemCooldowns()
+    self:ForEachVisibleRow(function(row)
+        if row.itemBtn and row.itemBtn.itemID then row.itemBtn:UpdateCooldown() end
+    end)
+end
+
+function Widget:UpdateAllItemCharges()
+    self:ForEachVisibleRow(function(row)
+        if row.itemBtn and row.itemBtn.itemID then row.itemBtn:UpdateCharges() end
+    end)
+end
+
+function Widget:UpdateAllItemRanges()
+    self:ForEachVisibleRow(function(row)
+        if row.itemBtn and row.itemBtn.itemID then row.itemBtn:UpdateRange() end
+    end)
+end
+
+function Widget:RefreshInCombat()
+    self:ForEachVisibleRow(function(row)
+        local entry = row.entry
+        if entry.status == "active" or entry.status == "ready" then
+            entry.objectives = self:GetQuestObjectives(entry.activeID or entry.id)
+            entry.displayLines = self:BuildEntryLines(entry)
+            local lines = entry.displayLines or {}
+            for i, line in ipairs(lines) do
+                local fs = row.lines and row.lines[i]
+                if fs then
+                    fs:SetText(line[1])
+                    fs:SetTextColor(line[2], line[3], line[4])
+                end
+            end
+        end
+
+        if row.UpdateFocusState then row:UpdateFocusState() end
+        if row.itemBtn and row.itemBtn.itemID then
+            row.itemBtn:UpdateCooldown()
+            row.itemBtn:UpdateCharges()
+            row.itemBtn:UpdateRange()
+        end
+    end)
+end
+
+function Widget:CreateQuestRow(parent, secureItems)
+    local c = self.config
     local row = CreateFrame("Button", nil, parent)
-    row:SetHeight(self.config.rowH)
+    row:SetHeight(c.rowH)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(16, 16)
-    row.icon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    row.icon:SetPoint("TOPLEFT", row, "TOPLEFT", 7, -6)
+    local focusBtn = CreateFrame("Button", nil, row)
+    focusBtn:SetSize(c.focusSize, c.focusSize)
+    focusBtn:SetPoint("TOPLEFT", row, "TOPLEFT", 5, -4)
+    focusBtn:SetFrameLevel(row:GetFrameLevel() + 5)
+    focusBtn:RegisterForClicks("LeftButtonUp")
+    focusBtn.useAtlas = HasAtlas(self.poiAtlases.normal) and HasAtlas(self.poiAtlases.focused)
+    if focusBtn.useAtlas then
+        focusBtn.normalTex = focusBtn:CreateTexture(nil, "ARTWORK")
+        focusBtn.normalTex:SetAllPoints()
+        focusBtn:SetNormalTexture(focusBtn.normalTex)
+        focusBtn.pushedTex = focusBtn:CreateTexture(nil, "ARTWORK")
+        focusBtn.pushedTex:SetAllPoints()
+        focusBtn:SetPushedTexture(focusBtn.pushedTex)
+        focusBtn.highlightTex = focusBtn:CreateTexture(nil, "OVERLAY")
+        focusBtn.highlightTex:SetAllPoints()
+        if HasAtlas(self.poiAtlases.highlight) then
+            focusBtn.highlightTex:SetAtlas(self.poiAtlases.highlight)
+        else
+            focusBtn.highlightTex:SetTexture("Interface\\Buttons\\UI-Common-MouseHilight")
+        end
+
+        focusBtn:SetHighlightTexture(focusBtn.highlightTex, "ADD")
+    else
+        focusBtn.fallbackRing = focusBtn:CreateTexture(nil, "BACKGROUND")
+        focusBtn.fallbackRing:SetAllPoints()
+        focusBtn.fallbackRing:SetTexture("Interface\\Buttons\\WHITE8X8")
+        focusBtn.fallbackRing:SetVertexColor(0.85, 0.68, 0.2, 0.9)
+        focusBtn.fallbackFill = focusBtn:CreateTexture(nil, "ARTWORK")
+        focusBtn.fallbackFill:SetPoint("TOPLEFT", focusBtn, "TOPLEFT", 1, -1)
+        focusBtn.fallbackFill:SetPoint("BOTTOMRIGHT", focusBtn, "BOTTOMRIGHT", -1, 1)
+        focusBtn.fallbackFill:SetTexture("Interface\\Buttons\\WHITE8X8")
+        if focusBtn.CreateMaskTexture then
+            local mask = focusBtn:CreateMaskTexture()
+            mask:SetAllPoints(focusBtn)
+            mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+            focusBtn.fallbackRing:AddMaskTexture(mask)
+            focusBtn.fallbackFill:AddMaskTexture(mask)
+        end
+
+        focusBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    end
+
+    focusBtn.turnInIcon = focusBtn:CreateTexture(nil, "ARTWORK", nil, 2)
+    focusBtn.turnInIcon:SetSize(12, 12)
+    focusBtn.turnInIcon:SetPoint("CENTER", focusBtn, "CENTER", 0, 0)
+    if HasAtlas(self.poiAtlases.turnIn) then
+        focusBtn.turnInIcon:SetAtlas(self.poiAtlases.turnIn)
+    elseif HasAtlas(self.poiAtlases.turnInFallback) then
+        focusBtn.turnInIcon:SetAtlas(self.poiAtlases.turnInFallback)
+    else
+        focusBtn.turnInIcon:SetTexture("Interface\\GossipFrame\\ActiveQuestIcon")
+    end
+
+    focusBtn.turnInIcon:Hide()
+    focusBtn.dots = focusBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    focusBtn.dots:SetPoint("CENTER", focusBtn, "CENTER", 0, 3)
+    focusBtn.dots:SetText("...")
+    focusBtn.dots:Hide()
+    focusBtn:Hide()
+    focusBtn:SetScript("OnClick", function()
+        if row.entry and Widget:ToggleQuestFocus(row.entry) and GameTooltip:IsOwned(focusBtn) then focusBtn:GetScript("OnEnter")(focusBtn) end
+    end)
+
+    focusBtn:SetScript("OnEnter", function(sel)
+        if row.entry == nil then return end
+        row:LockHighlight()
+        local focused = Widget:IsQuestFocused(row.entry.activeID or row.entry.id)
+        GameTooltip:SetOwner(sel, "ANCHOR_LEFT")
+        GameTooltip:SetText(AzerothCompendium:Trans(focused and "LID_QW_UNFOCUSQUEST" or "LID_QW_FOCUSQUEST"), 1, 0.82, 0)
+        GameTooltip:Show()
+    end)
+
+    focusBtn:SetScript("OnLeave", function()
+        row:UnlockHighlight()
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    row.focusBtn = focusBtn
+    local itemBtn = CreateFrame("Button", nil, row, secureItems and "SecureActionButtonTemplate" or nil)
+    itemBtn.row = row
+    itemBtn.secure = secureItems == true
+    itemBtn:SetSize(c.itemSize, c.itemSize)
+    itemBtn:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -5)
+    itemBtn:SetFrameLevel(row:GetFrameLevel() + 5)
+    if secureItems then
+        if SecureActionButton_ShouldUseOnKeyDown then
+            itemBtn:RegisterForClicks("LeftButtonUp", "LeftButtonDown")
+        else
+            itemBtn:RegisterForClicks("LeftButtonUp")
+        end
+    end
+
+    itemBtn.border = itemBtn:CreateTexture(nil, "BACKGROUND")
+    itemBtn.border:SetAllPoints()
+    itemBtn.border:SetTexture("Interface\\Buttons\\WHITE8X8")
+    itemBtn.border:SetVertexColor(0.38, 0.32, 0.2, 0.95)
+    itemBtn.icon = itemBtn:CreateTexture(nil, "ARTWORK")
+    itemBtn.icon:SetPoint("TOPLEFT", itemBtn, "TOPLEFT", 1, -1)
+    itemBtn.icon:SetPoint("BOTTOMRIGHT", itemBtn, "BOTTOMRIGHT", -1, 1)
+    itemBtn.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    itemBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+    local cooldown = CreateFrame("Cooldown", nil, itemBtn, "CooldownFrameTemplate")
+    cooldown:SetPoint("TOPLEFT", itemBtn, "TOPLEFT", 1, -1)
+    cooldown:SetPoint("BOTTOMRIGHT", itemBtn, "BOTTOMRIGHT", -1, 1)
+    cooldown:Hide()
+    itemBtn.cooldown = cooldown
+    itemBtn.count = itemBtn:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    itemBtn.count:SetPoint("BOTTOMRIGHT", itemBtn, "BOTTOMRIGHT", -1, 1)
+    itemBtn.count:SetJustifyH("RIGHT")
+    itemBtn.range = itemBtn:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmallGray")
+    itemBtn.range:SetPoint("TOPRIGHT", itemBtn, "TOPRIGHT", 1, 1)
+    itemBtn.range:SetText(RANGE_INDICATOR or "•")
+    itemBtn.range:SetAlpha(0)
+    itemBtn.rangeTimer = 0
+    function itemBtn:UpdateCooldown()
+        if self.itemID == nil then
+            self.cooldown:Hide()
+
+            return
+        end
+
+        local start, duration, enable = GetItemCooldownCompat(self.itemID, self.logIndex)
+        if enable ~= 0 and duration and duration > 0 and start and start > 0 then
+            self.cooldown:SetCooldown(start, duration)
+            self.cooldown:Show()
+        else
+            self.cooldown:Hide()
+        end
+    end
+
+    function itemBtn:UpdateCharges()
+        if self.itemID == nil then
+            self.count:SetText("")
+
+            return
+        end
+
+        local count = GetItemCountCompat(self.itemID, true)
+        self.count:SetText(count > 1 and tostring(count) or "")
+    end
+
+    function itemBtn:UpdateRange()
+        if self.itemID == nil then
+            self.range:SetAlpha(0)
+
+            return
+        end
+
+        local inRange = IsItemInRangeCompat(self.itemID)
+        if inRange == false then
+            self.range:SetTextColor(1, 0.15, 0.15)
+            self.range:SetAlpha(1)
+        elseif inRange == true then
+            self.range:SetTextColor(0.75, 0.75, 0.75)
+            self.range:SetAlpha(1)
+        else
+            self.range:SetAlpha(0)
+        end
+    end
+
+    itemBtn:SetScript("OnEnter", function(sel, fromOverlay)
+        if sel.itemID == nil then return end
+        row:LockHighlight()
+        local centerX = select(1, sel:GetCenter()) or 0
+        local mid = (GetScreenWidth and GetScreenWidth() or UIParent:GetWidth() or 1000) / 2
+        GameTooltip:SetOwner(sel, centerX < mid and "ANCHOR_RIGHT" or "ANCHOR_LEFT")
+        if GameTooltip.SetItemByID then
+            GameTooltip:SetItemByID(sel.itemID)
+        else
+            GameTooltip:SetHyperlink("item:" .. sel.itemID)
+        end
+
+        GameTooltip:Show()
+        if not sel.secure and not fromOverlay then Widget:AttachEmbeddedItemOverlay(sel) end
+    end)
+
+    itemBtn:SetScript("OnLeave", function()
+        row:UnlockHighlight()
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    itemBtn:SetScript("OnUpdate", function(sel, elapsed)
+        if sel.itemID == nil or not UnitExists or not UnitExists("target") then
+            sel.rangeTimer = 0
+            sel.range:SetAlpha(0)
+
+            return
+        end
+
+        sel.rangeTimer = sel.rangeTimer - elapsed
+        if sel.rangeTimer <= 0 then
+            sel.rangeTimer = 0.3
+            sel:UpdateRange()
+        end
+    end)
+
+    itemBtn:Hide()
+    row.itemBtn = itemBtn
     row.title = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.title:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 6, 6)
+    row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -c.padY)
     row.title:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.title:SetJustifyH("LEFT")
-    row.title:SetWordWrap(false)
-    row.sub = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.sub:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2)
-    row.sub:SetPoint("RIGHT", row, "RIGHT", -6, 0)
-    row.sub:SetJustifyH("LEFT")
-    row.sub:SetWordWrap(false)
+    row.title:SetWordWrap(true)
+    row.lines = {}
+    function row:GetLine(index)
+        local fs = self.lines[index]
+        if fs == nil then
+            fs = self:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            fs:SetJustifyH("LEFT")
+            fs:SetWordWrap(true)
+            self.lines[index] = fs
+        end
+
+        return fs
+    end
+
+    function row:UpdateFocusState()
+        local entry = self.entry
+        if entry == nil or not self.focusBtn:IsShown() then return end
+        local focused = Widget:IsQuestFocused(entry.activeID or entry.id)
+        local atlases = Widget.poiAtlases
+        if self.focusBtn.useAtlas then
+            self.focusBtn.normalTex:SetAtlas(focused and atlases.focused or atlases.normal)
+            self.focusBtn.pushedTex:SetAtlas(focused and atlases.focusedPushed or atlases.pushed)
+        elseif self.focusBtn.fallbackFill then
+            if focused then
+                self.focusBtn.fallbackFill:SetVertexColor(0.95, 0.78, 0.14, 1)
+                self.focusBtn.fallbackRing:SetVertexColor(1, 0.9, 0.35, 1)
+            else
+                self.focusBtn.fallbackFill:SetVertexColor(0.38, 0.07, 0.07, 1)
+                self.focusBtn.fallbackRing:SetVertexColor(0.75, 0.58, 0.18, 0.9)
+            end
+        end
+
+        if entry.status == "ready" then
+            self.focusBtn.turnInIcon:Show()
+            self.focusBtn.dots:Hide()
+        else
+            self.focusBtn.turnInIcon:Hide()
+            self.focusBtn.dots:Show()
+            if focused then
+                self.focusBtn.dots:SetTextColor(0.08, 0.05, 0.02)
+            else
+                self.focusBtn.dots:SetTextColor(0.95, 0.90, 0.80)
+            end
+        end
+    end
+
+    function row:GetRowHeight(entry, width)
+        local rightPad = entry.questItem and (c.itemSize + 12) or 6
+        local textW = max(80, (width or 240) - 30 - rightPad)
+        local color = GetDifficultyColorCode(entry.level)
+        local prefix = entry.level > 0 and format("[%d] ", entry.level) or ""
+        self.title:SetWidth(textW)
+        self.title:SetText(color .. prefix .. (entry.name or "") .. "|r")
+        local h = c.padY + max(13, ceil(self.title:GetStringHeight() or 13))
+        local displayLines = entry.displayLines or Widget:BuildEntryLines(entry)
+        for i, line in ipairs(displayLines) do
+            local fs = self:GetLine(i)
+            fs:SetWidth(textW)
+            fs:SetText(line[1])
+            h = h + c.lineGap + max(12, ceil(fs:GetStringHeight() or 12))
+        end
+
+        h = h + c.padY
+        local minH = entry.questItem and (c.itemSize + c.padY * 2) or 28
+
+        return max(minH, h)
+    end
+
     row:SetScript("OnEnter", function(sel) Widget:ShowQuestTooltip(sel) end)
     row:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     row:SetScript("OnClick", function(sel, button) Widget:OnQuestClick(sel, button) end)
     function row:Update(entry)
         self.entry = entry
-        self.icon:SetTexture(Widget.statusIcons[entry.status] or Widget.statusIcons.open)
-        if self.icon.SetDesaturated then self.icon:SetDesaturated(entry.status == "active") end
+        local rightPad = entry.questItem and (c.itemSize + 12) or 6
+        local showFocus = Widget:CanSuperTrack() and (entry.status == "active" or entry.status == "ready")
+        if showFocus then
+            self.icon:Hide()
+            self.focusBtn:Show()
+            self:UpdateFocusState()
+        else
+            self.focusBtn:Hide()
+            self.icon:SetTexture(Widget.statusIcons[entry.status] or Widget.statusIcons.open)
+            if self.icon.SetDesaturated then self.icon:SetDesaturated(entry.status == "active") end
+            self.icon:Show()
+        end
+
+        self.title:ClearAllPoints()
+        self.title:SetPoint("TOPLEFT", self, "TOPLEFT", 30, -c.padY)
+        self.title:SetPoint("RIGHT", self, "RIGHT", -rightPad, 0)
         local color = GetDifficultyColorCode(entry.level)
         local prefix = entry.level > 0 and format("[%d] ", entry.level) or ""
         self.title:SetText(color .. prefix .. (entry.name or "") .. "|r")
-        local text, r, g, b = Widget:FormatRowSubtext(entry)
-        self.sub:SetText(text)
-        self.sub:SetTextColor(r, g, b)
+        local displayLines = entry.displayLines or Widget:BuildEntryLines(entry)
+        local anchor = self.title
+        for i, line in ipairs(displayLines) do
+            local fs = self:GetLine(i)
+            fs:ClearAllPoints()
+            fs:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", i == 1 and 2 or 0, -c.lineGap)
+            fs:SetPoint("RIGHT", self, "RIGHT", -rightPad, 0)
+            fs:SetText(line[1])
+            fs:SetTextColor(line[2], line[3], line[4])
+            fs:Show()
+            anchor = fs
+        end
+
+        for i = #displayLines + 1, #self.lines do
+            self.lines[i]:Hide()
+        end
+
+        local item = entry.questItem
+        if not (self.itemBtn.secure and InCombat()) then
+            if item and item.itemID then
+                self.itemBtn.itemID = item.itemID
+                self.itemBtn.logIndex = item.logIndex
+                self.itemBtn.icon:SetTexture(item.texture or GetItemIconCompat(item.itemID))
+                if self.itemBtn.secure then
+                    self.itemBtn:SetAttribute("type1", "item")
+                    self.itemBtn:SetAttribute("item1", "item:" .. item.itemID)
+                end
+
+                self.itemBtn:UpdateCooldown()
+                self.itemBtn:UpdateCharges()
+                self.itemBtn:UpdateRange()
+                self.itemBtn:Show()
+            else
+                self.itemBtn.itemID = nil
+                self.itemBtn.logIndex = nil
+                if self.itemBtn.secure then
+                    self.itemBtn:SetAttribute("type1", nil)
+                    self.itemBtn:SetAttribute("item1", nil)
+                end
+
+                self.itemBtn:Hide()
+            end
+        end
+
+        if self.stripe and Widget.frame and Widget.frame.list and self:GetParent() == Widget.frame.list.content then
+            self.stripe:SetAlpha(Widget:GetBackgroundAlpha())
+        end
     end
 
     return row
+end
+
+function Widget:CreateSettingsPopover()
+    if self.settingsPopover then return self.settingsPopover end
+    local pop = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+    pop:SetSize(220, 74)
+    pop:SetFrameStrata("DIALOG")
+    pop:SetClampedToScreen(true)
+    pop:EnableMouse(true)
+    if pop.SetBackdrop then
+        pop:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8X8",
+            edgeFile = "Interface\\Buttons\\WHITE8X8",
+            edgeSize = 1,
+        })
+        pop:SetBackdropColor(0.08, 0.09, 0.11, 0.96)
+        pop:SetBackdropBorderColor(0.32, 0.34, 0.38, 1)
+    else
+        local bg = pop:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.08, 0.09, 0.11, 0.96)
+    end
+
+    pop.label = pop:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    pop.label:SetPoint("TOPLEFT", pop, "TOPLEFT", 12, -12)
+    pop.label:SetJustifyH("LEFT")
+    pop.valueText = pop:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    pop.valueText:SetPoint("TOPRIGHT", pop, "TOPRIGHT", -12, -12)
+    pop.valueText:SetJustifyH("RIGHT")
+    local function UpdateValueText(pct)
+        pop.valueText:SetText(format("%d%%", floor(pct + 0.5)))
+    end
+
+    local ok, slider = pcall(CreateFrame, "Frame", nil, pop, "MinimalSliderWithSteppersTemplate")
+    if ok and slider and type(slider.Init) == "function" and type(slider.RegisterCallback) == "function" and slider.Slider then
+        slider:SetPoint("TOPLEFT", pop, "TOPLEFT", 10, -34)
+        slider:SetPoint("TOPRIGHT", pop, "TOPRIGHT", -10, -34)
+        slider:SetHeight(24)
+        slider:Init(floor(self:GetBackgroundAlpha() * 100 + 0.5), 0, 100, 100, {})
+        slider:RegisterCallback("OnValueChanged", function(_, value)
+            if pop.updating then return end
+            UpdateValueText(value)
+            Widget:SetBackgroundAlpha(value / 100)
+        end, pop)
+
+        slider:EnableMouseWheel(true)
+        slider:SetScript("OnMouseWheel", function(sel, delta)
+            local cur = sel.Slider:GetValue() or 0
+            sel.Slider:SetValue(min(100, max(0, cur + delta * 5)))
+        end)
+
+        pop.slider = slider
+        pop.SetSliderPercent = function(pct)
+            pop.updating = true
+            if slider.SetValue then
+                slider:SetValue(pct)
+            elseif slider.Slider then
+                slider.Slider:SetValue(pct)
+            end
+
+            UpdateValueText(pct)
+            pop.updating = nil
+        end
+    else
+        local fallback = CreateFrame("Slider", nil, pop, AzerothCompendium:CheckTemplates("OptionsSliderTemplate") and "OptionsSliderTemplate" or nil)
+        fallback:SetPoint("TOPLEFT", pop, "TOPLEFT", 14, -40)
+        fallback:SetPoint("TOPRIGHT", pop, "TOPRIGHT", -14, -40)
+        fallback:SetHeight(18)
+        fallback:SetOrientation("HORIZONTAL")
+        fallback:SetMinMaxValues(0, 100)
+        fallback:SetValueStep(1)
+        if fallback.SetObeyStepOnDrag then fallback:SetObeyStepOnDrag(true) end
+        if fallback.Low then fallback.Low:SetText("") end
+        if fallback.High then fallback.High:SetText("") end
+        if fallback.Text then fallback.Text:SetText("") end
+        fallback:SetScript("OnValueChanged", function(_, value)
+            if pop.updating then return end
+            UpdateValueText(value)
+            Widget:SetBackgroundAlpha(value / 100)
+        end)
+
+        pop.slider = fallback
+        pop.SetSliderPercent = function(pct)
+            pop.updating = true
+            fallback:SetValue(pct)
+            UpdateValueText(pct)
+            pop.updating = nil
+        end
+    end
+
+    pop:SetScript("OnEvent", function(sel, event, button)
+        if event == "GLOBAL_MOUSE_DOWN" and button == "LeftButton" and sel:IsShown() then
+            if sel:IsMouseOver() then return end
+            if Widget.frame and Widget.frame.settingsButton and Widget.frame.settingsButton:IsMouseOver() then return end
+            sel:Hide()
+        end
+    end)
+
+    pop:SetScript("OnShow", function(sel)
+        pcall(sel.RegisterEvent, sel, "GLOBAL_MOUSE_DOWN")
+    end)
+
+    pop:SetScript("OnHide", function(sel)
+        pcall(sel.UnregisterEvent, sel, "GLOBAL_MOUSE_DOWN")
+    end)
+
+    pop:Hide()
+    self.settingsPopover = pop
+
+    return pop
+end
+
+function Widget:ToggleSettingsPopover()
+    local frame = self.frame
+    if frame == nil or frame.settingsButton == nil then return end
+    local pop = self:CreateSettingsPopover()
+    if pop:IsShown() then
+        pop:Hide()
+
+        return
+    end
+
+    pop.label:SetText(AzerothCompendium:Trans("LID_QW_BGALPHA"))
+    pop.SetSliderPercent(floor(self:GetBackgroundAlpha() * 100 + 0.5))
+    pop:ClearAllPoints()
+    pop:SetPoint("TOPRIGHT", frame.settingsButton, "BOTTOMRIGHT", 0, -6)
+    pop:Show()
 end
 
 function Widget:BuildDropdownEntries()
@@ -913,7 +1811,7 @@ function Widget:CreateFrame()
     if self.frame then return self.frame end
     local c = self.config
     local ui = AzerothCompendium.SharedUI
-    local frame = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWidget", AzerothCompendium:Trans("LID_QW_TITLE"))
+    local frame = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWidget", "")
     self.frame = frame
     if ButtonFrameTemplate_HidePortrait then pcall(ButtonFrameTemplate_HidePortrait, frame) end
     if type(frame.Inset) == "table" then frame.Inset:Hide() end
@@ -922,11 +1820,20 @@ function Widget:CreateFrame()
     frame:SetMovable(true)
     frame:SetResizable(true)
     frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStart", function(sel)
+        if InCombat() then return end
+        sel:StartMoving()
+    end)
+
     frame:SetScript("OnDragStop", function(sel)
+        if InCombat() then return end
         sel:StopMovingOrSizing()
         Widget:SavePosition()
         Widget:RestorePosition()
+    end)
+
+    frame:HookScript("OnHide", function()
+        if Widget.settingsPopover then Widget.settingsPopover:Hide() end
     end)
 
     local width, height = self:GetSavedSize()
@@ -935,6 +1842,11 @@ function Widget:CreateFrame()
     frame:SetScale(AzerothCompendium:GetConfig("QUESTWIDGETSCALE", 1) or 1)
     self:RestorePosition()
     frame.titleText = AzerothCompendium.Theme:GetTitleText(frame)
+    if frame.titleText then
+        frame.titleText:SetText("")
+        frame.titleText:Hide()
+    end
+
     if frame.CloseButton then frame.CloseButton:SetScript("OnClick", function() Widget:Close() end) end
     frame.toggle = CreateFrame("Button", nil, frame)
     frame.toggle:SetSize(16, 16)
@@ -949,9 +1861,30 @@ function Widget:CreateFrame()
     frame.toggle.icon:SetAllPoints()
     frame.toggle:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
     frame.toggle:SetScript("OnClick", function() Widget:SetCollapsed(not Widget:IsCollapsed()) end)
+    frame.settingsButton = CreateFrame("Button", nil, frame)
+    frame.settingsButton:SetSize(16, 16)
+    frame.settingsButton:SetPoint("RIGHT", frame.toggle, "LEFT", -4, 0)
+    frame.settingsButton:SetFrameLevel(frame:GetFrameLevel() + 30)
+    frame.settingsButton.icon = frame.settingsButton:CreateTexture(nil, "ARTWORK")
+    frame.settingsButton.icon:SetAllPoints()
+    if HasAtlas("QuestLog-icon-setting") then
+        frame.settingsButton.icon:SetAtlas("QuestLog-icon-setting")
+    else
+        frame.settingsButton.icon:SetTexture("Interface\\Buttons\\UI-OptionsButton")
+    end
+
+    frame.settingsButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    frame.settingsButton:SetScript("OnClick", function() Widget:ToggleSettingsPopover() end)
+    frame.settingsButton:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_SETTINGS"))
+        GameTooltip:Show()
+    end)
+
+    frame.settingsButton:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     frame.openButton = CreateFrame("Button", nil, frame)
     frame.openButton:SetSize(16, 16)
-    frame.openButton:SetPoint("RIGHT", frame.toggle, "LEFT", -4, 0)
+    frame.openButton:SetPoint("RIGHT", frame.settingsButton, "LEFT", -4, 0)
     frame.openButton:SetFrameLevel(frame:GetFrameLevel() + 30)
     frame.openButton:SetNormalTexture("Interface\\Icons\\INV_Misc_Book_09")
     frame.openButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
@@ -972,16 +1905,29 @@ function Widget:CreateFrame()
     frame.openButton:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     frame.headerCount = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.headerCount:SetPoint("RIGHT", frame.openButton, "LEFT", -6, 0)
+    frame.dungeonDropdown = self:CreateDungeonDropdown(frame)
+    frame.dungeonDropdown:SetFrameLevel(frame:GetFrameLevel() + 30)
     frame.content = CreateFrame("Frame", nil, frame)
     frame.content:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
     frame.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -c.side, c.bottom)
-    frame.dungeonDropdown = self:CreateDungeonDropdown(frame.content)
-    frame.dungeonDropdown:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 0, 0)
-    frame.dungeonDropdown:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", 0, 0)
     frame.bar = CreateFrame("Frame", nil, frame.content)
-    frame.bar:SetPoint("TOPLEFT", frame.dungeonDropdown, "BOTTOMLEFT", 0, -c.gap)
-    frame.bar:SetPoint("TOPRIGHT", frame.dungeonDropdown, "BOTTOMRIGHT", 0, -c.gap)
+    frame.bar:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 0, 0)
+    frame.bar:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", 0, 0)
     frame.bar:SetHeight(c.barH)
+    frame.bar:EnableMouse(true)
+    frame.bar:RegisterForDrag("LeftButton")
+    frame.bar:SetScript("OnDragStart", function()
+        if InCombat() then return end
+        frame:StartMoving()
+    end)
+
+    frame.bar:SetScript("OnDragStop", function()
+        if InCombat() then return end
+        frame:StopMovingOrSizing()
+        Widget:SavePosition()
+        Widget:RestorePosition()
+    end)
+
     frame.modeGroup = CreateFrame("Frame", nil, frame.bar)
     frame.modeGroup.acoSegmentGroup = true
     frame.modeGroup:SetPoint("TOPRIGHT", frame.bar, "TOPRIGHT", 0, 0)
@@ -1006,7 +1952,8 @@ function Widget:CreateFrame()
     frame.zoneLabel:SetPoint("RIGHT", frame.modeGroup, "LEFT", -6, 0)
     frame.zoneLabel:SetJustifyH("LEFT")
     frame.zoneLabel:SetWordWrap(false)
-    frame.list = ui.CreateScroller(frame.content, c.rowH, function(parent) return Widget:CreateQuestRow(parent) end, 0, 4)
+    frame.list = ui.CreateScroller(frame.content, c.rowH, function(parent) return Widget:CreateQuestRow(parent, true) end, 0, 4)
+    frame.list.acoKeepLight = true
     frame.list:SetPoint("TOPLEFT", frame.bar, "BOTTOMLEFT", 0, -c.gap)
     frame.list:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.empty = frame.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
@@ -1020,7 +1967,15 @@ function Widget:CreateFrame()
     frame.showAllBtn:Hide()
     frame.grip = self:CreateResizeGrip(frame)
     frame:Hide()
-    AzerothCompendium:OnLanguage(function() Widget:Refresh() end)
+    if not self.themeHooked and AzerothCompendium.Theme and hooksecurefunc then
+        self.themeHooked = true
+        hooksecurefunc(AzerothCompendium.Theme, "Refresh", function() Widget:ApplyBackgroundAlpha() end)
+    end
+
+    AzerothCompendium:OnLanguage(function()
+        if Widget.settingsPopover and Widget.settingsPopover.label then Widget.settingsPopover.label:SetText(AzerothCompendium:Trans("LID_QW_BGALPHA")) end
+        Widget:Refresh()
+    end)
 
     return frame
 end
@@ -1073,19 +2028,28 @@ end
 
 function Widget:Layout()
     local frame = self.frame
-    if frame == nil or frame.layingOut then return end
+    if frame == nil or frame.layingOut or InCombat() then return end
     frame.layingOut = true
     local c = self.config
+    local modern = AzerothCompendium.Theme:IsModern()
     local collapsed = self:IsCollapsed()
-    local collapsedTitle = self.allMode and AzerothCompendium:Trans("LID_QW_ALLDUNGEONS") or (self.selectedInstance and AzerothCompendium:GetInstanceName(self.selectedInstance) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON"))
-    if frame.titleText then frame.titleText:SetText(collapsed and collapsedTitle or AzerothCompendium:Trans("LID_QW_TITLE")) end
+    if frame.titleText then
+        frame.titleText:SetText("")
+        frame.titleText:Hide()
+    end
+
     AzerothCompendium.Theme:SetCollapseIcon(frame.toggle.icon, collapsed)
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
     frame.headerCount:SetShown(collapsed)
+    frame.dungeonDropdown:ClearAllPoints()
+    frame.dungeonDropdown:SetHeight(modern and c.dropdownH or 22)
+    frame.dungeonDropdown:SetPoint("LEFT", frame, "TOPLEFT", modern and 10 or 8, modern and -20 or -15)
+    frame.dungeonDropdown:SetPoint("RIGHT", collapsed and frame.headerCount or frame.openButton, "LEFT", -6, 0)
     if collapsed then
-        frame:SetHeight(AzerothCompendium.Theme:IsModern() and c.collapsedModern or c.collapsed)
+        frame:SetHeight(modern and c.collapsedModern or c.collapsed)
         frame.layingOut = false
+        self:ApplyBackgroundAlpha()
 
         return
     end
@@ -1101,6 +2065,7 @@ function Widget:Layout()
     frame.empty:SetWidth(max(120, frame:GetWidth() - c.side * 2 - 24))
     frame.layingOut = false
     frame.list:Refresh()
+    self:ApplyBackgroundAlpha()
 end
 
 function Widget:CollectOtherZones(entries)
@@ -1121,12 +2086,22 @@ end
 function Widget:Refresh()
     local frame = self.frame
     if frame == nil or not frame:IsShown() then return end
+    if InCombat() then
+        self.pendingCombatRefresh = true
+        self:RefreshInCombat()
+
+        return
+    end
+
     local location = self:GetPlayerLocation()
     local inst, allMode = self:GetSelectedInstance(location)
     self.selectedInstance = inst
     self.allMode = allMode == true
-    local collapsedTitle = self.allMode and AzerothCompendium:Trans("LID_QW_ALLDUNGEONS") or (inst and AzerothCompendium:GetInstanceName(inst) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON"))
-    if frame.titleText then frame.titleText:SetText(self:IsCollapsed() and collapsedTitle or AzerothCompendium:Trans("LID_QW_TITLE")) end
+    if frame.titleText then
+        frame.titleText:SetText("")
+        frame.titleText:Hide()
+    end
+
     if self.allMode then
         AzerothCompendium:SetDropdownText(frame.dungeonDropdown, AzerothCompendium:Trans("LID_QW_ALLDUNGEONS"))
     elseif inst then
@@ -1229,7 +2204,7 @@ function Widget:CreateEmbeddedView(parent, getInstance)
     pane.zoneLabel:SetPoint("RIGHT", pane.modeGroup, "LEFT", -8, 0)
     pane.zoneLabel:SetJustifyH("LEFT")
     pane.zoneLabel:SetWordWrap(false)
-    pane.list = ui.CreateScroller(pane, c.rowH, function(scrollerParent) return Widget:CreateQuestRow(scrollerParent) end, 0, 4)
+    pane.list = ui.CreateScroller(pane, c.rowH, function(scrollerParent) return Widget:CreateQuestRow(scrollerParent, false) end, 0, 4)
     pane.list:SetPoint("TOPLEFT", pane.bar, "BOTTOMLEFT", 0, -c.gap)
     pane.list:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", 0, 0)
     pane.empty = pane.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
@@ -1331,6 +2306,12 @@ function Widget:QueueRefresh()
 end
 
 function Widget:UpdateVisibility()
+    if InCombat() then
+        self.pendingVisibility = true
+
+        return
+    end
+
     if not self:IsEnabled() then
         if self.frame then self.frame:Hide() end
 
@@ -1352,7 +2333,7 @@ end
 function Widget:ShowForInstance(instID)
     if instID and type(ACOTABPC) == "table" then ACOTABPC.QUESTWIDGETINSTANCE = instID end
     self:SetEnabled(true)
-    if self.frame then
+    if self.frame and not InCombat() then
         self.frame:Show()
         self:Refresh()
     end
@@ -1365,16 +2346,57 @@ function Widget:OnEvent(event)
         return
     end
 
+    if event == "PLAYER_REGEN_ENABLED" then
+        if self.pendingVisibility then
+            self.pendingVisibility = nil
+            self.pendingCombatRefresh = nil
+            self:UpdateVisibility()
+        elseif self.pendingCombatRefresh then
+            self.pendingCombatRefresh = nil
+            self:Refresh()
+            self:RefreshEmbedded()
+        end
+
+        return
+    end
+
+    if event == "SUPER_TRACKING_CHANGED" then
+        self:UpdateAllFocusStates()
+
+        return
+    end
+
+    if event == "BAG_UPDATE_COOLDOWN" then
+        self:UpdateAllItemCooldowns()
+
+        return
+    end
+
+    if event == "PLAYER_TARGET_CHANGED" then
+        self:UpdateAllItemRanges()
+
+        return
+    end
+
     local hasEmbedded = false
     for _, pane in ipairs(self.embeddedViews or {}) do
         if pane:IsShown() then hasEmbedded = true end
     end
 
-    if (self.frame and self.frame:IsShown()) or hasEmbedded then self:QueueRefresh() end
+    if not ((self.frame and self.frame:IsShown()) or hasEmbedded) then return end
+    if InCombat() then
+        self.pendingCombatRefresh = true
+        self:RefreshInCombat()
+        if hasEmbedded then self:RefreshEmbedded() end
+
+        return
+    end
+
+    self:QueueRefresh()
 end
 
 local eventFrame = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_ENTERING_WORLD", "ZONE_CHANGED", "ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED_INDOORS", "QUEST_LOG_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED", "QUEST_TURNED_IN", "UNIT_QUEST_LOG_CHANGED", "PLAYER_LEVEL_UP"}) do
+for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "ZONE_CHANGED", "ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED_INDOORS", "QUEST_LOG_UPDATE", "QUEST_ACCEPTED", "QUEST_REMOVED", "QUEST_TURNED_IN", "UNIT_QUEST_LOG_CHANGED", "PLAYER_LEVEL_UP", "SUPER_TRACKING_CHANGED", "BAG_UPDATE_DELAYED", "BAG_UPDATE_COOLDOWN", "PLAYER_TARGET_CHANGED"}) do
     pcall(eventFrame.RegisterEvent, eventFrame, event)
 end
 
