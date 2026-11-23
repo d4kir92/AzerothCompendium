@@ -6,19 +6,18 @@ Widget.config = {
     height = 300,
     minWidth = 250,
     minHeight = 160,
-    side = 12,
-    top = 38,
-    bottom = 22,
+    side = 8,
+    top = 34,
+    bottom = 14,
     gap = 6,
-    dropdownH = 24,
-    barH = 22,
+    dropdownH = 22,
+    barH = 20,
     rowH = 38,
     focusSize = 20,
     itemSize = 24,
     lineGap = 2,
     padY = 5,
-    collapsed = 30,
-    collapsedModern = 40,
+    collapsed = 32,
     scaleMin = 0.5,
     scaleMax = 1.5,
     scaleStep = 0.01,
@@ -173,50 +172,24 @@ function Widget:ApplyBackgroundAlpha()
     local frame = self.frame
     if frame == nil then return end
     local alpha = self:GetBackgroundAlpha()
-    local theme = AzerothCompendium.Theme
-    local modern = theme and theme:IsModern()
-    if frame.titleText then
-        frame.titleText:SetText("")
-        frame.titleText:Hide()
+    if frame.bg then frame.bg:SetAlpha(alpha) end
+    for _, edge in ipairs(frame.borderEdges or {}) do
+        edge:SetAlpha(alpha)
     end
 
-    if frame.list then frame.list.acoKeepLight = true end
-    if modern then
-        local winRec = frame.acoTheme
-        if winRec and winRec.show then
-            for _, region in ipairs(winRec.show) do
-                if region.GetDrawLayer then
-                    local layer = region:GetDrawLayer()
-                    if layer == "BACKGROUND" and region.SetAlpha then
-                        region:SetAlpha(alpha)
-                    elseif layer == "ARTWORK" and region.Hide then
-                        region:Hide()
-                    end
+    if frame.headerLine then frame.headerLine:SetAlpha(alpha) end
+    if frame.list then
+        frame.list.acoKeepLight = true
+        if frame.list.contentBackground then frame.list.contentBackground:Hide() end
+        if frame.list.border then frame.list.border:Hide() end
+        if frame.list.borderOverlay then frame.list.borderOverlay:Hide() end
+        if frame.list.rows then
+            for _, row in ipairs(frame.list.rows) do
+                if row.stripe then
+                    row.stripe:SetAlpha(0)
+                    row.stripe:Hide()
                 end
             end
-        end
-
-        local listRec = frame.list and frame.list.acoTheme
-        if listRec and listRec.show then
-            for _, region in ipairs(listRec.show) do
-                if region.GetDrawLayer and region:GetDrawLayer() == "BACKGROUND" and region.SetAlpha then region:SetAlpha(alpha) end
-            end
-        end
-    else
-        for _, key in ipairs(theme and theme.WINDOWKEYS or {}) do
-            local region = theme:Child(frame, key)
-            if region and region.SetAlpha then region:SetAlpha(alpha) end
-        end
-
-        if frame.list then
-            if frame.list.contentBackground then frame.list.contentBackground:SetAlpha(alpha) end
-            if frame.list.border then frame.list.border:SetAlpha(alpha) end
-        end
-    end
-
-    if frame.list and frame.list.rows then
-        for _, row in ipairs(frame.list.rows) do
-            if row.stripe then row.stripe:SetAlpha(alpha) end
         end
     end
 end
@@ -896,7 +869,7 @@ end
 
 function Widget:ShowQuestTooltip(row)
     local entry = row.entry
-    if entry == nil then return end
+    if entry == nil or entry.isHeader then return end
     local id = entry.id
     GameTooltip:SetOwner(row, "ANCHOR_LEFT")
     GameTooltip:ClearLines()
@@ -952,7 +925,7 @@ end
 
 function Widget:OnQuestClick(row, mouseButton)
     local entry = row.entry
-    if entry == nil then return end
+    if entry == nil or entry.isHeader then return end
     if mouseButton == "RightButton" then
         if AzerothCompendium.OpenInstanceQuests then AzerothCompendium:OpenInstanceQuests(entry.inst.id, entry.id) end
 
@@ -992,49 +965,84 @@ end
 
 function Widget:FormatRowSubtext(entry)
     local target = entry.target
-    local instName = entry.allMode and entry.inst and AzerothCompendium:GetInstanceName(entry.inst) or nil
     if entry.status == "ready" then
-        local where = target.npc or target.zone or ""
-        if instName then
-            where = target.npc and format("%s · %s", target.npc, instName) or instName
-        elseif target.npc and target.zone then
-            where = format("%s (%s)", target.npc, target.zone)
-        end
+        if target and target.npc and target.npc ~= "" then return format("%s: %s", AzerothCompendium:Trans("LID_QW_TURNIN"), target.npc), 0.25, 1, 0.25 end
 
-        return format("%s: %s", AzerothCompendium:Trans("LID_QW_TURNIN"), where), 0.25, 1, 0.25
+        return AzerothCompendium:Trans("LID_QW_TURNIN"), 0.25, 1, 0.25
     end
 
     if entry.status == "active" then
-        local suffix = instName or target.zone
-        local summary = self:GetQuestObjectiveSummary(entry.id)
-        if summary then
-            if suffix then return format("%s · %s", summary, suffix), 0.65, 0.85, 1 end
+        return AzerothCompendium:Trans("LID_QUESTACTIVE"), 0.65, 0.85, 1
+    end
 
-            return summary, 0.65, 0.85, 1
+    if target and target.npc and target.npc ~= "" then
+        if entry.inZone then return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), target.npc), 0.95, 0.88, 0.65 end
+
+        return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), target.npc), 0.72, 0.72, 0.76
+    end
+
+    if target and target.inside then return AzerothCompendium:Trans("LID_QUESTTREEINSTANCE"), 0.85, 0.75, 0.45 end
+    if entry.inZone then return AzerothCompendium:Trans("LID_QW_ACCEPT"), 0.95, 0.88, 0.65 end
+
+    return AzerothCompendium:Trans("LID_QW_ACCEPT"), 0.72, 0.72, 0.76
+end
+
+function Widget:GetEntryCategory(entry, allMode)
+    if allMode then return entry.inst and AzerothCompendium:GetInstanceName(entry.inst) or AzerothCompendium:Trans("LID_DUNGEONS") end
+    local target = entry.target
+    if target and target.zone and target.zone ~= "" then return target.zone end
+    if target and target.inside then return AzerothCompendium:Trans("LID_QUESTTREEINSTANCE") end
+
+    return "-"
+end
+
+function Widget:BuildCategorizedList(entries, allMode)
+    local groups = {}
+    local byTitle = {}
+    for _, entry in ipairs(entries or {}) do
+        local title = self:GetEntryCategory(entry, allMode)
+        local group = byTitle[title]
+        if group == nil then
+            group = {
+                title = title,
+                inZone = entry.inZone == true,
+                minStatus = self.statusOrder[entry.status] or 9,
+                minLevel = entry.inst and entry.inst.minLevel or 0,
+                items = {},
+            }
+
+            byTitle[title] = group
+            tinsert(groups, group)
+        else
+            if entry.inZone then group.inZone = true end
+            local st = self.statusOrder[entry.status] or 9
+            if st < group.minStatus then group.minStatus = st end
         end
 
-        local where = suffix or AzerothCompendium:Trans("LID_QUESTACTIVE")
-
-        return format("%s · %s", AzerothCompendium:Trans("LID_QUESTACTIVE"), where), 0.65, 0.85, 1
+        tinsert(group.items, entry)
     end
 
-    if target.inside then
-        local text = AzerothCompendium:Trans("LID_QUESTTREEINSTANCE")
-        if instName then text = format("%s · %s", text, instName) end
+    table.sort(groups, function(a, b)
+        if not allMode and a.inZone ~= b.inZone then return a.inZone end
+        if a.minStatus ~= b.minStatus then return a.minStatus < b.minStatus end
+        if allMode and a.minLevel ~= b.minLevel then return a.minLevel < b.minLevel end
 
-        return text, 0.85, 0.75, 0.45
+        return a.title < b.title
+    end)
+
+    local result = {}
+    for index, group in ipairs(groups) do
+        tinsert(result, {
+            isHeader = true,
+            title = group.title,
+            firstHeader = index == 1,
+        })
+        for _, entry in ipairs(group.items) do
+            tinsert(result, entry)
+        end
     end
 
-    local where = target.npc or target.zone or ""
-    if instName then
-        where = target.npc and format("%s · %s", target.npc, instName) or instName
-    elseif target.npc and target.zone then
-        where = format("%s (%s)", target.npc, target.zone)
-    end
-
-    if entry.inZone then return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), where), 0.95, 0.88, 0.65 end
-
-    return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), where), 0.72, 0.72, 0.76
+    return result
 end
 
 function Widget:BuildEntryLines(entry)
@@ -1053,12 +1061,6 @@ function Widget:BuildEntryLines(entry)
         else
             local text, r, g, b = self:FormatRowSubtext(entry)
             tinsert(lines, {text, r, g, b})
-        end
-
-        if entry.allMode and entry.inst then
-            tinsert(lines, {AzerothCompendium:GetInstanceName(entry.inst), 0.78, 0.72, 0.50})
-        elseif not entry.inZone and entry.target and entry.target.zone and entry.target.zone ~= "" then
-            tinsert(lines, {entry.target.zone, 0.65, 0.65, 0.70})
         end
 
         return lines
@@ -1190,6 +1192,7 @@ end
 function Widget:RefreshInCombat()
     self:ForEachVisibleRow(function(row)
         local entry = row.entry
+        if entry == nil or entry.isHeader then return end
         if entry.status == "active" or entry.status == "ready" then
             entry.objectives = self:GetQuestObjectives(entry.activeID or entry.id)
             entry.displayLines = self:BuildEntryLines(entry)
@@ -1217,7 +1220,17 @@ function Widget:CreateQuestRow(parent, secureItems)
     local row = CreateFrame("Button", nil, parent)
     row:SetHeight(c.rowH)
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    row.highlightTex = row:CreateTexture(nil, "HIGHLIGHT")
+    row.highlightTex:SetAllPoints()
+    row.highlightTex:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+    row.highlightTex:SetBlendMode("ADD")
+    row.headerText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.headerText:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -4)
+    row.headerText:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    row.headerText:SetJustifyH("LEFT")
+    row.headerText:SetWordWrap(false)
+    row.headerText:SetTextColor(0.94, 0.80, 0.56)
+    row.headerText:Hide()
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(16, 16)
     row.icon:SetPoint("TOPLEFT", row, "TOPLEFT", 7, -6)
@@ -1470,6 +1483,7 @@ function Widget:CreateQuestRow(parent, secureItems)
     end
 
     function row:GetRowHeight(entry, width)
+        if entry and entry.isHeader then return entry.firstHeader and 20 or 26 end
         local rightPad = entry.questItem and (c.itemSize + 12) or 6
         local textW = max(80, (width or 240) - 30 - rightPad)
         local color = GetDifficultyColorCode(entry.level)
@@ -1496,6 +1510,42 @@ function Widget:CreateQuestRow(parent, secureItems)
     row:SetScript("OnClick", function(sel, button) Widget:OnQuestClick(sel, button) end)
     function row:Update(entry)
         self.entry = entry
+        if entry.isHeader then
+            self.highlightTex:SetAlpha(0)
+            self.icon:Hide()
+            self.focusBtn:Hide()
+            self.title:Hide()
+            for _, fs in ipairs(self.lines) do
+                fs:Hide()
+            end
+
+            if not (self.itemBtn.secure and InCombat()) then
+                self.itemBtn.itemID = nil
+                self.itemBtn.logIndex = nil
+                if self.itemBtn.secure then
+                    self.itemBtn:SetAttribute("type1", nil)
+                    self.itemBtn:SetAttribute("item1", nil)
+                end
+
+                self.itemBtn:Hide()
+            end
+
+            self.headerText:ClearAllPoints()
+            self.headerText:SetPoint("TOPLEFT", self, "TOPLEFT", 6, entry.firstHeader and -2 or -8)
+            self.headerText:SetPoint("RIGHT", self, "RIGHT", -6, 0)
+            self.headerText:SetText(entry.title or "")
+            self.headerText:Show()
+            if self.stripe then
+                self.stripe:SetAlpha(0)
+                self.stripe:Hide()
+            end
+
+            return
+        end
+
+        self.highlightTex:SetAlpha(1)
+        self.headerText:Hide()
+        self.title:Show()
         local rightPad = entry.questItem and (c.itemSize + 12) or 6
         local showFocus = Widget:CanSuperTrack() and (entry.status == "active" or entry.status == "ready")
         if showFocus then
@@ -1559,8 +1609,14 @@ function Widget:CreateQuestRow(parent, secureItems)
             end
         end
 
-        if self.stripe and Widget.frame and Widget.frame.list and self:GetParent() == Widget.frame.list.content then
-            self.stripe:SetAlpha(Widget:GetBackgroundAlpha())
+        if self.stripe then
+            if Widget.frame and Widget.frame.list and self:GetParent() == Widget.frame.list.content then
+                self.stripe:SetAlpha(0)
+                self.stripe:Hide()
+            else
+                self.stripe:SetAlpha(1)
+                self.stripe:Show()
+            end
         end
     end
 
@@ -1672,6 +1728,8 @@ function Widget:CreateSettingsPopover()
     end)
 
     pop:Hide()
+    pop.acoTheme = {}
+    if AzerothCompendium.Theme and AzerothCompendium.Theme.RegisterRoot then AzerothCompendium.Theme:RegisterRoot(pop) end
     self.settingsPopover = pop
 
     return pop
@@ -1811,15 +1869,45 @@ function Widget:CreateFrame()
     if self.frame then return self.frame end
     local c = self.config
     local ui = AzerothCompendium.SharedUI
-    local frame = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumQuestWidget", "")
+    local frame = CreateFrame("Frame", "AzerothCompendiumQuestWidget", UIParent)
     self.frame = frame
-    if ButtonFrameTemplate_HidePortrait then pcall(ButtonFrameTemplate_HidePortrait, frame) end
-    if type(frame.Inset) == "table" then frame.Inset:Hide() end
+    frame.acoTheme = {}
     frame:SetFrameStrata("MEDIUM")
     frame:SetToplevel(false)
+    frame:SetClampedToScreen(true)
+    frame:EnableMouse(true)
     frame:SetMovable(true)
     frame:SetResizable(true)
     frame:RegisterForDrag("LeftButton")
+    frame.bg = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+    frame.bg:SetAllPoints()
+    frame.bg:SetColorTexture(0, 0, 0, 1)
+    local topEdge = frame:CreateTexture(nil, "BORDER")
+    topEdge:SetHeight(1)
+    topEdge:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    topEdge:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    topEdge:SetColorTexture(0, 0, 0, 0.9)
+    local bottomEdge = frame:CreateTexture(nil, "BORDER")
+    bottomEdge:SetHeight(1)
+    bottomEdge:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+    bottomEdge:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    bottomEdge:SetColorTexture(0, 0, 0, 0.9)
+    local leftEdge = frame:CreateTexture(nil, "BORDER")
+    leftEdge:SetWidth(1)
+    leftEdge:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    leftEdge:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+    leftEdge:SetColorTexture(0, 0, 0, 0.9)
+    local rightEdge = frame:CreateTexture(nil, "BORDER")
+    rightEdge:SetWidth(1)
+    rightEdge:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    rightEdge:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    rightEdge:SetColorTexture(0, 0, 0, 0.9)
+    frame.borderEdges = {topEdge, bottomEdge, leftEdge, rightEdge}
+    frame.headerLine = frame:CreateTexture(nil, "BORDER")
+    frame.headerLine:SetHeight(1)
+    frame.headerLine:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, -31)
+    frame.headerLine:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, -31)
+    frame.headerLine:SetColorTexture(1, 1, 1, 0.14)
     frame:SetScript("OnDragStart", function(sel)
         if InCombat() then return end
         sel:StartMoving()
@@ -1841,21 +1929,21 @@ function Widget:CreateFrame()
     frame.userHeight = max(c.minHeight, height)
     frame:SetScale(AzerothCompendium:GetConfig("QUESTWIDGETSCALE", 1) or 1)
     self:RestorePosition()
-    frame.titleText = AzerothCompendium.Theme:GetTitleText(frame)
-    if frame.titleText then
-        frame.titleText:SetText("")
-        frame.titleText:Hide()
-    end
-
-    if frame.CloseButton then frame.CloseButton:SetScript("OnClick", function() Widget:Close() end) end
+    frame.CloseButton = CreateFrame("Button", nil, frame)
+    frame.CloseButton:SetSize(16, 16)
+    frame.CloseButton:SetPoint("RIGHT", frame, "TOPRIGHT", -6, -16)
+    frame.CloseButton:SetFrameLevel(frame:GetFrameLevel() + 30)
+    frame.CloseButton.icon = frame.CloseButton:CreateTexture(nil, "ARTWORK")
+    frame.CloseButton.icon:SetSize(16, 16)
+    frame.CloseButton.icon:SetPoint("CENTER", frame.CloseButton, "CENTER", 0, 0)
+    frame.CloseButton.icon:SetTexture("Interface\\AddOns\\AzerothCompendium\\media\\ui\\modern\\close")
+    frame.CloseButton.icon:SetVertexColor(0.75, 0.75, 0.78)
+    frame.CloseButton:SetScript("OnEnter", function(sel) sel.icon:SetVertexColor(1, 0.35, 0.35) end)
+    frame.CloseButton:SetScript("OnLeave", function(sel) sel.icon:SetVertexColor(0.75, 0.75, 0.78) end)
+    frame.CloseButton:SetScript("OnClick", function() Widget:Close() end)
     frame.toggle = CreateFrame("Button", nil, frame)
     frame.toggle:SetSize(16, 16)
-    if frame.CloseButton then
-        frame.toggle:SetPoint("RIGHT", frame.CloseButton, "LEFT", -2, 0)
-    else
-        frame.toggle:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, -4)
-    end
-
+    frame.toggle:SetPoint("RIGHT", frame.CloseButton, "LEFT", -4, 0)
     frame.toggle:SetFrameLevel(frame:GetFrameLevel() + 30)
     frame.toggle.icon = frame.toggle:CreateTexture(nil, "ARTWORK")
     frame.toggle.icon:SetAllPoints()
@@ -1947,13 +2035,17 @@ function Widget:CreateFrame()
     frame.zoneFixedLabel:SetJustifyH("RIGHT")
     frame.zoneFixedLabel:SetWordWrap(false)
     frame.zoneFixedLabel:Hide()
-    frame.zoneLabel = frame.bar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    frame.zoneLabel = frame.bar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     frame.zoneLabel:SetPoint("LEFT", frame.bar, "LEFT", 2, 0)
     frame.zoneLabel:SetPoint("RIGHT", frame.modeGroup, "LEFT", -6, 0)
     frame.zoneLabel:SetJustifyH("LEFT")
     frame.zoneLabel:SetWordWrap(false)
-    frame.list = ui.CreateScroller(frame.content, c.rowH, function(parent) return Widget:CreateQuestRow(parent, true) end, 0, 4)
+    frame.list = ui.CreateScroller(frame.content, c.rowH, function(parent) return Widget:CreateQuestRow(parent, true) end, 0, 0)
+    frame.list.acoTheme = {}
     frame.list.acoKeepLight = true
+    if frame.list.contentBackground then frame.list.contentBackground:Hide() end
+    if frame.list.border then frame.list.border:Hide() end
+    if frame.list.borderOverlay then frame.list.borderOverlay:Hide() end
     frame.list:SetPoint("TOPLEFT", frame.bar, "BOTTOMLEFT", 0, -c.gap)
     frame.list:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
     frame.empty = frame.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
@@ -1967,11 +2059,8 @@ function Widget:CreateFrame()
     frame.showAllBtn:Hide()
     frame.grip = self:CreateResizeGrip(frame)
     frame:Hide()
-    if not self.themeHooked and AzerothCompendium.Theme and hooksecurefunc then
-        self.themeHooked = true
-        hooksecurefunc(AzerothCompendium.Theme, "Refresh", function() Widget:ApplyBackgroundAlpha() end)
-    end
-
+    if AzerothCompendium.Theme and AzerothCompendium.Theme.RegisterRoot then AzerothCompendium.Theme:RegisterRoot(frame) end
+    self:ApplyBackgroundAlpha()
     AzerothCompendium:OnLanguage(function()
         if Widget.settingsPopover and Widget.settingsPopover.label then Widget.settingsPopover.label:SetText(AzerothCompendium:Trans("LID_QW_BGALPHA")) end
         Widget:Refresh()
@@ -2031,23 +2120,18 @@ function Widget:Layout()
     if frame == nil or frame.layingOut or InCombat() then return end
     frame.layingOut = true
     local c = self.config
-    local modern = AzerothCompendium.Theme:IsModern()
     local collapsed = self:IsCollapsed()
-    if frame.titleText then
-        frame.titleText:SetText("")
-        frame.titleText:Hide()
-    end
-
     AzerothCompendium.Theme:SetCollapseIcon(frame.toggle.icon, collapsed)
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
     frame.headerCount:SetShown(collapsed)
+    if frame.headerLine then frame.headerLine:SetShown(not collapsed) end
     frame.dungeonDropdown:ClearAllPoints()
-    frame.dungeonDropdown:SetHeight(modern and c.dropdownH or 22)
-    frame.dungeonDropdown:SetPoint("LEFT", frame, "TOPLEFT", modern and 10 or 8, modern and -20 or -15)
+    frame.dungeonDropdown:SetHeight(c.dropdownH)
+    frame.dungeonDropdown:SetPoint("LEFT", frame, "TOPLEFT", 6, -16)
     frame.dungeonDropdown:SetPoint("RIGHT", collapsed and frame.headerCount or frame.openButton, "LEFT", -6, 0)
     if collapsed then
-        frame:SetHeight(modern and c.collapsedModern or c.collapsed)
+        frame:SetHeight(c.collapsed)
         frame.layingOut = false
         self:ApplyBackgroundAlpha()
 
@@ -2123,7 +2207,7 @@ function Widget:Refresh()
     end
 
     frame.headerCount:SetText(tostring(#shown))
-    frame.list.data = shown
+    frame.list.data = self:BuildCategorizedList(shown, self.allMode)
     frame.showAllBtn:SetText(AzerothCompendium:Trans("LID_QW_SHOWALL"))
     if #shown == 0 then
         local text = ""
@@ -2250,7 +2334,7 @@ function Widget:CreateEmbeddedView(parent, getInstance)
         self.zoneLabel:SetText(location.zoneName ~= "" and location.zoneName or "-")
         local all, inZone, lowLevel, total, completed = Widget:CollectActionable(inst, location)
         local shown = zoneOnly and inZone or all
-        self.list.data = shown
+        self.list.data = Widget:BuildCategorizedList(shown, false)
         self.showAllBtn:SetText(AzerothCompendium:Trans("LID_QW_SHOWALL"))
         self.empty:SetWidth(max(160, (self:GetWidth() or 300) - 32))
         if #shown == 0 then
