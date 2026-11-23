@@ -1773,13 +1773,14 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
 end
 
 local function CreateViewSwitch(tree, onChange)
+    local modes = {"tree", "list", "widget"}
     local switch = CreateFrame("Frame", nil, tree)
-    switch:SetSize(2 * VIEW_BUTTON_W, BOTTOM_H - 2)
+    switch:SetSize(#modes * VIEW_BUTTON_W, BOTTOM_H - 2)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
     switch.buttons = {}
     switch.acoSegmentGroup = true
     switch.acoSegmentColor = AzerothCompendium.Theme.colors.control
-    for index, mode in ipairs({"tree", "list"}) do
+    for index, mode in ipairs(modes) do
         local button = AzerothCompendium:CreateMenuButton(nil, switch)
         button:SetSize(VIEW_BUTTON_W, BOTTOM_H - 2)
         button:SetPoint("LEFT", switch, "LEFT", (index - 1) * VIEW_BUTTON_W, 0)
@@ -1808,10 +1809,10 @@ local function CreateViewSwitch(tree, onChange)
 
     AzerothCompendium:AddLayout(switch, function(modern)
         local inset = modern and 3 or 0
-        switch:SetSize(2 * VIEW_BUTTON_W + 2 * inset, BOTTOM_H - 2 + 2 * inset)
+        switch:SetSize(#modes * VIEW_BUTTON_W + 2 * inset, BOTTOM_H - 2 + 2 * inset)
         switch:ClearAllPoints()
         switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2 + inset)
-        for index, mode in ipairs({"tree", "list"}) do
+        for index, mode in ipairs(modes) do
             local button = switch.buttons[mode]
             button:ClearAllPoints()
             button:SetPoint("LEFT", switch, "LEFT", inset + (index - 1) * VIEW_BUTTON_W, 0)
@@ -1823,6 +1824,7 @@ local function CreateViewSwitch(tree, onChange)
     local function UpdateTexts()
         switch.buttons.tree:SetText(AzerothCompendium:Trans("LID_QUESTVIEWTREE"))
         switch.buttons.list:SetText(AzerothCompendium:Trans("LID_QUESTVIEWLIST"))
+        switch.buttons.widget:SetText(AzerothCompendium:Trans("LID_QUESTVIEWWIDGET"))
     end
 
     UpdateTexts()
@@ -2362,6 +2364,12 @@ function AzerothCompendium:CreateQuestTree(parent)
     local detail = CreateQuestDetail(tree)
     detail:SetPoint("TOPRIGHT", tree, "TOPRIGHT", -6, -6)
     detail:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
+    local widgetPane = AzerothCompendium.QuestWidget and AzerothCompendium.QuestWidget:CreateEmbeddedView(tree, function() return tree.instance end) or nil
+    if widgetPane then
+        widgetPane:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
+        widgetPane:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
+        widgetPane:Hide()
+    end
     detail:SetWidth(DETAIL_MIN_W)
     detail:Hide()
     tree.detail = detail
@@ -2757,37 +2765,56 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:SetViewMode(mode)
-        if mode ~= "list" then mode = "tree" end
+        if mode ~= "list" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
         AzerothCompendium:SetConfig("QUESTVIEW", mode)
         self.viewMode = mode
         local list = mode == "list"
-        holder:SetShown(not list)
+        local widget = mode == "widget"
+        local isTree = mode == "tree"
+        scroll:SetShown(not widget)
+        if self.vbar then self.vbar:SetShown(not widget and GetScrollRange(scroll, false) > 0) end
+        if widgetPane then widgetPane:SetShown(widget) end
+        holder:SetShown(isTree)
         listHolder:SetShown(list)
         detail:SetShown(list)
-        scroll:ClearAllPoints()
-        scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
-        if list then
-            scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
+        if not widget then
+            scroll:ClearAllPoints()
+            scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
+            if list then
+                scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
+            else
+                scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - 2, BOTTOM_H + 2)
+            end
+
+            scroll:SetScrollChild(list and listHolder or holder)
         else
-            scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - 2, BOTTOM_H + 2)
+            hbar:Hide()
+            self.hint:Hide()
         end
 
-        scroll:SetScrollChild(list and listHolder or holder)
-        zoomSlider:SetShown(not list)
-        zoomIcon:SetShown(not list)
+        zoomSlider:SetShown(isTree)
+        zoomIcon:SetShown(isTree)
         legendButton:ClearAllPoints()
-        if list then
+        if not isTree then
             legendButton:SetPoint("RIGHT", tree, "BOTTOMRIGHT", -8, BOTTOM_H / 2)
         else
             legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
         end
         viewSwitch:SetMode(mode)
         self:Layout()
-        SetHScroll(0)
-        scroll:SetVerticalScroll(0)
+        if not widget then
+            SetHScroll(0)
+            scroll:SetVerticalScroll(0)
+        end
     end
 
     function tree:Layout()
+        if self.viewMode == "widget" then
+            if widgetPane then widgetPane:Refresh() end
+
+            return
+        end
+
         if self.viewMode == "list" then return self:LayoutList() end
         local graph = self.graph
         lineCount = 0
@@ -2994,6 +3021,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:FocusQuest(questID)
+        if self.viewMode == "widget" then self:SetViewMode("list") end
         if self.viewMode == "list" then
             local path = {}
             local found = FindListPath(self.listItems, questID, path)

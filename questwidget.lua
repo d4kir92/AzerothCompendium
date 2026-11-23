@@ -74,6 +74,7 @@ end
 function Widget:SetZoneOnly(zoneOnly)
     AzerothCompendium:SetConfig("QUESTWIDGETZONEONLY", zoneOnly == true)
     self:Refresh()
+    self:RefreshEmbedded()
 end
 
 function Widget:GetSelectedInstanceID()
@@ -132,7 +133,7 @@ function Widget:IsNodeLocked(node)
     local anyOf = {}
     for _, variantID in ipairs(AzerothCompendium:GetQuestVariants(node.id)) do
         for _, id in ipairs(AzerothCompendium.QUESTPREANY and AzerothCompendium.QUESTPREANY[variantID] or {}) do
-            anyOf[AzerothCompendium:GetQuestCanonicalID(id)] = true
+            anyOf[AzerothCompendium:GetQuestCanonicalID(id, true)] = true
         end
     end
 
@@ -295,7 +296,7 @@ function Widget:CollectActionable(inst, location)
     local total = 0
     local completed = 0
     if inst == nil then return all, inZone, lowLevel, total, completed end
-    local graph = AzerothCompendium:GetInstanceQuestGraph(inst)
+    local graph = AzerothCompendium:GetInstanceQuestGraph(inst, nil, nil, true)
     local byID = {}
     local order = {}
     for _, node in ipairs(graph) do
@@ -387,11 +388,11 @@ function Widget:GetAvailableInstances()
     local dungeons = {}
     local raids = {}
     for _, inst in ipairs(AzerothCompendium:GetInstances("dungeon")) do
-        if #AzerothCompendium:GetInstanceQuests(inst) > 0 then tinsert(dungeons, inst) end
+        if #AzerothCompendium:GetInstanceQuests(inst, true) > 0 then tinsert(dungeons, inst) end
     end
 
     for _, inst in ipairs(AzerothCompendium:GetInstances("raid")) do
-        if #AzerothCompendium:GetInstanceQuests(inst) > 0 then tinsert(raids, inst) end
+        if #AzerothCompendium:GetInstanceQuests(inst, true) > 0 then tinsert(raids, inst) end
     end
 
     return dungeons, raids
@@ -414,13 +415,45 @@ function Widget:GetZoneMatches(location, dungeons, raids)
     return matches
 end
 
+function Widget:CollectAllInZone(location)
+    local dungeons, raids = self:GetAvailableInstances()
+    local seen = {}
+    local list = {}
+    for _, group in ipairs({dungeons, raids}) do
+        for _, inst in ipairs(group) do
+            local _, inZone = self:CollectActionable(inst, location)
+            for _, entry in ipairs(inZone) do
+                if not seen[entry.id] then
+                    seen[entry.id] = true
+                    entry.allMode = true
+                    tinsert(list, entry)
+                end
+            end
+        end
+    end
+
+    table.sort(list, function(a, b)
+        local sa, sb = self.statusOrder[a.status] or 9, self.statusOrder[b.status] or 9
+        if sa ~= sb then return sa < sb end
+        local la, lb = a.inst and a.inst.minLevel or 0, b.inst and b.inst.minLevel or 0
+        if la ~= lb then return la < lb end
+        if a.level ~= b.level then return a.level < b.level end
+        if a.name ~= b.name then return (a.name or "") < (b.name or "") end
+
+        return a.id < b.id
+    end)
+
+    return list
+end
+
 function Widget:GetSelectedInstance(location)
     local dungeons, raids = self:GetAvailableInstances()
     local savedID = self:GetSelectedInstanceID()
+    if savedID == "all" then return nil, true end
     if savedID then
         for _, list in ipairs({dungeons, raids}) do
             for _, inst in ipairs(list) do
-                if inst.id == savedID then return inst end
+                if inst.id == savedID then return inst, false end
             end
         end
     end
@@ -428,21 +461,12 @@ function Widget:GetSelectedInstance(location)
     if location and location.instanceID then
         for _, list in ipairs({dungeons, raids}) do
             for _, inst in ipairs(list) do
-                if self:MatchesInstance(inst, location.instanceID) then return inst end
+                if self:MatchesInstance(inst, location.instanceID) then return inst, false end
             end
         end
     end
 
-    local matches = self:GetZoneMatches(location, dungeons, raids)
-    if #matches > 0 then return matches[1].inst end
-    local playerLevel = UnitLevel and UnitLevel("player") or 0
-    if playerLevel > 0 then
-        for _, inst in ipairs(dungeons) do
-            if inst.minLevel and inst.maxLevel and playerLevel >= inst.minLevel and playerLevel <= inst.maxLevel then return inst end
-        end
-    end
-
-    return dungeons[1] or raids[1]
+    return nil, true
 end
 
 function Widget:FormatInstanceLabel(inst)
@@ -624,6 +648,7 @@ function Widget:ShowQuestTooltip(row)
     end
 
     GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(statusKey)), sr, sg, sb)
+    if entry.allMode and entry.inst then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetInstanceName(entry.inst)), 1, 0.82, 0) end
     if entry.status == "active" then
         local summary = self:GetQuestObjectiveSummary(id)
         if summary then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(summary), 0.9, 0.9, 0.9, true) end
@@ -690,29 +715,46 @@ end
 
 function Widget:FormatRowSubtext(entry)
     local target = entry.target
+    local instName = entry.allMode and entry.inst and AzerothCompendium:GetInstanceName(entry.inst) or nil
     if entry.status == "ready" then
         local where = target.npc or target.zone or ""
-        if target.npc and target.zone then where = format("%s (%s)", target.npc, target.zone) end
+        if instName then
+            where = target.npc and format("%s · %s", target.npc, instName) or instName
+        elseif target.npc and target.zone then
+            where = format("%s (%s)", target.npc, target.zone)
+        end
 
         return format("%s: %s", AzerothCompendium:Trans("LID_QW_TURNIN"), where), 0.25, 1, 0.25
     end
 
     if entry.status == "active" then
+        local suffix = instName or target.zone
         local summary = self:GetQuestObjectiveSummary(entry.id)
         if summary then
-            if target.zone then return format("%s · %s", summary, target.zone), 0.65, 0.85, 1 end
+            if suffix then return format("%s · %s", summary, suffix), 0.65, 0.85, 1 end
 
             return summary, 0.65, 0.85, 1
         end
 
-        local where = target.zone or AzerothCompendium:Trans("LID_QUESTACTIVE")
+        local where = suffix or AzerothCompendium:Trans("LID_QUESTACTIVE")
 
         return format("%s · %s", AzerothCompendium:Trans("LID_QUESTACTIVE"), where), 0.65, 0.85, 1
     end
 
-    if target.inside then return AzerothCompendium:Trans("LID_QUESTTREEINSTANCE"), 0.85, 0.75, 0.45 end
+    if target.inside then
+        local text = AzerothCompendium:Trans("LID_QUESTTREEINSTANCE")
+        if instName then text = format("%s · %s", text, instName) end
+
+        return text, 0.85, 0.75, 0.45
+    end
+
     local where = target.npc or target.zone or ""
-    if target.npc and target.zone then where = format("%s (%s)", target.npc, target.zone) end
+    if instName then
+        where = target.npc and format("%s · %s", target.npc, instName) or instName
+    elseif target.npc and target.zone then
+        where = format("%s (%s)", target.npc, target.zone)
+    end
+
     if entry.inZone then return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), where), 0.95, 0.88, 0.65 end
 
     return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), where), 0.72, 0.72, 0.76
@@ -759,8 +801,19 @@ function Widget:BuildDropdownEntries()
     local dungeons, raids = self:GetAvailableInstances()
     local matches = self:GetZoneMatches(location, dungeons, raids)
     local selected = self.selectedInstance
-    local selectedID = selected and selected.id
+    local selectedID = not self.allMode and selected and selected.id or nil
     local sections = {}
+    tinsert(sections, {
+        title = nil,
+        items = {
+            {
+                text = AzerothCompendium:Trans("LID_QW_ALLDUNGEONS"),
+                id = "all",
+                checked = self.allMode == true,
+            }
+        }
+    })
+
     if #matches > 0 then
         local items = {}
         for _, match in ipairs(matches) do
@@ -820,10 +873,10 @@ function Widget:CreateDungeonDropdown(parent)
         dropdown:SetupMenu(function(_, root)
             if root.SetScrollMode then root:SetScrollMode(320) end
             for _, section in ipairs(Widget:BuildDropdownEntries()) do
-                root:CreateTitle(section.title)
+                if section.title then root:CreateTitle(section.title) end
                 for _, item in ipairs(section.items) do
                     local id = item.id
-                    root:CreateRadio(item.text, function() return Widget.selectedInstance and Widget.selectedInstance.id == id end, function() Widget:SetSelectedInstanceID(id) end)
+                    root:CreateRadio(item.text, function() return (id == "all" and Widget.allMode == true) or (not Widget.allMode and Widget.selectedInstance and Widget.selectedInstance.id == id) end, function() Widget:SetSelectedInstanceID(id) end)
                 end
             end
         end)
@@ -831,11 +884,13 @@ function Widget:CreateDungeonDropdown(parent)
         dropdown:SetScript("OnClick", function(sel)
             local entries = {}
             for _, section in ipairs(Widget:BuildDropdownEntries()) do
-                tinsert(entries, {
-                    text = section.title,
-                    isTitle = true,
-                    notCheckable = true,
-                })
+                if section.title then
+                    tinsert(entries, {
+                        text = section.title,
+                        isTitle = true,
+                        notCheckable = true,
+                    })
+                end
 
                 for _, item in ipairs(section.items) do
                     local id = item.id
@@ -941,6 +996,11 @@ function Widget:CreateFrame()
     frame.allZonesBtn:SetPoint("LEFT", frame.zoneOnlyBtn, "RIGHT", 2, 0)
     frame.allZonesBtn.acoSegment = function() return not Widget:IsZoneOnly() end
     frame.allZonesBtn:SetScript("OnClick", function() Widget:SetZoneOnly(false) end)
+    frame.zoneFixedLabel = frame.bar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    frame.zoneFixedLabel:SetPoint("RIGHT", frame.bar, "RIGHT", -2, 0)
+    frame.zoneFixedLabel:SetJustifyH("RIGHT")
+    frame.zoneFixedLabel:SetWordWrap(false)
+    frame.zoneFixedLabel:Hide()
     frame.zoneLabel = frame.bar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     frame.zoneLabel:SetPoint("LEFT", frame.bar, "LEFT", 2, 0)
     frame.zoneLabel:SetPoint("RIGHT", frame.modeGroup, "LEFT", -6, 0)
@@ -969,6 +1029,22 @@ function Widget:UpdateSegmentButtons()
     local frame = self.frame
     if frame == nil then return end
     local zoneText = AzerothCompendium:Trans("LID_QW_ZONEONLY")
+    frame.zoneFixedLabel:SetText(zoneText)
+    if self.allMode then
+        frame.modeGroup:Hide()
+        frame.zoneFixedLabel:Show()
+        frame.zoneLabel:ClearAllPoints()
+        frame.zoneLabel:SetPoint("LEFT", frame.bar, "LEFT", 2, 0)
+        frame.zoneLabel:SetPoint("RIGHT", frame.zoneFixedLabel, "LEFT", -6, 0)
+
+        return
+    end
+
+    frame.zoneFixedLabel:Hide()
+    frame.modeGroup:Show()
+    frame.zoneLabel:ClearAllPoints()
+    frame.zoneLabel:SetPoint("LEFT", frame.bar, "LEFT", 2, 0)
+    frame.zoneLabel:SetPoint("RIGHT", frame.modeGroup, "LEFT", -6, 0)
     local allText = AzerothCompendium:Trans("LID_QW_ALLZONES")
     frame.zoneOnlyBtn:SetText(zoneText)
     frame.allZonesBtn:SetText(allText)
@@ -1001,8 +1077,8 @@ function Widget:Layout()
     frame.layingOut = true
     local c = self.config
     local collapsed = self:IsCollapsed()
-    local instName = self.selectedInstance and AzerothCompendium:GetInstanceName(self.selectedInstance) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON")
-    if frame.titleText then frame.titleText:SetText(collapsed and instName or AzerothCompendium:Trans("LID_QW_TITLE")) end
+    local collapsedTitle = self.allMode and AzerothCompendium:Trans("LID_QW_ALLDUNGEONS") or (self.selectedInstance and AzerothCompendium:GetInstanceName(self.selectedInstance) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON"))
+    if frame.titleText then frame.titleText:SetText(collapsed and collapsedTitle or AzerothCompendium:Trans("LID_QW_TITLE")) end
     AzerothCompendium.Theme:SetCollapseIcon(frame.toggle.icon, collapsed)
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
@@ -1046,27 +1122,40 @@ function Widget:Refresh()
     local frame = self.frame
     if frame == nil or not frame:IsShown() then return end
     local location = self:GetPlayerLocation()
-    local inst = self:GetSelectedInstance(location)
+    local inst, allMode = self:GetSelectedInstance(location)
     self.selectedInstance = inst
-    local instName = inst and AzerothCompendium:GetInstanceName(inst) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON")
-    if frame.titleText then frame.titleText:SetText(self:IsCollapsed() and instName or AzerothCompendium:Trans("LID_QW_TITLE")) end
-    if inst then
+    self.allMode = allMode == true
+    local collapsedTitle = self.allMode and AzerothCompendium:Trans("LID_QW_ALLDUNGEONS") or (inst and AzerothCompendium:GetInstanceName(inst) or AzerothCompendium:Trans("LID_QW_SELECTDUNGEON"))
+    if frame.titleText then frame.titleText:SetText(self:IsCollapsed() and collapsedTitle or AzerothCompendium:Trans("LID_QW_TITLE")) end
+    if self.allMode then
+        AzerothCompendium:SetDropdownText(frame.dungeonDropdown, AzerothCompendium:Trans("LID_QW_ALLDUNGEONS"))
+    elseif inst then
         AzerothCompendium:SetDropdownText(frame.dungeonDropdown, self:FormatInstanceLabel(inst))
     else
         AzerothCompendium:SetDropdownText(frame.dungeonDropdown, AzerothCompendium:Trans("LID_QW_SELECTDUNGEON"))
     end
 
     frame.zoneLabel:SetText(location.zoneName ~= "" and location.zoneName or "-")
-    local all, inZone, lowLevel, total, completed = self:CollectActionable(inst, location)
-    local zoneOnly = self:IsZoneOnly()
-    local shown = zoneOnly and inZone or all
+    local all, inZone, lowLevel, total, completed
+    local shown
+    local zoneOnly = self.allMode or self:IsZoneOnly()
+    if self.allMode then
+        shown = self:CollectAllInZone(location)
+        all, inZone, lowLevel, total, completed = shown, shown, 0, #shown, 0
+    else
+        all, inZone, lowLevel, total, completed = self:CollectActionable(inst, location)
+        shown = zoneOnly and inZone or all
+    end
+
     frame.headerCount:SetText(tostring(#shown))
     frame.list.data = shown
     frame.showAllBtn:SetText(AzerothCompendium:Trans("LID_QW_SHOWALL"))
     if #shown == 0 then
         local text = ""
         local showButton = false
-        if inst == nil then
+        if self.allMode then
+            text = format(AzerothCompendium:Trans("LID_QW_NONEINZONEALL"), location.zoneName ~= "" and location.zoneName or "-")
+        elseif inst == nil then
             text = AzerothCompendium:Trans("LID_QW_SELECTDUNGEON")
         elseif zoneOnly and #all > 0 then
             local zones = self:CollectOtherZones(all)
@@ -1096,6 +1185,139 @@ function Widget:Refresh()
     end
 
     self:Layout()
+    self:RefreshEmbedded()
+end
+
+function Widget:RefreshEmbedded()
+    for _, pane in ipairs(self.embeddedViews or {}) do
+        if pane:IsShown() then pane:Refresh() end
+    end
+end
+
+function Widget:CreateEmbeddedView(parent, getInstance)
+    local c = self.config
+    local ui = AzerothCompendium.SharedUI
+    local pane = CreateFrame("Frame", nil, parent)
+    pane.bar = CreateFrame("Frame", nil, pane)
+    pane.bar:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, 0)
+    pane.bar:SetPoint("TOPRIGHT", pane, "TOPRIGHT", 0, 0)
+    pane.bar:SetHeight(c.barH + 2)
+    pane.openWidgetBtn = CreateFrame("Button", nil, pane.bar, "UIPanelButtonTemplate")
+    pane.openWidgetBtn:SetHeight(c.barH)
+    pane.openWidgetBtn:SetPoint("RIGHT", pane.bar, "RIGHT", 0, 0)
+    pane.openWidgetBtn:SetScript("OnClick", function()
+        local inst = getInstance()
+        Widget:ShowForInstance(inst and inst.id or "all")
+    end)
+
+    pane.modeGroup = CreateFrame("Frame", nil, pane.bar)
+    pane.modeGroup.acoSegmentGroup = true
+    pane.modeGroup:SetPoint("RIGHT", pane.openWidgetBtn, "LEFT", -8, 0)
+    pane.modeGroup:SetHeight(c.barH)
+    pane.zoneOnlyBtn = CreateFrame("Button", nil, pane.modeGroup, "UIPanelButtonTemplate")
+    pane.zoneOnlyBtn:SetHeight(c.barH)
+    pane.zoneOnlyBtn:SetPoint("LEFT", pane.modeGroup, "LEFT", 0, 0)
+    pane.zoneOnlyBtn.acoSegment = function() return Widget:IsZoneOnly() end
+    pane.zoneOnlyBtn:SetScript("OnClick", function() Widget:SetZoneOnly(true) end)
+    pane.allZonesBtn = CreateFrame("Button", nil, pane.modeGroup, "UIPanelButtonTemplate")
+    pane.allZonesBtn:SetHeight(c.barH)
+    pane.allZonesBtn:SetPoint("LEFT", pane.zoneOnlyBtn, "RIGHT", 2, 0)
+    pane.allZonesBtn.acoSegment = function() return not Widget:IsZoneOnly() end
+    pane.allZonesBtn:SetScript("OnClick", function() Widget:SetZoneOnly(false) end)
+    pane.zoneLabel = pane.bar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    pane.zoneLabel:SetPoint("LEFT", pane.bar, "LEFT", 2, 0)
+    pane.zoneLabel:SetPoint("RIGHT", pane.modeGroup, "LEFT", -8, 0)
+    pane.zoneLabel:SetJustifyH("LEFT")
+    pane.zoneLabel:SetWordWrap(false)
+    pane.list = ui.CreateScroller(pane, c.rowH, function(scrollerParent) return Widget:CreateQuestRow(scrollerParent) end, 0, 4)
+    pane.list:SetPoint("TOPLEFT", pane.bar, "BOTTOMLEFT", 0, -c.gap)
+    pane.list:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", 0, 0)
+    pane.empty = pane.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+    pane.empty:SetPoint("CENTER", pane.list, "CENTER", 0, 12)
+    pane.empty:SetJustifyH("CENTER")
+    pane.empty:SetWordWrap(true)
+    pane.showAllBtn = CreateFrame("Button", nil, pane.list, "UIPanelButtonTemplate")
+    pane.showAllBtn:SetSize(120, 22)
+    pane.showAllBtn:SetPoint("TOP", pane.empty, "BOTTOM", 0, -8)
+    pane.showAllBtn:SetScript("OnClick", function() Widget:SetZoneOnly(false) end)
+    pane.showAllBtn:Hide()
+    function pane:Refresh()
+        local inst = getInstance()
+        local location = Widget:GetPlayerLocation()
+        self.openWidgetBtn:SetText(AzerothCompendium:Trans("LID_QW_OPENWIDGET"))
+        local openW = max(100, (self.openWidgetBtn:GetFontString() and self.openWidgetBtn:GetFontString():GetStringWidth() or 80) + 22)
+        self.openWidgetBtn:SetWidth(openW)
+        local zoneText = AzerothCompendium:Trans("LID_QW_ZONEONLY")
+        local allText = AzerothCompendium:Trans("LID_QW_ALLZONES")
+        self.zoneOnlyBtn:SetText(zoneText)
+        self.allZonesBtn:SetText(allText)
+        local zoneW = max(56, (self.zoneOnlyBtn:GetFontString() and self.zoneOnlyBtn:GetFontString():GetStringWidth() or 40) + 16)
+        local allW = max(40, (self.allZonesBtn:GetFontString() and self.allZonesBtn:GetFontString():GetStringWidth() or 28) + 16)
+        self.zoneOnlyBtn:SetWidth(zoneW)
+        self.allZonesBtn:SetWidth(allW)
+        self.modeGroup:SetWidth(zoneW + allW + 2)
+        local modern = AzerothCompendium.Theme:IsModern()
+        local zoneOnly = Widget:IsZoneOnly()
+        if zoneOnly then
+            self.zoneOnlyBtn:LockHighlight()
+            self.allZonesBtn:UnlockHighlight()
+            self.zoneOnlyBtn:SetNormalFontObject("GameFontHighlightSmall")
+            self.allZonesBtn:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
+        else
+            self.zoneOnlyBtn:UnlockHighlight()
+            self.allZonesBtn:LockHighlight()
+            self.zoneOnlyBtn:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
+            self.allZonesBtn:SetNormalFontObject("GameFontHighlightSmall")
+        end
+
+        AzerothCompendium.Theme:UpdateFrame(self.zoneOnlyBtn)
+        AzerothCompendium.Theme:UpdateFrame(self.allZonesBtn)
+        self.zoneLabel:SetText(location.zoneName ~= "" and location.zoneName or "-")
+        local all, inZone, lowLevel, total, completed = Widget:CollectActionable(inst, location)
+        local shown = zoneOnly and inZone or all
+        self.list.data = shown
+        self.showAllBtn:SetText(AzerothCompendium:Trans("LID_QW_SHOWALL"))
+        self.empty:SetWidth(max(160, (self:GetWidth() or 300) - 32))
+        if #shown == 0 then
+            local text = ""
+            local showButton = false
+            if inst == nil then
+                text = AzerothCompendium:Trans("LID_QW_SELECTDUNGEON")
+            elseif zoneOnly and #all > 0 then
+                local zones = Widget:CollectOtherZones(all)
+                if zones ~= "" then
+                    text = format(AzerothCompendium:Trans("LID_QW_NONEINZONEWITHOTHER"), location.zoneName ~= "" and location.zoneName or "-", #all, zones)
+                else
+                    text = format(AzerothCompendium:Trans("LID_QW_NONEINZONE"), location.zoneName ~= "" and location.zoneName or "-", #all)
+                end
+
+                showButton = true
+            elseif total > 0 and completed >= total then
+                text = AzerothCompendium:Trans("LID_QW_ALLDONE")
+            elseif lowLevel > 0 then
+                text = AzerothCompendium:Trans("LID_QW_NOLEVELQUESTS")
+            else
+                text = AzerothCompendium:Trans("LID_QW_NOQUESTS")
+            end
+
+            self.empty:ClearAllPoints()
+            self.empty:SetPoint("CENTER", self.list, "CENTER", 0, showButton and 16 or 0)
+            self.empty:SetText(text)
+            self.empty:Show()
+            self.showAllBtn:SetShown(showButton)
+        else
+            self.empty:Hide()
+            self.showAllBtn:Hide()
+        end
+
+        self.list:Refresh()
+    end
+
+    self.embeddedViews = self.embeddedViews or {}
+    tinsert(self.embeddedViews, pane)
+    AzerothCompendium:OnLanguage(function() if pane:IsShown() then pane:Refresh() end end)
+
+    return pane
 end
 
 function Widget:QueueRefresh()
@@ -1104,6 +1326,7 @@ function Widget:QueueRefresh()
     C_Timer.After(0.15, function()
         Widget.refreshQueued = false
         Widget:Refresh()
+        Widget:RefreshEmbedded()
     end)
 end
 
@@ -1142,7 +1365,12 @@ function Widget:OnEvent(event)
         return
     end
 
-    if self.frame and self.frame:IsShown() then self:QueueRefresh() end
+    local hasEmbedded = false
+    for _, pane in ipairs(self.embeddedViews or {}) do
+        if pane:IsShown() then hasEmbedded = true end
+    end
+
+    if (self.frame and self.frame:IsShown()) or hasEmbedded then self:QueueRefresh() end
 end
 
 local eventFrame = CreateFrame("Frame")

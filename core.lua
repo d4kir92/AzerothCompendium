@@ -1192,30 +1192,39 @@ end
 local instanceQuestCache = {lists = {}}
 function AzerothCompendium:InvalidateInstanceQuests()
     instanceQuestCache.key = nil
+    if instanceQuestCache.player then instanceQuestCache.player.key = nil end
 end
 
-function AzerothCompendium:GetInstanceQuests(inst)
+function AzerothCompendium:GetInstanceQuests(inst, playerOnly)
     if inst == nil or inst.id == nil then return {} end
-    local onlyOwnClass = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
-    local alliance, horde = AzerothCompendium:IsQuestSideVisible(1), AzerothCompendium:IsQuestSideVisible(2)
-    local flavor = AzerothCompendium:GetFlavor()
-    local gated = AzerothCompendium:GetItemGatedQuestState()
-    if instanceQuestCache.key ~= true or instanceQuestCache.flavor ~= flavor or instanceQuestCache.alliance ~= alliance or instanceQuestCache.horde ~= horde or instanceQuestCache.onlyOwnClass ~= onlyOwnClass or instanceQuestCache.gated ~= gated then
-        wipe(instanceQuestCache.lists)
-        instanceQuestCache.key = true
-        instanceQuestCache.gated = gated
-        instanceQuestCache.flavor = flavor
-        instanceQuestCache.alliance = alliance
-        instanceQuestCache.horde = horde
-        instanceQuestCache.onlyOwnClass = onlyOwnClass
+    local cache = instanceQuestCache
+    if playerOnly then
+        instanceQuestCache.player = instanceQuestCache.player or {lists = {}}
+        cache = instanceQuestCache.player
     end
 
-    local cached = instanceQuestCache.lists[inst.id]
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", false) == true
+    local alliance = playerOnly and not IsOpposingQuestSide(1) or not playerOnly and AzerothCompendium:IsQuestSideVisible(1)
+    local horde = playerOnly and not IsOpposingQuestSide(2) or not playerOnly and AzerothCompendium:IsQuestSideVisible(2)
+    local flavor = AzerothCompendium:GetFlavor()
+    local gated = AzerothCompendium:GetItemGatedQuestState()
+    if cache.key ~= true or cache.flavor ~= flavor or cache.alliance ~= alliance or cache.horde ~= horde or cache.onlyOwnClass ~= onlyOwnClass or cache.gated ~= gated then
+        wipe(cache.lists)
+        cache.key = true
+        cache.gated = gated
+        cache.flavor = flavor
+        cache.alliance = alliance
+        cache.horde = horde
+        cache.onlyOwnClass = onlyOwnClass
+    end
+
+    local cached = cache.lists[inst.id]
     if cached then return cached end
     local quests = AzerothCompendium.QUESTS and AzerothCompendium.QUESTS[inst.id] or {}
     local available = {}
     for _, quest in ipairs(quests) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not AzerothCompendium:IsQuestUnavailable(quest[1]) and AzerothCompendium:IsQuestSideVisible(quest[3]) and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
+        local sideVisible = playerOnly and not IsOpposingQuestSide(quest[3]) or not playerOnly and AzerothCompendium:IsQuestSideVisible(quest[3])
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and not AzerothCompendium:IsQuestUnavailable(quest[1]) and sideVisible and not AzerothCompendium:IsPlaceholderQuest(quest[1]) and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             tinsert(available, quest)
         end
     end
@@ -1226,7 +1235,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
     end
 
     for index = #available, 1, -1 do
-        local canonical = AzerothCompendium:GetQuestCanonicalID(available[index][1])
+        local canonical = AzerothCompendium:GetQuestCanonicalID(available[index][1], playerOnly)
         if canonical ~= available[index][1] and listed[canonical] then tremove(available, index) end
     end
     table.sort(available, function(a, b)
@@ -1239,7 +1248,7 @@ function AzerothCompendium:GetInstanceQuests(inst)
 
         return a[1] < b[1]
     end)
-    instanceQuestCache.lists[inst.id] = available
+    cache.lists[inst.id] = available
 
     return available
 end
@@ -1541,7 +1550,7 @@ function AzerothCompendium:GetQuestRewardXP(questID)
     return tunedXP or baseXP
 end
 
-local function IsQuestHidden(questID)
+local function IsQuestHidden(questID, playerOnly)
     if not AzerothCompendium:IsQuestForFlavor(questID) then return true end
     if AzerothCompendium:IsQuestUnavailable(questID) then return true end
     if AzerothCompendium:IsPlaceholderQuest(questID) then return true end
@@ -1549,15 +1558,18 @@ local function IsQuestHidden(questID)
     local quest = AzerothCompendium:GetQuestDataByID(questID)
     if quest == nil and not (AzerothCompendium.QUESTNAMES and AzerothCompendium.QUESTNAMES[questID]) then return true end
 
-    return not AzerothCompendium:IsQuestSideVisible(quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[questID])
+    local side = quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[questID]
+    if playerOnly then return IsOpposingQuestSide(side) end
+
+    return not AzerothCompendium:IsQuestSideVisible(side)
 end
 
-function AzerothCompendium:GetQuestCanonicalID(questID)
+function AzerothCompendium:GetQuestCanonicalID(questID, playerOnly)
     local variants = AzerothCompendium:GetQuestVariants(questID)
     if #variants == 1 then return questID end
     local fallback = nil
     for _, id in ipairs(variants) do
-        if not IsQuestHidden(id) then
+        if not IsQuestHidden(id, playerOnly) then
             if AzerothCompendium:IsQuestForPlayerClass(id) then return id end
             fallback = fallback or id
         end
@@ -1654,21 +1666,21 @@ function AzerothCompendium:IsAttuned(inst)
     return attunement.key == nil
 end
 
-function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
+function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted, playerOnly)
     local nodes = {}
     local list = {}
     local inInstance = {}
-    local onlyOwnClass = AzerothCompendium:GetConfig("CLASSFILTER", false) == true
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", false) == true
     local function IsHidden(questID)
-        return IsQuestHidden(questID) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
+        return IsQuestHidden(questID, playerOnly) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
     end
 
-    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst)) do
+    for _, quest in ipairs(AzerothCompendium:GetInstanceQuests(inst, playerOnly)) do
         inInstance[quest[1]] = quest
     end
 
     local function GetNode(id)
-        id = AzerothCompendium:GetQuestCanonicalID(id)
+        id = AzerothCompendium:GetQuestCanonicalID(id, playerOnly)
         local node = nodes[id]
         if node == nil then
             node = {
@@ -1688,8 +1700,8 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     end
 
     local function Link(parentID, childID)
-        parentID = AzerothCompendium:GetQuestCanonicalID(parentID)
-        childID = AzerothCompendium:GetQuestCanonicalID(childID)
+        parentID = AzerothCompendium:GetQuestCanonicalID(parentID, playerOnly)
+        childID = AzerothCompendium:GetQuestCanonicalID(childID, playerOnly)
         if parentID == childID then return end
         local child = GetNode(childID)
         if child.parentSet[parentID] then return end
@@ -1701,7 +1713,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
 
     local visited = {}
     local function Visit(id)
-        id = AzerothCompendium:GetQuestCanonicalID(id)
+        id = AzerothCompendium:GetQuestCanonicalID(id, playerOnly)
         if visited[id] then return end
         visited[id] = true
         GetNode(id)
@@ -1740,7 +1752,8 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
     local attunement = AzerothCompendium:GetAttunement(inst)
     local attuneSet = {}
     for _, quest in ipairs(attunement and attunement.quests or {}) do
-        if AzerothCompendium:IsQuestForFlavor(quest[1]) and AzerothCompendium:IsQuestSideVisible(quest[2]) then
+        local sideVisible = playerOnly and not IsOpposingQuestSide(quest[2]) or not playerOnly and AzerothCompendium:IsQuestSideVisible(quest[2])
+        if AzerothCompendium:IsQuestForFlavor(quest[1]) and sideVisible and (not onlyOwnClass or AzerothCompendium:IsQuestForPlayerClass(quest[1])) then
             attuneSet[quest[1]] = true
             Visit(quest[1])
         end
@@ -1766,7 +1779,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted)
                     if not IsHidden(childID) then
                         Visit(childID)
                         Link(id, childID)
-                        tinsert(queue, AzerothCompendium:GetQuestCanonicalID(childID))
+                        tinsert(queue, AzerothCompendium:GetQuestCanonicalID(childID, playerOnly))
                     end
                 end
             end

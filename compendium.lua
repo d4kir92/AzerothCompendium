@@ -3303,6 +3303,7 @@ local function RefreshBosses()
         compendium.bosses:Hide()
         compendium.bossTitle:Hide()
         compendium.questTree:Show()
+        compendium.questTree.instance = selectedInstance
         compendium.questTree:SetGraph(GetQuestGraph())
         RefreshDetail()
         return

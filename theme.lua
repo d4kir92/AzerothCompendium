@@ -1075,7 +1075,10 @@ function Theme:Refresh()
         self.layoutModern = modern
         if type(AzerothCompendium.ApplyCompendiumLayout) == "function" then AzerothCompendium:ApplyCompendiumLayout() end
         if AzerothCompendium.DungeonTracker and AzerothCompendium.DungeonTracker.frame and AzerothCompendium.DungeonTracker.frame:IsShown() then AzerothCompendium.DungeonTracker:Layout() end
-        if AzerothCompendium.QuestWidget and AzerothCompendium.QuestWidget.frame and AzerothCompendium.QuestWidget.frame:IsShown() then AzerothCompendium.QuestWidget:Layout() end
+        if AzerothCompendium.QuestWidget then
+            if AzerothCompendium.QuestWidget.frame and AzerothCompendium.QuestWidget.frame:IsShown() then AzerothCompendium.QuestWidget:Layout() end
+            AzerothCompendium.QuestWidget:RefreshEmbedded()
+        end
     end
 
     if modern then
