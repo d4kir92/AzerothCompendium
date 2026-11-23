@@ -478,7 +478,8 @@ local function OnNodeClick(button, mouseButton)
     ShowNodeOnMap(node)
 end
 
-local function CreateBorder(frame, layer, sublevel)
+local function CreateBorder(frame, layer, sublevel, thickness)
+    thickness = thickness or 3
     local edges = {}
     for index = 1, 4 do
         edges[index] = frame:CreateTexture(nil, layer, nil, sublevel)
@@ -486,16 +487,16 @@ local function CreateBorder(frame, layer, sublevel)
 
     edges[1]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     edges[1]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
-    edges[1]:SetHeight(3)
+    edges[1]:SetHeight(thickness)
     edges[2]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
     edges[2]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[2]:SetHeight(3)
+    edges[2]:SetHeight(thickness)
     edges[3]:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     edges[3]:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
-    edges[3]:SetWidth(3)
+    edges[3]:SetWidth(thickness)
     edges[4]:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
     edges[4]:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    edges[4]:SetWidth(3)
+    edges[4]:SetWidth(thickness)
     function edges:SetColor(r, g, b, a)
         for _, edge in ipairs(self) do
             edge:SetColorTexture(r, g, b, a)
@@ -1543,19 +1544,99 @@ local function IsListItemOpen(item, expanded)
     return false
 end
 
-local function FlattenList(items, depth, expanded, out)
+local ListBox = {
+    gap = 4,
+    padY = 3,
+    padX = 3,
+    marginX = 2,
+    styles = {
+        open = {
+            border = {0.45, 0.45, 0.48, 1},
+            fill = {0.12, 0.12, 0.14, 0.5},
+            modernFill = {0.145, 0.15, 0.17, 1},
+        },
+        active = {
+            border = {1, 0.82, 0, 1},
+            fill = {0.25, 0.2, 0.04, 0.45},
+            modernFill = {0.215, 0.185, 0.085, 1},
+        },
+        complete = {
+            border = {0.18, 0.78, 0.22, 1},
+            fill = {0.06, 0.22, 0.07, 0.45},
+            modernFill = {0.09, 0.195, 0.105, 1},
+        },
+    },
+}
+
+function ListBox.GetState(item)
+    local rootStatus = GetQuestStatus(item.node.id, item.node)
+    if rootStatus == "complete" then return "complete" end
+    if rootStatus == "active" or rootStatus == "ready" then return "active" end
+    for _, child in ipairs(item.children) do
+        if child.node then
+            local status = GetQuestStatus(child.node.id, child.node)
+            if status == "active" or status == "ready" then return "active" end
+        end
+    end
+
+    return "open"
+end
+
+function ListBox.Create(parent)
+    local box = CreateFrame("Frame", nil, parent)
+    box.background = box:CreateTexture(nil, "BACKGROUND", nil, -8)
+    box.background:SetAllPoints(box)
+    box.border = CreateBorder(box, "BACKGROUND", -6, 2)
+    local Theme = AzerothCompendium.Theme
+    local record = Theme:NewRecord(box)
+    Theme:Hide(record, box.background)
+    for _, edge in ipairs(box.border) do
+        Theme:Hide(record, edge)
+    end
+
+    local style = ListBox.styles.open
+    local radius = Theme.radius.control
+    box.modernBorder = Theme:Round(record, box, "BACKGROUND", -8, style.border, radius)
+    box.modernFill = Theme:Round(record, box, "BACKGROUND", -7, style.modernFill, max(1, radius - 2), box, 2)
+    Theme:ApplyRecord(record, Theme:IsModern())
+
+    return box
+end
+
+function ListBox.Update(box, state)
+    local style = ListBox.styles[state] or ListBox.styles.open
+    box.background:SetColorTexture(style.fill[1], style.fill[2], style.fill[3], style.fill[4])
+    box.border:SetColor(style.border[1], style.border[2], style.border[3], style.border[4])
+    local Theme = AzerothCompendium.Theme
+    Theme.shapes[box.modernBorder] = style.border
+    Theme:Paint(box.modernBorder, style.border)
+    Theme.shapes[box.modernFill] = style.modernFill
+    Theme:Paint(box.modernFill, style.modernFill)
+end
+
+local function FlattenList(items, depth, expanded, out, box)
     for _, item in ipairs(items) do
         local open = #item.children > 0 and IsListItemOpen(item, expanded)
+        local group = box
+        if depth == 0 then
+            group = {
+                state = ListBox.GetState(item)
+            }
+        end
+
         tinsert(out, {
             kind = "quest",
             item = item,
             key = item.key,
             depth = depth,
             hasChildren = #item.children > 0,
-            open = open
+            open = open,
+            box = group,
+            boxStart = depth == 0,
         })
 
-        if open then FlattenList(item.children, depth + 1, expanded, out) end
+        if open then FlattenList(item.children, depth + 1, expanded, out, group) end
+        if depth == 0 then out[#out].boxEnd = true end
     end
 end
 
@@ -1705,7 +1786,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.node = entry.item and entry.item.node or nil
     row.attunement = entry.attunement
     row.toggle:ClearAllPoints()
-    row.toggle:SetPoint("LEFT", row, "LEFT", 6 + (entry.depth or 0) * LIST_INDENT, 0)
+    row.toggle:SetPoint("LEFT", row, "LEFT", (entry.box and 3 or 6) + (entry.depth or 0) * LIST_INDENT, 0)
     if entry.kind == "header" then
         row.toggle:SetNormalTexture(entry.collapsed and PLUS_TEXTURE or MINUS_TEXTURE)
         row.toggle:SetShown(entry.collapsible == true)
@@ -1756,10 +1837,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         local node = row.node
         local status = GetQuestStatus(node.id, node)
         local info = STATUS_ICON[status]
-        local border = STATUS_BORDER[status]
-        row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
-        row.bar:SetColorTexture(border[1], border[2], border[3], border[4])
-        row.bar:Show()
+        row.background:SetColorTexture(0, 0, 0, 0)
         row.icon:SetTexture(info[1])
         row.icon:SetDesaturated(info[2])
         if info[3] then row.icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
@@ -2621,6 +2699,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     tree.listRows = {}
+    tree.listBoxes = {}
     tree.expanded = {}
     tree.listItems = {}
     function tree:ToggleListKey(key)
@@ -2729,11 +2808,17 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         if attunement and attunement.key and attunement.opens ~= nil then
-            tinsert(entries, {kind = "key", attunement = attunement, depth = 0})
+            tinsert(entries, {kind = "key", attunement = attunement, depth = 0, gap = #entries > 0 and ListBox.gap or 0})
         end
 
+        local baseLevel = listHolder:GetFrameLevel() or 0
         local width = max(1, scroll:GetWidth() or 0)
+        local boxWidth = max(1, width - 2 * ListBox.marginX)
+        local boxRowX = ListBox.marginX + ListBox.padX
+        local boxRowWidth = max(1, width - 2 * boxRowX)
         local listY = 0
+        local boxCount = 0
+        local activeBoxTop = nil
         for index, entry in ipairs(entries) do
             local row = self.listRows[index]
             if row == nil then
@@ -2742,18 +2827,53 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
 
             listY = listY + (entry.gap or 0)
+            if entry.boxStart then
+                listY = listY + ListBox.gap
+                activeBoxTop = listY
+                listY = listY + ListBox.padY
+            end
+
             row.listY = listY
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -listY)
-            row:SetWidth(width)
+            if entry.box then
+                row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", boxRowX, -listY)
+                row:SetWidth(boxRowWidth)
+            else
+                row:SetPoint("TOPLEFT", listHolder, "TOPLEFT", 0, -listY)
+                row:SetWidth(width)
+            end
+
+            row:SetFrameLevel(baseLevel + 2)
             UpdateListRow(row, entry, index, self.expanded, self.selectedKey)
             listY = listY + (entry.height or LIST_ROW_H)
+            if entry.boxEnd and activeBoxTop ~= nil then
+                listY = listY + ListBox.padY
+                boxCount = boxCount + 1
+                local box = self.listBoxes[boxCount]
+                if box == nil then
+                    box = ListBox.Create(listHolder)
+                    self.listBoxes[boxCount] = box
+                end
+
+                box:ClearAllPoints()
+                box:SetPoint("TOPLEFT", listHolder, "TOPLEFT", ListBox.marginX, -activeBoxTop)
+                box:SetSize(boxWidth, max(1, listY - activeBoxTop))
+                box:SetFrameLevel(baseLevel + 1)
+                ListBox.Update(box, entry.box.state)
+                box:Show()
+                activeBoxTop = nil
+            end
         end
 
+        if boxCount > 0 then listY = listY + ListBox.gap end
         detail:SetNode(selected and selected.node or nil)
 
         for index = #entries + 1, #self.listRows do
             self.listRows[index]:Hide()
+        end
+
+        for index = boxCount + 1, #self.listBoxes do
+            self.listBoxes[index]:Hide()
         end
 
         listHolder:SetSize(width, max(1, listY))
