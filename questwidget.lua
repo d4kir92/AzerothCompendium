@@ -265,8 +265,15 @@ end
 
 function Widget:MatchesInstance(inst, instanceID)
     if inst == nil or instanceID == nil then return false end
+    if inst.id == instanceID or inst.parentID == instanceID then return true end
+    local mapped = AzerothCompendium.WorldMap and AzerothCompendium.WorldMap.instanceMaps and AzerothCompendium.WorldMap.instanceMaps[instanceID]
+    if mapped ~= nil then
+        for _, id in ipairs(mapped) do
+            if inst.id == id then return true end
+        end
+    end
 
-    return inst.id == instanceID or inst.parentID == instanceID
+    return false
 end
 
 function Widget:IsNodeLocked(node)

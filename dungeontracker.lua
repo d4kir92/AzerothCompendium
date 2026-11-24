@@ -157,8 +157,17 @@ end
 function Tracker:FindCandidates(instanceID, name, historic)
     local list = {}
     local instances = AzerothCompendium.INSTANCES or {}
+    local mapped = AzerothCompendium.WorldMap and AzerothCompendium.WorldMap.instanceMaps and AzerothCompendium.WorldMap.instanceMaps[instanceID]
+    local wanted = nil
+    if mapped ~= nil then
+        wanted = {}
+        for _, id in ipairs(mapped) do
+            wanted[id] = true
+        end
+    end
+
     for _, inst in ipairs(instances) do
-        if inst.id == instanceID or inst.parentID == instanceID then tinsert(list, inst) end
+        if inst.id == instanceID or inst.parentID == instanceID or (wanted ~= nil and wanted[inst.id]) then tinsert(list, inst) end
     end
 
     if #list > 0 or type(name) ~= "string" then return list end

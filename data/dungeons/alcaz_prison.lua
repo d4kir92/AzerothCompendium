@@ -4,7 +4,7 @@ local instance = {
 	["name"] = "Alcaz Prison",
 	["type"] = "dungeon",
 	["minLevel"] = 48,
-	["maxLevel"] = 53,
+	["maxLevel"] = 55,
 	["forever"] = true,
 	["bosses"] = {
 		{

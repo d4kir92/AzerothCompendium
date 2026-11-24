@@ -4,7 +4,7 @@ local instance = {
 	["name"] = "Krol'dok Stronghold",
 	["type"] = "dungeon",
 	["minLevel"] = 40,
-	["maxLevel"] = 45,
+	["maxLevel"] = 47,
 	["forever"] = true,
 	["bosses"] = {
 		{
