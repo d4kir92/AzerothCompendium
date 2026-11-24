@@ -98,17 +98,6 @@ local instance = {
 			["minLevel"] = 26,
 			["maxLevel"] = 26,
 		},
-		{
-			["name"] = "Arugal's Voidwalker",
-			["npcs"] = {4627},
-			["forever"] = true,
-			["minLevel"] = 24,
-			["maxLevel"] = 25,
-			["spells"] = {1604, 5101, 7154, 13496, 15571, 24804, 1216119, 1218375},
-			["level"] = 25,
-			["loot"] = {{5943, 11.42}, {6382, 0.07},},
-			["model"] = 1131,
-		},
 	},
 }
 local trash = {

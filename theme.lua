@@ -930,6 +930,7 @@ local PageText = {
     TEXT = {0, 0, 0},
     NEUTRAL_RANGE = 0.15,
     WHITE_MIN = 0.75,
+    INLINE_NEUTRAL_MIN = 0.35,
     roots = {},
 }
 Theme.PageText = PageText
@@ -977,12 +978,22 @@ function PageText:StripOutline(flags)
     return table.concat(out, ",")
 end
 
+function PageText:StyleText(text)
+    if type(text) ~= "string" or (issecretvalue and issecretvalue(text)) or not text:find("|c", 1, true) then return text end
+    return (text:gsub("|c(%x%x)(%x%x)(%x%x)(%x%x)", function(alpha, r, g, b)
+        local nr, ng, nb = tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255
+        local hi, lo = max(nr, ng, nb), min(nr, ng, nb)
+        if hi - lo < self.NEUTRAL_RANGE and hi >= self.INLINE_NEUTRAL_MIN then return "|c" .. alpha .. "000000" end
+    end))
+end
+
 function PageText:ShouldStyle(fontString)
     if Theme:IsModern() then return false, false end
     local frame, scrolled, blackNormal = fontString:GetParent(), false, false
     while frame do
         if frame.acoKeepLight or frame.vendorMap ~= nil or self:IsControl(frame) then return false, false end
         if frame.loadingScreen and frame.loadingScreen:IsShown() then return false, false end
+        if frame.categoryBackground and frame.categoryBackground:IsShown() then return false, false end
         if frame.acoBlackNormal then blackNormal = true end
         if frame.ScrollTarget or frame:GetObjectType() == "ScrollFrame" then scrolled = true end
         if frame.acoPageRoot then return frame.acoPageWhole or scrolled or self:IsInside(fontString, frame), blackNormal end
@@ -995,6 +1006,20 @@ function PageText:Capture(fontString, state)
     state.color = {fontString:GetTextColor()}
     state.font = {fontString:GetFont()}
     state.shadow = {fontString:GetShadowColor()}
+end
+
+function PageText:ApplyText(fontString, state, active)
+    if issecretvalue and issecretvalue(state.text) then return end
+    if active then
+        local styled = self:StyleText(state.text)
+        if styled ~= state.text and state.styledText ~= styled then
+            fontString:SetText(styled)
+            state.styledText = styled
+        end
+    elseif state.styledText ~= nil then
+        fontString:SetText(state.text)
+        state.styledText = nil
+    end
 end
 
 function PageText:Apply(fontString)
@@ -1013,10 +1038,12 @@ function PageText:Apply(fontString)
         end
 
         if font[1] then fontString:SetFont(font[1], font[2], self:StripOutline(font[3])) end
+        self:ApplyText(fontString, state, true)
     else
         fontString:SetTextColor(color[1], color[2], color[3], color[4])
         if shadow and shadow[1] ~= nil then fontString:SetShadowColor(shadow[1], shadow[2], shadow[3], shadow[4]) end
         if font[1] then fontString:SetFont(font[1], font[2], font[3] or "") end
+        self:ApplyText(fontString, state, false)
     end
 
     state.active = active
@@ -1025,9 +1052,15 @@ end
 
 function PageText:Track(fontString)
     if fontString.acoPage then return self:Apply(fontString) end
-    local state = {}
+    local state = {text = fontString:GetText()}
     self:Capture(fontString, state)
     fontString.acoPage = state
+    hooksecurefunc(fontString, "SetText", function(sel, text)
+        if state.busy then return end
+        state.text = text
+        state.styledText = nil
+        PageText:Apply(sel)
+    end)
     hooksecurefunc(fontString, "SetTextColor", function(sel, r, g, b, a)
         if state.busy then return end
         state.color = {r, g, b, a or 1}
@@ -1162,7 +1195,7 @@ function Theme:RegisterRoot(frame)
     if not self.hooked and type(AzerothCompendium.RefreshCompendium) == "function" then
         self.hooked = true
         hooksecurefunc(AzerothCompendium, "RefreshCompendium", function() if Theme:IsModern() then Theme:QueueRefresh() end end)
-        if type(AzerothCompendium.RefreshModuleView) == "function" then hooksecurefunc(AzerothCompendium, "RefreshModuleView", function() if Theme:IsModern() then Theme:QueueRefresh() end end) end
+        if type(AzerothCompendium.RefreshModuleView) == "function" then hooksecurefunc(AzerothCompendium, "RefreshModuleView", function() if Theme:IsModern() then Theme:QueueRefresh() else Theme.PageText:RefreshAll() end end) end
     end
 
     self:QueueRefresh()
