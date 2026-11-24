@@ -328,6 +328,32 @@ function Tracker:IsKilled(run, boss)
     return false
 end
 
+function Tracker:IsBossKilled(target)
+    if target == nil or not self:IsEnabled() then return false end
+    local run = self:GetRun()
+    if run == nil or type(run.killed) ~= "table" then return false end
+    if not self:IsCurrentInstance(run) and not (self.away and run.active) then return false end
+    if type(target) == "table" and type(target.npcs) == "table" then return self:IsKilled(run, target) end
+    if run.killed[target] then return true end
+    for _, inst in ipairs(self:GetRunCandidates(run)) do
+        for _, boss in ipairs(inst.bosses or {}) do
+            if not boss.trash and not boss.all and type(boss.npcs) == "table" then
+                for _, npcID in ipairs(boss.npcs) do
+                    if npcID == target and self:IsKilled(run, boss) then return true end
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+function Tracker:NotifyMapChange()
+    if AzerothCompendium.RefreshMapPins ~= nil then AzerothCompendium:RefreshMapPins() end
+    if AzerothCompendium.WorldMap ~= nil and AzerothCompendium.WorldMap.map ~= nil and AzerothCompendium.WorldMap.map.Invalidate ~= nil then AzerothCompendium.WorldMap.map:Invalidate() end
+    if AzerothCompendium.DungeonMapWidget ~= nil and AzerothCompendium.DungeonMapWidget.RefreshPins ~= nil then AzerothCompendium.DungeonMapWidget:RefreshPins() end
+end
+
 function Tracker:CountKilled(run, list)
     local count = 0
     for _, entry in ipairs(list) do
@@ -374,6 +400,7 @@ function Tracker:CheckZone()
         end
 
         self:UpdateVisibility()
+        self:NotifyMapChange()
 
         return
     end
@@ -403,6 +430,7 @@ function Tracker:CheckZone()
     local inCombat = UnitAffectingCombat("player")
     if not IsSecret(inCombat) and inCombat then self:StartRankedRun() end
     self:UpdateVisibility()
+    self:NotifyMapChange()
 end
 
 function Tracker:StartRankedRun()
@@ -537,6 +565,7 @@ function Tracker:MarkKilled(npcID)
     self:NarrowWing(npcID)
     self:CheckFinished(run)
     self:Refresh()
+    self:NotifyMapChange()
 end
 
 function Tracker:GetNpcID(guid)
@@ -1997,6 +2026,7 @@ function Tracker:Close()
         self.viewRun = nil
         self.forced = false
         self:UpdateVisibility()
+        self:NotifyMapChange()
 
         return
     end

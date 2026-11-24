@@ -2504,6 +2504,11 @@ function MapPins.Create(view)
     local labelFont, labelSize = pin.label:GetFont()
     if labelFont then pin.label:SetFont(labelFont, labelSize + 2, "THICKOUTLINE") end
     pin.label:Hide()
+    pin.dead = pin:CreateTexture(nil, "OVERLAY", nil, 3)
+    pin.dead:SetTexture("Interface\\RaidFrame\\ReadyCheck-NotReady")
+    pin.dead:SetPoint("TOPLEFT", pin.portrait, "TOPLEFT", 1, -1)
+    pin.dead:SetPoint("BOTTOMRIGHT", pin.portrait, "BOTTOMRIGHT", -1, 1)
+    pin.dead:Hide()
     if pin.CreateMaskTexture and pin.portrait.AddMaskTexture then
         for _, texture in ipairs({pin.portrait, pin.levelRing, pin.levelFill}) do
             local mask = pin:CreateMaskTexture()
@@ -2531,10 +2536,13 @@ function MapPins.Style(pin)
     local isItem = pin.kind == "item"
     AzerothCompendium:UpdateWishlistStar(pin, pin.portrait, isItem and pin.entry[4] or nil)
     pin.portrait:SetShown(isBoss or isItem)
+    pin.portrait:SetDesaturated(false)
+    pin.portrait:SetVertexColor(1, 1, 1)
     pin.icon:SetShown(not isBoss and not isItem)
     pin.portrait:SetTexCoord(0, 1, 0, 1)
     pin.ring:SetSize((size - 4) * 1.55, (size - 4) * 1.55)
     pin.bossDragon:Hide()
+    pin.dead:Hide()
     pin.levelBadge:Hide()
     pin.ring:Hide()
     pin.label:Hide()
@@ -2553,6 +2561,12 @@ function MapPins.Style(pin)
         local applied = false
         if pin.boss.model ~= nil and SetPortraitTextureFromCreatureDisplayID then applied = pcall(SetPortraitTextureFromCreatureDisplayID, pin.portrait, pin.boss.model) end
         if not applied then pin.portrait:SetTexture(BOSS_PORTRAIT_FALLBACK) end
+        local killed = AzerothCompendium.DungeonTracker ~= nil and AzerothCompendium.DungeonTracker:IsBossKilled(pin.boss or pin.entry[4])
+        if killed then
+            pin.portrait:SetDesaturated(true)
+            pin.portrait:SetVertexColor(0.6, 0.6, 0.6)
+            pin.dead:Show()
+        end
         return
     end
 

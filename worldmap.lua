@@ -87,6 +87,7 @@ function AzerothCompendium:OnSharedOptionChanged(key, value)
     if WorldMap.UpdateMinimapState ~= nil and WorldMap.UpdateMinimapState() then WorldMap.RedrawMinimap() end
     if WorldMap.map ~= nil then WorldMap.map:Invalidate() end
     if AzerothCompendium.RefreshMapPins ~= nil then AzerothCompendium:RefreshMapPins() end
+    if AzerothCompendium.DungeonMapWidget ~= nil and AzerothCompendium.DungeonMapWidget.RefreshPins ~= nil then AzerothCompendium.DungeonMapWidget:RefreshPins() end
 end
 
 function AzerothCompendium:SetSharedOption(key, value)
@@ -263,6 +264,7 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["getBossScaleText"] = function(percent) return format(AzerothCompendium:Trans("LID_BOSSPINSCALE"), percent) end,
     ["isPinEnabled"] = function(kind) return AzerothCompendium.MapPins.IsEnabled(kind) end,
     ["isQuestPinVisible"] = function(row) return AzerothCompendium.MapPins.IsQuestPinVisible(row) end,
+    ["isBossKilled"] = function(row) return AzerothCompendium.DungeonTracker ~= nil and AzerothCompendium.DungeonTracker:IsBossKilled(row[4]) end,
     ["getQuestKindText"] = function(row) return AzerothCompendium:Trans(row[1] == "queststart" and "LID_MAPPINQUESTSTART" or "LID_MAPPINQUESTEND") end,
     ["setPinEnabled"] = function(kind, enabled) AzerothCompendium:SetSharedOption("INSTANCEPINS_" .. strupper(kind), enabled) end,
     ["getToggleText"] = function(kind, enabled)
@@ -411,7 +413,7 @@ function WorldMap.OnPinClick(pin, button)
 
         if WorldMapFrame == nil then return end
         if not WorldMapFrame:IsShown() then ShowUIPanel(WorldMapFrame) end
-        if WorldMapFrame.SetMapID ~= nil then WorldMapFrame:SetMapID(group.mapID) end
+        if WorldMapFrame.SetMapID ~= nil and not (InCombatLockdown ~= nil and InCombatLockdown()) then WorldMapFrame:SetMapID(group.mapID) end
         WorldMap.returnMapID = group.mapID
         WorldMap.OnPinLeave(pin)
         WorldMap.map:Show(ids, #group.entries == 1 and WorldMap.GetLevelIndex(group.entries[1]) or nil)

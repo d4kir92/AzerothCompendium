@@ -118,6 +118,8 @@ local function HandleSlash(args)
         AzerothCompendium:ToggleMapPinDebug()
     elseif sub == "tracker" and AzerothCompendium.DungeonTracker then
         AzerothCompendium.DungeonTracker:Toggle()
+    elseif (sub == "map" or sub == "mapwidget") and AzerothCompendium.DungeonMapWidget then
+        AzerothCompendium.DungeonMapWidget:Toggle()
     elseif (sub == "quests" or sub == "questwidget" or sub == "widget") and AzerothCompendium.QuestWidget then
         AzerothCompendium.QuestWidget:Toggle()
     else
@@ -292,7 +294,14 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
     classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("DUNGEONTRACKER", nil, "2026-11-14")
-    AddCheckbox("DUNGEONTRACKER", true, function() if AzerothCompendium.DungeonTracker then AzerothCompendium.DungeonTracker:UpdateVisibility() end end, "LID_DUNGEONTRACKER_ENABLED", "2026-11-14")
+    AddCheckbox("DUNGEONTRACKER", true, function()
+        if AzerothCompendium.DungeonTracker then
+            AzerothCompendium.DungeonTracker:UpdateVisibility()
+            AzerothCompendium.DungeonTracker:NotifyMapChange()
+        end
+    end, "LID_DUNGEONTRACKER_ENABLED", "2026-11-14")
+    AddCategory("DUNGEONMAPWIDGET", nil, "2026-11-24")
+    AddCheckbox("DUNGEONMAPWIDGET", true, function() if AzerothCompendium.DungeonMapWidget then AzerothCompendium.DungeonMapWidget:UpdateVisibility() end end, "LID_DUNGEONMAPWIDGET_ENABLED", "2026-11-24")
     AddCategory("QUESTWIDGET", nil, "2026-11-23")
     acoset.questWidget = AddCheckbox("QUESTWIDGET", false, function() if AzerothCompendium.QuestWidget then AzerothCompendium.QuestWidget:UpdateVisibility() end end, "LID_QUESTWIDGET_ENABLED", "2026-11-23")
     AddCategory("MAPICONS", nil, "2026-10-04")

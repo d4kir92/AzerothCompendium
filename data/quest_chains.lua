@@ -1,5 +1,6 @@
 local _, AzerothCompendium = ...
 AzerothCompendium.UNAVAILABLEQUESTS = {
+	[909] = true,
 	[999] = true,
 	[1500] = true,
 	[3366] = true,
@@ -9,6 +10,8 @@ AzerothCompendium.UNAVAILABLEQUESTS = {
 	[2868] = true,
 	[6201] = true,
 	[4299] = true,
+	[78916] = true,
+	[78917] = true,
 }
 
 AzerothCompendium.QUESTCHAINS = {

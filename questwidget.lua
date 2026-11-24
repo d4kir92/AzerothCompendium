@@ -1158,7 +1158,17 @@ function Widget:BuildEntryLines(entry)
     local lines = {}
     if entry.status == "active" then
         local objectives = entry.objectives
+        local hasUnfinished = false
         if type(objectives) == "table" and #objectives > 0 then
+            for _, obj in ipairs(objectives) do
+                if not obj.finished then
+                    hasUnfinished = true
+                    break
+                end
+            end
+        end
+
+        if hasUnfinished then
             for _, obj in ipairs(objectives) do
                 local text = obj.text:sub(1, 2) == "- " and obj.text or ("- " .. obj.text)
                 if obj.finished then
@@ -1171,21 +1181,6 @@ function Widget:BuildEntryLines(entry)
             local text, r, g, b = self:FormatRowSubtext(entry)
             tinsert(lines, {text, r, g, b})
         end
-
-        return lines
-    end
-
-    if entry.status == "ready" then
-        local objectives = entry.objectives
-        if type(objectives) == "table" and #objectives > 0 then
-            for _, obj in ipairs(objectives) do
-                local text = obj.text:sub(1, 2) == "- " and obj.text or ("- " .. obj.text)
-                tinsert(lines, {text, 0.25, 1, 0.25})
-            end
-        end
-
-        local text, r, g, b = self:FormatRowSubtext(entry)
-        tinsert(lines, {text, r, g, b})
 
         return lines
     end
