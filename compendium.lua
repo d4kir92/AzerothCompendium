@@ -6815,7 +6815,7 @@ local function CreateJournal()
 
     levelHeader.title = levelHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     levelHeader.title:SetPoint("LEFT", levelHeader, "LEFT", 17, 0)
-    levelHeader.title:SetPoint("RIGHT", levelHeader, "RIGHT", -6, 0)
+    levelHeader.title:SetPoint("RIGHT", levelHeader, "RIGHT", -22, 0)
     levelHeader.title:SetJustifyH("LEFT")
     levelHeader.title:SetWordWrap(false)
     levelHeader.title:SetTextColor(1, 0.82, 0)
@@ -6823,11 +6823,44 @@ local function CreateJournal()
         levelHeader.title:SetText(AzerothCompendium:Trans("LID_MAPLEVELS"))
     end)
 
+    local levelToggle = CreateFrame("Button", nil, levelHeader)
+    levelToggle:SetSize(16, 16)
+    levelToggle:SetPoint("RIGHT", levelHeader, "RIGHT", -2, 0)
+    levelToggle.bg = levelToggle:CreateTexture(nil, "BACKGROUND")
+    levelToggle.bg:SetAllPoints(levelToggle)
+    levelToggle.bg:SetColorTexture(1, 1, 1, 0)
+    levelToggle.hBar = levelToggle:CreateTexture(nil, "ARTWORK")
+    levelToggle.hBar:SetSize(8, 2)
+    levelToggle.hBar:SetPoint("CENTER", levelToggle, "CENTER", 0, 0)
+    levelToggle.hBar:SetColorTexture(0.72, 0.66, 0.52, 0.95)
+    levelToggle.vBar = levelToggle:CreateTexture(nil, "ARTWORK")
+    levelToggle.vBar:SetSize(2, 8)
+    levelToggle.vBar:SetPoint("CENTER", levelToggle, "CENTER", 0, 0)
+    levelToggle.vBar:SetColorTexture(0.72, 0.66, 0.52, 0.95)
+    levelToggle.vBar:Hide()
+    levelToggle:SetScript("OnEnter", function(sel)
+        sel.bg:SetColorTexture(1, 1, 1, 0.14)
+        sel.hBar:SetColorTexture(1, 0.88, 0.35, 1)
+        sel.vBar:SetColorTexture(1, 0.88, 0.35, 1)
+        mapLevelControl:ShowCollapsedTooltip(sel)
+    end)
+
+    levelToggle:SetScript("OnLeave", function(sel)
+        sel.bg:SetColorTexture(1, 1, 1, 0)
+        sel.hBar:SetColorTexture(0.72, 0.66, 0.52, 0.95)
+        sel.vBar:SetColorTexture(0.72, 0.66, 0.52, 0.95)
+        if GameTooltip:IsOwned(sel) then AzerothCompendium:HideGameTooltip() end
+    end)
+
+    levelToggle:SetScript("OnClick", function() mapLevelControl:ToggleCollapsed() end)
+    levelHeader.toggle = levelToggle
     levelHeader:SetScript("OnEnter", function(sel)
         sel.bg:SetColorTexture(0.16, 0.15, 0.18, 0.95)
         for _, dot in ipairs(sel.dots) do
             dot:SetColorTexture(1, 0.88, 0.35, 1)
         end
+
+        mapLevelControl:ShowCollapsedTooltip(sel)
     end)
 
     levelHeader:SetScript("OnLeave", function(sel)
@@ -6835,10 +6868,17 @@ local function CreateJournal()
         for _, dot in ipairs(sel.dots) do
             dot:SetColorTexture(0.72, 0.66, 0.52, 0.9)
         end
+
+        if GameTooltip:IsOwned(sel) then AzerothCompendium:HideGameTooltip() end
     end)
 
     levelHeader:SetScript("OnMouseDown", function(_, button) mapLevelControl:StartDrag(button) end)
-    levelHeader:SetScript("OnMouseUp", function() mapLevelControl:StopDrag() end)
+    levelHeader:SetScript("OnMouseUp", function(_, button)
+        local moved = mapLevelControl.dragMoved
+        mapLevelControl:StopDrag()
+        if button == "LeftButton" and not moved then mapLevelControl:ToggleCollapsed() end
+    end)
+
     mapLevelControl.header = levelHeader
     local levelScroll = CreateFrame("ScrollFrame", nil, mapLevelControl)
     levelScroll:SetPoint("TOPLEFT", mapLevelControl, "TOPLEFT", mapLevelControl.pad, -(mapLevelControl.headerH + mapLevelControl.pad))
@@ -6998,16 +7038,65 @@ local function CreateJournal()
         return btn
     end
 
+    function mapLevelControl:ShowCollapsedTooltip(owner)
+        if not self.collapsed or not self.activeLabel or self.activeLabel == "" then return end
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(self.activeLabel, 1, 0.82, 0)
+        GameTooltip:Show()
+    end
+
+    function mapLevelControl:LoadCollapsed()
+        if self.collapsed ~= nil then return end
+        self.collapsed = type(ACOTAB) == "table" and ACOTAB.MAPLEVELCOLLAPSED == true or false
+    end
+
+    function mapLevelControl:SaveCollapsed()
+        ACOTAB = ACOTAB or {}
+        ACOTAB.MAPLEVELCOLLAPSED = self.collapsed == true
+    end
+
+    function mapLevelControl:UpdateCollapsedVisuals()
+        local collapsed = self.collapsed == true
+        self.header.divider:SetShown(not collapsed)
+        self.header.toggle.vBar:SetShown(collapsed)
+        self.scroll:SetShown(not collapsed)
+        self:EnableMouseWheel(not collapsed)
+    end
+
+    function mapLevelControl:SetCollapsed(collapsed)
+        self.collapsed = collapsed == true
+        self:SaveCollapsed()
+        self:UpdateCollapsedVisuals()
+        if not self.collapsed and GameTooltip and (GameTooltip:IsOwned(self.header) or GameTooltip:IsOwned(self.header.toggle)) then AzerothCompendium:HideGameTooltip() end
+        self:Layout()
+    end
+
+    function mapLevelControl:ToggleCollapsed()
+        self:LoadCollapsed()
+        self:SetCollapsed(not self.collapsed)
+    end
+
     function mapLevelControl:Layout()
         local count = self.count or 0
         if count <= 0 then return end
-        local step = self.btnH + self.gap
-        local contentH = count * self.btnH + math.max(0, count - 1) * self.gap
+        self:LoadCollapsed()
+        self:UpdateCollapsedVisuals()
         local viewW = mapView:GetWidth() or 400
         local viewH = mapView:GetHeight() or 300
+        local maxInnerW = math.max(60, viewW - self.margin * 2 - self.pad * 2)
+        if self.collapsed then
+            local boxW = math.min(self.collapsedWidth or 96, maxInnerW + self.pad * 2)
+            self:SetSize(boxW, self.headerH + 2)
+            self:ApplyRatioPosition()
+            self:SetFrameLevel((mapView.pinTopLevel or (mapView.viewport:GetFrameLevel() + 20)) + 5)
+
+            return
+        end
+
+        local step = self.btnH + self.gap
+        local contentH = count * self.btnH + math.max(0, count - 1) * self.gap
         local maxScrollH = math.max(self.btnH, viewH - self.margin * 2 - self.pad * 2 - self.headerH)
         local visibleH = math.min(contentH, maxScrollH)
-        local maxInnerW = math.max(60, viewW - self.margin * 2 - self.pad * 2)
         local innerW = math.min(self.innerWidth or 140, maxInnerW)
         self:SetSize(innerW + self.pad * 2, visibleH + self.pad * 2 + self.headerH)
         self.content:SetSize(innerW, contentH)
@@ -7039,6 +7128,7 @@ local function CreateJournal()
         local count = maps and #maps or 0
         self.count = count
         self.activeIndex = activeIndex or 1
+        self.activeLabel = nil
         local maxW = 0
         for i = 1, count do
             local btn = self:GetButton(i)
@@ -7051,6 +7141,7 @@ local function CreateJournal()
             if textW > maxW then maxW = textW end
             local active = i == self.activeIndex
             if active then
+                self.activeLabel = text
                 btn.bg:SetColorTexture(0.85, 0.68, 0.2, 0.28)
                 btn.accent:Show()
                 btn.label:SetTextColor(1, 0.88, 0.35)
@@ -7068,8 +7159,10 @@ local function CreateJournal()
         end
 
         self.measure:SetText(AzerothCompendium:Trans("LID_MAPLEVELS"))
-        local headerW = (self.measure:GetStringWidth() or 0) + 18
+        local titleW = self.measure:GetStringWidth() or 0
+        local headerW = titleW + 34
         if headerW > maxW then maxW = headerW end
+        self.collapsedWidth = math.max(84, math.min(200, math.ceil(titleW) + 46))
         self.innerWidth = math.max(110, math.min(200, math.ceil(maxW) + 20))
         self:Layout()
     end

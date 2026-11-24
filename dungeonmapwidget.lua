@@ -536,6 +536,8 @@ function MapWidget:CreateFrame()
         ["onSelect"] = function(index) self:SelectLevel(index) end,
         ["getPos"] = function() return AzerothCompendium:GetConfig("DUNGEONMAPWIDGETLEVELPOS", nil) end,
         ["setPos"] = function(pos) AzerothCompendium:SetConfig("DUNGEONMAPWIDGETLEVELPOS", pos) end,
+        ["getCollapsed"] = function() return AzerothCompendium:GetConfig("DUNGEONMAPWIDGETLEVELCOLLAPSED", false) end,
+        ["setCollapsed"] = function(collapsed) AzerothCompendium:SetConfig("DUNGEONMAPWIDGETLEVELCOLLAPSED", collapsed) end,
         ["getFrameLevel"] = function() return viewport:GetFrameLevel() + 1000 end,
     })
 
