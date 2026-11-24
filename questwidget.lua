@@ -15,6 +15,10 @@ Widget.config = {
     rowH = 38,
     focusSize = 20,
     itemSize = 24,
+    pinSize = 18,
+    mapPinSize = 20,
+    mapPinLevel = 2100,
+    mapUpdateInterval = 0.05,
     lineGap = 2,
     padY = 5,
     collapsed = 32,
@@ -22,6 +26,18 @@ Widget.config = {
     scaleMax = 1.5,
     scaleStep = 0.01,
 }
+
+Widget.pinAssets = {
+    tracked = "Waypoint-MapPin-Tracked",
+    untracked = "Waypoint-MapPin-Untracked",
+    highlight = "Waypoint-MapPin-Highlight",
+    fallback = 134269,
+    mapMark = "Interface\\RaidFrame\\ReadyCheck-NotReady",
+}
+
+Widget.mapPins = {}
+Widget.mapPinState = {}
+Widget.mapPinVersion = 0
 
 Widget.statusIcons = {
     ready = "Interface\\GossipFrame\\ActiveQuestIcon",
@@ -867,11 +883,11 @@ function Widget:CreateResizeGrip(frame)
     return grip
 end
 
-function Widget:ShowQuestTooltip(row)
+function Widget:ShowQuestTooltip(row, anchor, isMapPin)
     local entry = row.entry
     if entry == nil or entry.isHeader then return end
     local id = entry.id
-    GameTooltip:SetOwner(row, "ANCHOR_LEFT")
+    GameTooltip:SetOwner(row, anchor or "ANCHOR_LEFT")
     GameTooltip:ClearLines()
     local cached = C_TooltipInfo and C_TooltipInfo.GetHyperlink and C_TooltipInfo.GetHyperlink("quest:" .. id)
     if cached and cached.lines and #cached.lines > 0 then
@@ -891,7 +907,7 @@ function Widget:ShowQuestTooltip(row)
     end
 
     GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans(statusKey)), sr, sg, sb)
-    if entry.allMode and entry.inst then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetInstanceName(entry.inst)), 1, 0.82, 0) end
+    if (entry.allMode or isMapPin) and entry.inst then GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:GetInstanceName(entry.inst)), 1, 0.82, 0) end
     if entry.status == "active" or entry.status == "ready" then
         local objectives = self:GetQuestObjectives(entry.activeID or id)
         for _, obj in ipairs(objectives) do
@@ -914,8 +930,11 @@ function Widget:ShowQuestTooltip(row)
 
     if target.inside and entry.status ~= "active" then
         GameTooltip:AddLine(AzerothCompendium:GetCompendiumTooltipLabel(format(AzerothCompendium:Trans("LID_QUESTSTARTSININSTANCE"), entry.name)), 1, 0.82, 0)
-    elseif target.mapID and target.x and target.y then
-        local hint = target.isTurnIn and "LID_QW_SHOWTURNIN" or entry.status == "active" and target.inside and "LID_SHOWENTRANCEMAP" or "LID_SHOWQUESTGIVER"
+        if isMapPin and row.mapID and row.x and row.y then
+            GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans("LID_SHOWENTRANCEMAP"), 0.9, 0.9, 0.9, 1, 0.82, 0)
+        end
+    elseif (target.mapID and target.x and target.y) or (isMapPin and row.mapID and row.x and row.y) then
+        local hint = target.isTurnIn and "LID_QW_SHOWTURNIN" or (target.inside and "LID_SHOWENTRANCEMAP") or "LID_SHOWQUESTGIVER"
         GameTooltip:AddDoubleLine(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_LEFTCLICK") .. ":"), AzerothCompendium:Trans(hint), 0.9, 0.9, 0.9, 1, 0.82, 0)
     end
 
@@ -1251,6 +1270,86 @@ function Widget:UpdateAllFocusStates()
     end)
 end
 
+function Widget:UpdateAllPinStates()
+    self:ForEachVisibleRow(function(row)
+        if row.UpdatePinState then row:UpdatePinState() end
+    end)
+end
+
+function Widget:GetPinStore(create)
+    if type(ACOTABPC) == "table" then
+        if type(ACOTABPC.QUESTWIDGETPINS) ~= "table" then
+            if not create then return nil end
+            ACOTABPC.QUESTWIDGETPINS = {}
+        end
+
+        return ACOTABPC.QUESTWIDGETPINS
+    end
+
+    if create and self.pinnedQuests == nil then self.pinnedQuests = {} end
+
+    return self.pinnedQuests
+end
+
+function Widget:IsQuestPinned(questID)
+    if questID == nil then return false end
+    local store = self:GetPinStore(false)
+
+    return store ~= nil and store[questID] ~= nil
+end
+
+function Widget:ResolvePinLocation(entry)
+    if entry == nil then return nil end
+    local target = entry.target
+    if target and type(target.mapID) == "number" and target.mapID > 0 and type(target.x) == "number" and type(target.y) == "number" and (target.x > 0 or target.y > 0) then
+        return target.mapID, target.x, target.y
+    end
+
+    local mapID, x, y = AzerothCompendium:GetQuestGiverLocation(entry.id)
+    if type(mapID) == "number" and mapID > 0 and type(x) == "number" and type(y) == "number" and (x > 0 or y > 0) then
+        return mapID, x, y
+    end
+
+    local entrance = nil
+    if target and target.instanceTarget then
+        entrance = AzerothCompendium.INSTANCEENTRANCES and AzerothCompendium.INSTANCEENTRANCES[target.instanceTarget]
+        if entrance == nil then
+            local targetInst = AzerothCompendium:GetInstanceByID(target.instanceTarget)
+            if targetInst then entrance = AzerothCompendium:GetInstanceEntrance(targetInst) end
+        end
+    end
+
+    if entrance == nil and entry.inst then entrance = AzerothCompendium:GetInstanceEntrance(entry.inst) end
+    if entrance and type(entrance[1]) == "number" and entrance[1] > 0 and type(entrance[2]) == "number" and type(entrance[3]) == "number" then
+        return entrance[1], entrance[2], entrance[3]
+    end
+
+    return nil
+end
+
+function Widget:InvalidateMapPins()
+    self.mapPinVersion = (self.mapPinVersion or 0) + 1
+    self.resolvedMapPoints = nil
+end
+
+function Widget:ToggleQuestPin(entry)
+    if entry == nil or entry.id == nil then return false end
+    local store = self:GetPinStore(true)
+    if store[entry.id] ~= nil then
+        store[entry.id] = nil
+    else
+        local mapID = self:ResolvePinLocation(entry)
+        if mapID == nil then return false end
+        store[entry.id] = entry.inst and entry.inst.id or true
+    end
+
+    self:UpdateAllPinStates()
+    self:InvalidateMapPins()
+    self:UpdateMapPins()
+
+    return true
+end
+
 function Widget:UpdateAllItemCooldowns()
     self:ForEachVisibleRow(function(row)
         if row.itemBtn and row.itemBtn.itemID then row.itemBtn:UpdateCooldown() end
@@ -1287,6 +1386,7 @@ function Widget:RefreshInCombat()
         end
 
         if row.UpdateFocusState then row:UpdateFocusState() end
+        if row.UpdatePinState then row:UpdatePinState() end
         if row.itemBtn and row.itemBtn.itemID then
             row.itemBtn:UpdateCooldown()
             row.itemBtn:UpdateCharges()
@@ -1516,6 +1616,44 @@ function Widget:CreateQuestRow(parent, secureItems)
 
     itemBtn:Hide()
     row.itemBtn = itemBtn
+    local pinBtn = CreateFrame("Button", nil, row)
+    pinBtn:SetSize(c.pinSize, c.pinSize)
+    pinBtn:SetPoint("TOPRIGHT", row, "TOPRIGHT", -6, -5)
+    pinBtn:SetFrameLevel(row:GetFrameLevel() + 5)
+    pinBtn:RegisterForClicks("LeftButtonUp")
+    pinBtn.icon = pinBtn:CreateTexture(nil, "ARTWORK")
+    pinBtn.icon:SetAllPoints()
+    pinBtn.highlightTex = pinBtn:CreateTexture(nil, "HIGHLIGHT")
+    pinBtn.highlightTex:SetAllPoints()
+    if HasAtlas(self.pinAssets.highlight) then
+        pinBtn.highlightTex:SetAtlas(self.pinAssets.highlight)
+    else
+        pinBtn.highlightTex:SetTexture("Interface\\Buttons\\UI-Common-MouseHilight")
+    end
+
+    pinBtn.highlightTex:SetBlendMode("ADD")
+    pinBtn:SetScript("OnClick", function()
+        if row.entry and Widget:ToggleQuestPin(row.entry) and GameTooltip:IsOwned(pinBtn) then pinBtn:GetScript("OnEnter")(pinBtn) end
+    end)
+
+    pinBtn:SetScript("OnEnter", function(sel)
+        if row.entry == nil then return end
+        row:LockHighlight()
+        local pinned = Widget:IsQuestPinned(row.entry.id)
+        local centerX = select(1, sel:GetCenter()) or 0
+        local mid = (GetScreenWidth and GetScreenWidth() or UIParent:GetWidth() or 1000) / 2
+        GameTooltip:SetOwner(sel, centerX < mid and "ANCHOR_RIGHT" or "ANCHOR_LEFT")
+        GameTooltip:SetText(AzerothCompendium:Trans(pinned and "LID_QW_UNPINMAP" or "LID_QW_PINMAP"), 1, 0.82, 0)
+        GameTooltip:Show()
+    end)
+
+    pinBtn:SetScript("OnLeave", function()
+        row:UnlockHighlight()
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    pinBtn:Hide()
+    row.pinBtn = pinBtn
     row.title = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -c.padY)
     row.title:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -1532,6 +1670,41 @@ function Widget:CreateQuestRow(parent, secureItems)
         end
 
         return fs
+    end
+
+    function row:UpdatePinState()
+        local entry = self.entry
+        if entry == nil or not self.pinBtn:IsShown() then return end
+        local pinned = Widget:IsQuestPinned(entry.id)
+        local assets = Widget.pinAssets
+        local icon = self.pinBtn.icon
+        if pinned then
+            if HasAtlas(assets.tracked) then
+                icon:SetAtlas(assets.tracked)
+                icon:SetVertexColor(1, 1, 1, 1)
+            elseif HasAtlas(assets.untracked) then
+                icon:SetAtlas(assets.untracked)
+                icon:SetVertexColor(1, 0.85, 0.15, 1)
+            else
+                icon:SetTexture(assets.fallback)
+                icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+                icon:SetVertexColor(1, 0.85, 0.15, 1)
+            end
+
+            if icon.SetDesaturated then icon:SetDesaturated(false) end
+            icon:SetAlpha(1)
+        else
+            if HasAtlas(assets.untracked) then
+                icon:SetAtlas(assets.untracked)
+            else
+                icon:SetTexture(assets.fallback)
+                icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+            end
+
+            icon:SetVertexColor(0.8, 0.8, 0.8, 1)
+            if icon.SetDesaturated then icon:SetDesaturated(true) end
+            icon:SetAlpha(0.45)
+        end
     end
 
     function row:UpdateFocusState()
@@ -1568,7 +1741,10 @@ function Widget:CreateQuestRow(parent, secureItems)
 
     function row:GetRowHeight(entry, width)
         if entry and entry.isHeader then return entry.firstHeader and 20 or 26 end
-        local rightPad = entry.questItem and (c.itemSize + 12) or 6
+        local hasPin = Widget:ResolvePinLocation(entry) ~= nil
+        local rightPad = 6
+        if hasPin then rightPad = rightPad + c.pinSize + 4 end
+        if entry.questItem then rightPad = rightPad + c.itemSize + 6 end
         local textW = max(80, (width or 240) - 30 - rightPad)
         local color = GetDifficultyColorCode(entry.level)
         local prefix = entry.level > 0 and format("[%d] ", entry.level) or ""
@@ -1598,6 +1774,7 @@ function Widget:CreateQuestRow(parent, secureItems)
             self.highlightTex:SetAlpha(0.45)
             self.icon:Hide()
             self.focusBtn:Hide()
+            self.pinBtn:Hide()
             self.title:Hide()
             for _, fs in ipairs(self.lines) do
                 fs:Hide()
@@ -1641,7 +1818,17 @@ function Widget:CreateQuestRow(parent, secureItems)
         self.headerIcon:Hide()
         self.headerText:Hide()
         self.title:Show()
-        local rightPad = entry.questItem and (c.itemSize + 12) or 6
+        local hasPin = Widget:ResolvePinLocation(entry) ~= nil
+        local rightPad = 6
+        if hasPin then rightPad = rightPad + c.pinSize + 4 end
+        if entry.questItem then rightPad = rightPad + c.itemSize + 6 end
+        if hasPin then
+            self.pinBtn:Show()
+            self:UpdatePinState()
+        else
+            self.pinBtn:Hide()
+        end
+
         local showFocus = Widget:CanSuperTrack() and (entry.status == "active" or entry.status == "ready")
         if showFocus then
             self.icon:Hide()
@@ -1680,6 +1867,8 @@ function Widget:CreateQuestRow(parent, secureItems)
         local item = entry.questItem
         if not (self.itemBtn.secure and InCombat()) then
             if item and item.itemID then
+                self.itemBtn:ClearAllPoints()
+                self.itemBtn:SetPoint("TOPRIGHT", self, "TOPRIGHT", hasPin and -(6 + c.pinSize + 4) or -6, -5)
                 self.itemBtn.itemID = item.itemID
                 self.itemBtn.logIndex = item.logIndex
                 self.itemBtn.icon:SetTexture(item.texture or GetItemIconCompat(item.itemID))
@@ -2530,8 +2719,250 @@ function Widget:ShowForInstance(instID)
     end
 end
 
+function Widget:GetPinnedMapPoints()
+    local store = self:GetPinStore(false)
+    if store == nil or next(store) == nil then return {} end
+    local version = self.mapPinVersion or 0
+    if self.resolvedMapPoints and self.resolvedMapPointsVersion == version then return self.resolvedMapPoints end
+    local byInst = {}
+    local unknown = {}
+    local completed = {}
+    for questID, instID in pairs(store) do
+        if type(questID) == "number" then
+            if AzerothCompendium:IsQuestCompleted(questID) then
+                tinsert(completed, questID)
+            else
+                local inst = type(instID) == "number" and AzerothCompendium:GetInstanceByID(instID) or nil
+                if inst then
+                    byInst[inst] = byInst[inst] or {}
+                    byInst[inst][questID] = true
+                else
+                    unknown[questID] = true
+                end
+            end
+        end
+    end
+
+    for _, questID in ipairs(completed) do
+        store[questID] = nil
+    end
+
+    local resolved = {}
+    local function AddFromInst(inst, wanted)
+        local all = self:CollectActionable(inst, nil)
+        for _, entry in ipairs(all) do
+            if wanted[entry.id] and resolved[entry.id] == nil then
+                local mapID, x, y = self:ResolvePinLocation(entry)
+                if mapID then
+                    resolved[entry.id] = {
+                        entry = entry,
+                        mapID = mapID,
+                        x = x,
+                        y = y,
+                        nx = x / 100,
+                        ny = y / 100,
+                    }
+
+                    store[entry.id] = inst.id
+                end
+            end
+        end
+    end
+
+    for inst, wanted in pairs(byInst) do
+        AddFromInst(inst, wanted)
+    end
+
+    if next(unknown) ~= nil then
+        local dungeons, raids = self:GetAvailableInstances()
+        for _, list in ipairs({dungeons, raids}) do
+            for _, inst in ipairs(list) do
+                if byInst[inst] == nil then
+                    AddFromInst(inst, unknown)
+                    for questID in pairs(resolved) do
+                        unknown[questID] = nil
+                    end
+
+                    if next(unknown) == nil then break end
+                end
+            end
+
+            if next(unknown) == nil then break end
+        end
+    end
+
+    local points = {}
+    for _, point in pairs(resolved) do
+        tinsert(points, point)
+    end
+
+    table.sort(points, function(a, b) return a.entry.id < b.entry.id end)
+    self.resolvedMapPoints = points
+    self.resolvedMapPointsVersion = version
+
+    return points
+end
+
+function Widget:ProjectMapPoint(point, mapID)
+    if point.mapID == mapID then return point.nx, point.ny end
+    if C_Map == nil or C_Map.GetMapRectOnMap == nil then return nil end
+    local minX, maxX, minY, maxY = C_Map.GetMapRectOnMap(point.mapID, mapID)
+    if minX == nil or maxX == nil or minY == nil or maxY == nil or maxX <= minX or maxY <= minY then return nil end
+    local x = minX + point.nx * (maxX - minX)
+    local y = minY + point.ny * (maxY - minY)
+    if x < 0 or x > 1 or y < 0 or y > 1 then return nil end
+
+    return x, y
+end
+
+function Widget:OnMapPinClick(pin, mouseButton)
+    local entry = pin.entry
+    if entry == nil then return end
+    if mouseButton == "RightButton" then
+        if AzerothCompendium.OpenInstanceQuests and entry.inst then AzerothCompendium:OpenInstanceQuests(entry.inst.id, entry.id) end
+
+        return
+    end
+
+    if IsShiftKeyDown() and ChatEdit_GetActiveWindow and ChatEdit_GetActiveWindow() then
+        local link = GetQuestLink and GetQuestLink(entry.id)
+        if link and ChatEdit_InsertLink then
+            ChatEdit_InsertLink(link)
+
+            return
+        end
+    end
+
+    if pin.mapID and pin.x and pin.y then
+        local ok, reason = AzerothCompendium:SetMapWaypoint(pin.mapID, pin.x, pin.y)
+        if not ok then
+            local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
+            AzerothCompendium:INFO(AzerothCompendium:Trans(message))
+        end
+    end
+end
+
+function Widget:CreateMapPin(parent)
+    local pin = CreateFrame("Button", nil, parent)
+    pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    pin.icon = pin:CreateTexture(nil, "OVERLAY")
+    pin.icon:SetAllPoints(pin)
+    pin.icon:SetTexture(self.pinAssets.mapMark)
+    local highlight = pin:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(pin)
+    highlight:SetTexture("Interface\\Buttons\\UI-Common-MouseHilight")
+    highlight:SetBlendMode("ADD")
+    pin:SetScript("OnEnter", function(sel)
+        if sel.entry == nil then return end
+        Widget:ShowQuestTooltip(sel, "ANCHOR_RIGHT", true)
+    end)
+
+    pin:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    pin:SetScript("OnClick", function(sel, button) Widget:OnMapPinClick(sel, button) end)
+
+    return pin
+end
+
+function Widget:UpdateMapPins()
+    local worldMap = AzerothCompendium.WorldMap
+    local child = worldMap and worldMap.GetCanvas and worldMap.GetCanvas()
+    if child == nil or WorldMapFrame == nil or WorldMapFrame.GetMapID == nil or not WorldMapFrame:IsShown() then return end
+    local mapID = WorldMapFrame:GetMapID()
+    local scale = child:GetScale()
+    local poiScale = worldMap.GetPoiScale and worldMap.GetPoiScale() or 1
+    local instanceOverlay = worldMap.map ~= nil and worldMap.map.IsShown ~= nil and worldMap.map:IsShown() or false
+    local stitched = OpenMapAPI ~= nil and OpenMapAPI.IsStitched ~= nil and OpenMapAPI.IsStitched() or false
+    local flavor = AzerothCompendium:GetFlavor()
+    local version = self.mapPinVersion or 0
+    local last = self.mapPinState
+    if last.ready and last.mapID == mapID and abs((last.scale or 0) - (scale or 0)) < 0.00005 and abs((last.poiScale or 0) - poiScale) < 0.00005 and last.instanceOverlay == instanceOverlay and last.stitched == stitched and last.flavor == flavor and last.version == version then return end
+    last.ready, last.mapID, last.scale, last.poiScale, last.instanceOverlay, last.stitched, last.flavor, last.version = true, mapID, scale, poiScale, instanceOverlay, stitched, flavor, version
+    for _, pin in ipairs(self.mapPins) do
+        pin:Hide()
+    end
+
+    if instanceOverlay or stitched or scale == nil or scale <= 0 then return end
+    local points = self:GetPinnedMapPoints()
+    if #points == 0 then return end
+    local w = child:GetWidth()
+    local h = child:GetHeight()
+    if w == nil or h == nil or w <= 0 or h <= 0 then return end
+    local size = self.config.mapPinSize * poiScale / scale
+    local clusters = {}
+    for _, point in ipairs(points) do
+        local x, y = self:ProjectMapPoint(point, mapID)
+        if x ~= nil then
+            local cluster = nil
+            for _, existing in ipairs(clusters) do
+                if abs(existing.x - x) <= 0.004 and abs(existing.y - y) <= 0.004 then
+                    cluster = existing
+                    break
+                end
+            end
+
+            if cluster == nil then
+                cluster = {x = x, y = y, items = {}}
+                tinsert(clusters, cluster)
+            end
+
+            tinsert(cluster.items, {point = point, x = x, y = y})
+        end
+    end
+
+    local count = 0
+    local twoPi = math.pi * 2
+    for _, cluster in ipairs(clusters) do
+        local total = #cluster.items
+        for idx, item in ipairs(cluster.items) do
+            count = count + 1
+            local pin = self.mapPins[count]
+            if pin == nil then
+                pin = self:CreateMapPin(child)
+                self.mapPins[count] = pin
+            end
+
+            local dx, dy = 0, 0
+            if total > 1 then
+                local angle = (idx - 1) * (twoPi / total)
+                local radius = size * 0.48
+                dx = math.cos(angle) * radius
+                dy = math.sin(angle) * radius
+            end
+
+            pin.entry = item.point.entry
+            pin.mapID = item.point.mapID
+            pin.x = item.point.x
+            pin.y = item.point.y
+            pin:SetSize(size, size)
+            pin:SetFrameLevel(child:GetFrameLevel() + self.config.mapPinLevel)
+            pin:ClearAllPoints()
+            pin:SetPoint("CENTER", child, "TOPLEFT", w * item.x + dx, -h * item.y + dy)
+            pin:Show()
+        end
+    end
+end
+
+if WorldMapFrame ~= nil then
+    WorldMapFrame:HookScript("OnShow", function()
+        Widget:InvalidateMapPins()
+        Widget:UpdateMapPins()
+    end)
+
+    local mapUpdater = CreateFrame("Frame", nil, WorldMapFrame)
+    mapUpdater.elapsed = 0
+    mapUpdater:SetScript("OnUpdate", function(sel, elapsed)
+        sel.elapsed = sel.elapsed + elapsed
+        if sel.elapsed < Widget.config.mapUpdateInterval then return end
+        sel.elapsed = 0
+        Widget:UpdateMapPins()
+    end)
+end
+
+AzerothCompendium:OnLanguage(function() Widget:InvalidateMapPins() end)
+
 function Widget:OnEvent(event)
     if event == "PLAYER_ENTERING_WORLD" then
+        self:InvalidateMapPins()
         self:UpdateVisibility()
 
         return
@@ -2567,6 +2998,10 @@ function Widget:OnEvent(event)
         self:UpdateAllItemRanges()
 
         return
+    end
+
+    if event == "QUEST_LOG_UPDATE" or event == "QUEST_ACCEPTED" or event == "QUEST_REMOVED" or event == "QUEST_TURNED_IN" or event == "UNIT_QUEST_LOG_CHANGED" then
+        self:InvalidateMapPins()
     end
 
     local hasEmbedded = false
