@@ -1549,22 +1549,12 @@ local ListBox = {
     padY = 3,
     padX = 3,
     marginX = 2,
-    styles = {
-        open = {
-            border = {0.45, 0.45, 0.48, 1},
-            fill = {0.12, 0.12, 0.14, 0.5},
-            modernFill = {0.145, 0.15, 0.17, 1},
-        },
-        active = {
-            border = {1, 0.82, 0, 1},
-            fill = {0.25, 0.2, 0.04, 0.45},
-            modernFill = {0.215, 0.185, 0.085, 1},
-        },
-        complete = {
-            border = {0.18, 0.78, 0.22, 1},
-            fill = {0.06, 0.22, 0.07, 0.45},
-            modernFill = {0.09, 0.195, 0.105, 1},
-        },
+    fill = {0.12, 0.12, 0.14, 0.5},
+    modernFill = {0.145, 0.15, 0.17, 1},
+    borders = {
+        open = {0.45, 0.45, 0.48, 1},
+        active = {1, 0.82, 0, 1},
+        complete = {0.18, 0.78, 0.22, 1},
     },
 }
 
@@ -1586,6 +1576,7 @@ function ListBox.Create(parent)
     local box = CreateFrame("Frame", nil, parent)
     box.background = box:CreateTexture(nil, "BACKGROUND", nil, -8)
     box.background:SetAllPoints(box)
+    box.background:SetColorTexture(ListBox.fill[1], ListBox.fill[2], ListBox.fill[3], ListBox.fill[4])
     box.border = CreateBorder(box, "BACKGROUND", -6, 2)
     local Theme = AzerothCompendium.Theme
     local record = Theme:NewRecord(box)
@@ -1594,24 +1585,21 @@ function ListBox.Create(parent)
         Theme:Hide(record, edge)
     end
 
-    local style = ListBox.styles.open
+    local border = ListBox.borders.open
     local radius = Theme.radius.control
-    box.modernBorder = Theme:Round(record, box, "BACKGROUND", -8, style.border, radius)
-    box.modernFill = Theme:Round(record, box, "BACKGROUND", -7, style.modernFill, max(1, radius - 2), box, 2)
+    box.modernBorder = Theme:Round(record, box, "BACKGROUND", -8, border, radius)
+    box.modernFill = Theme:Round(record, box, "BACKGROUND", -7, ListBox.modernFill, max(1, radius - 2), box, 2)
     Theme:ApplyRecord(record, Theme:IsModern())
 
     return box
 end
 
 function ListBox.Update(box, state)
-    local style = ListBox.styles[state] or ListBox.styles.open
-    box.background:SetColorTexture(style.fill[1], style.fill[2], style.fill[3], style.fill[4])
-    box.border:SetColor(style.border[1], style.border[2], style.border[3], style.border[4])
+    local border = ListBox.borders[state] or ListBox.borders.open
+    box.border:SetColor(border[1], border[2], border[3], border[4])
     local Theme = AzerothCompendium.Theme
-    Theme.shapes[box.modernBorder] = style.border
-    Theme:Paint(box.modernBorder, style.border)
-    Theme.shapes[box.modernFill] = style.modernFill
-    Theme:Paint(box.modernFill, style.modernFill)
+    Theme.shapes[box.modernBorder] = border
+    Theme:Paint(box.modernBorder, border)
 end
 
 local function FlattenList(items, depth, expanded, out, box)
