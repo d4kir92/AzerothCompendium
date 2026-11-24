@@ -1535,13 +1535,7 @@ local function BuildListTree(graph)
 end
 
 local function IsListItemOpen(item, expanded)
-    local open = expanded[item.key]
-    if open ~= nil then return open end
-    for _, child in ipairs(item.children) do
-        if child.node and GetQuestStatus(child.node.id, child.node) ~= "complete" then return true end
-    end
-
-    return false
+    return expanded ~= nil and expanded[item.key] == true
 end
 
 local ListBox = {
@@ -2690,11 +2684,30 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.listBoxes = {}
     tree.expanded = {}
     tree.listItems = {}
+    function tree:GetListExpanded(create)
+        if type(ACOTABPC) == "table" then
+            if type(ACOTABPC.QUESTLISTEXPANDED) ~= "table" then
+                if not create then return nil end
+                ACOTABPC.QUESTLISTEXPANDED = {}
+            end
+
+            return ACOTABPC.QUESTLISTEXPANDED
+        end
+
+        return self.expanded
+    end
+
     function tree:ToggleListKey(key)
         if key == nil then return end
         local item = FindListItem(self.listItems, key)
         if item == nil then return end
-        self.expanded[key] = not IsListItemOpen(item, self.expanded)
+        local expanded = self:GetListExpanded(true)
+        if expanded[key] then
+            expanded[key] = nil
+        else
+            expanded[key] = true
+        end
+
         self:Layout()
     end
 
@@ -2767,6 +2780,7 @@ function AzerothCompendium:CreateQuestTree(parent)
             self.listCollapseOverride = {}
         end
 
+        local expanded = self:GetListExpanded()
         if #items > 0 or attunement ~= nil then
             local bySection = {}
             for _, item in ipairs(items) do
@@ -2789,7 +2803,7 @@ function AzerothCompendium:CreateQuestTree(parent)
                     if sectionItems == nil then
                         tinsert(entries, {kind = "empty", section = section, depth = 0})
                     elseif not collapsed then
-                        FlattenList(sectionItems, 0, self.expanded, entries)
+                        FlattenList(sectionItems, 0, expanded, entries)
                     end
                 end
             end
@@ -2832,7 +2846,7 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
 
             row:SetFrameLevel(baseLevel + 2)
-            UpdateListRow(row, entry, index, self.expanded, self.selectedKey)
+            UpdateListRow(row, entry, index, expanded, self.selectedKey)
             listY = listY + (entry.height or LIST_ROW_H)
             if entry.boxEnd and activeBoxTop ~= nil then
                 listY = listY + ListBox.padY
@@ -3135,8 +3149,11 @@ function AzerothCompendium:CreateQuestTree(parent)
             local found = FindListPath(self.listItems, questID, path)
             if found then
                 self.selectedKey = found.key
-                for _, key in ipairs(path) do
-                    self.expanded[key] = true
+                if #path > 0 then
+                    local expanded = self:GetListExpanded(true)
+                    for _, key in ipairs(path) do
+                        expanded[key] = true
+                    end
                 end
 
                 if found.section then self.listCollapseOverride[found.section] = false end
