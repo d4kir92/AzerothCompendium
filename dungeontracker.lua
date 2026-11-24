@@ -1105,11 +1105,27 @@ function Tracker:ShowsXP()
     return level < maxLevel
 end
 
+function Tracker:GetChromeLevel(frame)
+    local level = frame:GetFrameLevel() + 30
+    if frame.NineSlice then level = max(level, frame.NineSlice:GetFrameLevel() + 10) end
+    if frame.CloseButton then level = max(level, frame.CloseButton:GetFrameLevel() + 2) end
+
+    return level
+end
+
+function Tracker:SyncChromeLevels(frame)
+    if frame == nil then return end
+    local level = self:GetChromeLevel(frame)
+    for _, child in ipairs({frame.toggle, frame.post, frame.runsButton, frame.headerOverlay, frame.grip}) do
+        if child then child:SetFrameLevel(level) end
+    end
+end
+
 function Tracker:CreateResizeGrip(frame)
     local grip = CreateFrame("Button", nil, frame)
     grip:SetSize(16, 16)
     grip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -4, 4)
-    grip:SetFrameLevel(frame:GetFrameLevel() + 30)
+    grip:SetFrameLevel(self:GetChromeLevel(frame))
     grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
     grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
@@ -1360,7 +1376,10 @@ function Tracker:CreateFrame()
     end)
 
     frame.runsButton:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
-    frame.headerTime = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.headerOverlay = CreateFrame("Frame", nil, frame)
+    frame.headerOverlay:SetAllPoints(frame)
+    frame.headerOverlay:EnableMouse(false)
+    frame.headerTime = frame.headerOverlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.headerTime:SetPoint("RIGHT", frame.runsButton, "LEFT", -6, 0)
     frame.runList = ui.CreateScroller(frame, c.runRow, function(parent) return Tracker:CreateRunRow(parent) end, 0, 4)
     frame.runList:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
@@ -1422,6 +1441,8 @@ function Tracker:CreateFrame()
     frame.lootEmpty = frame.loot:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     frame.lootEmpty:SetPoint("CENTER", frame.loot, "CENTER", 0, 0)
     frame.grip = self:CreateResizeGrip(frame)
+    self:SyncChromeLevels(frame)
+    frame:HookScript("OnShow", function(sel) Tracker:SyncChromeLevels(sel) end)
     frame:SetScript("OnUpdate", function(_, elapsed)
         Tracker.elapsed = Tracker.elapsed + elapsed
         if Tracker.elapsed < 0.5 then return end
@@ -1928,6 +1949,7 @@ function Tracker:Refresh()
     local title = self:GetRunTitle(run)
     if self.viewRun then title = format("%s - %s", title, date("%d.%m.%y", run.start or 0)) end
     if frame.titleText then frame.titleText:SetText(title) end
+    self:SyncChromeLevels(frame)
     local showXP = self:ShowsXP()
     frame.statColumns[1].label:SetText(self:GetModeLabel(run))
     frame.statColumns[2].label:SetText(AzerothCompendium:Trans(showXP and "LID_DT_MOBXP" or "LID_REPUTATION"))

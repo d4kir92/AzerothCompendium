@@ -937,6 +937,8 @@ Theme.PageText = PageText
 function PageText:IsControl(frame)
     local kind = frame:GetObjectType()
     if kind == "EditBox" or kind == "DropdownButton" then return true end
+    if frame.DecrementButton and frame.IncrementButton then return true end
+    if frame.Dropdown ~= nil or (frame.Background and (frame.Text or frame.SetupMenu or frame.Arrow)) then return true end
     if kind == "Button" and Theme:Child(frame, "Left") and Theme:Child(frame, "Right") and (Theme:Child(frame, "Middle") or Theme:Child(frame, "Center")) then return true end
     return false
 end
