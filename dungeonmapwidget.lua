@@ -3,13 +3,14 @@ local MapWidget = {}
 AzerothCompendium.DungeonMapWidget = MapWidget
 MapWidget.config = {
     width = 360,
-    height = 280,
+    height = 310,
     minWidth = 240,
-    minHeight = 200,
+    minHeight = 220,
     side = 10,
     top = 34,
+    dropdownH = 24,
+    dropdownGap = 6,
     bottom = 12,
-    headerHeight = 24,
     scaleMin = 0.5,
     scaleMax = 1.5,
     zoomMax = 4,
@@ -34,6 +35,19 @@ function MapWidget:IsEnabled()
     return AzerothCompendium:GetConfig("DUNGEONMAPWIDGET", true) == true
 end
 
+function MapWidget:GetLastInstanceID()
+    if type(ACOTABPC) == "table" and ACOTABPC.DUNGEONMAPWIDGETLAST ~= nil then return ACOTABPC.DUNGEONMAPWIDGETLAST end
+
+    return AzerothCompendium:GetConfig("DUNGEONMAPWIDGETLAST", nil)
+end
+
+function MapWidget:SetLastInstanceID(id)
+    if id == nil then return end
+    ACOTABPC = ACOTABPC or {}
+    ACOTABPC.DUNGEONMAPWIDGETLAST = id
+    AzerothCompendium:SetConfig("DUNGEONMAPWIDGETLAST", id)
+end
+
 function MapWidget:GetCurrentInstance()
     if IsInInstance == nil or GetInstanceInfo == nil then return nil end
     local inInstance, instanceType = IsInInstance()
@@ -44,12 +58,126 @@ function MapWidget:GetCurrentInstance()
     return instanceID, name
 end
 
+function MapWidget:GetAvailableInstances()
+    local dungeons = {}
+    local raids = {}
+    local maps = AzerothCompendium.INSTANCEMAPS or {}
+    for _, inst in ipairs(AzerothCompendium:GetInstances("dungeon")) do
+        if maps[inst.id] ~= nil and #maps[inst.id] > 0 and AzerothCompendium:IsInstanceInFlavor(inst) then tinsert(dungeons, inst) end
+    end
+
+    for _, inst in ipairs(AzerothCompendium:GetInstances("raid")) do
+        if maps[inst.id] ~= nil and #maps[inst.id] > 0 and AzerothCompendium:IsInstanceInFlavor(inst) then tinsert(raids, inst) end
+    end
+
+    return dungeons, raids
+end
+
+function MapWidget:FindInstanceByID(id)
+    if id == nil then return nil end
+    local dungeons, raids = self:GetAvailableInstances()
+    for _, list in ipairs({dungeons, raids}) do
+        for _, inst in ipairs(list) do
+            if inst.id == id then return inst end
+        end
+    end
+
+    local wm = AzerothCompendium.WorldMap
+    local mapped = wm and wm.instanceMaps and wm.instanceMaps[id]
+    if mapped ~= nil then
+        for _, targetID in ipairs(mapped) do
+            local inst = self:FindInstanceByID(targetID)
+            if inst ~= nil then return inst end
+        end
+    end
+
+    for _, list in ipairs({dungeons, raids}) do
+        for _, inst in ipairs(list) do
+            if inst.parentID == id then return inst end
+        end
+    end
+
+    return nil
+end
+
+function MapWidget:GetLevelsForInstance(inst)
+    if inst == nil then return nil end
+    local list = AzerothCompendium.INSTANCEMAPS and AzerothCompendium.INSTANCEMAPS[inst.id]
+    if list == nil or #list == 0 then return nil end
+    local levels = {}
+    for _, info in ipairs(list) do
+        tinsert(levels, {
+            ["file"] = info.file,
+            ["key"] = info.id,
+            ["name"] = info.name,
+            ["width"] = info.width,
+            ["height"] = info.height,
+            ["fileWidth"] = info.fileWidth,
+            ["fileHeight"] = info.fileHeight,
+            ["source"] = info.source,
+            ["inst"] = inst,
+        })
+    end
+
+    return levels
+end
+
 function MapWidget:GetLevels(instanceID)
     if instanceID == nil then return nil end
     local wm = AzerothCompendium.WorldMap
-    if wm == nil or wm.GetLevels == nil then return nil end
+    if wm ~= nil and wm.GetLevels ~= nil then
+        local levels = wm.GetLevels(instanceID)
+        if levels ~= nil and #levels > 0 then return levels end
+    end
 
-    return wm.GetLevels(instanceID)
+    local inst = self:FindInstanceByID(instanceID)
+
+    return self:GetLevelsForInstance(inst)
+end
+
+function MapWidget:FormatInstanceLabel(inst)
+    if inst == nil then return "" end
+    local name = AzerothCompendium:GetInstanceName(inst)
+    if inst.minLevel and inst.maxLevel and inst.minLevel > 0 then return format("%s (%d-%d)", name, inst.minLevel, inst.maxLevel) end
+
+    return name
+end
+
+function MapWidget:SelectInstanceByID(id, fromZone, fallbackName)
+    local levels = fromZone and self:GetLevels(id) or nil
+    local inst = self:FindInstanceByID(id)
+    if levels == nil and inst ~= nil then levels = self:GetLevelsForInstance(inst) end
+    if levels == nil or #levels == 0 then return false end
+    local key = inst and inst.id or id
+    self.activeID = key
+    self.selectedInst = inst or (levels[1] and levels[1].inst)
+    if fromZone and fallbackName ~= nil and (inst == nil or inst.id ~= id) then
+        self.instanceName = fallbackName
+    else
+        self.instanceName = self.selectedInst and AzerothCompendium:GetInstanceName(self.selectedInst) or fallbackName
+    end
+
+    self.levels = levels
+    self.levelIndex = self.selected[key] or 1
+    if self.levelIndex > #levels then self.levelIndex = 1 end
+    self:SetLastInstanceID(key)
+    self:ResetView()
+    self:Refresh()
+
+    return true
+end
+
+function MapWidget:EnsureInstanceLoaded()
+    if self.levels ~= nil and #self.levels > 0 then return true end
+    local instanceID, name = self:GetCurrentInstance()
+    if instanceID ~= nil and self:SelectInstanceByID(instanceID, true, name) then return true end
+    local lastID = self:GetLastInstanceID()
+    if lastID ~= nil and self:SelectInstanceByID(lastID, false) then return true end
+    local dungeons, raids = self:GetAvailableInstances()
+    local fallback = dungeons[1] or raids[1]
+    if fallback ~= nil then return self:SelectInstanceByID(fallback.id, false) end
+
+    return false
 end
 
 function MapWidget:ResetView()
@@ -122,21 +250,9 @@ end
 function MapWidget:SelectLevel(index)
     if self.levels == nil or index == nil or index < 1 or index > #self.levels then return end
     self.levelIndex = index
-    if self.instanceID ~= nil then self.selected[self.instanceID] = index end
+    if self.activeID ~= nil then self.selected[self.activeID] = index end
     self:ResetView()
     self:Refresh()
-end
-
-function MapWidget:StepLevel(delta)
-    if self.levels == nil or #self.levels <= 1 then return end
-    local nextIndex = (self.levelIndex or 1) + delta
-    if nextIndex < 1 then
-        nextIndex = #self.levels
-    elseif nextIndex > #self.levels then
-        nextIndex = 1
-    end
-
-    self:SelectLevel(nextIndex)
 end
 
 function MapWidget:SavePosition()
@@ -289,6 +405,85 @@ function MapWidget:GetTitleRegion(frame)
     return _G[frame:GetName() .. "TitleText"]
 end
 
+function MapWidget:BuildDropdownSections()
+    local dungeons, raids = self:GetAvailableInstances()
+    local sections = {}
+    if #dungeons > 0 then
+        local items = {}
+        for _, inst in ipairs(dungeons) do
+            tinsert(items, {
+                text = self:FormatInstanceLabel(inst),
+                id = inst.id,
+            })
+        end
+
+        tinsert(sections, {
+            title = AzerothCompendium:Trans("LID_DUNGEONS"),
+            items = items,
+        })
+    end
+
+    if #raids > 0 then
+        local items = {}
+        for _, inst in ipairs(raids) do
+            tinsert(items, {
+                text = self:FormatInstanceLabel(inst),
+                id = inst.id,
+            })
+        end
+
+        tinsert(sections, {
+            title = AzerothCompendium:Trans("LID_RAIDS"),
+            items = items,
+        })
+    end
+
+    return sections
+end
+
+function MapWidget:CreateDungeonDropdown(parent)
+    local modern = AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate")
+    local dropdown = CreateFrame(modern and "DropdownButton" or "Button", nil, parent, modern and "WowStyle1DropdownTemplate" or "UIPanelButtonTemplate")
+    dropdown:SetHeight(self.config.dropdownH)
+    if modern and dropdown.SetupMenu then
+        dropdown:SetupMenu(function(_, root)
+            if root.SetScrollMode then root:SetScrollMode(320) end
+            for _, section in ipairs(MapWidget:BuildDropdownSections()) do
+                if section.title then root:CreateTitle(section.title) end
+                for _, item in ipairs(section.items) do
+                    local id = item.id
+                    root:CreateRadio(item.text, function() return MapWidget.activeID == id end, function() MapWidget:SelectInstanceByID(id, false) end)
+                end
+            end
+        end)
+    else
+        dropdown:SetScript("OnClick", function(sel)
+            local entries = {}
+            for _, section in ipairs(MapWidget:BuildDropdownSections()) do
+                if section.title then
+                    tinsert(entries, {
+                        text = section.title,
+                        isTitle = true,
+                    })
+                end
+
+                for _, item in ipairs(section.items) do
+                    local id = item.id
+                    tinsert(entries, {
+                        text = item.text,
+                        checked = function() return MapWidget.activeID == id end,
+                        func = function() MapWidget:SelectInstanceByID(id, false) end,
+                    })
+                end
+            end
+
+            AzerothCompendium:ShowContextMenu(sel, entries)
+        end)
+    end
+
+    return dropdown
+end
+
 function MapWidget:CreateFrame()
     if self.frame ~= nil then return self.frame end
     local c = self.config
@@ -315,38 +510,35 @@ function MapWidget:CreateFrame()
 
     frame:SetScale(AzerothCompendium:GetConfig("DUNGEONMAPWIDGETSCALE", 1) or 1)
     if frame.CloseButton then frame.CloseButton:SetScript("OnClick", function() self:Close() end) end
-    local levelBar = CreateFrame("Frame", nil, frame)
-    levelBar:SetHeight(c.headerHeight)
-    levelBar:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
-    levelBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -c.side, -c.top)
-    local prevBtn = CreateFrame("Button", nil, levelBar, "UIPanelButtonTemplate")
-    prevBtn:SetSize(24, 20)
-    prevBtn:SetPoint("LEFT", levelBar, "LEFT", 0, 0)
-    prevBtn:SetText("<")
-    prevBtn:SetScript("OnClick", function() self:StepLevel(-1) end)
-    local nextBtn = CreateFrame("Button", nil, levelBar, "UIPanelButtonTemplate")
-    nextBtn:SetSize(24, 20)
-    nextBtn:SetPoint("RIGHT", levelBar, "RIGHT", 0, 0)
-    nextBtn:SetText(">")
-    nextBtn:SetScript("OnClick", function() self:StepLevel(1) end)
-    local levelText = levelBar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    levelText:SetPoint("LEFT", prevBtn, "RIGHT", 6, 0)
-    levelText:SetPoint("RIGHT", nextBtn, "LEFT", -6, 0)
-    levelText:SetJustifyH("CENTER")
-    levelText:SetWordWrap(false)
-    frame.levelBar = levelBar
-    frame.levelText = levelText
+    local dropdown = self:CreateDungeonDropdown(frame)
+    dropdown:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
+    dropdown:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -c.side, -c.top)
+    dropdown:SetFrameLevel(max(frame:GetFrameLevel() + 10, frame.NineSlice and frame.NineSlice:GetFrameLevel() + 2 or 0))
+    frame.dropdown = dropdown
     local viewport = CreateFrame("Frame", nil, frame)
     viewport:SetClipsChildren(true)
     viewport:EnableMouse(true)
     viewport:EnableMouseWheel(true)
-    viewport:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -c.top)
+    viewport:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -(c.top + c.dropdownH + c.dropdownGap))
     viewport:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -c.side, c.bottom)
     viewport.bg = viewport:CreateTexture(nil, "BACKGROUND")
     viewport.bg:SetAllPoints(viewport)
     viewport.bg:SetColorTexture(0.05, 0.05, 0.06, 0.85)
     local art = viewport:CreateTexture(nil, "ARTWORK")
     art:SetPoint("CENTER", viewport, "CENTER", 0, 0)
+    frame.levelPanel = AzerothCompendium:CreateInstanceLevelPanel(viewport, {
+        ["getTitle"] = function() return AzerothCompendium:Trans("LID_MAPLEVELS") end,
+        ["getLabel"] = function(levels, level)
+            local wm = AzerothCompendium.WorldMap
+
+            return wm and wm.GetLabel and wm.GetLabel(levels, level) or level.name or ""
+        end,
+        ["onSelect"] = function(index) self:SelectLevel(index) end,
+        ["getPos"] = function() return AzerothCompendium:GetConfig("DUNGEONMAPWIDGETLEVELPOS", nil) end,
+        ["setPos"] = function(pos) AzerothCompendium:SetConfig("DUNGEONMAPWIDGETLEVELPOS", pos) end,
+        ["getFrameLevel"] = function() return viewport:GetFrameLevel() + 1000 end,
+    })
+
     viewport:SetScript("OnMouseWheel", function(_, delta)
         local view = self.view
         local zoom = min(c.zoomMax, max(1, view.zoom * c.zoomFactor ^ delta))
@@ -436,7 +628,11 @@ function MapWidget:CreateFrame()
 
     frame.grip = grip
     grip:SetFrameLevel(max(frame:GetFrameLevel() + 10, frame.NineSlice and frame.NineSlice:GetFrameLevel() + 2 or 0))
-    frame:SetScript("OnSizeChanged", function() self:LayoutArt() end)
+    frame:SetScript("OnSizeChanged", function()
+        self:LayoutArt()
+        if frame.levelPanel ~= nil and frame.levelPanel:IsShown() then frame.levelPanel:Layout() end
+    end)
+
     self.frame = frame
     self:RestorePosition()
 
@@ -446,11 +642,11 @@ end
 function MapWidget:Refresh()
     local frame = self.frame
     if frame == nil or not frame:IsShown() then return end
-    local c = self.config
     local levels = self.levels
     if levels == nil or #levels == 0 then
         if frame.titleText then frame.titleText:SetText(AzerothCompendium:Trans("LID_DUNGEONMAPWIDGET")) end
-        frame.levelBar:Hide()
+        if frame.dropdown then AzerothCompendium:SetDropdownText(frame.dropdown, AzerothCompendium:Trans("LID_QW_SELECTDUNGEON")) end
+        frame.levelPanel:Hide()
         frame.art:Hide()
         if self.pinSet ~= nil then self.pinSet:Hide() end
 
@@ -462,16 +658,13 @@ function MapWidget:Refresh()
     self.levelIndex = index
     local info = levels[index]
     local title = self.instanceName or (info.inst and AzerothCompendium:GetInstanceName(info.inst)) or AzerothCompendium:Trans("LID_DUNGEONMAPWIDGET")
-    if frame.titleText then frame.titleText:SetText(title) end
-    local multi = #levels > 1
-    frame.levelBar:SetShown(multi)
-    frame.viewport:ClearAllPoints()
-    frame.viewport:SetPoint("TOPLEFT", frame, "TOPLEFT", c.side, -(c.top + (multi and c.headerHeight + 4 or 0)))
-    frame.viewport:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -c.side, c.bottom)
-    if multi then
-        local wm = AzerothCompendium.WorldMap
-        local label = wm and wm.GetLabel and wm.GetLabel(levels, info) or info.name or format("%d / %d", index, #levels)
-        frame.levelText:SetText(label)
+    if frame.titleText then frame.titleText:SetText(AzerothCompendium:Trans("LID_DUNGEONMAPWIDGET")) end
+    if frame.dropdown then AzerothCompendium:SetDropdownText(frame.dropdown, title) end
+    if #levels > 1 then
+        frame.levelPanel:Refresh(levels, index)
+        frame.levelPanel:Show()
+    else
+        frame.levelPanel:Hide()
     end
 
     local fw = info.fileWidth or 1024
@@ -501,11 +694,12 @@ function MapWidget:CheckZone()
     local instanceID, name = self:GetCurrentInstance()
     if instanceID == nil then
         self.instanceID = nil
-        self.instanceName = nil
-        self.levels = nil
         self.closedFor = nil
-        self.forced = false
-        self:ResetView()
+        if not self.forced then
+            self.levels = nil
+            self:ResetView()
+        end
+
         self:UpdateVisibility()
 
         return
@@ -513,13 +707,13 @@ function MapWidget:CheckZone()
 
     local changed = self.instanceID ~= instanceID
     self.instanceID = instanceID
-    self.instanceName = name
-    self.levels = self:GetLevels(instanceID)
     if changed then
         self.closedFor = nil
         self.forced = false
-        self.levelIndex = self.selected[instanceID] or 1
-        self:ResetView()
+        if not self:SelectInstanceByID(instanceID, true, name) then
+            self.levels = nil
+            self:ResetView()
+        end
     end
 
     self:UpdateVisibility()
@@ -538,12 +732,7 @@ function MapWidget:Toggle()
         return
     end
 
-    local instanceID, name = self:GetCurrentInstance()
-    if instanceID ~= nil then
-        self.instanceID = instanceID
-        self.instanceName = name
-        self.levels = self:GetLevels(instanceID)
-        self.levelIndex = self.selected[instanceID] or 1
+    if self:EnsureInstanceLoaded() then
         self.closedFor = nil
         self.forced = true
         self:UpdateVisibility()
