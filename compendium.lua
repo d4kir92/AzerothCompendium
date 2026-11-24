@@ -2760,9 +2760,7 @@ end
 
 function MapPins.UpdateToggle(view)
     view.pinToggles = view.pinToggles or {}
-    local maps = GetInstanceMaps()
     local anchor, point, relativePoint, anchorX, anchorY = view, "BOTTOMRIGHT", "TOPRIGHT", 0, 5
-    if compendium.mapLevel and maps ~= nil and #maps > 1 then anchor, point, relativePoint, anchorX, anchorY = compendium.mapLevel, "RIGHT", "LEFT", -8, 2 end
     for index, def in ipairs(MapPins.types) do
         local button = view.pinToggles[index]
         if button == nil then
@@ -2942,6 +2940,7 @@ function MapPins.Update(view)
     view.spoilerNotice.text:SetText(AzerothCompendium:Trans("LID_SPOILERFREEMAP", nil, spoilerHidden))
     view.spoilerNotice:SetShown(spoilerHidden > 0 and view.info ~= nil)
     view.pinTopLevel = view.viewport:GetFrameLevel() + 4 + #(data or {}) * 9
+    if compendium.mapLevel and compendium.mapLevel:IsShown() then compendium.mapLevel:SetFrameLevel(view.pinTopLevel + 5) end
     MapPins.UpdateToggle(view)
     MapPins.Layout(view)
     MapPins.DebugRefresh()
@@ -3005,6 +3004,7 @@ local function LayoutMapArt()
     view.art:SetSize(width, height)
     MapPins.Layout(view)
     MapPins.UpdateToggle(view)
+    if compendium.mapLevel and compendium.mapLevel:IsShown() and compendium.mapLevel.Layout then compendium.mapLevel:Layout() end
 end
 
 function MapPins.Zoom(view, delta)
@@ -3060,12 +3060,8 @@ local function UpdateMapView()
     MapPins.Update(view)
     if #maps > 1 then
         compendium.detailTitle:SetText("")
+        control:Refresh(maps, mapLevel)
         control:Show()
-        if control.GenerateMenu then
-            control:GenerateMenu()
-        elseif control.SetText then
-            control:SetText(GetMapLevelLabel(maps, mapLevel))
-        end
     else
         control:Hide()
     end
@@ -3075,21 +3071,6 @@ local function SelectMapLevel(index)
     mapLevel = index
     UpdateMapView()
     SaveNavigationState()
-end
-
-local function ShowMapLevelMenu(owner)
-    local maps = GetInstanceMaps()
-    if maps == nil then return end
-    local entries = {}
-    for i in ipairs(maps) do
-        tinsert(entries, {
-            text = GetMapLevelLabel(maps, i),
-            checked = function() return mapLevel == i end,
-            func = function() SelectMapLevel(i) end
-        })
-    end
-
-    AzerothCompendium:ShowContextMenu(owner, entries)
 end
 
 local function RefreshDetail(keepLootScroll)
@@ -3463,15 +3444,35 @@ function AzerothCompendium:UpdateInstanceFilterBanner(scroller, hidden)
     end)
 end
 
+function AzerothCompendium:ClearCompendiumSearch()
+    if compendium == nil or compendium.search == nil then return false end
+    compendium.search:ClearFocus()
+    if (compendium.search:GetText() or "") ~= "" then
+        compendium.search:SetText("")
+        return true
+    end
+
+    return false
+end
+
 local function OnInstanceClick(inst)
     compendium.overviewActive = false
     selectedInstance = inst
     selectedBoss = nil
     mapLevel = 1
     SaveNavigationState()
+    if compendium.instancePopup then
+        if compendium.instancePopup.search then
+            compendium.instancePopup.search:ClearFocus()
+            if (compendium.instancePopup.search:GetText() or "") ~= "" then compendium.instancePopup.search:SetText("") end
+        end
+
+        compendium.instancePopup:Hide()
+    end
+
+    if AzerothCompendium:ClearCompendiumSearch() then return end
     compendium.instances:Refresh()
     if compendium.updateInstanceSelection then compendium.updateInstanceSelection() end
-    if compendium.instancePopup then compendium.instancePopup:Hide() end
     RefreshBosses()
 end
 
@@ -3486,6 +3487,7 @@ end
 local function OnBossClick(boss)
     selectedBoss = boss
     SaveNavigationState()
+    if AzerothCompendium:ClearCompendiumSearch() then return end
     compendium.bosses:Refresh()
     RefreshDetail()
 end
@@ -4954,6 +4956,7 @@ AzerothCompendium.SharedUI = {
 local function CreateSettingsPanel()
     local panel = CreateFrame("Frame", nil, compendium)
     AddContentBorder(panel)
+    panel.acoBlackNormal = true
     AzerothCompendium:AnchorContent(panel)
     panel:Hide()
     compendium.settingsPanel = panel
@@ -5285,13 +5288,14 @@ function AzerothCompendium:RefreshDashboard()
                         tile.count:SetPoint("RIGHT", -12, 0)
                         tile.count:SetJustifyH("LEFT")
                         tile:SetScript("OnClick", function(sel)
+                            compendium.search:SetText("")
+                            compendium.search:ClearFocus()
                             if sel.entry.open then
                                 sel.entry.open()
 
                                 return
                             end
 
-                            compendium.search:SetText("")
                             sel.entry.tab.OpenDashboardTarget()
                         end)
                         tile.background = tile:CreateTexture(nil, "BACKGROUND", nil, -7)
@@ -5656,7 +5660,21 @@ function AzerothCompendium:CreateInstanceControls()
         sel:ClearFocus()
     end)
 
-    popupSearch:SetScript("OnEnterPressed", function(sel) sel:ClearFocus() end)
+    popupSearch:SetScript("OnEnterPressed", function(sel)
+        local first = nil
+        if (sel:GetText() or "") ~= "" then
+            for _, entry in ipairs(instances.data or {}) do
+                if not entry.levelGroup then
+                    first = entry
+                    break
+                end
+            end
+        end
+
+        sel:SetText("")
+        sel:ClearFocus()
+        if first then OnInstanceClick(first) end
+    end)
     instancePopup.search = popupSearch
     instances:ClearAllPoints()
     instances:SetPoint("TOPLEFT", instancePopup, "TOPLEFT", 5, -32)
@@ -6541,6 +6559,37 @@ local function CreateJournal()
         sel:ClearFocus()
     end)
 
+    search:SetScript("OnEnterPressed", function(sel)
+        local hadText = (sel:GetText() or "") ~= ""
+        if hadText then
+            if listKind == "dashboard" and compendium.dashboard and compendium.dashboard.grid and compendium.dashboard.grid.data then
+                local firstRow = compendium.dashboard.grid.data[1]
+                local firstTile = firstRow and firstRow[1]
+                if firstTile then
+                    sel:SetText("")
+                    sel:ClearFocus()
+                    if firstTile.open then
+                        firstTile.open()
+                    elseif firstTile.tab and firstTile.tab.OpenDashboardTarget then
+                        firstTile.tab.OpenDashboardTarget()
+                    end
+                    return
+                end
+            elseif compendium.overviewActive and AzerothCompendium:IsGroupedKind(listKind) and compendium.overview and compendium.overview.data then
+                for _, rowData in ipairs(compendium.overview.data) do
+                    if not rowData.overviewHeader and rowData[1] then
+                        middleKind = "map"
+                        OnInstanceClick(rowData[1])
+                        return
+                    end
+                end
+            end
+        end
+
+        sel:SetText("")
+        sel:ClearFocus()
+    end)
+
     compendium.search = search
     local searchLabel = compendium:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     searchLabel:SetPoint("RIGHT", search, "LEFT", -6, 0)
@@ -6695,26 +6744,322 @@ local function CreateJournal()
     mapView:SetScript("OnSizeChanged", LayoutMapArt)
     mapView:Hide()
     compendium.mapView = mapView
-    local mapLevelControl = nil
-    if AzerothCompendium:CheckTemplates("WowStyle1DropdownTemplate") then
-        mapLevelControl = CreateTemplated("DropdownButton", nil, compendium, {"WowStyle1DropdownTemplate"})
-        mapLevelControl:SetupMenu(function(_, rootDescription)
-            local maps = GetInstanceMaps() or {}
-            for i in ipairs(maps) do
-                rootDescription:CreateRadio(GetMapLevelLabel(maps, i), function() return mapLevel == i end, function() SelectMapLevel(i) end)
-            end
-        end)
-    else
-        mapLevelControl = CreateTemplated("Button", nil, compendium, {"UIPanelButtonTemplate"})
-        mapLevelControl:SetScript("OnClick", function(sel) ShowMapLevelMenu(sel) end)
-        local arrow = mapLevelControl:CreateTexture(nil, "ARTWORK")
-        arrow:SetSize(16, 16)
-        arrow:SetPoint("RIGHT", mapLevelControl, "RIGHT", -3, 0)
-        arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    local mapLevelControl = CreateFrame("Frame", nil, mapView)
+    mapLevelControl.acoKeepLight = true
+    mapLevelControl:EnableMouse(true)
+    mapLevelControl:EnableMouseWheel(true)
+    mapLevelControl.bg = mapLevelControl:CreateTexture(nil, "BACKGROUND")
+    mapLevelControl.bg:SetAllPoints(mapLevelControl)
+    mapLevelControl.bg:SetColorTexture(0.05, 0.05, 0.07, 0.84)
+    mapLevelControl.borders = {}
+    for edge = 1, 4 do
+        local tex = mapLevelControl:CreateTexture(nil, "BORDER")
+        tex:SetColorTexture(0.45, 0.4, 0.28, 0.85)
+        mapLevelControl.borders[edge] = tex
     end
 
-    mapLevelControl:SetSize(220, 22)
-    mapLevelControl:SetPoint("BOTTOMRIGHT", mapView, "TOPRIGHT", 0, 2)
+    mapLevelControl.borders[1]:SetPoint("TOPLEFT", mapLevelControl, "TOPLEFT", 0, 0)
+    mapLevelControl.borders[1]:SetPoint("TOPRIGHT", mapLevelControl, "TOPRIGHT", 0, 0)
+    mapLevelControl.borders[1]:SetHeight(1)
+    mapLevelControl.borders[2]:SetPoint("BOTTOMLEFT", mapLevelControl, "BOTTOMLEFT", 0, 0)
+    mapLevelControl.borders[2]:SetPoint("BOTTOMRIGHT", mapLevelControl, "BOTTOMRIGHT", 0, 0)
+    mapLevelControl.borders[2]:SetHeight(1)
+    mapLevelControl.borders[3]:SetPoint("TOPLEFT", mapLevelControl, "TOPLEFT", 0, 0)
+    mapLevelControl.borders[3]:SetPoint("BOTTOMLEFT", mapLevelControl, "BOTTOMLEFT", 0, 0)
+    mapLevelControl.borders[3]:SetWidth(1)
+    mapLevelControl.borders[4]:SetPoint("TOPRIGHT", mapLevelControl, "TOPRIGHT", 0, 0)
+    mapLevelControl.borders[4]:SetPoint("BOTTOMRIGHT", mapLevelControl, "BOTTOMRIGHT", 0, 0)
+    mapLevelControl.borders[4]:SetWidth(1)
+    mapLevelControl.pad = 5
+    mapLevelControl.headerH = 20
+    mapLevelControl.btnH = 22
+    mapLevelControl.gap = 2
+    mapLevelControl.margin = 8
+    local levelHeader = CreateFrame("Frame", nil, mapLevelControl)
+    levelHeader:SetPoint("TOPLEFT", mapLevelControl, "TOPLEFT", 1, -1)
+    levelHeader:SetPoint("TOPRIGHT", mapLevelControl, "TOPRIGHT", -1, -1)
+    levelHeader:SetHeight(mapLevelControl.headerH)
+    levelHeader:EnableMouse(true)
+    levelHeader.bg = levelHeader:CreateTexture(nil, "BACKGROUND")
+    levelHeader.bg:SetAllPoints(levelHeader)
+    levelHeader.bg:SetColorTexture(0.1, 0.1, 0.13, 0.92)
+    levelHeader.divider = levelHeader:CreateTexture(nil, "BORDER")
+    levelHeader.divider:SetPoint("BOTTOMLEFT", levelHeader, "BOTTOMLEFT", 0, 0)
+    levelHeader.divider:SetPoint("BOTTOMRIGHT", levelHeader, "BOTTOMRIGHT", 0, 0)
+    levelHeader.divider:SetHeight(1)
+    levelHeader.divider:SetColorTexture(0.45, 0.4, 0.28, 0.65)
+    levelHeader.dots = {}
+    for col = 0, 1 do
+        for row = -1, 1 do
+            local dot = levelHeader:CreateTexture(nil, "ARTWORK")
+            dot:SetSize(2, 2)
+            dot:SetPoint("LEFT", levelHeader, "LEFT", 6 + col * 4, row * 4)
+            dot:SetColorTexture(0.72, 0.66, 0.52, 0.9)
+            tinsert(levelHeader.dots, dot)
+        end
+    end
+
+    levelHeader.title = levelHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    levelHeader.title:SetPoint("LEFT", levelHeader, "LEFT", 17, 0)
+    levelHeader.title:SetPoint("RIGHT", levelHeader, "RIGHT", -6, 0)
+    levelHeader.title:SetJustifyH("LEFT")
+    levelHeader.title:SetWordWrap(false)
+    levelHeader.title:SetTextColor(1, 0.82, 0)
+    AzerothCompendium:OnLanguage(function()
+        levelHeader.title:SetText(AzerothCompendium:Trans("LID_MAPLEVELS"))
+    end)
+
+    levelHeader:SetScript("OnEnter", function(sel)
+        sel.bg:SetColorTexture(0.16, 0.15, 0.18, 0.95)
+        for _, dot in ipairs(sel.dots) do
+            dot:SetColorTexture(1, 0.88, 0.35, 1)
+        end
+    end)
+
+    levelHeader:SetScript("OnLeave", function(sel)
+        sel.bg:SetColorTexture(0.1, 0.1, 0.13, 0.92)
+        for _, dot in ipairs(sel.dots) do
+            dot:SetColorTexture(0.72, 0.66, 0.52, 0.9)
+        end
+    end)
+
+    levelHeader:SetScript("OnMouseDown", function(_, button) mapLevelControl:StartDrag(button) end)
+    levelHeader:SetScript("OnMouseUp", function() mapLevelControl:StopDrag() end)
+    mapLevelControl.header = levelHeader
+    local levelScroll = CreateFrame("ScrollFrame", nil, mapLevelControl)
+    levelScroll:SetPoint("TOPLEFT", mapLevelControl, "TOPLEFT", mapLevelControl.pad, -(mapLevelControl.headerH + mapLevelControl.pad))
+    levelScroll:SetPoint("BOTTOMRIGHT", mapLevelControl, "BOTTOMRIGHT", -mapLevelControl.pad, mapLevelControl.pad)
+    local levelContent = CreateFrame("Frame", nil, levelScroll)
+    levelContent:SetSize(1, 1)
+    levelScroll:SetScrollChild(levelContent)
+    mapLevelControl.scroll = levelScroll
+    mapLevelControl.content = levelContent
+    mapLevelControl.measure = mapLevelControl:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    mapLevelControl.measure:Hide()
+    mapLevelControl.buttons = {}
+    local function ClampLevelScroll(value)
+        local maxScroll = math.max(0, (levelContent:GetHeight() or 0) - (levelScroll:GetHeight() or 0))
+        return math.max(0, math.min(maxScroll, value or 0))
+    end
+
+    function mapLevelControl:GetBounds()
+        local viewW = mapView:GetWidth() or 0
+        local viewH = mapView:GetHeight() or 0
+        local boxW = self:GetWidth() or 0
+        local boxH = self:GetHeight() or 0
+        local m = self.margin
+        local maxX = math.max(m, viewW - boxW - m)
+        local maxY = math.max(m, viewH - boxH - m)
+        return m, maxX, m, maxY
+    end
+
+    function mapLevelControl:LoadPosition()
+        if self.posRX ~= nil and self.posRY ~= nil then return end
+        local saved = type(ACOTAB) == "table" and ACOTAB.MAPLEVELPOS or nil
+        if type(saved) == "table" and type(saved.rx) == "number" and type(saved.ry) == "number" then
+            self.posRX = math.max(0, math.min(1, saved.rx))
+            self.posRY = math.max(0, math.min(1, saved.ry))
+        else
+            self.posRX = 0
+            self.posRY = 0.5
+        end
+    end
+
+    function mapLevelControl:SavePosition()
+        if self.posRX == nil or self.posRY == nil then return end
+        ACOTAB = ACOTAB or {}
+        ACOTAB.MAPLEVELPOS = {
+            rx = self.posRX,
+            ry = self.posRY,
+        }
+    end
+
+    function mapLevelControl:ApplyPixelPosition(x, y, updateRatios)
+        local minX, maxX, minY, maxY = self:GetBounds()
+        local cx = math.max(minX, math.min(maxX, x))
+        local cy = math.max(minY, math.min(maxY, y))
+        self.posX = cx
+        self.posY = cy
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", mapView, "TOPLEFT", cx, -cy)
+        if updateRatios then
+            if maxX > minX then self.posRX = (cx - minX) / (maxX - minX) end
+            if maxY > minY then self.posRY = (cy - minY) / (maxY - minY) end
+        end
+    end
+
+    function mapLevelControl:ApplyRatioPosition()
+        self:LoadPosition()
+        local minX, maxX, minY, maxY = self:GetBounds()
+        local x = minX + self.posRX * (maxX - minX)
+        local y = minY + self.posRY * (maxY - minY)
+        self:ApplyPixelPosition(x, y, false)
+    end
+
+    function mapLevelControl:OnDragUpdate()
+        if not self.dragging or not IsMouseButtonDown("LeftButton") then
+            self:StopDrag()
+            return
+        end
+
+        local cx, cy = GetCursorPosition()
+        local scale = mapView:GetEffectiveScale()
+        if scale == nil or scale <= 0 then scale = 1 end
+        local dx = (cx - self.dragStartX) / scale
+        local dy = (cy - self.dragStartY) / scale
+        if not self.dragMoved and math.abs(dx) < 4 and math.abs(dy) < 4 then return end
+        self.dragMoved = true
+        self:ApplyPixelPosition(self.dragOriginX + dx, self.dragOriginY - dy, true)
+    end
+
+    function mapLevelControl:StartDrag(button)
+        if button ~= "LeftButton" then return end
+        self:LoadPosition()
+        if self.posX == nil or self.posY == nil then self:ApplyRatioPosition() end
+        local cx, cy = GetCursorPosition()
+        self.dragging = true
+        self.dragMoved = false
+        self.suppressClick = false
+        self.dragStartX = cx
+        self.dragStartY = cy
+        self.dragOriginX = self.posX or self.margin
+        self.dragOriginY = self.posY or self.margin
+        self:SetScript("OnUpdate", self.OnDragUpdate)
+    end
+
+    function mapLevelControl:StopDrag()
+        if not self.dragging then return end
+        self.dragging = false
+        self:SetScript("OnUpdate", nil)
+        if self.dragMoved then
+            self.suppressClick = true
+            self:SavePosition()
+        end
+    end
+
+    mapLevelControl:SetScript("OnMouseDown", function(sel, button) sel:StartDrag(button) end)
+    mapLevelControl:SetScript("OnMouseUp", function(sel) sel:StopDrag() end)
+    mapLevelControl:SetScript("OnHide", function(sel) sel:StopDrag() end)
+    mapLevelControl:SetScript("OnMouseWheel", function(_, delta)
+        local step = mapLevelControl.btnH + mapLevelControl.gap
+        levelScroll:SetVerticalScroll(ClampLevelScroll(levelScroll:GetVerticalScroll() - delta * step))
+    end)
+
+    function mapLevelControl:GetButton(index)
+        local btn = self.buttons[index]
+        if btn ~= nil then return btn end
+        btn = CreateFrame("Button", nil, self.content)
+        btn:SetHeight(self.btnH)
+        btn.bg = btn:CreateTexture(nil, "BACKGROUND")
+        btn.bg:SetAllPoints(btn)
+        btn.accent = btn:CreateTexture(nil, "ARTWORK")
+        btn.accent:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, 0)
+        btn.accent:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
+        btn.accent:SetWidth(2)
+        btn.accent:SetColorTexture(1, 0.82, 0, 1)
+        btn.accent:Hide()
+        btn.highlight = btn:CreateTexture(nil, "HIGHLIGHT")
+        btn.highlight:SetAllPoints(btn)
+        btn.highlight:SetColorTexture(1, 1, 1, 0.14)
+        btn.highlight:SetBlendMode("ADD")
+        btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        btn.label:SetPoint("LEFT", btn, "LEFT", 8, 0)
+        btn.label:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
+        btn.label:SetJustifyH("LEFT")
+        btn.label:SetWordWrap(false)
+        btn:SetScript("OnClick", function(sel)
+            if sel.levelIndex then SelectMapLevel(sel.levelIndex) end
+        end)
+
+        btn:SetScript("OnEnter", function(sel)
+            if sel.fullLabel and sel.label.IsTruncated and sel.label:IsTruncated() then
+                GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+                GameTooltip:SetText(sel.fullLabel, 1, 0.82, 0)
+                GameTooltip:Show()
+            end
+        end)
+
+        btn:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+        self.buttons[index] = btn
+        return btn
+    end
+
+    function mapLevelControl:Layout()
+        local count = self.count or 0
+        if count <= 0 then return end
+        local step = self.btnH + self.gap
+        local contentH = count * self.btnH + math.max(0, count - 1) * self.gap
+        local viewW = mapView:GetWidth() or 400
+        local viewH = mapView:GetHeight() or 300
+        local maxScrollH = math.max(self.btnH, viewH - self.margin * 2 - self.pad * 2 - self.headerH)
+        local visibleH = math.min(contentH, maxScrollH)
+        local maxInnerW = math.max(60, viewW - self.margin * 2 - self.pad * 2)
+        local innerW = math.min(self.innerWidth or 140, maxInnerW)
+        self:SetSize(innerW + self.pad * 2, visibleH + self.pad * 2 + self.headerH)
+        self.content:SetSize(innerW, contentH)
+        for i = 1, count do
+            local btn = self.buttons[i]
+            if btn then
+                btn:SetWidth(innerW)
+                btn:ClearAllPoints()
+                btn:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -(i - 1) * step)
+            end
+        end
+
+        local active = self.activeIndex or 1
+        local activeTop = (active - 1) * step
+        local activeBottom = activeTop + self.btnH
+        local cur = self.scroll:GetVerticalScroll() or 0
+        if activeTop < cur then
+            cur = activeTop
+        elseif activeBottom > cur + visibleH then
+            cur = activeBottom - visibleH
+        end
+
+        self.scroll:SetVerticalScroll(ClampLevelScroll(cur))
+        self:ApplyRatioPosition()
+        self:SetFrameLevel((mapView.pinTopLevel or (mapView.viewport:GetFrameLevel() + 20)) + 5)
+    end
+
+    function mapLevelControl:Refresh(maps, activeIndex)
+        local count = maps and #maps or 0
+        self.count = count
+        self.activeIndex = activeIndex or 1
+        local maxW = 0
+        for i = 1, count do
+            local btn = self:GetButton(i)
+            local text = GetMapLevelLabel(maps, i)
+            btn.levelIndex = i
+            btn.fullLabel = text
+            btn.label:SetText(text)
+            self.measure:SetText(text)
+            local textW = self.measure:GetStringWidth() or 0
+            if textW > maxW then maxW = textW end
+            local active = i == self.activeIndex
+            if active then
+                btn.bg:SetColorTexture(0.85, 0.68, 0.2, 0.28)
+                btn.accent:Show()
+                btn.label:SetTextColor(1, 0.88, 0.35)
+            else
+                btn.bg:SetColorTexture(0.14, 0.14, 0.17, 0.65)
+                btn.accent:Hide()
+                btn.label:SetTextColor(0.88, 0.88, 0.9)
+            end
+
+            btn:Show()
+        end
+
+        for i = count + 1, #self.buttons do
+            self.buttons[i]:Hide()
+        end
+
+        self.measure:SetText(AzerothCompendium:Trans("LID_MAPLEVELS"))
+        local headerW = (self.measure:GetStringWidth() or 0) + 18
+        if headerW > maxW then maxW = headerW end
+        self.innerWidth = math.max(110, math.min(200, math.ceil(maxW) + 20))
+        self:Layout()
+    end
+
     mapLevelControl:Hide()
     compendium.mapLevel = mapLevelControl
     compendium.middleTabs = {}
@@ -6792,7 +7137,6 @@ local function CreateJournal()
     compendium.middleTabs["bosses"] = bossTab
     compendium.middleTabs["quests"] = questTab
     compendium.factionToggle = CreateFrame("Frame", nil, compendium)
-    AzerothCompendium.Theme.PageText:Register(compendium.factionToggle, true)
     compendium.factionToggle:SetSize(64, 28)
     compendium.factionToggle:SetPoint("BOTTOMRIGHT", compendium.questTree, "TOPRIGHT", -2, 4)
     compendium.factionToggle:SetFrameLevel(compendium:GetFrameLevel() + 4)

@@ -580,6 +580,7 @@ end
 local function CreateNode(canvas, tree)
     local node = CreateFrame("Button", nil, canvas)
     node.tree = tree
+    node.acoKeepLight = true
     node:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     node.background = node:CreateTexture(nil, "BACKGROUND")
     node.background:SetAllPoints(node)
@@ -2726,6 +2727,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     function tree:SelectListKey(key)
         self.selectedKey = key
+        if AzerothCompendium.ClearCompendiumSearch and AzerothCompendium:ClearCompendiumSearch() then return end
         self:Layout()
     end
 

@@ -356,6 +356,7 @@ function Browser:Create(parent)
     filterFrame:SetPoint("BOTTOMLEFT", 0, 0)
     filterFrame:SetWidth(216)
     AzerothCompendiumAPI.AddContentBorder(filterFrame)
+    filterFrame.acoBlackNormal = true
     local modernScroll = ScrollUtil and ScrollUtil.InitScrollFrameWithScrollBar and AC:CheckTemplates("MinimalScrollBar")
     local filters = CreateFrame("ScrollFrame", nil, filterFrame, not modernScroll and "UIPanelScrollFrameTemplate" or nil)
     filters:SetPoint("TOPLEFT", 8, -2)

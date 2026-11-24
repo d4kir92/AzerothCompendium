@@ -247,11 +247,16 @@ function Library:Refresh()
     end
 
     local index = 0
-    local function row(icon, title, detail, click, enter)
+    local function row(icon, title, detail, click, enter, titleColor)
         index = index + 1
         local r = host.rows[index] or host:NewRow(index)
         host.rows[index] = r
         r.icon:SetTexture(icon)
+        if titleColor then
+            r.title:SetTextColor(titleColor[1], titleColor[2], titleColor[3])
+        else
+            r.title:SetTextColor(1, 0.82, 0)
+        end
         r.title:SetText(title)
         r.detail:SetText(detail)
         r:SetScript("OnClick", click)
@@ -290,8 +295,8 @@ function Library:Refresh()
 
         for _, book in ipairs(books) do
             local state = self:State(book)
-            local color = state == "done" and "|cff66dd66" or state == "questflag" and "|cffffaa44" or "|cffffffff"
-            row(self:Icon(book.itemId), color .. self:Name(book) .. "|r", self:Text(state) .. " — " .. self:Zone(book) .. (book.x and string.format(" (%.1f, %.1f)", book.x, book.y) or ""), function(_, button)
+            local color = state == "done" and {0.4, 0.87, 0.4} or state == "questflag" and {1, 0.67, 0.27} or {1, 1, 1}
+            row(self:Icon(book.itemId), self:Name(book), self:Text(state) .. " — " .. self:Zone(book) .. (book.x and string.format(" (%.1f, %.1f)", book.x, book.y) or ""), function(_, button)
                 if button == "RightButton" then
                     local manual = self:DB().manual
                     manual[book.itemId] = not manual[book.itemId] or nil
@@ -299,7 +304,7 @@ function Library:Refresh()
                 elseif book.x and book.y then
                     Addon:SetMapWaypoint(Addon.LIBRARYMAPS[book.zone], book.x, book.y)
                 end
-            end, function(r) self:Tooltip(r, book) end)
+            end, function(r) self:Tooltip(r, book) end, color)
         end
 
         if #books == 0 then row(self.icons.all, self:Text("empty"), "") end

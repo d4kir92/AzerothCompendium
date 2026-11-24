@@ -927,14 +927,18 @@ function Theme:ApplyPageBackground(texture)
 end
 
 local PageText = {
-    TEXT = {1, 1, 1},
+    TEXT = {0, 0, 0},
     NEUTRAL_RANGE = 0.15,
+    WHITE_MIN = 0.75,
     roots = {},
 }
 Theme.PageText = PageText
 
 function PageText:IsControl(frame)
-    return frame:GetObjectType() == "EditBox"
+    local kind = frame:GetObjectType()
+    if kind == "EditBox" or kind == "DropdownButton" then return true end
+    if kind == "Button" and Theme:Child(frame, "Left") and Theme:Child(frame, "Right") and (Theme:Child(frame, "Middle") or Theme:Child(frame, "Center")) then return true end
+    return false
 end
 
 function PageText:IsInside(fontString, root)
@@ -946,46 +950,70 @@ function PageText:IsInside(fontString, root)
     return x >= left and x <= left + width and y >= bottom and y <= bottom + height
 end
 
-function PageText:IsNeutral(color)
+function PageText:IsWhite(color)
     local r, g, b = color[1] or 1, color[2] or 1, color[3] or 1
-    return max(r, g, b) - min(r, g, b) < self.NEUTRAL_RANGE
+    local hi, lo = max(r, g, b), min(r, g, b)
+    return hi - lo < self.NEUTRAL_RANGE and lo >= self.WHITE_MIN
+end
+
+function PageText:IsCheckboxLabel(fontString)
+    local parent = fontString:GetParent()
+    return parent ~= nil and parent:GetObjectType() == "CheckButton"
+end
+
+function PageText:IsNormalGold(color)
+    local r, g, b = color[1] or 0, color[2] or 0, color[3] or 0
+    return r >= 0.9 and g >= 0.7 and g <= 0.9 and b <= 0.15
+end
+
+function PageText:StripOutline(flags)
+    if type(flags) ~= "string" or flags == "" then return "" end
+    local out = {}
+    for token in flags:gmatch("[^,%s]+") do
+        if token ~= "OUTLINE" and token ~= "THICKOUTLINE" then tinsert(out, token) end
+    end
+    return table.concat(out, ",")
 end
 
 function PageText:ShouldStyle(fontString)
-    if Theme:IsModern() then return false end
-    local frame, scrolled = fontString:GetParent(), false
+    if Theme:IsModern() then return false, false end
+    local frame, scrolled, blackNormal = fontString:GetParent(), false, false
     while frame do
-        if frame.acoKeepLight or frame.vendorMap ~= nil or self:IsControl(frame) then return false end
-        if frame.loadingScreen and frame.loadingScreen:IsShown() then return false end
+        if frame.acoKeepLight or frame.vendorMap ~= nil or self:IsControl(frame) then return false, false end
+        if frame.loadingScreen and frame.loadingScreen:IsShown() then return false, false end
+        if frame.acoBlackNormal then blackNormal = true end
         if frame.ScrollTarget or frame:GetObjectType() == "ScrollFrame" then scrolled = true end
-        if frame.acoPageRoot then return frame.acoPageWhole or scrolled or self:IsInside(fontString, frame) end
+        if frame.acoPageRoot then return frame.acoPageWhole or scrolled or self:IsInside(fontString, frame), blackNormal end
         frame = frame:GetParent()
     end
-    return false
+    return false, false
 end
 
 function PageText:Capture(fontString, state)
     state.color = {fontString:GetTextColor()}
     state.font = {fontString:GetFont()}
+    state.shadow = {fontString:GetShadowColor()}
 end
 
 function PageText:Apply(fontString)
     local state = fontString.acoPage
-    local active = self:ShouldStyle(fontString)
+    local active, blackNormal = self:ShouldStyle(fontString)
     if not active and not state.active then return end
     state.busy = true
-    local color, font = state.color, state.font
+    local color, font, shadow = state.color, state.font, state.shadow
     if active then
-        if self:IsNeutral(color) then
+        if self:IsWhite(color) or self:IsCheckboxLabel(fontString) or (blackNormal and self:IsNormalGold(color)) then
             fontString:SetTextColor(self.TEXT[1], self.TEXT[2], self.TEXT[3], color[4] or 1)
+            fontString:SetShadowColor(0, 0, 0, 0)
         else
             fontString:SetTextColor(color[1], color[2], color[3], color[4])
+            if shadow and shadow[1] ~= nil then fontString:SetShadowColor(shadow[1], shadow[2], shadow[3], shadow[4]) end
         end
 
-        local flags = font[3] or ""
-        if font[1] and not flags:find("OUTLINE") then fontString:SetFont(font[1], font[2], flags == "" and "OUTLINE" or flags .. ",OUTLINE") end
+        if font[1] then fontString:SetFont(font[1], font[2], self:StripOutline(font[3])) end
     else
         fontString:SetTextColor(color[1], color[2], color[3], color[4])
+        if shadow and shadow[1] ~= nil then fontString:SetShadowColor(shadow[1], shadow[2], shadow[3], shadow[4]) end
         if font[1] then fontString:SetFont(font[1], font[2], font[3] or "") end
     end
 
