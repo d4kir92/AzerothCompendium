@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_QUESTWIDGET_ENABLED", "Показыва�
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTXP", "Опыт")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTXPSHORT", "опыта")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_ACCEPT", "Принять")
+AzerothCompendium:AddTrans("ruRU", "LID_QW_ACCEPTININSTANCE", "Принимается в подземелье")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_ALLDONE", "Все задания выполнены!")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_ALLDUNGEONS", "Все подземелья")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_ALLZONES", "Все")

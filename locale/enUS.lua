@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTWIDGET_ENABLED", "Show the dungeon 
 AzerothCompendium:AddTrans("enUS", "LID_QUESTXP", "Experience")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTXPSHORT", "XP")
 AzerothCompendium:AddTrans("enUS", "LID_QW_ACCEPT", "Accept")
+AzerothCompendium:AddTrans("enUS", "LID_QW_ACCEPTININSTANCE", "Accepted in instance")
 AzerothCompendium:AddTrans("enUS", "LID_QW_ALLDONE", "All quests completed!")
 AzerothCompendium:AddTrans("enUS", "LID_QW_ALLDUNGEONS", "All Dungeons")
 AzerothCompendium:AddTrans("enUS", "LID_QW_ALLZONES", "All")

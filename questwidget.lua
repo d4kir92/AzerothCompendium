@@ -1076,16 +1076,17 @@ function Widget:FormatRowSubtext(entry)
         return AzerothCompendium:Trans("LID_QUESTACTIVE"), 0.65, 0.85, 1
     end
 
-    if target and target.npc and target.npc ~= "" then
-        if entry.inZone then return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), target.npc), 0.95, 0.88, 0.65 end
-
-        return format("%s: %s", AzerothCompendium:Trans("LID_QW_ACCEPT"), target.npc), 0.72, 0.72, 0.76
+    local acceptKey = target and target.inside and "LID_QW_ACCEPTININSTANCE" or "LID_QW_ACCEPT"
+    local r, g, b = 0.72, 0.72, 0.76
+    if entry.inZone then
+        r, g, b = 0.95, 0.88, 0.65
+    elseif target and target.inside then
+        r, g, b = 0.85, 0.75, 0.45
     end
 
-    if target and target.inside then return AzerothCompendium:Trans("LID_QUESTTREEINSTANCE"), 0.85, 0.75, 0.45 end
-    if entry.inZone then return AzerothCompendium:Trans("LID_QW_ACCEPT"), 0.95, 0.88, 0.65 end
+    if target and target.npc and target.npc ~= "" then return format("%s: %s", AzerothCompendium:Trans(acceptKey), target.npc), r, g, b end
 
-    return AzerothCompendium:Trans("LID_QW_ACCEPT"), 0.72, 0.72, 0.76
+    return AzerothCompendium:Trans(acceptKey), r, g, b
 end
 
 function Widget:GetEntryCategory(entry, allMode)

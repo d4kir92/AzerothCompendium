@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("frFR", "LID_QUESTWIDGET_ENABLED", "Afficher le widge
 AzerothCompendium:AddTrans("frFR", "LID_QUESTXP", "Expérience")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTXPSHORT", "XP")
 AzerothCompendium:AddTrans("frFR", "LID_QW_ACCEPT", "Accepter")
+AzerothCompendium:AddTrans("frFR", "LID_QW_ACCEPTININSTANCE", "Acceptée dans l'instance")
 AzerothCompendium:AddTrans("frFR", "LID_QW_ALLDONE", "Toutes les quêtes sont terminées !")
 AzerothCompendium:AddTrans("frFR", "LID_QW_ALLDUNGEONS", "Tous les donjons")
 AzerothCompendium:AddTrans("frFR", "LID_QW_ALLZONES", "Toutes")

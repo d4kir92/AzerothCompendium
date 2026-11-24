@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("koKR", "LID_QUESTWIDGET_ENABLED", "던전 퀘스트 
 AzerothCompendium:AddTrans("koKR", "LID_QUESTXP", "경험치")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTXPSHORT", "경험치")
 AzerothCompendium:AddTrans("koKR", "LID_QW_ACCEPT", "수락")
+AzerothCompendium:AddTrans("koKR", "LID_QW_ACCEPTININSTANCE", "인스턴스 내부에서 수락")
 AzerothCompendium:AddTrans("koKR", "LID_QW_ALLDONE", "모든 퀘스트를 완료했습니다!")
 AzerothCompendium:AddTrans("koKR", "LID_QW_ALLDUNGEONS", "모든 던전")
 AzerothCompendium:AddTrans("koKR", "LID_QW_ALLZONES", "전체")

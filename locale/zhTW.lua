@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("zhTW", "LID_QUESTWIDGET_ENABLED", "顯示地城任�
 AzerothCompendium:AddTrans("zhTW", "LID_QUESTXP", "經驗值")
 AzerothCompendium:AddTrans("zhTW", "LID_QUESTXPSHORT", "經驗")
 AzerothCompendium:AddTrans("zhTW", "LID_QW_ACCEPT", "承接")
+AzerothCompendium:AddTrans("zhTW", "LID_QW_ACCEPTININSTANCE", "在副本內承接")
 AzerothCompendium:AddTrans("zhTW", "LID_QW_ALLDONE", "所有任務已完成！")
 AzerothCompendium:AddTrans("zhTW", "LID_QW_ALLDUNGEONS", "所有地城")
 AzerothCompendium:AddTrans("zhTW", "LID_QW_ALLZONES", "全部")

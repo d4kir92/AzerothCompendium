@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_QUESTWIDGET_ENABLED", "显示地下城�
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTXP", "经验值")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTXPSHORT", "经验")
 AzerothCompendium:AddTrans("zhCN", "LID_QW_ACCEPT", "接取")
+AzerothCompendium:AddTrans("zhCN", "LID_QW_ACCEPTININSTANCE", "在副本内接取")
 AzerothCompendium:AddTrans("zhCN", "LID_QW_ALLDONE", "所有任务已完成！")
 AzerothCompendium:AddTrans("zhCN", "LID_QW_ALLDUNGEONS", "所有地下城")
 AzerothCompendium:AddTrans("zhCN", "LID_QW_ALLZONES", "全部")

@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("itIT", "LID_QUESTWIDGET_ENABLED", "Mostra il widget 
 AzerothCompendium:AddTrans("itIT", "LID_QUESTXP", "Esperienza")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTXPSHORT", "PE")
 AzerothCompendium:AddTrans("itIT", "LID_QW_ACCEPT", "Accetta")
+AzerothCompendium:AddTrans("itIT", "LID_QW_ACCEPTININSTANCE", "Accettata nell'istanza")
 AzerothCompendium:AddTrans("itIT", "LID_QW_ALLDONE", "Tutte le missioni completate!")
 AzerothCompendium:AddTrans("itIT", "LID_QW_ALLDUNGEONS", "Tutti i dungeon")
 AzerothCompendium:AddTrans("itIT", "LID_QW_ALLZONES", "Tutte")

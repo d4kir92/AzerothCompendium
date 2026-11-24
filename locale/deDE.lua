@@ -273,6 +273,7 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTWIDGET_ENABLED", "Dungeon-Quest-Wid
 AzerothCompendium:AddTrans("deDE", "LID_QUESTXP", "Erfahrung")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTXPSHORT", "EP")
 AzerothCompendium:AddTrans("deDE", "LID_QW_ACCEPT", "Annehmen")
+AzerothCompendium:AddTrans("deDE", "LID_QW_ACCEPTININSTANCE", "Wird in der Instanz angenommen")
 AzerothCompendium:AddTrans("deDE", "LID_QW_ALLDONE", "Alle Quests abgeschlossen!")
 AzerothCompendium:AddTrans("deDE", "LID_QW_ALLDUNGEONS", "Alle Dungeons")
 AzerothCompendium:AddTrans("deDE", "LID_QW_ALLZONES", "Alle")

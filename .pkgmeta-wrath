@@ -32,9 +32,47 @@ ignore:
   - data/classic_era/quest_followups.lua
   - data/classic_era/quest_rewards.lua
   - data/classic_era/trash.lua
+  - data/dungeons/ahnqiraj.lua
+  - data/dungeons/alcaz_prison.lua
+  - data/dungeons/blackfathom_deeps.lua
+  - data/dungeons/blackmaw_hold.lua
+  - data/dungeons/blackrock_depths.lua
+  - data/dungeons/blackrock_spire.lua
+  - data/dungeons/blackwing_lair.lua
+  - data/dungeons/city_of_dalaran.lua
+  - data/dungeons/dire_maul.lua
+  - data/dungeons/dungeons.xml
+  - data/dungeons/excavation_site_wetlands.lua
+  - data/dungeons/gnomeregan.lua
+  - data/dungeons/kroldok_stronghold.lua
+  - data/dungeons/maraudon.lua
+  - data/dungeons/molten_core.lua
+  - data/dungeons/naxxramas.lua
+  - data/dungeons/onyxias_lair.lua
+  - data/dungeons/ragefire_chasm.lua
+  - data/dungeons/razorfen_downs.lua
+  - data/dungeons/razorfen_kraul.lua
+  - data/dungeons/ruins_of_ahnqiraj.lua
+  - data/dungeons/ruins_of_lordaeron.lua
+  - data/dungeons/scarlet_monastery.lua
+  - data/dungeons/scholomance.lua
+  - data/dungeons/shadowfang_keep.lua
+  - data/dungeons/stratholme.lua
+  - data/dungeons/the_deadmines.lua
+  - data/dungeons/the_drowned_city.lua
+  - data/dungeons/the_hall_of_thanes.lua
+  - data/dungeons/the_shapers_terrace.lua
+  - data/dungeons/the_stockade.lua
+  - data/dungeons/the_temple_of_atalhakkar.lua
+  - data/dungeons/uldaman.lua
+  - data/dungeons/wailing_caverns.lua
+  - data/dungeons/zulfarrak.lua
+  - data/dungeons/zulgurub.lua
   - data/instances.lua
   - data/instance_entrances.lua
+  - data/instance_entrances_forever.lua
   - data/instance_wings.lua
+  - data/library_books.lua
   - data/mists/boss_ranks.lua
   - data/mists/continents.lua
   - data/mists/costs.lua
@@ -66,6 +104,7 @@ ignore:
   - data/tbc/trash.lua
   - data/trash.lua
   - data/world_quest_items.lua
+  - librarybooks.lua
   - media/162.blp
   - media/163.blp
   - media/164.blp
@@ -78,3 +117,9 @@ ignore:
   - media/2998.blp
   - media/2999.blp
   - media/3065.blp
+  - media/900001.blp
+  - media/900001_2.blp
+  - media/900002.blp
+  - media/900003.blp
+  - media/900003_2.blp
+  - media/900005.blp
