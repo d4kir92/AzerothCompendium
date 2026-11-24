@@ -33,7 +33,8 @@ Widget.pinAssets = {
     highlight = "Waypoint-MapPin-Highlight",
     fallback = 134269,
     mapIcon = "Interface\\FriendsFrame\\UI-Toast-FriendOnlineIcon",
-    mapQuestMark = "Interface\\GossipFrame\\ActiveQuestIcon",
+    mapQuestMark = "Interface\\GossipFrame\\AvailableQuestIcon",
+    trackingCircle = "UI-QuestPoi-QuestNumber-SuperTracked",
 }
 
 Widget.mapPins = {}
@@ -2816,6 +2817,76 @@ function Widget:ProjectMapPoint(point, mapID)
     return x, y
 end
 
+function Widget:GetWaypointFrameLevel()
+    if WorldMapFrame == nil or WorldMapFrame.GetPinFrameLevelsManager == nil then return nil end
+    local manager = WorldMapFrame:GetPinFrameLevelsManager()
+    if manager == nil or manager.GetValidFrameLevel == nil then return nil end
+
+    return manager:GetValidFrameLevel("PIN_FRAME_LEVEL_WAYPOINT_LOCATION")
+end
+
+function Widget:IsMapPinTracked(pin)
+    if pin == nil or pin.mapID == nil or pin.x == nil or pin.y == nil then return false end
+    if not AzerothCompendium:HasUserWaypoint() or not AzerothCompendium:IsWaypointTracked() then return false end
+    local pos = AzerothCompendium:GetUserWaypointPositionForMap(pin.mapID)
+    if pos == nil then return false end
+    local x, y = pos:GetXY()
+    if IsSecret(x) or IsSecret(y) or x == nil or y == nil then return false end
+
+    return abs(x - pin.x / 100) < 0.001 and abs(y - pin.y / 100) < 0.001
+end
+
+function Widget:SetMapWaypointPinsHidden(hide)
+    if WorldMapFrame == nil or WorldMapFrame.EnumeratePinsByTemplate == nil then return end
+    for pin in WorldMapFrame:EnumeratePinsByTemplate("WaypointLocationPinTemplate") do
+        if hide then
+            pin:SetAlpha(0)
+        elseif self.mapWaypointHidden then
+            pin:SetAlpha(1)
+        end
+    end
+
+    self.mapWaypointHidden = hide
+end
+
+function Widget:UpdateMapPinStyle(pin)
+    if pin == nil or not pin:IsShown() then return false end
+    local tracked = self:IsMapPinTracked(pin)
+    local level = pin.baseLevel or pin:GetFrameLevel()
+    if tracked then
+        local wpLevel = self:GetWaypointFrameLevel()
+        if wpLevel ~= nil and wpLevel >= level then level = wpLevel + 1 end
+    end
+
+    if pin:GetFrameLevel() ~= level then pin:SetFrameLevel(level) end
+    if tracked then
+        if self.pinAssets.trackingResolved == nil then
+            local atlas = self.pinAssets.trackingCircle
+            self.pinAssets.trackingResolved = (AzerothCompendium:FindAtlas({atlas}) or (AzerothCompendium:HasAtlasOrFallback(atlas) and atlas)) or false
+        end
+
+        if self.pinAssets.trackingResolved then
+            AzerothCompendium:SetAtlasOrFallback(pin.circle, self.pinAssets.trackingResolved)
+            pin.circle:Show()
+        else
+            pin.circle:Hide()
+        end
+    else
+        pin.circle:Hide()
+    end
+
+    return tracked
+end
+
+function Widget:UpdateMapPinStyles()
+    local anyTracked = false
+    for _, pin in ipairs(self.mapPins) do
+        if pin:IsShown() and self:UpdateMapPinStyle(pin) then anyTracked = true end
+    end
+
+    if anyTracked or self.mapWaypointHidden then self:SetMapWaypointPinsHidden(anyTracked) end
+end
+
 function Widget:OnMapPinClick(pin, mouseButton)
     local entry = pin.entry
     if entry == nil then return end
@@ -2835,8 +2906,27 @@ function Widget:OnMapPinClick(pin, mouseButton)
     end
 
     if pin.mapID and pin.x and pin.y then
+        if InCombat() then
+            AzerothCompendium:INFO(AzerothCompendium:Trans("LID_WAYPOINTCOMBAT"))
+
+            return
+        end
+
+        if self:IsMapPinTracked(pin) then
+            AzerothCompendium:ClearUserWaypoint()
+            AzerothCompendium:SetWaypointTracked(false)
+            if SOUNDKIT and SOUNDKIT.UI_MAP_WAYPOINT_REMOVE then PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_REMOVE) end
+            self:UpdateMapPinStyles()
+
+            return
+        end
+
         local ok, reason = AzerothCompendium:SetMapWaypoint(pin.mapID, pin.x, pin.y)
-        if not ok then
+        if ok then
+            if SOUNDKIT and SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_ON then PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_ON) end
+            self:UpdateMapPinStyles()
+            if C_Timer and C_Timer.After then C_Timer.After(0, function() Widget:UpdateMapPinStyles() end) end
+        else
             local message = reason == "combat" and "LID_WAYPOINTCOMBAT" or "LID_NOQUESTGIVER"
             AzerothCompendium:INFO(AzerothCompendium:Trans(message))
         end
@@ -2846,6 +2936,9 @@ end
 function Widget:CreateMapPin(parent)
     local pin = CreateFrame("Button", nil, parent)
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    pin.circle = pin:CreateTexture(nil, "ARTWORK", nil, 0)
+    pin.circle:SetPoint("CENTER")
+    pin.circle:Hide()
     pin.icon = pin:CreateTexture(nil, "OVERLAY", nil, 1)
     pin.icon:SetAllPoints(pin)
     pin.icon:SetTexture(self.pinAssets.mapIcon)
@@ -2863,6 +2956,7 @@ function Widget:CreateMapPin(parent)
     end)
 
     pin:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+    pin:SetScript("OnHide", function(sel) if GameTooltip:IsOwned(sel) then AzerothCompendium:HideGameTooltip() end end)
     pin:SetScript("OnClick", function(sel, button) Widget:OnMapPinClick(sel, button) end)
 
     return pin
@@ -2886,9 +2980,19 @@ function Widget:UpdateMapPins()
         pin:Hide()
     end
 
-    if instanceOverlay or stitched or scale == nil or scale <= 0 then return end
+    if instanceOverlay or stitched or scale == nil or scale <= 0 then
+        if self.mapWaypointHidden then self:SetMapWaypointPinsHidden(false) end
+
+        return
+    end
+
     local points = self:GetPinnedMapPoints()
-    if #points == 0 then return end
+    if #points == 0 then
+        if self.mapWaypointHidden then self:SetMapWaypointPinsHidden(false) end
+
+        return
+    end
+
     local w = child:GetWidth()
     local h = child:GetHeight()
     if w == nil or h == nil or w <= 0 or h <= 0 then return end
@@ -2916,6 +3020,7 @@ function Widget:UpdateMapPins()
 
     local count = 0
     local twoPi = math.pi * 2
+    local baseLevel = child:GetFrameLevel() + self.config.mapPinLevel
     for _, cluster in ipairs(clusters) do
         local total = #cluster.items
         for idx, item in ipairs(cluster.items) do
@@ -2938,18 +3043,37 @@ function Widget:UpdateMapPins()
             pin.mapID = item.point.mapID
             pin.x = item.point.x
             pin.y = item.point.y
+            pin.baseLevel = baseLevel
             pin:SetSize(size, size)
+            pin.circle:SetSize(size * 1.35, size * 1.35)
             local markSize = size * 0.65
             pin.questMark:SetSize(markSize, markSize)
             pin.questMark:ClearAllPoints()
             pin.questMark:SetPoint("BOTTOM", pin, "TOP", 0, -size * 0.22)
-            pin:SetHitRectInsets(0, 0, -markSize * 0.6, 0)
-            pin:SetFrameLevel(child:GetFrameLevel() + self.config.mapPinLevel)
+            local pad = size * 0.18
+            pin:SetHitRectInsets(-pad, -pad, -markSize * 0.6, -pad)
+            pin:SetFrameLevel(baseLevel)
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", child, "TOPLEFT", w * item.x + dx, -h * item.y + dy)
             pin:Show()
         end
     end
+
+    self:UpdateMapPinStyles()
+end
+
+if AzerothCompendium.RegisterWaypointCallback then
+    AzerothCompendium:RegisterWaypointCallback(function() Widget:UpdateMapPinStyles() end)
+end
+
+if AzerothCompendium.RegisterWaypointMarker then
+    AzerothCompendium:RegisterWaypointMarker(function(mapID, x, y)
+        for _, pin in ipairs(Widget.mapPins) do
+            if pin:IsShown() and pin.mapID == mapID and pin.x ~= nil and pin.y ~= nil and abs(pin.x / 100 - x) < 0.001 and abs(pin.y / 100 - y) < 0.001 then return true end
+        end
+
+        return false
+    end)
 end
 
 if WorldMapFrame ~= nil then
