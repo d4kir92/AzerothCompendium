@@ -362,8 +362,11 @@ function Tracker:CheckZone()
     local run = self:GetRun()
     local now = time()
     if instanceID == nil then
+        local wasInside = self.instanceID ~= nil
+        local dead = UnitIsDeadOrGhost("player")
+        local isGhost = not IsSecret(dead) and dead == true
         self.instanceID = nil
-        if run and run.active and not run.ended and (not run.finished or run.mode == "unranked") and self:ShouldStayAway() then
+        if run and run.active and run.start and not run.ended and (not run.finished or run.mode == "unranked") and (wasInside or self.away or isGhost) and self:ShouldStayAway() then
             self.away = true
         else
             self:EndRun(run)
@@ -2028,7 +2031,8 @@ function Tracker:OnEvent(event, ...)
         self:CheckZone()
         if C_Timer and C_Timer.After then C_Timer.After(2, function() Tracker:CheckZone() end) end
     elseif event == "PLAYER_REGEN_DISABLED" then
-        if self:GetCurrentInstance() == self.instanceID then
+        local currentID = self:GetCurrentInstance()
+        if currentID ~= nil and currentID == self.instanceID then
             self:StartRankedRun()
             self:Refresh()
         end
