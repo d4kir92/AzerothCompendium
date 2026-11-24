@@ -32,7 +32,8 @@ Widget.pinAssets = {
     untracked = "Waypoint-MapPin-Untracked",
     highlight = "Waypoint-MapPin-Highlight",
     fallback = 134269,
-    mapMark = "Interface\\RaidFrame\\ReadyCheck-NotReady",
+    mapIcon = "Interface\\FriendsFrame\\UI-Toast-FriendOnlineIcon",
+    mapQuestMark = "Interface\\GossipFrame\\ActiveQuestIcon",
 }
 
 Widget.mapPins = {}
@@ -2845,9 +2846,13 @@ end
 function Widget:CreateMapPin(parent)
     local pin = CreateFrame("Button", nil, parent)
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    pin.icon = pin:CreateTexture(nil, "OVERLAY")
+    pin.icon = pin:CreateTexture(nil, "OVERLAY", nil, 1)
     pin.icon:SetAllPoints(pin)
-    pin.icon:SetTexture(self.pinAssets.mapMark)
+    pin.icon:SetTexture(self.pinAssets.mapIcon)
+    if pin.icon.SetDesaturated then pin.icon:SetDesaturated(true) end
+    pin.icon:SetVertexColor(1, 0.85, 0.1, 1)
+    pin.questMark = pin:CreateTexture(nil, "OVERLAY", nil, 2)
+    pin.questMark:SetTexture(self.pinAssets.mapQuestMark)
     local highlight = pin:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(pin)
     highlight:SetTexture("Interface\\Buttons\\UI-Common-MouseHilight")
@@ -2934,6 +2939,11 @@ function Widget:UpdateMapPins()
             pin.x = item.point.x
             pin.y = item.point.y
             pin:SetSize(size, size)
+            local markSize = size * 0.65
+            pin.questMark:SetSize(markSize, markSize)
+            pin.questMark:ClearAllPoints()
+            pin.questMark:SetPoint("BOTTOM", pin, "TOP", 0, -size * 0.22)
+            pin:SetHitRectInsets(0, 0, -markSize * 0.6, 0)
             pin:SetFrameLevel(child:GetFrameLevel() + self.config.mapPinLevel)
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", child, "TOPLEFT", w * item.x + dx, -h * item.y + dy)
