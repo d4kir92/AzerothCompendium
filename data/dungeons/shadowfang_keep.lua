@@ -1130,17 +1130,17 @@ local trash = {
 	},
 	{
 		[1] = 5943,
-		[2] = 2.55,
+		[2] = 11.42,
+		["itemClass"] = 4,
 		["mobs"] = {
 			{
 				["name"] = "Arugal's Voidwalker",
 				["npcs"] = {4627},
-				["chance"] = 2.55,
+				["chance"] = 11.42,
 				["classification"] = 0,
 				["model"] = 1131,
 			},
 		},
-		["itemClass"] = 4,
 	},
 	{
 		[1] = 6341,
