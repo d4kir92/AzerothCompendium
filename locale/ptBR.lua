@@ -127,6 +127,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_LEGENDTAG", "Missão de masmorra ou raid
 AzerothCompendium:AddTrans("ptBR", "LID_LEVEL", "Nível %d")
 AzerothCompendium:AddTrans("ptBR", "LID_LEVELFILTER", "Nível")
 AzerothCompendium:AddTrans("ptBR", "LID_LEVELGROUP", "Nível %d-%d")
+AzerothCompendium:AddTrans("ptBR", "LID_LFG", "Localizador de Grupos")
 AzerothCompendium:AddTrans("ptBR", "LID_LIBRARYBOOKMAPPINS", "Livros da biblioteca")
 AzerothCompendium:AddTrans("ptBR", "LID_LIBRARYBOOKS_TAB", "Livros da biblioteca")
 AzerothCompendium:AddTrans("ptBR", "LID_LIBRARY_Alliance", "Território da Aliança")

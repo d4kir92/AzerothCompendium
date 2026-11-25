@@ -1203,7 +1203,7 @@ function AzerothCompendium:GetInstanceQuests(inst, playerOnly)
         cache = instanceQuestCache.player
     end
 
-    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", false) == true
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", true) == true
     local alliance = playerOnly and not IsOpposingQuestSide(1) or not playerOnly and AzerothCompendium:IsQuestSideVisible(1)
     local horde = playerOnly and not IsOpposingQuestSide(2) or not playerOnly and AzerothCompendium:IsQuestSideVisible(2)
     local flavor = AzerothCompendium:GetFlavor()
@@ -1670,7 +1670,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted, pl
     local nodes = {}
     local list = {}
     local inInstance = {}
-    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", false) == true
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", true) == true
     local function IsHidden(questID)
         return IsQuestHidden(questID, playerOnly) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
     end
@@ -2378,6 +2378,7 @@ local function ReleaseMapOpener()
     local owner = mapOpener.owner
     mapOpener.owner = nil
     mapOpener.onClick = nil
+    mapOpener.clickButton = nil
     mapOpener:Hide()
     if owner and owner.UnlockHighlight then owner:UnlockHighlight() end
 end
@@ -2393,6 +2394,12 @@ local function CreateMapOpener()
     opener:Hide()
     opener:SetScript("PreClick", function(sel, _, down)
         if SecureActionButton_ShouldUseOnKeyDown and (down == true) ~= (SecureActionButton_ShouldUseOnKeyDown(sel) == true) then return end
+        if sel.clickButton then
+            sel:SetAttribute("type1", "click")
+            sel:SetAttribute("clickbutton1", sel.clickButton)
+            return
+        end
+
         local opened = false
         if sel.owner and sel.onClick then opened = sel.onClick(sel.owner) == true end
         if opened then AzerothCompendium:ShowWaypointMapDeferred() end
@@ -2431,8 +2438,19 @@ local function CreateMapOpener()
     return opener
 end
 
-function AzerothCompendium:AttachMapOpener(owner, onClick)
-    if owner == nil or IsMapOpenerLocked() or GetWorldMapClickButton() == nil then return false end
+local LFG_CLICK_BUTTONS = {"LFDMicroButton", "LFGMicroButton"}
+
+function AzerothCompendium:GetLFGClickButton()
+    for _, name in ipairs(LFG_CLICK_BUTTONS) do
+        local button = _G[name]
+        if type(button) == "table" and button.Click ~= nil and not (button.IsForbidden and button:IsForbidden()) then return button end
+    end
+
+    return nil
+end
+
+function AzerothCompendium:AttachMapOpener(owner, onClick, clickButton)
+    if owner == nil or IsMapOpenerLocked() or (clickButton or GetWorldMapClickButton()) == nil then return false end
     if mapOpener == nil then mapOpener = CreateMapOpener() end
     if mapOpener.owner == owner then return true end
     local left, bottom, width, height = owner:GetRect()
@@ -2440,6 +2458,7 @@ function AzerothCompendium:AttachMapOpener(owner, onClick)
     local ratio = owner:GetEffectiveScale() / UIParent:GetEffectiveScale()
     mapOpener.owner = owner
     mapOpener.onClick = onClick
+    mapOpener.clickButton = clickButton
     mapOpener:ClearAllPoints()
     mapOpener:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left * ratio, bottom * ratio)
     mapOpener:SetSize(width * ratio, height * ratio)
@@ -2688,7 +2707,7 @@ end
 
 function AzerothCompendium:IsBossForPlayer(boss)
     if boss.side and not AzerothCompendium:IsQuestSideVisible(boss.side) then return false end
-    if boss.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", false) == true then
+    if boss.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", true) == true then
         local classID = select(3, UnitClass("player"))
         if type(classID) == "number" and bit.band(boss.classMask, 2 ^ (classID - 1)) == 0 then return false end
     end

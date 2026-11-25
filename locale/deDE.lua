@@ -127,6 +127,7 @@ AzerothCompendium:AddTrans("deDE", "LID_LEGENDTAG", "Dungeon- oder Schlachtzugsq
 AzerothCompendium:AddTrans("deDE", "LID_LEVEL", "Stufe %d")
 AzerothCompendium:AddTrans("deDE", "LID_LEVELFILTER", "Stufe")
 AzerothCompendium:AddTrans("deDE", "LID_LEVELGROUP", "Stufe %d-%d")
+AzerothCompendium:AddTrans("deDE", "LID_LFG", "Gruppensuche")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARYBOOKMAPPINS", "Bibliotheksbücher")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARYBOOKS_TAB", "Bibliotheksbücher")
 AzerothCompendium:AddTrans("deDE", "LID_LIBRARY_Alliance", "Allianzgebiet")

@@ -127,6 +127,7 @@ AzerothCompendium:AddTrans("zhTW", "LID_LEGENDTAG", "地城或團隊副本任務
 AzerothCompendium:AddTrans("zhTW", "LID_LEVEL", "等級 %d")
 AzerothCompendium:AddTrans("zhTW", "LID_LEVELFILTER", "等級")
 AzerothCompendium:AddTrans("zhTW", "LID_LEVELGROUP", "等級 %d-%d")
+AzerothCompendium:AddTrans("zhTW", "LID_LFG", "隊伍搜尋器")
 AzerothCompendium:AddTrans("zhTW", "LID_LIBRARYBOOKMAPPINS", "圖書館書籍")
 AzerothCompendium:AddTrans("zhTW", "LID_LIBRARYBOOKS_TAB", "圖書館書籍")
 AzerothCompendium:AddTrans("zhTW", "LID_LIBRARY_Alliance", "聯盟領地")

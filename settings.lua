@@ -100,7 +100,7 @@ end
 
 function AzerothCompendium:SyncSettingsClassFilter()
     if classFilterSetting == nil then return end
-    classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", false) == true)
+    classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
 end
 
 function AzerothCompendium:SyncSettingsQuestWidget()
@@ -292,7 +292,7 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
-    classFilterSetting = AddCheckbox("CLASSFILTER", false, function(value) AzerothCompendium:SetClassFilter(value) end)
+    classFilterSetting = AddCheckbox("CLASSFILTER", true, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("DUNGEONTRACKER", nil, "2026-11-14")
     AddCheckbox("DUNGEONTRACKER", true, function()
         if AzerothCompendium.DungeonTracker then

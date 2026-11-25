@@ -127,6 +127,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_LEGENDTAG", "Задание подзем
 AzerothCompendium:AddTrans("ruRU", "LID_LEVEL", "Уровень %d")
 AzerothCompendium:AddTrans("ruRU", "LID_LEVELFILTER", "Уровень")
 AzerothCompendium:AddTrans("ruRU", "LID_LEVELGROUP", "Уровень %d-%d")
+AzerothCompendium:AddTrans("ruRU", "LID_LFG", "Поиск группы")
 AzerothCompendium:AddTrans("ruRU", "LID_LIBRARYBOOKMAPPINS", "Библиотечные книги")
 AzerothCompendium:AddTrans("ruRU", "LID_LIBRARYBOOKS_TAB", "Библиотечные книги")
 AzerothCompendium:AddTrans("ruRU", "LID_LIBRARY_Alliance", "Территория Альянса")

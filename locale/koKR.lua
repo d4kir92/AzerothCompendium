@@ -127,6 +127,7 @@ AzerothCompendium:AddTrans("koKR", "LID_LEGENDTAG", "던전 또는 공격대 퀘
 AzerothCompendium:AddTrans("koKR", "LID_LEVEL", "레벨 %d")
 AzerothCompendium:AddTrans("koKR", "LID_LEVELFILTER", "레벨")
 AzerothCompendium:AddTrans("koKR", "LID_LEVELGROUP", "레벨 %d-%d")
+AzerothCompendium:AddTrans("koKR", "LID_LFG", "파티 찾기")
 AzerothCompendium:AddTrans("koKR", "LID_LIBRARYBOOKMAPPINS", "도서관 책")
 AzerothCompendium:AddTrans("koKR", "LID_LIBRARYBOOKS_TAB", "도서관 책")
 AzerothCompendium:AddTrans("koKR", "LID_LIBRARY_Alliance", "얼라이언스 지역")
