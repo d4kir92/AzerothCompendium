@@ -1614,9 +1614,31 @@ local function BuildChainList(graph)
 
             local key = "chain:" .. root.id
             local item = {node = root, key = key, children = {}, start = steps[1]}
-            for _, step in ipairs(steps) do
-                if step ~= root then tinsert(item.children, {node = step, key = key .. ":" .. step.id, children = {}}) end
+            local stepIndex, stages = {}, {}
+            for index, step in ipairs(steps) do
+                stepIndex[step.id] = index
             end
+
+            item.isChain = true
+            for _, step in ipairs(steps) do
+                local parents, stage = {}, 1
+                for id in pairs(neighbors[step.id].parents) do
+                    if quests[id] and stages[id] then
+                        tinsert(parents, quests[id])
+                        stage = max(stage, stages[id] + 1)
+                    end
+                end
+
+                table.sort(parents, function(a, b) return stepIndex[a.id] < stepIndex[b.id] end)
+                stages[step.id] = stage
+                tinsert(item.children, {node = step, key = key .. ":" .. step.id, children = {}, stage = stage, after = parents})
+            end
+
+            table.sort(item.children, function(a, b)
+                if a.stage ~= b.stage then return a.stage < b.stage end
+
+                return stepIndex[a.node.id] < stepIndex[b.node.id]
+            end)
 
             tinsert(items, item)
         end
@@ -1641,6 +1663,7 @@ local ListBox = {
     padX = 3,
     marginX = 2,
     borderPixels = 1,
+    maxStageDepth = 8,
     fill = {0.12, 0.12, 0.14, 0.5},
     modernFill = {0.145, 0.15, 0.17, 1},
     borders = {
@@ -1743,9 +1766,42 @@ local function FlattenList(items, depth, expanded, out, box)
     end
 end
 
+function ListBox.FlattenChains(items, expanded, out)
+    for _, item in ipairs(items) do
+        local open = #item.children > 0 and IsListItemOpen(item, expanded)
+        local group = {state = ListBox.GetState(item)}
+        local done = 0
+        for _, child in ipairs(item.children) do
+            if GetQuestStatus(child.node.id, child.node) == "complete" then done = done + 1 end
+        end
+
+        tinsert(out, {kind = "chain", item = item, key = item.key, depth = 0, hasChildren = #item.children > 0, open = open, box = group, boxStart = true, progress = {done = done, total = #item.children}})
+        if open then
+            local previous
+            for _, child in ipairs(item.children) do
+                local after = child.after
+                if #after == 0 or #after == 1 and after[1] == previous then after = nil end
+                tinsert(out, {kind = "quest", item = child, key = child.key, depth = math.min(child.stage, ListBox.maxStageDepth), box = group, number = child.stage, after = after})
+                previous = child.node
+            end
+        end
+
+        out[#out].boxEnd = true
+    end
+end
+
+function ListBox.GetAfterText(after)
+    local names = {}
+    for _, node in ipairs(after) do
+        tinsert(names, Spoiler.Name(node))
+    end
+
+    return format(AzerothCompendium:Trans("LID_QUESTCHAINAFTER"), table.concat(names, ", "))
+end
+
 local function FindListPath(items, questID, path)
     for _, item in ipairs(items) do
-        if item.node.id == questID then return item end
+        if item.node.id == questID and not item.isChain then return item end
         tinsert(path, item.key)
         local found = FindListPath(item.children, questID, path)
         if found then return found end
@@ -1801,7 +1857,6 @@ local function CreateListRow(parent, tree)
     row.background:SetAllPoints(row)
     row.selected = row:CreateTexture(nil, "BORDER")
     row.selected:SetAllPoints(row)
-    row.selected:SetColorTexture(1, 1, 1, 0.22)
     row.selected:Hide()
     local highlight = row:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(row)
@@ -1890,6 +1945,8 @@ local function CreateListRow(parent, tree)
             tree.keyLine:GetScript("OnClick")(sel)
         elseif sel.kind == "header" then
             tree:ToggleListSection(sel.section)
+        elseif sel.kind == "chain" then
+            tree:ToggleListKey(sel.key)
         end
     end)
 
@@ -1901,6 +1958,8 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.key = entry.key
     row.section = entry.section
     row.collapsed = entry.collapsed
+    local selectedColor = AzerothCompendium.Theme.colors.selected
+    row.selected:SetColorTexture(selectedColor[1], selectedColor[2], selectedColor[3], selectedColor[4] or 1)
     row.selected:SetShown(entry.kind == "quest" and entry.key == selectedKey)
     row.node = entry.item and entry.item.node or nil
     row.attunement = entry.attunement
@@ -1919,7 +1978,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.icon:ClearAllPoints()
     row.right:ClearAllPoints()
     row.text:ClearAllPoints()
-    if entry.kind == "quest" then
+    if entry.kind == "quest" or entry.kind == "chain" then
         row.icon:SetPoint("RIGHT", row, "RIGHT", -6, 0)
         row.right:SetPoint("RIGHT", row.icon, "LEFT", -4, 0)
         row.text:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
@@ -1970,6 +2029,18 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:Hide()
         row.text:SetFontObject("GameFontDisableSmall")
         row.text:SetText(AzerothCompendium:Trans(SECTION_EMPTY[entry.section]))
+    elseif entry.kind == "chain" then
+        local progress = entry.progress
+        local finished = progress.done >= progress.total
+        row.status = finished and "complete" or nil
+        row.statusHit:SetShown(finished)
+        row.background:SetColorTexture(0, 0, 0, 0)
+        row.icon:SetTexture(STATUS_ICON.complete[1])
+        row.icon:SetDesaturated(STATUS_ICON.complete[2])
+        row.icon:SetShown(finished)
+        row.text:SetFontObject("GameFontHighlightSmall")
+        row.text:SetText(Spoiler.Name(row.node))
+        row.right:SetText(format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total))
     elseif entry.kind == "key" then
         row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
         local icon, status, text = GetKeyLineInfo(entry.attunement)
@@ -1992,6 +2063,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.text:SetFontObject("GameFontNormalSmall")
         local title = GetListQuestTitle(node)
         if entry.number then title = format("|cffa0a0a0%d.|r %s", entry.number, title) end
+        if entry.after then title = title .. "  |cff808080" .. ListBox.GetAfterText(entry.after) .. "|r" end
         row.text:SetText(title)
         row.right:SetText(GetListQuestRight(node))
     end
@@ -2935,19 +3007,16 @@ function AzerothCompendium:CreateQuestTree(parent)
         local activeSection = 0
         local firstActive = items[1]
         if chains then
-            local firstOpen
+            local found, firstOpen
             for _, item in ipairs(items) do
-                local state = ListBox.GetState(item)
-                if state == "active" then
-                    firstActive = item
-                    firstOpen = nil
-                    break
+                for _, child in ipairs(item.children) do
+                    local status = GetQuestStatus(child.node.id, child.node)
+                    if found == nil and (status == "active" or status == "ready") then found = child end
+                    if firstOpen == nil and status ~= "complete" then firstOpen = child end
                 end
-
-                if state == "open" and firstOpen == nil then firstOpen = item end
             end
 
-            firstActive = firstOpen or firstActive
+            firstActive = found or firstOpen or items[1] and items[1].children[1]
         else
             for section = 1, SECTION_COUNT do
                 local progress = items.progress[section]
@@ -2982,7 +3051,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
         local expanded = self:GetListExpanded()
         if chains then
-            FlattenList(items, 0, expanded, entries)
+            ListBox.FlattenChains(items, expanded, entries)
         elseif #items > 0 or attunement ~= nil then
             local bySection = {}
             for _, item in ipairs(items) do
