@@ -91,7 +91,7 @@ local STATUS_ICON = {
     ["active"] = {"Interface\\GossipFrame\\ActiveQuestIcon", true},
     ["open"] = {"Interface\\GossipFrame\\AvailableQuestIcon", false},
     ["lowlevel"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true},
-    ["locked"] = {"Interface\\GossipFrame\\AvailableQuestIcon", true, {1, 0.2, 0.2}}
+    ["locked"] = {"Interface\\LFGFrame\\UI-LFG-ICON-LOCK", false}
 }
 
 local STATUS_BORDER = {
@@ -1109,8 +1109,10 @@ local function CreateBox(canvas, titleText)
     box.title = box.header:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     local font, size = box.title:GetFont()
     if font then box.title:SetFont(font, (size or 16) + 1, "OUTLINE") end
+    box.info = AzerothCompendium:CreateInfoButton(box.header, function() return AzerothCompendium:Trans(SECTION_TITLES[box.section] or SECTION_TITLES[2]) end, function() return AzerothCompendium:Trans("LID_QUESTSECTIONINFO" .. (box.section or 2)) end)
+    box.info:SetPoint("RIGHT", box.header, "RIGHT", -8, 0)
     box.title:SetPoint("LEFT", box.header, "LEFT", 8, 0)
-    box.title:SetPoint("RIGHT", box.header, "RIGHT", -8, 0)
+    box.title:SetPoint("RIGHT", box.info, "LEFT", -4, 0)
     box.title:SetJustifyH("LEFT")
     box.title:SetWordWrap(false)
     box.title:SetText(titleText)
@@ -1547,6 +1549,7 @@ local ListBox = {
     padY = 3,
     padX = 3,
     marginX = 2,
+    borderPixels = 1,
     fill = {0.12, 0.12, 0.14, 0.5},
     modernFill = {0.145, 0.15, 0.17, 1},
     borders = {
@@ -1592,8 +1595,34 @@ function ListBox.Create(parent)
     return box
 end
 
+function ListBox.GetThickness(box)
+    local scale = box:GetEffectiveScale() or 1
+    local _, physicalHeight = GetPhysicalScreenSize and GetPhysicalScreenSize()
+    if physicalHeight == nil or physicalHeight <= 0 or scale <= 0 then return ListBox.borderPixels end
+
+    return ListBox.borderPixels * 768 / physicalHeight / scale
+end
+
+function ListBox.SetThickness(box, thickness)
+    if box.thickness ~= nil and math.abs(box.thickness - thickness) < 0.001 then return end
+    box.thickness = thickness
+    box.border[1]:SetHeight(thickness)
+    box.border[2]:SetHeight(thickness)
+    box.border[3]:SetWidth(thickness)
+    box.border[4]:SetWidth(thickness)
+    local Theme = AzerothCompendium.Theme
+    local size = max(1, Theme.radius.control - thickness)
+    for index, def in ipairs(Theme.CORNERS) do
+        local corner = box.modernFill[index]
+        corner:SetSize(size, size)
+        corner:ClearAllPoints()
+        corner:SetPoint(def[1], box, def[1], def[1]:find("LEFT") and thickness or -thickness, def[1]:find("TOP") and -thickness or thickness)
+    end
+end
+
 function ListBox.Update(box, state)
     local border = ListBox.borders[state] or ListBox.borders.open
+    ListBox.SetThickness(box, ListBox.GetThickness(box))
     box.border:SetColor(border[1], border[2], border[3], border[4])
     local Theme = AzerothCompendium.Theme
     Theme.shapes[box.modernBorder] = border
@@ -1601,7 +1630,7 @@ function ListBox.Update(box, state)
 end
 
 local function FlattenList(items, depth, expanded, out, box)
-    for _, item in ipairs(items) do
+    for index, item in ipairs(items) do
         local open = #item.children > 0 and IsListItemOpen(item, expanded)
         local group = box
         if depth == 0 then
@@ -1619,6 +1648,7 @@ local function FlattenList(items, depth, expanded, out, box)
             open = open,
             box = group,
             boxStart = depth == 0,
+            number = depth > 0 and index or nil,
         })
 
         if open then FlattenList(item.children, depth + 1, expanded, out, group) end
@@ -1709,6 +1739,19 @@ local function CreateListRow(parent, tree)
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
     row.icon:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
+    row.statusHit = CreateFrame("Frame", nil, row)
+    row.statusHit:SetAllPoints(row.icon)
+    row.statusHit:EnableMouse(true)
+    if row.statusHit.SetPropagateMouseClicks then row.statusHit:SetPropagateMouseClicks(true) end
+    row.statusHit:SetScript("OnEnter", function(sel)
+        local status = row.status
+        if status == nil or STATUS_TEXT[status] == nil then return end
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(format("|T%s:%d|t ", STATUS_ICON[status][1], STATUS_ICON_SIZE) .. AzerothCompendium:Trans("LID_LEGEND" .. string.upper(status)))
+        GameTooltip:AddLine(AzerothCompendium:Trans(STATUS_TEXT[status]), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    row.statusHit:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
     row.right = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.right:SetJustifyH("RIGHT")
@@ -1725,8 +1768,11 @@ local function CreateListRow(parent, tree)
     row.headerText = row:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     local font, size = row.headerText:GetFont()
     if font then row.headerText:SetFont(font, (size or 16) + 1, "OUTLINE") end
+    row.info = AzerothCompendium:CreateInfoButton(row, function(sel) return AzerothCompendium:Trans(SECTION_TITLES[sel:GetParent().section] or SECTION_TITLES[2]) end, function(sel) return AzerothCompendium:Trans("LID_QUESTSECTIONINFO" .. (sel:GetParent().section or 2)) end)
+    row.info:SetPoint("RIGHT", row.headerRight, "LEFT", -6, 0)
+    row.info:Hide()
     row.headerText:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
-    row.headerText:SetPoint("RIGHT", row.headerRight, "LEFT", -6, 0)
+    row.headerText:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
     row.headerText:SetJustifyH("LEFT")
     row.headerText:SetWordWrap(false)
     row.headerText:Hide()
@@ -1783,6 +1829,31 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.toggle:Hide()
     end
 
+    row.icon:ClearAllPoints()
+    row.right:ClearAllPoints()
+    row.text:ClearAllPoints()
+    if entry.kind == "quest" then
+        row.icon:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+        row.right:SetPoint("RIGHT", row.icon, "LEFT", -4, 0)
+        row.text:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
+    elseif entry.kind == "header" then
+        row.icon:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+        row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+        row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
+        row.headerRight:ClearAllPoints()
+        row.headerRight:SetPoint("RIGHT", row.icon, "LEFT", -4, 0)
+        row.headerText:ClearAllPoints()
+        row.headerText:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
+        row.headerText:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+    else
+        row.icon:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
+        row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+        row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
+    end
+
+    row.text:SetPoint("RIGHT", row.right, "LEFT", -6, 0)
+    row.status = entry.kind == "header" and entry.progress and entry.progress.done >= entry.progress.total and "complete" or nil
+    row.statusHit:SetShown(row.status ~= nil)
     row.icon:SetDesaturated(false)
     row.icon:SetVertexColor(1, 1, 1)
     row.icon:SetTexCoord(0, 1, 0, 1)
@@ -1790,6 +1861,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.right:SetText("")
     row.headerText:Hide()
     row.headerRight:Hide()
+    row.info:SetShown(entry.kind == "header")
     row.text:Show()
     row.right:Show()
     row:SetHeight(entry.height or LIST_ROW_H)
@@ -1823,13 +1895,17 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         local node = row.node
         local status = GetQuestStatus(node.id, node)
         local info = STATUS_ICON[status]
+        row.status = status
+        row.statusHit:Show()
         row.background:SetColorTexture(0, 0, 0, 0)
         row.icon:SetTexture(info[1])
         row.icon:SetDesaturated(info[2])
         if info[3] then row.icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
         row.icon:Show()
         row.text:SetFontObject("GameFontNormalSmall")
-        row.text:SetText(GetListQuestTitle(node))
+        local title = GetListQuestTitle(node)
+        if entry.number then title = format("|cffa0a0a0%d.|r %s", entry.number, title) end
+        row.text:SetText(title)
         row.right:SetText(GetListQuestRight(node))
     end
 
@@ -2553,6 +2629,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     tree.boxTops = {}
     for section = 1, SECTION_COUNT do
         local box = CreateBox(canvas, AzerothCompendium:Trans(SECTION_TITLES[section]))
+        box.section = section
         box.empty:SetText(AzerothCompendium:Trans(SECTION_EMPTY[section]))
         box.header:SetScript("OnMouseDown", function(_, mouseButton) tree:StartDrag(mouseButton) end)
         box.header:SetScript("OnMouseUp", function() tree:StopDrag() end)
@@ -2739,18 +2816,31 @@ function AzerothCompendium:CreateQuestTree(parent)
         local attunement = graph.attunement
         local items = BuildListTree(graph)
         self.listItems = items
-        detail:ClearAllPoints()
-        detail:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
-        scroll:ClearAllPoints()
-        scroll:SetPoint("TOPLEFT", self, "TOPLEFT", 6, -6)
-        if self:GetWidth() < 640 then
-            detail:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 6, BOTTOM_H + 2)
+        local treeW = floor((self:GetWidth() or 0) + 0.5)
+        local narrow = treeW < 640
+        local listW
+        if narrow ~= self.listNarrow then
+            self.listNarrow = narrow
+            detail:ClearAllPoints()
+            detail:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
+            scroll:ClearAllPoints()
+            scroll:SetPoint("TOPLEFT", self, "TOPLEFT", 6, -6)
+            if narrow then
+                detail:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 6, BOTTOM_H + 2)
+                scroll:SetPoint("BOTTOMRIGHT", detail, "TOPRIGHT", -SCROLLBAR_W - 6, 4)
+            else
+                detail:SetPoint("TOPRIGHT", self, "TOPRIGHT", -6, -6)
+                scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
+            end
+        end
+
+        if narrow then
             detail:SetHeight(max(1, floor(self:GetHeight() * 0.45)))
-            scroll:SetPoint("BOTTOMRIGHT", detail, "TOPRIGHT", -SCROLLBAR_W - 6, 4)
+            listW = treeW - 18 - SCROLLBAR_W
         else
-            detail:SetPoint("TOPRIGHT", self, "TOPRIGHT", -6, -6)
-            detail:SetWidth(max(DETAIL_MIN_W, floor(self:GetWidth() * DETAIL_RATIO)))
-            scroll:SetPoint("BOTTOMRIGHT", detail, "BOTTOMLEFT", -SCROLLBAR_W - 6, 0)
+            local detailW = max(DETAIL_MIN_W, floor(treeW * DETAIL_RATIO))
+            detail:SetWidth(detailW)
+            listW = treeW - 18 - SCROLLBAR_W - detailW
         end
 
         local activeSection = 0
@@ -2819,7 +2909,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local baseLevel = listHolder:GetFrameLevel() or 0
-        local width = max(1, scroll:GetWidth() or 0)
+        local width = max(1, listW)
         local boxWidth = max(1, width - 2 * ListBox.marginX)
         local boxRowX = ListBox.marginX + ListBox.padX
         local boxRowWidth = max(1, width - 2 * boxRowX)
@@ -2904,6 +2994,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         holder:SetShown(isTree)
         listHolder:SetShown(list)
         detail:SetShown(list)
+        self.listNarrow = nil
         if not widget then
             scroll:ClearAllPoints()
             scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
@@ -3216,7 +3307,15 @@ function AzerothCompendium:CreateQuestTree(parent)
         if self:IsShown() then self:Layout() end
     end
 
-    tree:SetScript("OnSizeChanged", function(sel) sel:Layout() end)
+    tree:SetScript("OnSizeChanged", function(sel)
+        sel:Layout()
+        if sel.layoutQueued or C_Timer == nil then return end
+        sel.layoutQueued = true
+        C_Timer.After(0, function()
+            sel.layoutQueued = false
+            if sel:IsShown() then sel:Layout() end
+        end)
+    end)
     tree:SetViewMode(AzerothCompendium:GetConfig("QUESTVIEW", "list"))
 
     return tree

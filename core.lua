@@ -2928,3 +2928,31 @@ end
 function AzerothCompendium:GetIcon()
     return ICON
 end
+
+function AzerothCompendium:CreateInfoButton(parent, getTitle, getText)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(16, 16)
+    button.icon = button:CreateTexture(nil, "ARTWORK")
+    button.icon:SetTexture("Interface\\common\\help-i")
+    button.icon:SetSize(20, 20)
+    button.icon:SetPoint("CENTER", button, "CENTER", 0, 0)
+    button:SetHighlightTexture("Interface\\common\\help-i", "ADD")
+    local highlight = button:GetHighlightTexture()
+    if highlight then
+        highlight:ClearAllPoints()
+        highlight:SetSize(20, 20)
+        highlight:SetPoint("CENTER", button, "CENTER", 0, 0)
+        highlight:SetAlpha(0.4)
+    end
+
+    button:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(getTitle(sel) or "")
+        GameTooltip:AddLine(getText(sel) or "", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+
+    button:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
+
+    return button
+end
