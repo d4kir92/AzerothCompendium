@@ -6795,7 +6795,10 @@ local function CreateJournal()
         mapView.viewport:SetScript("OnUpdate", nil)
     end
 
-    mapView.viewport:SetScript("OnMouseUp", mapView.viewport.StopDrag)
+    mapView.viewport:SetScript("OnMouseUp", function(_, button)
+        mapView.viewport.StopDrag()
+        if button == "RightButton" and AzerothCompendium:IsGroupedKind(listKind) and compendium.overviewButton then compendium.overviewButton:Click() end
+    end)
     mapView.viewport:SetScript("OnHide", mapView.viewport.StopDrag)
     function mapView.viewport.OnDragUpdate()
         if mapView.dragX == nil or not IsMouseButtonDown("LeftButton") then
