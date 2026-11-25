@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("frFR", "LID_QUESTTREENOSTART", "Aucune quête préal
 AzerothCompendium:AddTrans("frFR", "LID_QUESTTREESCROLL", "Maj+molette ou glisser : défilement horizontal")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTTREESTART", "Avant l'instance - Acceptation et prérequis")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTVARIANTS", "Cette quête existe en %d variantes, une seule peut être accomplie")
+AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWCHAINS", "Chaînes")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWLIST", "Liste")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWTREE", "Arbre")
 AzerothCompendium:AddTrans("frFR", "LID_QUESTVIEWWIDGET", "Widget")

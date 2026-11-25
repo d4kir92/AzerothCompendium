@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("enUS", "LID_QUESTTREENOSTART", "No prerequisite ques
 AzerothCompendium:AddTrans("enUS", "LID_QUESTTREESCROLL", "Shift+wheel or drag: scroll sideways")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTTREESTART", "Before the Instance - Pick-up & Prerequisites")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTVARIANTS", "This quest exists in %d variants, only one of them can be done")
+AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWCHAINS", "Chains")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWLIST", "List")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWTREE", "Tree")
 AzerothCompendium:AddTrans("enUS", "LID_QUESTVIEWWIDGET", "Widget")

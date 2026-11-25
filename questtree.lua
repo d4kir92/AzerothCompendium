@@ -1540,6 +1540,97 @@ local function BuildListTree(graph)
     return items
 end
 
+local function BuildChainList(graph)
+    local quests, order = {}, {}
+    for _, node in ipairs(graph) do
+        local isMain = node.phases == nil or node.phases.turnin
+        if quests[node.id] == nil or isMain and quests[node.id].phases ~= nil and not quests[node.id].phases.turnin then
+            if quests[node.id] == nil then tinsert(order, node.id) end
+            quests[node.id] = node
+        end
+    end
+
+    local neighbors = {}
+    for _, node in ipairs(graph) do
+        local links = neighbors[node.id] or {parents = {}, children = {}}
+        neighbors[node.id] = links
+        for _, parent in ipairs(node.parents) do
+            if parent.id ~= node.id then links.parents[parent.id] = true end
+        end
+
+        for _, child in ipairs(node.children) do
+            if child.id ~= node.id then links.children[child.id] = true end
+        end
+    end
+
+    local owner, items = {}, {}
+    for _, startID in ipairs(order) do
+        if owner[startID] == nil then
+            local members = {}
+            owner[startID] = true
+            local stack = {startID}
+            while #stack > 0 do
+                local id = tremove(stack)
+                tinsert(members, quests[id])
+                for _, list in ipairs({neighbors[id].parents, neighbors[id].children}) do
+                    for other in pairs(list) do
+                        if owner[other] == nil and quests[other] then
+                            owner[other] = true
+                            tinsert(stack, other)
+                        end
+                    end
+                end
+            end
+
+            table.sort(members, SortNodes)
+            local steps, visited = {}, {}
+            local function Visit(node)
+                if visited[node.id] then return end
+                visited[node.id] = true
+                local parents = {}
+                for id in pairs(neighbors[node.id].parents) do
+                    if quests[id] then tinsert(parents, quests[id]) end
+                end
+
+                table.sort(parents, SortNodes)
+                for _, parent in ipairs(parents) do
+                    Visit(parent)
+                end
+
+                tinsert(steps, node)
+            end
+
+            for _, node in ipairs(members) do
+                Visit(node)
+            end
+
+            local root = steps[#steps]
+            for index = #steps, 1, -1 do
+                if next(neighbors[steps[index].id].children) == nil then
+                    root = steps[index]
+                    break
+                end
+            end
+
+            local key = "chain:" .. root.id
+            local item = {node = root, key = key, children = {}, start = steps[1]}
+            for _, step in ipairs(steps) do
+                if step ~= root then tinsert(item.children, {node = step, key = key .. ":" .. step.id, children = {}}) end
+            end
+
+            tinsert(items, item)
+        end
+    end
+
+    table.sort(items, function(a, b)
+        if a.start.id == b.start.id then return a.key < b.key end
+
+        return SortNodes(a.start, b.start)
+    end)
+
+    return items
+end
+
 local function IsListItemOpen(item, expanded)
     return expanded ~= nil and expanded[item.key] == true
 end
@@ -1553,9 +1644,9 @@ local ListBox = {
     fill = {0.12, 0.12, 0.14, 0.5},
     modernFill = {0.145, 0.15, 0.17, 1},
     borders = {
-        open = {0.45, 0.45, 0.48, 1},
-        active = {1, 0.82, 0, 1},
-        complete = {0.18, 0.78, 0.22, 1},
+        open = {0.45, 0.45, 0.48, 0.5},
+        active = {1, 0.82, 0, 0.5},
+        complete = {0.18, 0.78, 0.22, 0.5},
     },
 }
 
@@ -1579,20 +1670,19 @@ function ListBox.Create(parent)
     box.background:SetAllPoints(box)
     box.background:SetColorTexture(ListBox.fill[1], ListBox.fill[2], ListBox.fill[3], ListBox.fill[4])
     box.border = CreateBorder(box, "BACKGROUND", -6, 2)
-    local Theme = AzerothCompendium.Theme
-    local record = Theme:NewRecord(box)
-    Theme:Hide(record, box.background)
+    ListBox.Snap(box.background)
     for _, edge in ipairs(box.border) do
-        Theme:Hide(record, edge)
+        ListBox.Snap(edge)
     end
 
-    local border = ListBox.borders.open
-    local radius = Theme.radius.control
-    box.modernBorder = Theme:Round(record, box, "BACKGROUND", -8, border, radius)
-    box.modernFill = Theme:Round(record, box, "BACKGROUND", -7, ListBox.modernFill, max(1, radius - 2), box, 2)
-    Theme:ApplyRecord(record, Theme:IsModern())
+    AzerothCompendium:AddLayout(box, function() ListBox.Update(box, box.state) end)
 
     return box
+end
+
+function ListBox.Snap(texture)
+    if texture.SetSnapToPixelGrid then texture:SetSnapToPixelGrid(true) end
+    if texture.SetTexelSnappingBias then texture:SetTexelSnappingBias(0) end
 end
 
 function ListBox.GetThickness(box)
@@ -1608,25 +1698,22 @@ function ListBox.SetThickness(box, thickness)
     box.thickness = thickness
     box.border[1]:SetHeight(thickness)
     box.border[2]:SetHeight(thickness)
-    box.border[3]:SetWidth(thickness)
-    box.border[4]:SetWidth(thickness)
-    local Theme = AzerothCompendium.Theme
-    local size = max(1, Theme.radius.control - thickness)
-    for index, def in ipairs(Theme.CORNERS) do
-        local corner = box.modernFill[index]
-        corner:SetSize(size, size)
-        corner:ClearAllPoints()
-        corner:SetPoint(def[1], box, def[1], def[1]:find("LEFT") and thickness or -thickness, def[1]:find("TOP") and -thickness or thickness)
+    for index, side in ipairs({"LEFT", "RIGHT"}) do
+        local edge = box.border[index + 2]
+        edge:ClearAllPoints()
+        edge:SetPoint("TOP" .. side, box, "TOP" .. side, 0, -thickness)
+        edge:SetPoint("BOTTOM" .. side, box, "BOTTOM" .. side, 0, thickness)
+        edge:SetWidth(thickness)
     end
 end
 
 function ListBox.Update(box, state)
+    box.state = state
     local border = ListBox.borders[state] or ListBox.borders.open
+    local fill = AzerothCompendium.Theme:IsModern() and ListBox.modernFill or ListBox.fill
     ListBox.SetThickness(box, ListBox.GetThickness(box))
+    box.background:SetColorTexture(fill[1], fill[2], fill[3], fill[4])
     box.border:SetColor(border[1], border[2], border[3], border[4])
-    local Theme = AzerothCompendium.Theme
-    Theme.shapes[box.modernBorder] = border
-    Theme:Paint(box.modernBorder, border)
 end
 
 local function FlattenList(items, depth, expanded, out, box)
@@ -1913,7 +2000,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
 end
 
 local function CreateViewSwitch(tree, onChange)
-    local modes = {"tree", "list", "widget"}
+    local modes = {"tree", "list", "chains", "widget"}
     local switch = CreateFrame("Frame", nil, tree)
     switch:SetSize(#modes * VIEW_BUTTON_W, BOTTOM_H - 2)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
@@ -1964,6 +2051,7 @@ local function CreateViewSwitch(tree, onChange)
     local function UpdateTexts()
         switch.buttons.tree:SetText(AzerothCompendium:Trans("LID_QUESTVIEWTREE"))
         switch.buttons.list:SetText(AzerothCompendium:Trans("LID_QUESTVIEWLIST"))
+        switch.buttons.chains:SetText(AzerothCompendium:Trans("LID_QUESTVIEWCHAINS"))
         switch.buttons.widget:SetText(AzerothCompendium:Trans("LID_QUESTVIEWWIDGET"))
     end
 
@@ -2814,7 +2902,8 @@ function AzerothCompendium:CreateQuestTree(parent)
     function tree:LayoutList()
         local graph = self.graph
         local attunement = graph.attunement
-        local items = BuildListTree(graph)
+        local chains = self.viewMode == "chains"
+        local items = chains and BuildChainList(graph) or BuildListTree(graph)
         self.listItems = items
         local treeW = floor((self:GetWidth() or 0) + 0.5)
         local narrow = treeW < 640
@@ -2844,19 +2933,35 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local activeSection = 0
-        for section = 1, SECTION_COUNT do
-            local progress = items.progress[section]
-            if progress and progress.done < progress.total then
-                activeSection = section
-                break
-            end
-        end
-
         local firstActive = items[1]
-        for _, item in ipairs(items) do
-            if item.section == activeSection then
-                firstActive = item
-                break
+        if chains then
+            local firstOpen
+            for _, item in ipairs(items) do
+                local state = ListBox.GetState(item)
+                if state == "active" then
+                    firstActive = item
+                    firstOpen = nil
+                    break
+                end
+
+                if state == "open" and firstOpen == nil then firstOpen = item end
+            end
+
+            firstActive = firstOpen or firstActive
+        else
+            for section = 1, SECTION_COUNT do
+                local progress = items.progress[section]
+                if progress and progress.done < progress.total then
+                    activeSection = section
+                    break
+                end
+            end
+
+            for _, item in ipairs(items) do
+                if item.section == activeSection then
+                    firstActive = item
+                    break
+                end
             end
         end
 
@@ -2876,7 +2981,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local expanded = self:GetListExpanded()
-        if #items > 0 or attunement ~= nil then
+        if chains then
+            FlattenList(items, 0, expanded, entries)
+        elseif #items > 0 or attunement ~= nil then
             local bySection = {}
             for _, item in ipairs(items) do
                 bySection[item.section] = bySection[item.section] or {}
@@ -2982,10 +3089,10 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:SetViewMode(mode)
-        if mode ~= "list" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
+        if mode ~= "list" and mode ~= "chains" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
         AzerothCompendium:SetConfig("QUESTVIEW", mode)
         self.viewMode = mode
-        local list = mode == "list"
+        local list = mode == "list" or mode == "chains"
         local widget = mode == "widget"
         local isTree = mode == "tree"
         scroll:SetShown(not widget)
@@ -3033,7 +3140,7 @@ function AzerothCompendium:CreateQuestTree(parent)
             return
         end
 
-        if self.viewMode == "list" then return self:LayoutList() end
+        if self.viewMode == "list" or self.viewMode == "chains" then return self:LayoutList() end
         local graph = self.graph
         lineCount = 0
         local baseLevel = canvas:GetFrameLevel() or 0
@@ -3240,7 +3347,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     function tree:FocusQuest(questID)
         if self.viewMode == "widget" then self:SetViewMode("list") end
-        if self.viewMode == "list" then
+        if self.viewMode == "list" or self.viewMode == "chains" then
             local path = {}
             local found = FindListPath(self.listItems, questID, path)
             if found then

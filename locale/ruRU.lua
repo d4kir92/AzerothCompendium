@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_QUESTTREENOSTART", "Предварите
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTTREESCROLL", "Shift+колесо или перетаскивание: прокрутка в сторону")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTTREESTART", "Перед подземельем - взятие и предварительные задания")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTVARIANTS", "У этого задания %d варианта, выполнить можно только один")
+AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWCHAINS", "Цепочки")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWLIST", "Список")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWTREE", "Дерево")
 AzerothCompendium:AddTrans("ruRU", "LID_QUESTVIEWWIDGET", "Виджет")

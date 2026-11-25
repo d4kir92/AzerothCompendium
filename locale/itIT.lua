@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("itIT", "LID_QUESTTREENOSTART", "Nessuna missione pre
 AzerothCompendium:AddTrans("itIT", "LID_QUESTTREESCROLL", "Maiusc+rotellina o trascina: scorri lateralmente")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTTREESTART", "Prima dell'istanza - Accettazione e prerequisiti")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTVARIANTS", "Questa missione ha %d varianti, se ne può completare solo una")
+AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWCHAINS", "Catene")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWLIST", "Elenco")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWTREE", "Albero")
 AzerothCompendium:AddTrans("itIT", "LID_QUESTVIEWWIDGET", "Widget")

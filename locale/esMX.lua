@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("esMX", "LID_QUESTTREENOSTART", "No se requieren misi
 AzerothCompendium:AddTrans("esMX", "LID_QUESTTREESCROLL", "Mayús+rueda o arrastrar: desplazar lateralmente")
 AzerothCompendium:AddTrans("esMX", "LID_QUESTTREESTART", "Antes de la instancia - Aceptar y requisitos")
 AzerothCompendium:AddTrans("esMX", "LID_QUESTVARIANTS", "Esta misión tiene %d variantes, solo se puede hacer una")
+AzerothCompendium:AddTrans("esMX", "LID_QUESTVIEWCHAINS", "Cadenas")
 AzerothCompendium:AddTrans("esMX", "LID_QUESTVIEWLIST", "Lista")
 AzerothCompendium:AddTrans("esMX", "LID_QUESTVIEWTREE", "Árbol")
 AzerothCompendium:AddTrans("esMX", "LID_QUESTVIEWWIDGET", "Widget")

@@ -271,6 +271,7 @@ AzerothCompendium:AddTrans("koKR", "LID_QUESTTREENOSTART", "선행 퀘스트 필
 AzerothCompendium:AddTrans("koKR", "LID_QUESTTREESCROLL", "Shift+휠 또는 드래그: 좌우 스크롤")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTTREESTART", "인스턴스 이전 - 수락 및 선행 퀘스트")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTVARIANTS", "이 퀘스트는 %d가지 버전이 있으며 그중 하나만 수행할 수 있습니다")
+AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWCHAINS", "연계")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWLIST", "목록")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWTREE", "트리")
 AzerothCompendium:AddTrans("koKR", "LID_QUESTVIEWWIDGET", "위젯")
