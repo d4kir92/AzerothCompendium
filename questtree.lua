@@ -71,7 +71,7 @@ local ZOOM_MIN = 0.4
 local ZOOM_MAX = 1.5
 local ZOOM_BAR_STEP = 5
 local ZOOM_BAR_W = 130
-local LIST_ROW_H = 18
+local LIST_ROW_H = 22
 local LIST_HEADER_H = 28
 local LIST_HEADER_GAP = 8
 local LIST_INDENT = 14
@@ -1791,7 +1791,7 @@ function ListBox.FlattenChains(items, expanded, out)
     end
 end
 
-ListBox.flow = {cardH = 36, gap = 6, arrowH = 16, padTop = 2, columns = 3, boxGap = 14}
+ListBox.flow = {cardH = 42, gap = 6, arrowH = 16, padTop = 2, columns = 3, boxGap = 14}
 
 function ListBox.GetFlowHeight(count, connector)
     local flow = ListBox.flow
@@ -1856,14 +1856,14 @@ function ListBox.CreateCard(row)
     local highlight = card:CreateTexture(nil, "HIGHLIGHT")
     highlight:SetAllPoints(card)
     highlight:SetColorTexture(1, 1, 1, 0.06)
-    card.title = card:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 20, -5)
-    card.title:SetPoint("TOPRIGHT", card, "TOPRIGHT", -20, -5)
+    card.title = card:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 20, -6)
+    card.title:SetPoint("TOPRIGHT", card, "TOPRIGHT", -20, -6)
     card.title:SetJustifyH("CENTER")
     card.title:SetWordWrap(false)
-    card.sub = card:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    card.sub:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 20, 5)
-    card.sub:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -20, 5)
+    card.sub = card:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    card.sub:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 20, 6)
+    card.sub:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -20, 6)
     card.sub:SetJustifyH("CENTER")
     card.sub:SetWordWrap(false)
     card.status = card:CreateTexture(nil, "ARTWORK")
@@ -2112,11 +2112,11 @@ local function CreateListRow(parent, tree)
     end)
     row.instanceHit:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
     row.instanceHit:Hide()
-    row.right = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    row.right = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.right:SetJustifyH("RIGHT")
     row.right:SetWordWrap(false)
-    row.text = row:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    row.text = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
     row.text:SetPoint("RIGHT", row.right, "LEFT", -6, 0)
     row.text:SetJustifyH("LEFT")
@@ -2271,7 +2271,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     elseif entry.kind == "empty" then
         row.background:SetColorTexture(0, 0, 0, 0)
         row.icon:Hide()
-        row.text:SetFontObject("GameFontDisableSmall")
+        row.text:SetFontObject("GameFontDisable")
         row.text:SetText(AzerothCompendium:Trans(SECTION_EMPTY[entry.section]))
     elseif entry.kind == "chain" then
         local progress = entry.progress
@@ -2282,7 +2282,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:SetTexture(STATUS_ICON.complete[1])
         row.icon:SetDesaturated(STATUS_ICON.complete[2])
         row.icon:SetShown(finished)
-        row.text:SetFontObject("GameFontHighlightSmall")
+        row.text:SetFontObject("GameFontHighlight")
         local title = Spoiler.Name(row.node)
         local unlocks = entry.item.unlocks
         if unlocks then
@@ -2302,7 +2302,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:SetTexture(icon)
         row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         row.icon:Show()
-        row.text:SetFontObject("GameFontHighlightSmall")
+        row.text:SetFontObject("GameFontHighlight")
         row.text:SetText(format("|T%s:%d|t ", status, STATUS_ICON_SIZE) .. text)
     else
         local node = row.node
@@ -2315,7 +2315,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:SetDesaturated(info[2])
         if info[3] then row.icon:SetVertexColor(info[3][1], info[3][2], info[3][3]) end
         row.icon:Show()
-        row.text:SetFontObject("GameFontNormalSmall")
+        row.text:SetFontObject("GameFontNormal")
         local title = GetListQuestTitle(node)
         if entry.number then title = format("|cffa0a0a0%d.|r %s", entry.number, title) end        row.text:SetText(title)
         row.right:SetText(GetListQuestRight(node))
@@ -2598,7 +2598,7 @@ local function CreateQuestDetail(tree)
         end
 
         local function AddBody(text, r, g, b)
-            AddText(text, "GameFontHighlightSmall", 3, r or 1, g or 1, b or 1)
+            AddText(text, "GameFontHighlight", 3, r or 1, g or 1, b or 1)
         end
 
         local function AddItem(itemID, count, suffix)
@@ -2636,7 +2636,7 @@ local function CreateQuestDetail(tree)
         AddText(GetQuestDifficultyColorCode(node.level) .. "[" .. node.level .. "] " .. Spoiler.Name(node) .. "|r", "GameFontNormalLarge", 0)
         local status = GetQuestStatus(node.id, node)
         local statusColor = status == "locked" and {1, 0.3, 0.3} or (status == "open" or status == "lowlevel") and {0.65, 0.65, 0.65} or STATUS_BORDER[status]
-        AddText(format("|T%s:%d|t ", STATUS_ICON[status][1], STATUS_ICON_SIZE) .. AzerothCompendium:Trans(STATUS_TEXT[status]), "GameFontHighlightSmall", 4, statusColor[1], statusColor[2], statusColor[3])
+        AddText(format("|T%s:%d|t ", STATUS_ICON[status][1], STATUS_ICON_SIZE) .. AzerothCompendium:Trans(STATUS_TEXT[status]), "GameFontHighlight", 4, statusColor[1], statusColor[2], statusColor[3])
         local requiredLevel = GetNodeRequiredLevel(node)
         if requiredLevel then
             local playerLevel = UnitLevel and UnitLevel("player") or requiredLevel
