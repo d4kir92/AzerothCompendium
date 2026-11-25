@@ -471,25 +471,30 @@ function Library:OnPinClick(pin, button)
 end
 
 function Library:CreatePin(parent)
+    local maskPath = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
     local pin = CreateFrame("Button", nil, parent)
+    pin.border = pin:CreateTexture(nil, "OVERLAY", nil, -2)
+    pin.border:SetTexture(maskPath)
+    pin.bg = pin:CreateTexture(nil, "OVERLAY", nil, -1)
+    pin.bg:SetTexture(maskPath)
+    pin.bg:SetVertexColor(0, 0, 0, 0.75)
+    pin.bg:SetAllPoints(pin)
+    pin.bg:Hide()
     pin.icon = pin:CreateTexture(nil, "OVERLAY")
     pin.icon:SetAllPoints(pin)
-    pin.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    pin.border = {}
-    for i = 1, 4 do
-        pin.border[i] = pin:CreateTexture(nil, "OVERLAY", nil, 1)
+    pin.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    if pin.CreateMaskTexture ~= nil and pin.icon.AddMaskTexture ~= nil then
+        pin.iconMask = pin:CreateMaskTexture()
+        pin.iconMask:SetTexture(maskPath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        pin.iconMask:SetAllPoints(pin.icon)
+        pin.icon:AddMaskTexture(pin.iconMask)
     end
 
-    local top, bottom, left, right = unpack(pin.border)
-    top:SetPoint("TOPLEFT", pin, "TOPLEFT", 0, 0)
-    top:SetPoint("TOPRIGHT", pin, "TOPRIGHT", 0, 0)
-    bottom:SetPoint("BOTTOMLEFT", pin, "BOTTOMLEFT", 0, 0)
-    bottom:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 0, 0)
-    left:SetPoint("TOPLEFT", pin, "TOPLEFT", 0, 0)
-    left:SetPoint("BOTTOMLEFT", pin, "BOTTOMLEFT", 0, 0)
-    right:SetPoint("TOPRIGHT", pin, "TOPRIGHT", 0, 0)
-    right:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 0, 0)
-    pin:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+    local hl = pin:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetAllPoints(pin.icon)
+    hl:SetTexture(maskPath)
+    hl:SetBlendMode("ADD")
+    hl:SetVertexColor(1, 1, 1, 0.35)
     pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     pin:SetScript("OnClick", function(sel, button) self:OnPinClick(sel, button) end)
     pin:SetScript("OnEnter", function(sel) if sel.point then self:Tooltip(sel, sel.point.book) end end)
@@ -501,20 +506,18 @@ function Library:StylePin(pin, state, pixel)
     local owned = state == "bag" or state == "bank"
     pin.icon:SetAlpha(owned and 0.5 or 1)
     local color = owned and self.borderColors.owned or state == "missing" and self.borderColors.missing or nil
-    local t = pixel
-    local top, bottom, left, right = unpack(pin.border)
-    top:SetHeight(t)
-    bottom:SetHeight(t)
-    left:SetWidth(t)
-    right:SetWidth(t)
-    for _, edge in ipairs(pin.border) do
-        if color then
-            edge:SetColorTexture(color[1], color[2], color[3], 1)
-            edge:Show()
-        else
-            edge:Hide()
-        end
+    local t = pixel * 1.5
+    if color then
+        pin.border:ClearAllPoints()
+        pin.border:SetPoint("TOPLEFT", pin.icon, "TOPLEFT", -t, t)
+        pin.border:SetPoint("BOTTOMRIGHT", pin.icon, "BOTTOMRIGHT", t, -t)
+        pin.border:SetVertexColor(color[1], color[2], color[3], 1)
+        pin.border:Show()
+    else
+        pin.border:Hide()
     end
+
+    pin.bg:SetShown(owned and color ~= nil)
 end
 
 function Library:Project(point, mapID)
