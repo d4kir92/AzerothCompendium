@@ -7756,6 +7756,15 @@ function MapPins.Init()
         end
     end
 
+    local keys = {}
+    for _, entry in ipairs(MapPins.entries) do
+        keys[entry.key] = true
+    end
+
+    for key in pairs(ACOTAB["MAPPINEDITS"]) do
+        if not keys[key] then ACOTAB["MAPPINEDITS"][key] = nil end
+    end
+
     for _, entry in ipairs(MapPins.entries) do
         local edit = ACOTAB["MAPPINEDITS"][entry.key]
         if type(edit) == "table" and tonumber(edit[1]) and tonumber(edit[2]) and tonumber(edit[3]) then MapPins.Place(entry, edit[1], edit[2], edit[3]) end
