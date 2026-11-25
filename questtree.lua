@@ -1791,7 +1791,7 @@ function ListBox.FlattenChains(items, expanded, out)
     end
 end
 
-ListBox.flow = {cardH = 36, gap = 6, arrowH = 16, padTop = 2, columns = 3}
+ListBox.flow = {cardH = 36, gap = 6, arrowH = 16, padTop = 2, columns = 3, boxGap = 14}
 
 function ListBox.GetFlowHeight(count, connector)
     local flow = ListBox.flow
@@ -3348,6 +3348,7 @@ function AzerothCompendium:CreateQuestTree(parent)
         local listY = 0
         local boxCount = 0
         local activeBoxTop = nil
+        local boxGap = self.viewMode == "flow" and ListBox.flow.boxGap or ListBox.gap
         for index, entry in ipairs(entries) do
             local row = self.listRows[index]
             if row == nil then
@@ -3357,7 +3358,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
             listY = listY + (entry.gap or 0)
             if entry.boxStart then
-                listY = listY + ListBox.gap
+                listY = listY + (boxCount > 0 and boxGap or ListBox.gap)
                 activeBoxTop = listY
                 listY = listY + ListBox.padY
             end
