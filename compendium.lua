@@ -125,18 +125,18 @@ AzerothCompendium.ContentLayout = {
 AzerothCompendium.ContentLayoutModern = setmetatable({
     left = 16,
     right = 66,
-    top = 120,
+    top = 84,
     bottom = 30,
     tabGap = 4,
     tabOffset = 4,
-    railLeft = 16,
+    railLeft = 190,
     sideRight = 8,
-    sideTop = 84,
-    headerY = -56,
+    sideTop = 48,
+    headerY = -20,
     headerHeight = 28,
     continentWidth = 170,
-    searchTop = 42,
-    searchRight = 10,
+    searchTop = 6,
+    searchRight = 40,
     searchHeight = 28,
     searchWidth = 260
 }, {
@@ -148,13 +148,21 @@ function AzerothCompendium:GetContentLayout()
     return self.Theme:IsModern() and self.ContentLayoutModern or self.ContentLayout
 end
 
+function AzerothCompendium:UpdateHeaderLeft()
+    local title = compendium and self.Theme:GetTitleText(compendium)
+    local width = title and title:GetStringWidth() or 0
+    if width > 0 then self.ContentLayoutModern.railLeft = math.ceil(14 + 22 + 8 + width + 16) end
+end
+
 function AzerothCompendium:AddLayout(region, apply)
     self.LayoutEntries[region] = apply
+    self:UpdateHeaderLeft()
     apply(self.Theme:IsModern())
 end
 
 function AzerothCompendium:ApplyCompendiumLayout()
     local modern = self.Theme:IsModern()
+    self:UpdateHeaderLeft()
     for _, apply in pairs(self.LayoutEntries) do
         apply(modern)
     end

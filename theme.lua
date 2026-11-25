@@ -21,6 +21,7 @@ Theme.PALETTES = {
         accentDark = {0.13, 0.36, 0.48, 1},
         title = {1, 0.82, 0.2, 1},
         muted = {0.55, 0.56, 0.6, 1},
+        detail = {0.133, 0.137, 0.153, 1},
     },
     materialdark = {
         window = {0.071, 0.071, 0.071, 1},
@@ -35,6 +36,7 @@ Theme.PALETTES = {
         accentDark = {0.3, 0.2, 0.45, 1},
         title = {0.87, 0.87, 0.87, 1},
         muted = {0.6, 0.6, 0.6, 1},
+        detail = {0.133, 0.137, 0.153, 1},
     },
     materiallight = {
         window = {0.565, 0.643, 0.682, 1},
@@ -49,6 +51,7 @@ Theme.PALETTES = {
         accentDark = {0.733, 0.871, 0.984, 1},
         title = {1, 1, 1, 1},
         muted = {0.925, 0.937, 0.945, 1},
+        detail = {0.11, 0.115, 0.133, 1},
     },
 }
 

@@ -537,9 +537,9 @@ function ModernStyle.SkinNode(node, highlight)
     Theme:ApplyRecord(record, Theme:IsModern())
 end
 
-function ModernStyle.SkinPanel(frame)
+function ModernStyle.SkinPanel(frame, color)
     local Theme = AzerothCompendium.Theme
-    local record = ModernStyle.Skin(frame, frame.background, frame.border, ModernStyle.box, Theme.radius.panel)
+    local record = ModernStyle.Skin(frame, frame.background, frame.border, color or ModernStyle.box, Theme.radius.panel)
     Theme:ApplyRecord(record, Theme:IsModern())
 end
 
@@ -2325,7 +2325,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
 end
 
 local function CreateViewSwitch(tree, onChange)
-    local modes = {"tree", "list", "chains", "flow", "widget"}
+    local modes = {"flow", "chains", "list", "tree", "widget"}
     local switch = CreateFrame("Frame", nil, tree)
     switch:SetSize(#modes * VIEW_BUTTON_W, BOTTOM_H - 2)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
@@ -2506,7 +2506,7 @@ local function CreateQuestDetail(tree)
     panel.background:SetColorTexture(0, 0, 0, 0.3)
     panel.border = CreateBorder(panel, "BACKGROUND", -6)
     panel.border:SetColor(0.75, 0.6, 0.25, 0.7)
-    ModernStyle.SkinPanel(panel)
+    ModernStyle.SkinPanel(panel, AzerothCompendium.Theme.colors.detail)
     local scroll = CreateFrame("ScrollFrame", nil, panel)
     scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", DETAIL_PAD, -DETAIL_PAD)
     scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -DETAIL_PAD, DETAIL_PAD)
