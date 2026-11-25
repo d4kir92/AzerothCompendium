@@ -1035,7 +1035,10 @@ local function ArrangeComponent(component)
 
     for _, node in ipairs(component.nodes) do
         local list = layers[node.section]
-        list[node.layer + 1] = list[node.layer + 1] or {}
+        for index = #list + 1, node.layer + 1 do
+            list[index] = {}
+        end
+
         tinsert(list[node.layer + 1], node)
     end
 
