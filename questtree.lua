@@ -1550,8 +1550,9 @@ local function BuildChainList(graph)
         end
     end
 
-    local neighbors = {}
+    local neighbors, inside = {}, {}
     for _, node in ipairs(graph) do
+        if node.section == 3 then inside[node.id] = true end
         local links = neighbors[node.id] or {parents = {}, children = {}}
         neighbors[node.id] = links
         for _, parent in ipairs(node.parents) do
@@ -1621,17 +1622,14 @@ local function BuildChainList(graph)
 
             item.isChain = true
             for _, step in ipairs(steps) do
-                local parents, stage = {}, 1
+                local stage = 1
                 for id in pairs(neighbors[step.id].parents) do
-                    if quests[id] and stages[id] then
-                        tinsert(parents, quests[id])
-                        stage = max(stage, stages[id] + 1)
-                    end
+                    if quests[id] and stages[id] then stage = max(stage, stages[id] + 1) end
                 end
 
-                table.sort(parents, function(a, b) return stepIndex[a.id] < stepIndex[b.id] end)
                 stages[step.id] = stage
-                tinsert(item.children, {node = step, key = key .. ":" .. step.id, children = {}, stage = stage, after = parents})
+                item.unlocks = item.unlocks or GetProvidedItem(step.id)
+                tinsert(item.children, {node = step, key = key .. ":" .. step.id, children = {}, stage = stage, inside = inside[step.id] == true})
             end
 
             table.sort(item.children, function(a, b)
@@ -1645,6 +1643,7 @@ local function BuildChainList(graph)
     end
 
     table.sort(items, function(a, b)
+        if (a.unlocks ~= nil) ~= (b.unlocks ~= nil) then return a.unlocks ~= nil end
         if a.start.id == b.start.id then return a.key < b.key end
 
         return SortNodes(a.start, b.start)
@@ -1770,33 +1769,26 @@ function ListBox.FlattenChains(items, expanded, out)
     for _, item in ipairs(items) do
         local open = #item.children > 0 and IsListItemOpen(item, expanded)
         local group = {state = ListBox.GetState(item)}
+        if #item.children == 1 then
+            local child = item.children[1]
+            tinsert(out, {kind = "quest", item = child, key = child.key, depth = 0, box = group, boxStart = true, inside = child.inside})
+            open = false
+        end
+
         local done = 0
         for _, child in ipairs(item.children) do
             if GetQuestStatus(child.node.id, child.node) == "complete" then done = done + 1 end
         end
 
-        tinsert(out, {kind = "chain", item = item, key = item.key, depth = 0, hasChildren = #item.children > 0, open = open, box = group, boxStart = true, progress = {done = done, total = #item.children}})
+        if #item.children ~= 1 then tinsert(out, {kind = "chain", item = item, key = item.key, depth = 0, hasChildren = #item.children > 0, open = open, box = group, boxStart = true, progress = {done = done, total = #item.children}}) end
         if open then
-            local previous
             for _, child in ipairs(item.children) do
-                local after = child.after
-                if #after == 0 or #after == 1 and after[1] == previous then after = nil end
-                tinsert(out, {kind = "quest", item = child, key = child.key, depth = math.min(child.stage, ListBox.maxStageDepth), box = group, number = child.stage, after = after})
-                previous = child.node
+                tinsert(out, {kind = "quest", item = child, key = child.key, depth = math.min(child.stage, ListBox.maxStageDepth), box = group, number = child.stage, inside = child.inside})
             end
         end
 
         out[#out].boxEnd = true
     end
-end
-
-function ListBox.GetAfterText(after)
-    local names = {}
-    for _, node in ipairs(after) do
-        tinsert(names, Spoiler.Name(node))
-    end
-
-    return format(AzerothCompendium:Trans("LID_QUESTCHAINAFTER"), table.concat(names, ", "))
 end
 
 local function FindListPath(items, questID, path)
@@ -1842,6 +1834,12 @@ local function GetListQuestRight(node)
     local startItem = not Spoiler.IsMasked(node) and AzerothCompendium.QUESTSTARTITEMS and AzerothCompendium.QUESTSTARTITEMS[node.id]
     if startItem then
         local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(startItem[1])
+        text = text .. format(" |T%s:%d:%d:0:0:64:64:5:59:5:59|t", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    end
+
+    local providedItem = not Spoiler.IsMasked(node) and GetProvidedItem(node.id)
+    if providedItem then
+        local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(providedItem)
         text = text .. format(" |T%s:%d:%d:0:0:64:64:5:59:5:59|t", tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE)
     end
 
@@ -1894,6 +1892,27 @@ local function CreateListRow(parent, tree)
         GameTooltip:Show()
     end)
     row.statusHit:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
+    row.instanceIcon = row:CreateTexture(nil, "ARTWORK")
+    row.instanceIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    local entranceAtlas = AzerothCompendium:FindAtlas({"Dungeon", "DungeonSkull", "Dungeon-Normal"})
+    if entranceAtlas then
+        row.instanceIcon:SetAtlas(entranceAtlas)
+    else
+        row.instanceIcon:SetTexture(QUEST_TAG_DEFAULT_ICON)
+    end
+    row.instanceIcon:Hide()
+    row.instanceHit = CreateFrame("Frame", nil, row)
+    row.instanceHit:SetAllPoints(row.instanceIcon)
+    row.instanceHit:EnableMouse(true)
+    if row.instanceHit.SetPropagateMouseClicks then row.instanceHit:SetPropagateMouseClicks(true) end
+    row.instanceHit:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:Trans("LID_QUESTTREEINSTANCE"))
+        GameTooltip:AddLine(AzerothCompendium:Trans("LID_QUESTCHAININSIDE"), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    row.instanceHit:SetScript("OnLeave", function(sel) if GameTooltip:IsOwned(sel) then GameTooltip:Hide() end end)
+    row.instanceHit:Hide()
     row.right = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     row.right:SetPoint("RIGHT", row, "RIGHT", -6, 0)
     row.right:SetJustifyH("RIGHT")
@@ -1978,9 +1997,14 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.icon:ClearAllPoints()
     row.right:ClearAllPoints()
     row.text:ClearAllPoints()
+    local inside = entry.kind == "quest" and entry.inside == true
+    row.instanceIcon:SetShown(inside)
+    row.instanceHit:SetShown(inside)
     if entry.kind == "quest" or entry.kind == "chain" then
         row.icon:SetPoint("RIGHT", row, "RIGHT", -6, 0)
-        row.right:SetPoint("RIGHT", row.icon, "LEFT", -4, 0)
+        row.instanceIcon:ClearAllPoints()
+        row.instanceIcon:SetPoint("RIGHT", row.icon, "LEFT", -4, 0)
+        row.right:SetPoint("RIGHT", inside and row.instanceIcon or row.icon, "LEFT", -4, 0)
         row.text:SetPoint("LEFT", row.toggle, "RIGHT", 3, 0)
     elseif entry.kind == "header" then
         row.icon:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -2039,7 +2063,18 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:SetDesaturated(STATUS_ICON.complete[2])
         row.icon:SetShown(finished)
         row.text:SetFontObject("GameFontHighlightSmall")
-        row.text:SetText(Spoiler.Name(row.node))
+        local title = Spoiler.Name(row.node)
+        local unlocks = entry.item.unlocks
+        if unlocks then
+            local name, _, quality, _, icon = AzerothCompendium:GetItemDisplay(unlocks)
+            if name == nil and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(unlocks) end
+            local color = quality and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+            name = name or ("Item " .. unlocks)
+            if color and color.hex then name = color.hex .. name .. "|r" end
+            title = format("%s  |T%s:%d:%d:0:0:64:64:5:59:5:59|t |cffa0a0a0%s|r", title, tostring(icon or 134400), STATUS_ICON_SIZE, STATUS_ICON_SIZE, format(AzerothCompendium:Trans("LID_QUESTCHAINUNLOCKS"), name .. "|cffa0a0a0"))
+        end
+
+        row.text:SetText(title)
         row.right:SetText(format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total))
     elseif entry.kind == "key" then
         row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
@@ -2062,9 +2097,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
         row.icon:Show()
         row.text:SetFontObject("GameFontNormalSmall")
         local title = GetListQuestTitle(node)
-        if entry.number then title = format("|cffa0a0a0%d.|r %s", entry.number, title) end
-        if entry.after then title = title .. "  |cff808080" .. ListBox.GetAfterText(entry.after) .. "|r" end
-        row.text:SetText(title)
+        if entry.number then title = format("|cffa0a0a0%d.|r %s", entry.number, title) end        row.text:SetText(title)
         row.right:SetText(GetListQuestRight(node))
     end
 
