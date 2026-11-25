@@ -1349,7 +1349,7 @@ function Tracker:CreateFrame()
     self.frame = frame
     if ButtonFrameTemplate_HidePortrait then pcall(ButtonFrameTemplate_HidePortrait, frame) end
     if type(frame.Inset) == "table" then frame.Inset:Hide() end
-    frame:SetFrameStrata("MEDIUM")
+    AzerothCompendium:ApplyWidgetLayer(frame, "tracker")
     frame:SetToplevel(false)
     frame:SetMovable(true)
     frame:SetResizable(true)

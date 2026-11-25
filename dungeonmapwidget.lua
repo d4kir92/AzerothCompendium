@@ -489,6 +489,8 @@ function MapWidget:CreateFrame()
     local c = self.config
     local frame = AzerothCompendium:CreateCompendiumDialog("AzerothCompendiumDungeonMapWidget", AzerothCompendium:Trans("LID_DUNGEONMAPWIDGET"))
     frame.titleText = self:GetTitleRegion(frame)
+    AzerothCompendium:ApplyWidgetLayer(frame, "map")
+    frame:SetToplevel(false)
     local width, height = self:GetSavedSize()
     frame:SetSize(width, height)
     frame:SetClampedToScreen(true)

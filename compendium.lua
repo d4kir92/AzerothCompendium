@@ -4961,6 +4961,18 @@ function AzerothCompendium:CreateCompendiumDialog(name, title)
     return frame
 end
 
+AzerothCompendium.WidgetLayers = {
+    quest = 1,
+    tracker = 2,
+    map = 3,
+}
+
+function AzerothCompendium:ApplyWidgetLayer(frame, layer)
+    local index = self.WidgetLayers[layer] or 1
+    frame:SetFrameStrata("MEDIUM")
+    frame:SetFrameLevel(200 + index * 100)
+end
+
 AzerothCompendium.SharedUI = {
     CreateScroller = CreateScroller,
     AddContentBorder = AddContentBorder,
