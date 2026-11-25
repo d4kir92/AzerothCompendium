@@ -1800,17 +1800,30 @@ function ListBox.GetFlowHeight(count, connector)
     return (connector and flow.arrowH or flow.padTop) + lines * flow.cardH + (lines - 1) * flow.gap
 end
 
+function ListBox.CountDone(item)
+    local done = 0
+    for _, child in ipairs(item.children) do
+        if child.node and GetQuestStatus(child.node.id, child.node) == "complete" then done = done + 1 end
+    end
+
+    return done
+end
+
+function ListBox.IsFlowOpen(item, expanded)
+    if #item.children == 0 then return false end
+    local stored = expanded and expanded[item.key]
+    if stored ~= nil then return stored == true end
+    return ListBox.GetState(item) ~= "complete" and ListBox.CountDone(item) < #item.children
+end
+
 function ListBox.FlattenFlow(items, expanded, out)
     for _, item in ipairs(items) do
-        local open = #item.children > 0 and IsListItemOpen(item, expanded)
+        local open = ListBox.IsFlowOpen(item, expanded)
         local group = {state = ListBox.GetState(item)}
         if #item.children == 1 then
             tinsert(out, {kind = "flow", cards = {item.children[1]}, depth = 0, box = group, boxStart = true, height = ListBox.GetFlowHeight(1, false)})
         else
-            local done = 0
-            for _, child in ipairs(item.children) do
-                if GetQuestStatus(child.node.id, child.node) == "complete" then done = done + 1 end
-            end
+            local done = ListBox.CountDone(item)
 
             tinsert(out, {kind = "chain", item = item, key = item.key, depth = 0, hasChildren = true, open = open, box = group, boxStart = true, progress = {done = done, total = #item.children}})
             if open then
@@ -3197,7 +3210,10 @@ function AzerothCompendium:CreateQuestTree(parent)
         local item = FindListItem(self.listItems, key)
         if item == nil then return end
         local expanded = self:GetListExpanded(true)
-        if expanded[key] then
+        local open = self.viewMode == "flow" and ListBox.IsFlowOpen(item, expanded) or self.viewMode ~= "flow" and expanded[key] == true
+        if self.viewMode == "flow" then
+            expanded[key] = not open
+        elseif open then
             expanded[key] = nil
         else
             expanded[key] = true

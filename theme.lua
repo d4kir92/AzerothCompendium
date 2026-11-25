@@ -385,7 +385,7 @@ function Theme:SkinWindow(frame)
         if title then
             if modern then
                 title:ClearAllPoints()
-                title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
+                title:SetPoint("LEFT", icon, "RIGHT", 8, frame.acoSubtitle and 6 or 0)
                 title:SetTextColor(unpack(Theme.colors.title))
             else
                 Theme:RestorePoints(title, record.titlePoints)

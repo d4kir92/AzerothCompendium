@@ -123,15 +123,15 @@ AzerothCompendium.ContentLayout = {
 }
 
 AzerothCompendium.ContentLayoutModern = setmetatable({
-    left = 16,
+    left = 10,
     right = 66,
-    top = 84,
-    bottom = 30,
+    top = 76,
+    bottom = 10,
     tabGap = 4,
     tabOffset = 4,
     railLeft = 190,
     sideRight = 8,
-    sideTop = 48,
+    sideTop = 40,
     headerY = -20,
     headerHeight = 28,
     continentWidth = 170,
@@ -3021,8 +3021,9 @@ local function LayoutMapArt()
     local maxY = math.max(0, (height - h) / 2)
     view.offsetX = math.max(-maxX, math.min(maxX, view.offsetX or 0))
     view.offsetY = math.max(-maxY, math.min(maxY, view.offsetY or 0))
+    local alignX = width < w and (width - w) / 2 or 0
     view.art:ClearAllPoints()
-    view.art:SetPoint("CENTER", view.viewport, "CENTER", view.offsetX, view.offsetY)
+    view.art:SetPoint("CENTER", view.viewport, "CENTER", view.offsetX + alignX, view.offsetY)
     view.art:SetSize(width, height)
     MapPins.Layout(view)
     MapPins.UpdateToggle(view)
@@ -3244,9 +3245,8 @@ end
 local function RefreshBosses()
     if compendium == nil then return end
     if not compendium.overviewActive then compendium.editDungeonVisibility = nil end
-    compendium.foreverNotice:SetShown(listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER)
-    compendium.foreverNotice:ClearAllPoints()
-    compendium.foreverNotice:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
+    compendium.foreverNotice.active = listKind == "dungeon" and not compendium.overviewActive and selectedInstance ~= nil and selectedInstance.forever == true and AzerothCompendium:GetFlavor() == FLAVOR_FOREVER
+    compendium.foreverNotice:UpdatePlacement()
     local lootToggle = (listKind == "pvp" or listKind == "sets") and not compendium.overviewActive
     compendium.factionToggle:ClearAllPoints()
     if lootToggle then
@@ -5002,6 +5002,7 @@ end
 local function SetSpecialMode(mode)
     if compendium == nil then return end
     local enabled = mode ~= nil
+    compendium.foreverNotice.active = false
     compendium.foreverNotice:Hide()
     compendium.search:SetShown(mode ~= "allitems" and mode ~= "settings")
     compendium.searchLabel:SetShown(mode ~= "allitems" and mode ~= "settings")
@@ -6521,9 +6522,22 @@ local function CreateJournal()
     compendium:Hide()
     SetFrameTitle(compendium, AzerothCompendium:Trans("LID_TITLE"))
     compendium.version = compendium:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    compendium.version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
+    compendium.acoSubtitle = true
     compendium.version:SetTextColor(0.5, 0.5, 0.5)
-    compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())    compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
+    compendium.version:SetText("v" .. AzerothCompendium:GetAddonVersion())
+    AzerothCompendium:AddLayout(compendium.version, function(modern)
+        local version = compendium.version
+        version:ClearAllPoints()
+        local title = modern and AzerothCompendium.Theme:GetTitleText(compendium)
+        if title then
+            version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -1)
+        else
+            version:SetPoint("BOTTOMRIGHT", compendium, "BOTTOMRIGHT", -24, 10)
+        end
+
+        if compendium.foreverNotice then compendium.foreverNotice:UpdatePlacement() end
+    end)
+    compendium.foreverNotice = CreateFrame("Frame", nil, compendium)
     compendium.foreverNotice:SetHeight(24)
     compendium.foreverNotice:EnableMouse(false)
     for _, edge in ipairs({"TOP", "BOTTOM", "LEFT", "RIGHT"}) do
@@ -6553,9 +6567,36 @@ local function CreateJournal()
     end
     compendium.foreverNotice.measure:SetWordWrap(false)
     compendium.foreverNotice.measure:Hide()
+    compendium.foreverNotice.background = compendium.foreverNotice:CreateTexture(nil, "BACKGROUND")
+    compendium.foreverNotice.background:SetAllPoints()
+    compendium.foreverNotice.background:SetColorTexture(0, 0, 0, 0.75)
     function compendium.foreverNotice:UpdateWidth()
-        local available = max(1, compendium:GetWidth() - 10 - 24 - compendium.version:GetStringWidth() - 12)
+        local available
+        if self.onMap then
+            available = max(1, compendium.mapView:GetWidth() - 16)
+        else
+            available = max(1, compendium:GetWidth() - 10 - 24 - compendium.version:GetStringWidth() - 12)
+        end
+
         self:SetWidth(min(available, self.textWidth or available))
+    end
+
+    function compendium.foreverNotice:UpdatePlacement()
+        local map = compendium.mapView
+        self.onMap = AzerothCompendium.Theme:IsModern() and map ~= nil
+        self:ClearAllPoints()
+        if self.onMap then
+            self:SetParent(map)
+            self:SetFrameLevel(map:GetFrameLevel() + 50)
+            self:SetPoint("BOTTOMLEFT", map, "BOTTOMLEFT", 8, 8)
+        else
+            self:SetParent(compendium)
+            self:SetPoint("LEFT", compendium, "BOTTOMLEFT", 10, 10 + compendium.version:GetHeight() / 2)
+        end
+
+        self.background:SetShown(self.onMap)
+        self:UpdateWidth()
+        self:SetShown(self.active == true)
     end
     compendium:HookScript("OnSizeChanged", function() compendium.foreverNotice:UpdateWidth() end)
     compendium.foreverNotice:Hide()
