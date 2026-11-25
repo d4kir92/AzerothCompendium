@@ -66,6 +66,7 @@ data\quest_followups.lua
 data\quest_rewards.lua
 data\attunements.lua
 data\attunement_quests.lua
+data\quest_location_overrides.lua
 data\quest_xp.lua
 data\world_quest_items.lua
 data\library_books.lua
