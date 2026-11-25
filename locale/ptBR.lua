@@ -274,6 +274,7 @@ AzerothCompendium:AddTrans("ptBR", "LID_QUESTTREESCROLL", "Shift+roda ou arrasta
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTTREESTART", "Antes da instância - Aceitar e pré-requisitos")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTVARIANTS", "Esta missão tem %d variantes, apenas uma pode ser feita")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWCHAINS", "Cadeias")
+AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWFLOW", "Fluxo")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWLIST", "Lista")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWTREE", "Árvore")
 AzerothCompendium:AddTrans("ptBR", "LID_QUESTVIEWWIDGET", "Widget")

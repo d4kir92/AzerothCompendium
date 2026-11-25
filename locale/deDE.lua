@@ -274,6 +274,7 @@ AzerothCompendium:AddTrans("deDE", "LID_QUESTTREESCROLL", "Umschalt+Mausrad oder
 AzerothCompendium:AddTrans("deDE", "LID_QUESTTREESTART", "Vor der Instanz - Annehmen & Vorquests")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTVARIANTS", "Diese Quest gibt es in %d Varianten, nur eine davon ist machbar")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWCHAINS", "Ketten")
+AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWFLOW", "Ablauf")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWLIST", "Liste")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWTREE", "Baum")
 AzerothCompendium:AddTrans("deDE", "LID_QUESTVIEWWIDGET", "Widget")

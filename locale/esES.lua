@@ -274,6 +274,7 @@ AzerothCompendium:AddTrans("esES", "LID_QUESTTREESCROLL", "Mayús+rueda o arrast
 AzerothCompendium:AddTrans("esES", "LID_QUESTTREESTART", "Antes de la instancia - Aceptar y requisitos")
 AzerothCompendium:AddTrans("esES", "LID_QUESTVARIANTS", "Esta misión tiene %d variantes, solo se puede hacer una")
 AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWCHAINS", "Cadenas")
+AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWFLOW", "Flujo")
 AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWLIST", "Lista")
 AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWTREE", "Árbol")
 AzerothCompendium:AddTrans("esES", "LID_QUESTVIEWWIDGET", "Widget")

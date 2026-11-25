@@ -1791,6 +1791,203 @@ function ListBox.FlattenChains(items, expanded, out)
     end
 end
 
+ListBox.flow = {cardH = 36, gap = 6, arrowH = 16, padTop = 2, columns = 3}
+
+function ListBox.GetFlowHeight(count, connector)
+    local flow = ListBox.flow
+    local lines = math.ceil(count / flow.columns)
+
+    return (connector and flow.arrowH or flow.padTop) + lines * flow.cardH + (lines - 1) * flow.gap
+end
+
+function ListBox.FlattenFlow(items, expanded, out)
+    for _, item in ipairs(items) do
+        local open = #item.children > 0 and IsListItemOpen(item, expanded)
+        local group = {state = ListBox.GetState(item)}
+        if #item.children == 1 then
+            tinsert(out, {kind = "flow", cards = {item.children[1]}, depth = 0, box = group, boxStart = true, height = ListBox.GetFlowHeight(1, false)})
+        else
+            local done = 0
+            for _, child in ipairs(item.children) do
+                if GetQuestStatus(child.node.id, child.node) == "complete" then done = done + 1 end
+            end
+
+            tinsert(out, {kind = "chain", item = item, key = item.key, depth = 0, hasChildren = true, open = open, box = group, boxStart = true, progress = {done = done, total = #item.children}})
+            if open then
+                local stages = {}
+                for _, child in ipairs(item.children) do
+                    local cards = stages[#stages]
+                    if cards == nil or cards.stage ~= child.stage then
+                        cards = {stage = child.stage}
+                        tinsert(stages, cards)
+                    end
+
+                    tinsert(cards, child)
+                end
+
+                for index, cards in ipairs(stages) do
+                    tinsert(out, {kind = "flow", cards = cards, depth = 0, box = group, connector = index > 1, height = ListBox.GetFlowHeight(#cards, index > 1)})
+                end
+            end
+        end
+
+        out[#out].boxEnd = true
+    end
+end
+
+ListBox.cardFill = {
+    complete = {0.15, 0.27, 0.17, 1},
+    ready = {0.16, 0.23, 0.33, 1},
+    active = {0.16, 0.23, 0.33, 1},
+}
+
+function ListBox.CreateCard(row)
+    local tree = row.tree
+    local card = CreateFrame("Button", nil, row)
+    card:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    card.background = card:CreateTexture(nil, "BACKGROUND")
+    card.background:SetAllPoints(card)
+    card.border = CreateBorder(card, "BORDER", 0, 1)
+    ListBox.Snap(card.background)
+    for _, edge in ipairs(card.border) do
+        ListBox.Snap(edge)
+    end
+
+    local highlight = card:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(card)
+    highlight:SetColorTexture(1, 1, 1, 0.06)
+    card.title = card:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 20, -5)
+    card.title:SetPoint("TOPRIGHT", card, "TOPRIGHT", -20, -5)
+    card.title:SetJustifyH("CENTER")
+    card.title:SetWordWrap(false)
+    card.sub = card:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    card.sub:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 20, 5)
+    card.sub:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -20, 5)
+    card.sub:SetJustifyH("CENTER")
+    card.sub:SetWordWrap(false)
+    card.status = card:CreateTexture(nil, "ARTWORK")
+    card.status:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    card.status:SetPoint("TOPRIGHT", card, "TOPRIGHT", -4, -4)
+    card.inside = card:CreateTexture(nil, "ARTWORK")
+    card.inside:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    card.inside:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -4, 4)
+    local entranceAtlas = AzerothCompendium:FindAtlas({"Dungeon", "DungeonSkull", "Dungeon-Normal"})
+    if entranceAtlas then
+        card.inside:SetAtlas(entranceAtlas)
+    else
+        card.inside:SetTexture(QUEST_TAG_DEFAULT_ICON)
+    end
+
+    card.key = card:CreateTexture(nil, "ARTWORK")
+    card.key:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+    card.key:SetPoint("TOPLEFT", card, "TOPLEFT", 4, -4)
+    card:SetScript("OnMouseDown", function() tree.dragMoved = false end)
+    card:SetScript("OnEnter", function(sel)
+        tree:SetQuestHighlight(sel.node.id)
+        ShowNodeTooltip(sel)
+        if sel.isInside then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(AzerothCompendium:Trans("LID_QUESTCHAININSIDE"), 1, 1, 1, true)
+            GameTooltip:Show()
+        end
+    end)
+
+    card:SetScript("OnLeave", function()
+        tree:SetQuestHighlight(nil)
+        AzerothCompendium:HideGameTooltip()
+    end)
+
+    card:SetScript("OnClick", function(sel, mouseButton)
+        if mouseButton == "RightButton" then
+            ShareNodeQuest(sel.node)
+        elseif not ShowQuestWowheadLink(sel.node.id) then
+            tree:SelectListKey(sel.entryKey)
+        end
+    end)
+
+    return card
+end
+
+function ListBox.UpdateCard(card, child, selected)
+    local node = child.node
+    local status = GetQuestStatus(node.id, node)
+    local fill = ListBox.cardFill[status] or ListBox.modernFill
+    local border = selected and ListBox.borders.active or STATUS_BORDER[status] or ListBox.borders.open
+    card.node = node
+    card.entryKey = child.key
+    card.isInside = child.inside == true
+    card.background:SetColorTexture(fill[1], fill[2], fill[3], fill[4])
+    card.border:SetColor(border[1], border[2], border[3], selected and 1 or 0.6)
+    local thickness = ListBox.GetThickness(card)
+    card.border[1]:SetHeight(thickness)
+    card.border[2]:SetHeight(thickness)
+    card.border[3]:SetWidth(thickness)
+    card.border[4]:SetWidth(thickness)
+    card.title:SetText(ListBox.GetQuestTitle(node))
+    local info = STATUS_ICON[status]
+    card.status:SetTexture(info[1])
+    card.status:SetDesaturated(info[2])
+    if info[3] then
+        card.status:SetVertexColor(info[3][1], info[3][2], info[3][3])
+    else
+        card.status:SetVertexColor(1, 1, 1)
+    end
+
+    card.sub:SetText(AzerothCompendium:Trans(STATUS_TEXT[status] or "LID_QUESTNOTACCEPTED"))
+    card.inside:SetShown(card.isInside)
+    local provided = not Spoiler.IsMasked(node) and GetProvidedItem(node.id)
+    if provided then
+        local _, _, _, _, icon = AzerothCompendium:GetItemDisplay(provided)
+        card.key:SetTexture(icon or 134400)
+    end
+
+    card.key:SetShown(provided ~= nil and provided ~= false)
+    card:Show()
+end
+
+function ListBox.UpdateFlow(row, entry, selectedKey)
+    local flow = ListBox.flow
+    local cards = entry.cards
+    row.cards = row.cards or {}
+    row.flowKeys = {}
+    local top = entry.connector and flow.arrowH or flow.padTop
+    if row.arrow == nil then
+        row.arrow = row:CreateTexture(nil, "ARTWORK")
+        row.arrow:SetTexture(AzerothCompendium.Theme.MEDIA .. "chevron")
+        row.arrow:SetSize(14, 14)
+        row.arrow:SetVertexColor(0.7, 0.7, 0.72, 0.8)
+    end
+
+    row.arrow:ClearAllPoints()
+    row.arrow:SetPoint("TOP", row, "TOP", 0, -1)
+    row.arrow:SetShown(top == flow.arrowH)
+    local width = row:GetWidth() or 0
+    for index, child in ipairs(cards) do
+        local card = row.cards[index]
+        if card == nil then
+            card = ListBox.CreateCard(row)
+            row.cards[index] = card
+        end
+
+        local line = floor((index - 1) / flow.columns)
+        local first = line * flow.columns + 1
+        local inLine = min(flow.columns, #cards - first + 1)
+        local column = index - first
+        local cardW = (width - (inLine - 1) * flow.gap) / inLine
+        card:ClearAllPoints()
+        card:SetSize(max(1, cardW), flow.cardH)
+        card:SetPoint("TOPLEFT", row, "TOPLEFT", column * (cardW + flow.gap), -(top + line * (flow.cardH + flow.gap)))
+        card:SetFrameLevel(row:GetFrameLevel() + 1)
+        row.flowKeys[child.key] = true
+        ListBox.UpdateCard(card, child, child.key == selectedKey)
+    end
+
+    for index = #cards + 1, #row.cards do
+        row.cards[index]:Hide()
+    end
+end
+
 local function FindListPath(items, questID, path)
     for _, item in ipairs(items) do
         if item.node.id == questID and not item.isChain then return item end
@@ -1821,6 +2018,8 @@ local function GetListQuestTitle(node)
 
     return text
 end
+
+ListBox.GetQuestTitle = GetListQuestTitle
 
 local function GetListQuestRight(node)
     local text = ""
@@ -1982,6 +2181,27 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
     row.selected:SetShown(entry.kind == "quest" and entry.key == selectedKey)
     row.node = entry.item and entry.item.node or nil
     row.attunement = entry.attunement
+    row.flowKeys = nil
+    local flow = entry.kind == "flow"
+    row:EnableMouse(not flow)
+    if row.arrow then row.arrow:SetShown(false) end
+    for _, card in ipairs(row.cards or {}) do
+        card:SetShown(false)
+    end
+
+    if flow then
+        for _, region in ipairs({row.toggle, row.icon, row.text, row.right, row.headerText, row.headerRight, row.info, row.statusHit, row.instanceIcon, row.instanceHit}) do
+            region:Hide()
+        end
+
+        row.background:SetColorTexture(0, 0, 0, 0)
+        row:SetHeight(entry.height)
+        ListBox.UpdateFlow(row, entry, selectedKey)
+        row:Show()
+
+        return
+    end
+
     row.toggle:ClearAllPoints()
     row.toggle:SetPoint("LEFT", row, "LEFT", (entry.box and 3 or 6) + (entry.depth or 0) * LIST_INDENT, 0)
     if entry.kind == "header" then
@@ -2105,7 +2325,7 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
 end
 
 local function CreateViewSwitch(tree, onChange)
-    local modes = {"tree", "list", "chains", "widget"}
+    local modes = {"tree", "list", "chains", "flow", "widget"}
     local switch = CreateFrame("Frame", nil, tree)
     switch:SetSize(#modes * VIEW_BUTTON_W, BOTTOM_H - 2)
     switch:SetPoint("LEFT", tree, "BOTTOMLEFT", 4, BOTTOM_H / 2)
@@ -2157,6 +2377,7 @@ local function CreateViewSwitch(tree, onChange)
         switch.buttons.tree:SetText(AzerothCompendium:Trans("LID_QUESTVIEWTREE"))
         switch.buttons.list:SetText(AzerothCompendium:Trans("LID_QUESTVIEWLIST"))
         switch.buttons.chains:SetText(AzerothCompendium:Trans("LID_QUESTVIEWCHAINS"))
+        switch.buttons.flow:SetText(AzerothCompendium:Trans("LID_QUESTVIEWFLOW"))
         switch.buttons.widget:SetText(AzerothCompendium:Trans("LID_QUESTVIEWWIDGET"))
     end
 
@@ -3007,7 +3228,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     function tree:LayoutList()
         local graph = self.graph
         local attunement = graph.attunement
-        local chains = self.viewMode == "chains"
+        local chains = self.viewMode == "chains" or self.viewMode == "flow"
         local items = chains and BuildChainList(graph) or BuildListTree(graph)
         self.listItems = items
         local treeW = floor((self:GetWidth() or 0) + 0.5)
@@ -3083,7 +3304,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         end
 
         local expanded = self:GetListExpanded()
-        if chains then
+        if self.viewMode == "flow" then
+            ListBox.FlattenFlow(items, expanded, entries)
+        elseif chains then
             ListBox.FlattenChains(items, expanded, entries)
         elseif #items > 0 or attunement ~= nil then
             local bySection = {}
@@ -3191,10 +3414,10 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:SetViewMode(mode)
-        if mode ~= "list" and mode ~= "chains" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
+        if mode ~= "list" and mode ~= "chains" and mode ~= "flow" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
         AzerothCompendium:SetConfig("QUESTVIEW", mode)
         self.viewMode = mode
-        local list = mode == "list" or mode == "chains"
+        local list = mode == "list" or mode == "chains" or mode == "flow"
         local widget = mode == "widget"
         local isTree = mode == "tree"
         scroll:SetShown(not widget)
@@ -3242,7 +3465,7 @@ function AzerothCompendium:CreateQuestTree(parent)
             return
         end
 
-        if self.viewMode == "list" or self.viewMode == "chains" then return self:LayoutList() end
+        if self.viewMode == "list" or self.viewMode == "chains" or self.viewMode == "flow" then return self:LayoutList() end
         local graph = self.graph
         lineCount = 0
         local baseLevel = canvas:GetFrameLevel() or 0
@@ -3449,7 +3672,7 @@ function AzerothCompendium:CreateQuestTree(parent)
 
     function tree:FocusQuest(questID)
         if self.viewMode == "widget" then self:SetViewMode("list") end
-        if self.viewMode == "list" or self.viewMode == "chains" then
+        if self.viewMode == "list" or self.viewMode == "chains" or self.viewMode == "flow" then
             local path = {}
             local found = FindListPath(self.listItems, questID, path)
             if found then
@@ -3464,7 +3687,7 @@ function AzerothCompendium:CreateQuestTree(parent)
                 if found.section then self.listCollapseOverride[found.section] = false end
                 self:Layout()
                 for _, row in ipairs(self.listRows) do
-                    if row:IsShown() and row.key == found.key then
+                    if row:IsShown() and (row.key == found.key or row.flowKeys and row.flowKeys[found.key]) then
                         scroll:SetVerticalScroll(ClampScroll(scroll, false, (row.listY or 0) + LIST_ROW_H / 2 - scroll:GetHeight() / 2))
 
                         return true

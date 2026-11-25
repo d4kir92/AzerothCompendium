@@ -274,6 +274,7 @@ AzerothCompendium:AddTrans("zhCN", "LID_QUESTTREESCROLL", "Shift+滚轮或拖动
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTTREESTART", "副本之前 - 接取与前置任务")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTVARIANTS", "此任务有%d个版本，只能完成其中一个")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWCHAINS", "任务链")
+AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWFLOW", "流程")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWLIST", "列表")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWTREE", "树状")
 AzerothCompendium:AddTrans("zhCN", "LID_QUESTVIEWWIDGET", "小部件")
