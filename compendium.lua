@@ -3103,6 +3103,7 @@ local function LayoutMapArt()
     view.art:SetSize(width, height)
     MapPins.Layout(view)
     MapPins.UpdateToggle(view)
+    if AzerothCompendium.UpdateCompendiumPosArrow ~= nil then AzerothCompendium:UpdateCompendiumPosArrow() end
     if compendium.mapLevel and compendium.mapLevel:IsShown() and compendium.mapLevel.Layout then compendium.mapLevel:Layout() end
 end
 
@@ -6917,6 +6918,31 @@ local function CreateJournal()
     mapView.empty:SetPoint("CENTER", mapView, "CENTER", 0, 0)
     mapView.empty:SetText(AzerothCompendium:Trans("LID_NOMAP"))
     mapView:SetScript("OnSizeChanged", LayoutMapArt)
+    mapView:SetScript("OnUpdate", function(sel, elapsed)
+        sel.posElapsed = (sel.posElapsed or 0) + elapsed
+        if sel.posElapsed < 0.05 then return end
+        sel.posElapsed = 0
+        if AzerothCompendium.UpdateCompendiumPosArrow ~= nil then AzerothCompendium:UpdateCompendiumPosArrow() end
+    end)
+    mapView:HookScript("OnHide", function()
+        if AzerothCompendium.HideInstancePosArrow ~= nil then AzerothCompendium:HideInstancePosArrow(mapView.posArrow, "AC_Compendium") end
+    end)
+    function AzerothCompendium:UpdateCompendiumPosArrow()
+        if AzerothCompendium.UpdateInstancePosArrow == nil then return end
+        if mapView == nil or not mapView:IsShown() or not mapView:IsVisible() or mapView.info == nil or not mapView.art:IsShown() then
+            AzerothCompendium:HideInstancePosArrow(mapView.posArrow, "AC_Compendium")
+            return
+        end
+
+        local enabled = AzerothCompendium.GetSharedOption == nil or AzerothCompendium:GetSharedOption("INSTANCEPLAYERPOS")
+        if not enabled then
+            AzerothCompendium:HideInstancePosArrow(mapView.posArrow, "AC_Compendium")
+            return
+        end
+
+        if mapView.posArrow == nil then mapView.posArrow = AzerothCompendium:CreateInstancePosArrow(mapView.viewport, mapView.viewport:GetFrameLevel() + 700, 24) end
+        AzerothCompendium:UpdateInstancePosArrow(mapView.posArrow, mapView.art, mapView.info.file, "AC_Compendium", true)
+    end
     mapView:Hide()
     compendium.mapView = mapView
     local mapLevelControl = CreateFrame("Frame", nil, mapView)

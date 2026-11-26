@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("itIT", "LID_HIDEQUESTPINS", "Nascondi i segnalini de
 AzerothCompendium:AddTrans("itIT", "LID_HONORRANKS", "Gradi d'onore")
 AzerothCompendium:AddTrans("itIT", "LID_INSTANCEENTRANCES", "Ingressi di dungeon e incursioni")
 AzerothCompendium:AddTrans("itIT", "LID_INSTANCEMAPS", "Mappe di dungeon e incursioni")
+AzerothCompendium:AddTrans("itIT", "LID_INSTANCEPLAYERPOS", "Posizione del giocatore")
+AzerothCompendium:AddTrans("itIT", "LID_INSTANCEPLAYERPOSDESC", "Calcola la tua posizione in tempo reale nei dungeon e nelle incursioni tramite triangolazione 3D mentre la mappa è aperta.")
 AzerothCompendium:AddTrans("itIT", "LID_ITEMBROWSERHINT", "Inserisci un termine di ricerca o un filtro per mostrare gli oggetti")
 AzerothCompendium:AddTrans("itIT", "LID_ITEMCOUNT", "%d oggetti")
 AzerothCompendium:AddTrans("itIT", "LID_ITEMLEVEL", "Livello oggetto")

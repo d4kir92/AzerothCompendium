@@ -58,6 +58,7 @@ local WorldMap = {
         ["INSTANCEPINS_QUEST"] = "MAPPINS_QUEST",
         ["INSTANCEPINS_ENTRANCE"] = "MAPPINS_ENTRANCE",
         ["INSTANCEPINS_LEVEL"] = "MAPPINS_LEVEL",
+        ["INSTANCEPLAYERPOS"] = "INSTANCEPLAYERPOS",
         ["LIBRARYBOOKWORLDMAPPINS"] = "LIBRARYBOOKWORLDMAPPINS",
     },
     checkboxes = {},
@@ -87,7 +88,11 @@ function AzerothCompendium:OnSharedOptionChanged(key, value)
     if WorldMap.UpdateMinimapState ~= nil and WorldMap.UpdateMinimapState() then WorldMap.RedrawMinimap() end
     if WorldMap.map ~= nil then WorldMap.map:Invalidate() end
     if AzerothCompendium.RefreshMapPins ~= nil then AzerothCompendium:RefreshMapPins() end
-    if AzerothCompendium.DungeonMapWidget ~= nil and AzerothCompendium.DungeonMapWidget.RefreshPins ~= nil then AzerothCompendium.DungeonMapWidget:RefreshPins() end
+    if AzerothCompendium.UpdateCompendiumPosArrow ~= nil then AzerothCompendium:UpdateCompendiumPosArrow() end
+    if AzerothCompendium.DungeonMapWidget ~= nil then
+        if AzerothCompendium.DungeonMapWidget.RefreshPins ~= nil then AzerothCompendium.DungeonMapWidget:RefreshPins() end
+        if AzerothCompendium.DungeonMapWidget.UpdatePlayerArrow ~= nil then AzerothCompendium.DungeonMapWidget:UpdatePlayerArrow() end
+    end
 end
 
 function AzerothCompendium:SetSharedOption(key, value)
@@ -97,7 +102,7 @@ function AzerothCompendium:SetSharedOption(key, value)
 end
 
 AzerothCompendium:RegisterSharedSettings({
-    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "DUNGEONMINIMAPPINS", "MEETINGSTONEMINIMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_QUEST", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL", "LIBRARYBOOKWORLDMAPPINS"},
+    ["keys"] = {"DUNGEONWORLDMAPPINS", "MEETINGSTONEWORLDMAPPINS", "DUNGEONMINIMAPPINS", "MEETINGSTONEMINIMAPPINS", "INSTANCEPINS_BOSS", "INSTANCEPINS_ITEM", "INSTANCEPINS_QUEST", "INSTANCEPINS_ENTRANCE", "INSTANCEPINS_LEVEL", "INSTANCEPLAYERPOS", "LIBRARYBOOKWORLDMAPPINS"},
     ["getDB"] = function() return ACOTAB end,
     ["get"] = function(key) return AzerothCompendium:GetSharedOption(key) end,
     ["set"] = function(key, value) AzerothCompendium:SetConfig(WorldMap.sharedKeys[key], value) end,
@@ -268,6 +273,7 @@ WorldMap.map = AzerothCompendium:CreateInstanceMap({
     ["setBossScale"] = function(value) AzerothCompendium:SetConfig("MAPPINS_BOSSSCALE", value) end,
     ["getBossScaleText"] = function(percent) return format(AzerothCompendium:Trans("LID_BOSSPINSCALE"), percent) end,
     ["isPinEnabled"] = function(kind) return AzerothCompendium.MapPins.IsEnabled(kind) end,
+    ["isPlayerPosEnabled"] = function() return AzerothCompendium:GetSharedOption("INSTANCEPLAYERPOS") end,
     ["isQuestPinVisible"] = function(row) return AzerothCompendium.MapPins.IsQuestPinVisible(row) end,
     ["isBossKilled"] = function(row) return AzerothCompendium.DungeonTracker ~= nil and AzerothCompendium.DungeonTracker:IsBossKilled(row[4]) end,
     ["getQuestKindText"] = function(row) return AzerothCompendium:Trans(row[1] == "queststart" and "LID_MAPPINQUESTSTART" or "LID_MAPPINQUESTEND") end,

@@ -33,6 +33,10 @@
 ## IconTexture: 133737
 
 libs\D4Lib\D4Lib.xml
+shared\InstanceMap\instance_pos.lua
+shared\InstanceMap\instance_pos_data.lua
+shared\InstancePins\instance_pins.lua
+shared\InstanceMap\instance_map.lua
 TabSystemFallback.xml
 
 locale\enUS.lua

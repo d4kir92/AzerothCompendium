@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("ptBR", "LID_HIDEQUESTPINS", "Ocultar marcadores de m
 AzerothCompendium:AddTrans("ptBR", "LID_HONORRANKS", "Patentes de honra")
 AzerothCompendium:AddTrans("ptBR", "LID_INSTANCEENTRANCES", "Entradas de masmorras e raides")
 AzerothCompendium:AddTrans("ptBR", "LID_INSTANCEMAPS", "Mapas de masmorras e raides")
+AzerothCompendium:AddTrans("ptBR", "LID_INSTANCEPLAYERPOS", "Posição do jogador")
+AzerothCompendium:AddTrans("ptBR", "LID_INSTANCEPLAYERPOSDESC", "Estima sua posição ao vivo dentro de masmorras e raides por triangulação 3D enquanto o mapa estiver aberto.")
 AzerothCompendium:AddTrans("ptBR", "LID_ITEMBROWSERHINT", "Digite um termo de busca ou um filtro para listar itens")
 AzerothCompendium:AddTrans("ptBR", "LID_ITEMCOUNT", "%d itens")
 AzerothCompendium:AddTrans("ptBR", "LID_ITEMLEVEL", "Nível do item")

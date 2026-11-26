@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("ruRU", "LID_HIDEQUESTPINS", "Скрыть метки
 AzerothCompendium:AddTrans("ruRU", "LID_HONORRANKS", "Ранги чести")
 AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEENTRANCES", "Входы в подземелья и рейды")
 AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEMAPS", "Карты подземелий и рейдов")
+AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEPLAYERPOS", "Позиция игрока")
+AzerothCompendium:AddTrans("ruRU", "LID_INSTANCEPLAYERPOSDESC", "Определяет ваше положение в подземельях и рейдах с помощью 3D-триангуляции, пока открыта карта.")
 AzerothCompendium:AddTrans("ruRU", "LID_ITEMBROWSERHINT", "Введите запрос или фильтр, чтобы показать предметы")
 AzerothCompendium:AddTrans("ruRU", "LID_ITEMCOUNT", "Предметов: %d")
 AzerothCompendium:AddTrans("ruRU", "LID_ITEMLEVEL", "Уровень предмета")

@@ -116,6 +116,8 @@ local function HandleSlash(args)
         AzerothCompendium.DungeonMapWidget:Toggle()
     elseif (sub == "quests" or sub == "questwidget" or sub == "widget") and AzerothCompendium.QuestWidget then
         AzerothCompendium.QuestWidget:Toggle()
+    elseif sub == "instpos" and AzerothCompendium.PrintInstancePositionStatus ~= nil then
+        AzerothCompendium:PrintInstancePositionStatus()
     else
         AzerothCompendium:ToggleCompendium()
     end
@@ -321,6 +323,9 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
         AddSharedCheckbox("LIBRARYBOOKWORLDMAPPINS", "LID_WORLDMAPPINS", "2026-11-13")
     end
     AddCategory("INSTANCEMAPS", 2, "2026-10-04")
+    if AzerothCompendium.IsInstancePositionAvailable ~= nil and AzerothCompendium:IsInstancePositionAvailable() then
+        AddSharedCheckbox("INSTANCEPLAYERPOS", "LID_INSTANCEPLAYERPOS", "2026-11-26")
+    end
     AddSharedCheckbox("INSTANCEPINS_BOSS", "LID_SHOWBOSSPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_ITEM", "LID_SHOWQUESTITEMPINS", "2026-10-04")
     AddSharedCheckbox("INSTANCEPINS_QUEST", "LID_SHOWQUESTPINS", "2026-11-15")

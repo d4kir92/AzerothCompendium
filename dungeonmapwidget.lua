@@ -215,6 +215,31 @@ function MapWidget:ApplyView()
     frame.art:ClearAllPoints()
     frame.art:SetPoint("CENTER", frame.viewport, "CENTER", view.x, view.y)
     self:RefreshPins()
+    self:UpdatePlayerArrow()
+end
+
+function MapWidget:UpdatePlayerArrow()
+    if AzerothCompendium.UpdateInstancePosArrow == nil then return end
+    local frame = self.frame
+    if frame == nil or not frame:IsShown() or frame.art == nil or not frame.art:IsShown() then
+        AzerothCompendium:HideInstancePosArrow(self.posArrow, "AC_MapWidget")
+        return
+    end
+
+    local info = self.levels and self.levels[self.levelIndex or 1]
+    if info == nil then
+        AzerothCompendium:HideInstancePosArrow(self.posArrow, "AC_MapWidget")
+        return
+    end
+
+    local enabled = AzerothCompendium.GetSharedOption == nil or AzerothCompendium:GetSharedOption("INSTANCEPLAYERPOS")
+    if not enabled then
+        AzerothCompendium:HideInstancePosArrow(self.posArrow, "AC_MapWidget")
+        return
+    end
+
+    if self.posArrow == nil then self.posArrow = AzerothCompendium:CreateInstancePosArrow(frame.viewport, frame.viewport:GetFrameLevel() + 700, 20) end
+    AzerothCompendium:UpdateInstancePosArrow(self.posArrow, frame.art, info.file, "AC_MapWidget", true)
 end
 
 function MapWidget:LayoutArt()
@@ -572,20 +597,29 @@ function MapWidget:CreateFrame()
         self.view.drag = {dx, dy, self.view.x, self.view.y}
     end)
 
-    viewport:SetScript("OnUpdate", function()
+    viewport:SetScript("OnUpdate", function(sel, elapsed)
         local drag = self.view.drag
-        if drag == nil then return end
-        if not IsMouseButtonDown("LeftButton") then
-            self.view.drag = nil
-
-            return
+        if drag ~= nil then
+            if not IsMouseButtonDown("LeftButton") then
+                self.view.drag = nil
+            else
+                local dx, dy = self:GetCursorOffset()
+                if dx ~= nil then
+                    self.view.x = drag[3] + dx - drag[1]
+                    self.view.y = drag[4] + dy - drag[2]
+                    self:ApplyView()
+                end
+            end
         end
 
-        local dx, dy = self:GetCursorOffset()
-        if dx == nil then return end
-        self.view.x = drag[3] + dx - drag[1]
-        self.view.y = drag[4] + dy - drag[2]
-        self:ApplyView()
+        sel.posElapsed = (sel.posElapsed or 0) + elapsed
+        if sel.posElapsed < 0.05 then return end
+        sel.posElapsed = 0
+        self:UpdatePlayerArrow()
+    end)
+
+    frame:HookScript("OnHide", function()
+        if AzerothCompendium.HideInstancePosArrow ~= nil then AzerothCompendium:HideInstancePosArrow(self.posArrow, "AC_MapWidget") end
     end)
 
     frame.viewport = viewport
@@ -653,6 +687,7 @@ function MapWidget:Refresh()
         frame.levelPanel:Hide()
         frame.art:Hide()
         if self.pinSet ~= nil then self.pinSet:Hide() end
+        if AzerothCompendium.HideInstancePosArrow ~= nil then AzerothCompendium:HideInstancePosArrow(self.posArrow, "AC_MapWidget") end
 
         return
     end

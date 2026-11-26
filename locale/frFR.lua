@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("frFR", "LID_HIDEQUESTPINS", "Masquer les repères de
 AzerothCompendium:AddTrans("frFR", "LID_HONORRANKS", "Rangs d'honneur")
 AzerothCompendium:AddTrans("frFR", "LID_INSTANCEENTRANCES", "Entrées de donjons et de raids")
 AzerothCompendium:AddTrans("frFR", "LID_INSTANCEMAPS", "Cartes de donjons et de raids")
+AzerothCompendium:AddTrans("frFR", "LID_INSTANCEPLAYERPOS", "Position du joueur")
+AzerothCompendium:AddTrans("frFR", "LID_INSTANCEPLAYERPOSDESC", "Estime votre position en direct dans les donjons et raids par triangulation 3D lorsque la carte est ouverte.")
 AzerothCompendium:AddTrans("frFR", "LID_ITEMBROWSERHINT", "Saisissez une recherche ou un filtre pour afficher des objets")
 AzerothCompendium:AddTrans("frFR", "LID_ITEMCOUNT", "%d objets")
 AzerothCompendium:AddTrans("frFR", "LID_ITEMLEVEL", "Niveau d'objet")

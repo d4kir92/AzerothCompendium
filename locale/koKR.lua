@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("koKR", "LID_HIDEQUESTPINS", "퀘스트 핀 숨기기
 AzerothCompendium:AddTrans("koKR", "LID_HONORRANKS", "명예 등급")
 AzerothCompendium:AddTrans("koKR", "LID_INSTANCEENTRANCES", "던전 및 공격대 입구")
 AzerothCompendium:AddTrans("koKR", "LID_INSTANCEMAPS", "던전 및 공격대 지도")
+AzerothCompendium:AddTrans("koKR", "LID_INSTANCEPLAYERPOS", "플레이어 위치")
+AzerothCompendium:AddTrans("koKR", "LID_INSTANCEPLAYERPOSDESC", "지도가 열려 있는 동안 3D 삼각측량으로 던전 및 공격대 내 실시간 위치를 추정합니다.")
 AzerothCompendium:AddTrans("koKR", "LID_ITEMBROWSERHINT", "아이템을 표시하려면 검색어나 필터를 입력하세요")
 AzerothCompendium:AddTrans("koKR", "LID_ITEMCOUNT", "아이템 %d개")
 AzerothCompendium:AddTrans("koKR", "LID_ITEMLEVEL", "아이템 레벨")

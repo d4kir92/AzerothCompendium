@@ -106,6 +106,8 @@ AzerothCompendium:AddTrans("esES", "LID_HIDEQUESTPINS", "Ocultar marcadores de m
 AzerothCompendium:AddTrans("esES", "LID_HONORRANKS", "Rangos de honor")
 AzerothCompendium:AddTrans("esES", "LID_INSTANCEENTRANCES", "Entradas de mazmorras y bandas")
 AzerothCompendium:AddTrans("esES", "LID_INSTANCEMAPS", "Mapas de mazmorras y bandas")
+AzerothCompendium:AddTrans("esES", "LID_INSTANCEPLAYERPOS", "Posición del jugador")
+AzerothCompendium:AddTrans("esES", "LID_INSTANCEPLAYERPOSDESC", "Calcula tu posición en tiempo real dentro de mazmorras y bandas mediante triangulación 3D mientras el mapa está abierto.")
 AzerothCompendium:AddTrans("esES", "LID_ITEMBROWSERHINT", "Introduce un término de búsqueda o un filtro para mostrar objetos")
 AzerothCompendium:AddTrans("esES", "LID_ITEMCOUNT", "%d objetos")
 AzerothCompendium:AddTrans("esES", "LID_ITEMLEVEL", "Nivel de objeto")
