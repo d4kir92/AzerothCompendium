@@ -2564,7 +2564,13 @@ function Widget:Refresh()
     if flow then
         frame.empty:Hide()
         frame.showAllBtn:Hide()
-        local graph = AzerothCompendium:GetInstanceQuestGraph(inst, nil, type(ACOTABPC) ~= "table" or ACOTABPC.QUESTHIDECOMPLETED ~= false)
+        AzerothCompendium.filterScopeOverride = inst.type == "raid" and "RAID_QUESTS" or "DUNGEON_QUESTS"
+        local ok, graph = pcall(AzerothCompendium.GetInstanceQuestGraph, AzerothCompendium, inst, nil, type(ACOTABPC) ~= "table" or ACOTABPC.QUESTHIDECOMPLETED ~= false)
+        AzerothCompendium.filterScopeOverride = nil
+        if not ok then
+            geterrorhandler()(graph)
+            graph = {}
+        end
         frame.flowTree.instance = inst
         frame.flowTree:SetGraph(graph)
         frame.headerCount:SetText(tostring(#graph))

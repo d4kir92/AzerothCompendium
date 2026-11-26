@@ -1753,6 +1753,7 @@ local function UpdateBossRow(row, boss)
 end
 
 function AzerothCompendium:GetFilterScope()
+    if self.filterScopeOverride then return self.filterScopeOverride end
     if listKind ~= "dungeon" and listKind ~= "raid" then return nil end
     local tab = compendium ~= nil and compendium.overviewActive and "overview" or middleKind or "bosses"
     return strupper(listKind .. "_" .. tab)
@@ -7810,6 +7811,7 @@ function AzerothCompendium:RefreshCompendium()
     AzerothCompendium:InvalidateInstanceQuests()
     AzerothCompendium:SyncCompendiumClassFilter()
     AzerothCompendium:SyncCompendiumFlavor()
+    if AzerothCompendium.QuestWidget and AzerothCompendium.QuestWidget.Refresh then AzerothCompendium.QuestWidget:Refresh() end
     if compendium == nil then return end
     UpdateKindTabs()
     if not compendium:IsShown() then return end

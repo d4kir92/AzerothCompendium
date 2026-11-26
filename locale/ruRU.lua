@@ -292,6 +292,7 @@ AzerothCompendium:AddTrans("ruRU", "LID_QW_BGALPHA", "Прозрачность �
 AzerothCompendium:AddTrans("ruRU", "LID_QW_FOCUSQUEST", "Отслеживать задание")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_INFO", "Показывает по зонам, что ещё нужно сделать для этого подземелья: задания для взятия, предварительные задания и задания для сдачи.")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_INTHISZONE", "В этой зоне")
+AzerothCompendium:AddTrans("ruRU", "LID_QW_NEXTSTEPS", "Следующие шаги (%d)")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_NOLEVELQUESTS", "Нет заданий для вашего уровня")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_NONEINZONE", "Нет заданий в %s (%d в других зонах)")
 AzerothCompendium:AddTrans("ruRU", "LID_QW_NONEINZONEALL", "Нет заданий подземелий в %s")

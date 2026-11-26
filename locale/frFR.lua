@@ -292,6 +292,7 @@ AzerothCompendium:AddTrans("frFR", "LID_QW_BGALPHA", "Opacité de l'arrière-pla
 AzerothCompendium:AddTrans("frFR", "LID_QW_FOCUSQUEST", "Cibler la quête")
 AzerothCompendium:AddTrans("frFR", "LID_QW_INFO", "Affiche par zone ce qu'il te reste à faire pour ce donjon : quêtes à accepter, prérequis à terminer et quêtes à rendre.")
 AzerothCompendium:AddTrans("frFR", "LID_QW_INTHISZONE", "Dans cette zone")
+AzerothCompendium:AddTrans("frFR", "LID_QW_NEXTSTEPS", "Étapes suivantes (%d)")
 AzerothCompendium:AddTrans("frFR", "LID_QW_NOLEVELQUESTS", "Aucune quête disponible pour votre niveau")
 AzerothCompendium:AddTrans("frFR", "LID_QW_NONEINZONE", "Aucune quête dans %s (%d dans d'autres zones)")
 AzerothCompendium:AddTrans("frFR", "LID_QW_NONEINZONEALL", "Aucune quête de donjon dans %s")

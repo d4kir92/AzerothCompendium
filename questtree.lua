@@ -1791,11 +1791,16 @@ function ListBox.FlattenChains(items, expanded, out)
     end
 end
 
-ListBox.flow = {cardH = 42, gap = 6, arrowH = 16, padTop = 2, columns = 3, boxGap = 14}
+ListBox.flow = {cardH = 42, gap = 6, arrowH = 16, padTop = 2, columns = 3, minCardW = 150, boxGap = 14}
+
+function ListBox.SetFlowWidth(width)
+    local flow = ListBox.flow
+    flow.activeColumns = max(1, min(flow.columns, floor((width + flow.gap) / (flow.minCardW + flow.gap))))
+end
 
 function ListBox.GetFlowHeight(count, connector)
     local flow = ListBox.flow
-    local lines = math.ceil(count / flow.columns)
+    local lines = math.ceil(count / (flow.activeColumns or flow.columns))
 
     return (connector and flow.arrowH or flow.padTop) + lines * flow.cardH + (lines - 1) * flow.gap
 end
@@ -1816,7 +1821,17 @@ function ListBox.IsFlowOpen(item, expanded)
     return ListBox.GetState(item) ~= "complete" and ListBox.CountDone(item) < #item.children
 end
 
-function ListBox.FlattenFlow(items, expanded, out)
+function ListBox.GetCurrentStage(stages)
+    for index, cards in ipairs(stages) do
+        for _, child in ipairs(cards) do
+            if GetQuestStatus(child.node.id, child.node) ~= "complete" then return index end
+        end
+    end
+
+    return #stages
+end
+
+function ListBox.FlattenFlow(items, expanded, out, compact)
     for _, item in ipairs(items) do
         local open = ListBox.IsFlowOpen(item, expanded)
         local group = {state = ListBox.GetState(item)}
@@ -1838,8 +1853,27 @@ function ListBox.FlattenFlow(items, expanded, out)
                     tinsert(cards, child)
                 end
 
-                for index, cards in ipairs(stages) do
-                    tinsert(out, {kind = "flow", cards = cards, depth = 0, box = group, connector = index > 1, height = ListBox.GetFlowHeight(#cards, index > 1)})
+                local first, last = 1, #stages
+                if compact then
+                    first = ListBox.GetCurrentStage(stages)
+                    last = first
+                end
+
+                for index = first, last do
+                    local cards = stages[index]
+                    tinsert(out, {kind = "flow", cards = cards, depth = 0, box = group, connector = index > first, height = ListBox.GetFlowHeight(#cards, index > first)})
+                end
+
+                if compact and last < #stages then
+                    local nextKey = item.key .. ":next"
+                    local nextOpen = expanded ~= nil and expanded[nextKey] == true
+                    tinsert(out, {kind = "flownext", key = nextKey, depth = 0, hasChildren = true, open = nextOpen, box = group, count = #stages - last})
+                    if nextOpen then
+                        for index = last + 1, #stages do
+                            local cards = stages[index]
+                            tinsert(out, {kind = "flow", cards = cards, depth = 0, box = group, connector = true, height = ListBox.GetFlowHeight(#cards, true)})
+                        end
+                    end
                 end
             end
         end
@@ -1983,9 +2017,10 @@ function ListBox.UpdateFlow(row, entry, selectedKey)
             row.cards[index] = card
         end
 
-        local line = floor((index - 1) / flow.columns)
-        local first = line * flow.columns + 1
-        local inLine = min(flow.columns, #cards - first + 1)
+        local columns = flow.activeColumns or flow.columns
+        local line = floor((index - 1) / columns)
+        local first = line * columns + 1
+        local inLine = min(columns, #cards - first + 1)
         local column = index - first
         local cardW = (width - (inLine - 1) * flow.gap) / inLine
         card:ClearAllPoints()
@@ -2176,7 +2211,7 @@ local function CreateListRow(parent, tree)
             tree.keyLine:GetScript("OnClick")(sel)
         elseif sel.kind == "header" then
             tree:ToggleListSection(sel.section)
-        elseif sel.kind == "chain" then
+        elseif sel.kind == "chain" or sel.kind == "flownext" then
             tree:ToggleListKey(sel.key)
         end
     end)
@@ -2309,6 +2344,11 @@ local function UpdateListRow(row, entry, index, expanded, selectedKey)
 
         row.text:SetText(title)
         row.right:SetText(format("%s%d/%d|r", finished and "|cff66e666" or "|cffa0a0a0", progress.done, progress.total))
+    elseif entry.kind == "flownext" then
+        row.background:SetColorTexture(0, 0, 0, 0)
+        row.icon:Hide()
+        row.text:SetFontObject("GameFontDisableSmall")
+        row.text:SetText(format(AzerothCompendium:Trans("LID_QW_NEXTSTEPS"), entry.count))
     elseif entry.kind == "key" then
         row.background:SetColorTexture(0, 0, 0, index % 2 == 0 and 0.25 or 0)
         local icon, status, text = GetKeyLineInfo(entry.attunement)
@@ -3211,6 +3251,13 @@ function AzerothCompendium:CreateQuestTree(parent, compact)
 
     function tree:ToggleListKey(key)
         if key == nil then return end
+        if type(key) == "string" and key:sub(-5) == ":next" then
+            local nextExpanded = self:GetListExpanded(true)
+            nextExpanded[key] = nextExpanded[key] ~= true or nil
+            self:Layout()
+            return
+        end
+
         local item = FindListItem(self.listItems, key)
         if item == nil then return end
         local expanded = self:GetListExpanded(true)
@@ -3329,7 +3376,8 @@ function AzerothCompendium:CreateQuestTree(parent, compact)
 
         local expanded = self:GetListExpanded()
         if self.viewMode == "flow" then
-            ListBox.FlattenFlow(items, expanded, entries)
+            ListBox.SetFlowWidth(max(1, listW) - 2 * (ListBox.marginX + ListBox.padX))
+            ListBox.FlattenFlow(items, expanded, entries, self.compact)
         elseif chains then
             ListBox.FlattenChains(items, expanded, entries)
         elseif #items > 0 or attunement ~= nil then
