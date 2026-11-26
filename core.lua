@@ -301,7 +301,6 @@ end
 function AzerothCompendium:SetClassFilter(value)
     AzerothCompendium:SetConfig("CLASSFILTER", value == true)
     if AzerothCompendium.SyncCompendiumClassFilter then AzerothCompendium:SyncCompendiumClassFilter() end
-    if AzerothCompendium.SyncSettingsClassFilter then AzerothCompendium:SyncSettingsClassFilter() end
     if AzerothCompendium.RefreshCompendium then AzerothCompendium:RefreshCompendium() end
 end
 
@@ -1203,7 +1202,7 @@ function AzerothCompendium:GetInstanceQuests(inst, playerOnly)
         cache = instanceQuestCache.player
     end
 
-    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", true) == true
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:IsClassFilterOn() == true
     local alliance = playerOnly and not IsOpposingQuestSide(1) or not playerOnly and AzerothCompendium:IsQuestSideVisible(1)
     local horde = playerOnly and not IsOpposingQuestSide(2) or not playerOnly and AzerothCompendium:IsQuestSideVisible(2)
     local flavor = AzerothCompendium:GetFlavor()
@@ -1670,7 +1669,7 @@ function AzerothCompendium:GetInstanceQuestGraph(inst, filter, hideCompleted, pl
     local nodes = {}
     local list = {}
     local inInstance = {}
-    local onlyOwnClass = playerOnly == true or AzerothCompendium:GetConfig("CLASSFILTER", true) == true
+    local onlyOwnClass = playerOnly == true or AzerothCompendium:IsClassFilterOn() == true
     local function IsHidden(questID)
         return IsQuestHidden(questID, playerOnly) or onlyOwnClass and not AzerothCompendium:IsQuestForPlayerClass(questID)
     end
@@ -2707,7 +2706,7 @@ end
 
 function AzerothCompendium:IsBossForPlayer(boss)
     if boss.side and not AzerothCompendium:IsQuestSideVisible(boss.side) then return false end
-    if boss.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", true) == true then
+    if boss.classMask and bit and AzerothCompendium:IsClassFilterOn() == true then
         local classID = select(3, UnitClass("player"))
         if type(classID) == "number" and bit.band(boss.classMask, 2 ^ (classID - 1)) == 0 then return false end
     end

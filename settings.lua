@@ -1,7 +1,6 @@
 local _, AzerothCompendium = ...
 local ICON = AzerothCompendium:GetAddonIcon()
 local acoset = nil
-local classFilterSetting = nil
 function AzerothCompendium:ToggleSettings()
     AzerothCompendium:OpenCompendiumSettings()
 end
@@ -96,11 +95,6 @@ function AzerothCompendium:SyncSettingsAppearance()
     if acoset == nil then return end
     if acoset.language then acoset.language:SetValue(AzerothCompendium:GetLanguage()) end
     if acoset.design then acoset.design:SetValue(AzerothCompendium:GetDesign()) end
-end
-
-function AzerothCompendium:SyncSettingsClassFilter()
-    if classFilterSetting == nil then return end
-    classFilterSetting:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
 end
 
 function AzerothCompendium:SyncSettingsQuestWidget()
@@ -269,6 +263,18 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
     end)
 
     AddCheckbox("REMEMBERNAVIGATION", true, nil, nil, "2026-10-20")
+    local spoilerSetting = acoset:AddCheckbox({
+        ["label"] = "LID_SPOILERFREE",
+        ["search"] = "SPOILERFREE",
+        ["value"] = type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true,
+        ["added"] = "2026-11-26",
+        ["func"] = function(value)
+            ACOTABPC = ACOTABPC or {}
+            ACOTABPC.SPOILERFREE = value == true
+            AzerothCompendium:RefreshCompendium()
+        end
+    })
+    tinsert(labels, {spoilerSetting.Label, spoilerSetting.uiElement, "LID_SPOILERFREE"})
 
     AddCategory("SIDETABS", nil, "2026-10-27")
     for _, info in ipairs({{"dashboard", "LID_OVERVIEW"}, {"dungeon", "LID_DUNGEONS"}, {"raid", "LID_RAIDS"}, {"pvp", "LID_PVP"}, {"faction", "LID_REPUTATION"}, {"sets", "LID_SETS"}, {"worldquestitems", "LID_WORLDQUESTITEMS"}, {"allitems", "LID_ALLITEMS"}, {"wishlist", "LID_WISHLIST"}}) do
@@ -292,7 +298,6 @@ function AzerothCompendium:CreateCompendiumSettings(parent, target)
 
     AddCategory("LOOTSETTINGS", nil, "2026-10-07")
     AddCheckbox("SHOWCHANCE", true, function() AzerothCompendium:RefreshCompendium() end)
-    classFilterSetting = AddCheckbox("CLASSFILTER", true, function(value) AzerothCompendium:SetClassFilter(value) end)
     AddCategory("DUNGEONTRACKER", nil, "2026-11-14")
     AddCheckbox("DUNGEONTRACKER", true, function()
         if AzerothCompendium.DungeonTracker then

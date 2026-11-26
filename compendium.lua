@@ -1174,6 +1174,57 @@ local function AddIconRing(parent, icon, size, round)
     return ring
 end
 
+function AzerothCompendium:MakeIconToggle(check, texture, coords)
+    check.acoTheme = check.acoTheme or {}
+    check:SetSize(28, 28)
+    for _, getter in ipairs({"GetNormalTexture", "GetPushedTexture", "GetCheckedTexture", "GetDisabledCheckedTexture", "GetHighlightTexture"}) do
+        local region = check[getter] and check[getter](check)
+        if region then region:SetAlpha(0) end
+    end
+
+    if check.label then
+        check.label:ClearAllPoints()
+        check.label:SetAllPoints(check)
+        check.label:SetAlpha(0)
+    end
+
+    check.icon = check:CreateTexture(nil, "ARTWORK")
+    check.icon:SetPoint("TOPLEFT", 3, -3)
+    check.icon:SetPoint("BOTTOMRIGHT", -3, 3)
+    check.icon:SetTexture(texture)
+    if coords then check.icon:SetTexCoord(unpack(coords)) end
+    check.ring = AddIconRing(check, check.icon, 22, true)
+    check.backdrop = check:CreateTexture(nil, "BACKGROUND")
+    check.backdrop:SetAllPoints(check.icon)
+    check.backdrop:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
+    check.backdrop:SetVertexColor(0, 0, 0, 0.75)
+    check.glow = check:CreateTexture(nil, "OVERLAY", nil, 2)
+    check.glow:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    check.glow:SetBlendMode("ADD")
+    check.glow:SetAllPoints(check.icon)
+    check.glow:SetAlpha(0)
+    if check.CreateMaskTexture and check.glow.AddMaskTexture then
+        local mask = check:CreateMaskTexture()
+        mask:SetAllPoints(check.icon)
+        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        check.glow:AddMaskTexture(mask)
+    end
+
+    local function Update()
+        local on = check:GetChecked() == true
+        check.icon:SetDesaturated(not on)
+        check.icon:SetAlpha(on and 1 or 0.45)
+        check.ring:SetDesaturated(not on)
+        check.ring:SetAlpha(on and 1 or 0.45)
+    end
+
+    hooksecurefunc(check, "SetChecked", Update)
+    check:HookScript("OnClick", Update)
+    check:HookScript("OnEnter", function() check.glow:SetAlpha(0.6) end)
+    check:HookScript("OnLeave", function() check.glow:SetAlpha(0) end)
+    Update()
+end
+
 local function UpdateLocationPins(row, inst)
     local right = -4
     for _, pin in ipairs(row.locationPins) do
@@ -1701,6 +1752,29 @@ local function UpdateBossRow(row, boss)
     end
 end
 
+function AzerothCompendium:GetFilterScope()
+    if listKind ~= "dungeon" and listKind ~= "raid" then return nil end
+    local tab = compendium ~= nil and compendium.overviewActive and "overview" or middleKind or "bosses"
+    return strupper(listKind .. "_" .. tab)
+end
+
+function AzerothCompendium:IsClassFilterOn()
+    local base = self:GetConfig("CLASSFILTER", true) == true
+    local scope = self:GetFilterScope()
+    local scoped = scope and ACOTAB and ACOTAB.CLASSFILTERS and ACOTAB.CLASSFILTERS[scope]
+    if scoped == nil then return base end
+    return scoped == true
+end
+
+function AzerothCompendium:SetScopedClassFilter(value)
+    local scope = self:GetFilterScope()
+    if scope == nil then return self:SetClassFilter(value) end
+    ACOTAB = ACOTAB or {}
+    ACOTAB.CLASSFILTERS = ACOTAB.CLASSFILTERS or {}
+    ACOTAB.CLASSFILTERS[scope] = value == true
+    self:RefreshCompendium()
+end
+
 function AzerothCompendium:IsSpoilerFree()
     return (listKind == "dungeon" or listKind == "raid") and type(ACOTABPC) == "table" and ACOTABPC.SPOILERFREE == true
 end
@@ -1880,11 +1954,7 @@ local function GetQuestGraph()
 end
 
 local function CountInstanceQuests(graph)
-    local count = 0
-    for _, node in ipairs(graph) do
-        if node.instance then count = count + 1 end
-    end
-    return count
+    return graph and #graph or 0
 end
 
 local function GetLootList()
@@ -1892,7 +1962,7 @@ local function GetLootList()
     local filterItems = {}
     compendium.loot.filterItems = filterItems
     if selectedBoss == nil then return list, hidden end
-    local onlyClass = AzerothCompendium:GetConfig("CLASSFILTER", true)
+    local onlyClass = AzerothCompendium:IsClassFilterOn()
     local class = select(2, UnitClass("player"))
     local loot = AzerothCompendium:GetBossLoot(selectedBoss)
     if selectedBoss.all then loot = GetAllLoot(selectedInstance) end
@@ -2233,7 +2303,7 @@ local function GetWorldQuestItemList()
             local quest = AzerothCompendium:GetQuestDataByID(entry.questID)
             local side = quest and quest[3] or AzerothCompendium.QUESTSIDES and AzerothCompendium.QUESTSIDES[entry.questID] or entry.side
             local classOk = true
-            if entry.classMask and bit and AzerothCompendium:GetConfig("CLASSFILTER", true) == true then
+            if entry.classMask and bit and AzerothCompendium:IsClassFilterOn() == true then
                 local classID = select(3, UnitClass("player"))
                 classOk = type(classID) ~= "number" or bit.band(entry.classMask, 2 ^ (classID - 1)) ~= 0
             end
@@ -2865,6 +2935,7 @@ function MapPins.UpdateToggle(view)
             GameTooltip:Show()
         end)
         view.spoilerToggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        AzerothCompendium:MakeIconToggle(view.spoilerToggle, "Interface\\Icons\\Ability_Stealth")
     end
     local spoilerToggle = view.spoilerToggle
     if spoilerToggle then
@@ -2874,7 +2945,7 @@ function MapPins.UpdateToggle(view)
         spoilerToggle.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontDisableSmall)
         spoilerToggle:SetChecked(AzerothCompendium:IsSpoilerFree())
         spoilerToggle:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
-        spoilerToggle:SetShown(view.info ~= nil and (listKind == "dungeon" or listKind == "raid"))
+        spoilerToggle:Hide()
         if spoilerToggle:IsShown() then last = spoilerToggle.label end
     end
     if last then last = MapPins.UpdateBossScaleSlider(view, last) end
@@ -3137,7 +3208,7 @@ local function RefreshDetail(keepLootScroll)
         compendium.empty:Hide()
         compendium.detailTitle:SetText("")
         compendium.detailCount:ClearAllPoints()
-        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.spoilerFilter.label, "LEFT", -12, 0)
+        compendium.detailCount:SetPoint("RIGHT", compendium.factionToggle.completedFilter, "LEFT", -12, 0)
         local countText = AzerothCompendium:Trans("LID_QUESTCOUNT", nil, CountInstanceQuests(compendium.questTree.graph))
         local masked = AzerothCompendium:CountMaskedQuests(compendium.questTree.graph)
         if masked > 0 then countText = countText .. " · " .. AzerothCompendium:Trans("LID_QUESTSPOILERCOUNT", nil, masked) end
@@ -3166,13 +3237,13 @@ local function RefreshDetail(keepLootScroll)
         local lootList, hidden, pending, itemCount = GetLootList()
         compendium.loot.sharedPending = pending
         local lootFilters = {}
-        if AzerothCompendium:GetConfig("CLASSFILTER", true) then tinsert(lootFilters, AzerothCompendium:Trans("LID_CLASSFILTER")) end
+        if AzerothCompendium:IsClassFilterOn() then tinsert(lootFilters, AzerothCompendium:Trans("LID_CLASSFILTER")) end
         if AzerothCompendium:IsSpoilerFree() then tinsert(lootFilters, AzerothCompendium:Trans("LID_SPOILERFREE")) end
         if #lootFilters > 0 then
             compendium.loot:SetBanner(AzerothCompendium:Trans("LID_FILTEREDRESULT") .. ": " .. table.concat(lootFilters, ", "), AzerothCompendium:Trans("LID_HIDDENCOUNT", nil, hidden), function()
                 ACOTABPC = ACOTABPC or {}
                 ACOTABPC.SPOILERFREE = false
-                AzerothCompendium:SetClassFilter(false)
+                AzerothCompendium:SetScopedClassFilter(false)
             end)
         else
             compendium.loot:SetBanner(nil)
@@ -3212,17 +3283,16 @@ local function RefreshDetail(keepLootScroll)
     if showCount then title = strtrim(title .. " (" .. AzerothCompendium:Trans(detailKind == "spells" and "LID_ABILITYCOUNT" or "LID_ITEMCOUNT", nil, count) .. ")") end
     compendium.detailTitle:SetText(title)
     if compendium.classFilter:IsShown() then
-        local y = AzerothCompendium.Theme:IsModern() and 11 or 13
+        local y = AzerothCompendium.Theme:IsModern() and 18 or 20
         compendium.classFilter:ClearAllPoints()
         compendium.classFilter:SetPoint("RIGHT", compendium.loot, "TOPRIGHT", 2, y)
         local spoiler = compendium.spoilerLootFilter
-        local grouped = listKind == "dungeon" or listKind == "raid"
-        spoiler:SetShown(grouped)
+        spoiler:Hide()
         spoiler:SetChecked(AzerothCompendium:IsSpoilerFree())
         spoiler.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontDisableSmall)
         compendium.detailTitle:ClearAllPoints()
         local sided = listKind == "pvp" or listKind == "sets"
-        compendium.detailTitle:SetPoint("RIGHT", sided and compendium.factionToggle or grouped and spoiler.label or compendium.classFilterLabel, "LEFT", -12, 0)
+        compendium.detailTitle:SetPoint("RIGHT", sided and compendium.factionToggle.factionSeparator or compendium.classFilterLabel, "LEFT", -12, 0)
         compendium.detailTitle:SetJustifyH("RIGHT")
     elseif AzerothCompendium.LayoutEntries[compendium.detailTitle] then
         AzerothCompendium.LayoutEntries[compendium.detailTitle](AzerothCompendium.Theme:IsModern())
@@ -3260,10 +3330,12 @@ local function RefreshBosses()
     end
     compendium.factionToggle:SetShown((listKind == "dungeon" or listKind == "raid") and (compendium.overviewActive or middleKind == "quests") or listKind == "faction" and compendium.overviewActive or listKind == "pvp" or listKind == "sets")
     compendium.factionToggle.completedFilter:SetShown(not compendium.overviewActive and not lootToggle)
-    compendium.factionToggle.spoilerFilter:SetShown(not compendium.overviewActive and not lootToggle and (listKind == "dungeon" or listKind == "raid"))
+    compendium.factionToggle.spoilerFilter:Hide()
     compendium.factionToggle.spoilerFilter:SetChecked(AzerothCompendium:IsSpoilerFree())
     compendium.factionToggle.spoilerFilter.label:SetFontObject(AzerothCompendium:IsSpoilerFree() and GameFontNormalSmall or GameFontHighlightSmall)
     compendium.factionToggle.classHeader:SetShown(not compendium.overviewActive and not lootToggle)
+    compendium.factionToggle:LayoutButtons(not compendium.overviewActive and not lootToggle)
+    AzerothCompendium:SyncCompendiumClassFilter()
     if compendium.filterDropdown and compendium.filterDropdown.Refresh then compendium.filterDropdown:Refresh() end
     for side, button in ipairs(compendium.factionToggle.buttons) do
         local enabled = AzerothCompendium:IsQuestSideVisible(side)
@@ -5279,6 +5351,7 @@ local function RefreshWorldQuestItemsView()
     toggle:Show()
     toggle.classHeader:Show()
     toggle.completedFilter:Hide()
+    toggle:LayoutButtons(false)
     for side, button in ipairs(toggle.buttons) do
         local enabled = AzerothCompendium:IsQuestSideVisible(side)
         button.ring:Show()
@@ -5929,9 +6002,8 @@ function AzerothCompendium:CreateInstanceControls()
             if dungeon and ACOTABPC.HIDECOMPLETED == true then count = count + 1 end
         end
         local faction = listKind == "faction"
-        if AzerothCompendium:IsSpoilerFree() or AzerothCompendium:IsFactionSpoilerFree() then count = count + 1 end
         if (listKind == "dungeon" or listKind == "raid") and AzerothCompendium:GetSelectedContinent() ~= nil then count = count + 1 end
-        if not faction and AzerothCompendium:GetConfig("CLASSFILTER", true) == true then count = count + 1 end
+        if not faction and AzerothCompendium:IsClassFilterOn() == true then count = count + 1 end
         local text = AzerothCompendium:Trans("LID_FILTER")
         if count > 0 then text = "|cffffd100" .. AzerothCompendium:Trans("LID_FILTERACTIVE") .. " (" .. count .. ")|r" end
         if self.SetDefaultText then self:SetDefaultText(text) end
@@ -5979,9 +6051,8 @@ function AzerothCompendium:CreateInstanceControls()
         end
         if forever then tinsert(rows, hideForeverFilter) end
         if dungeon then tinsert(rows, hideCompletedFilter) end
-        if grouped or faction then tinsert(rows, filterPopup.spoilerFilter) end
         if classFilter and not faction then
-            classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
+            classFilter:SetChecked(AzerothCompendium:IsClassFilterOn() == true)
             tinsert(rows, classFilter)
         end
         local popupWidth = 160
@@ -5993,7 +6064,7 @@ function AzerothCompendium:CreateInstanceControls()
         local inlineLine, inlineRight = 1, 0
         local overviewWidth = compendium.overview and compendium.overview:GetWidth() or 0
         local toggle = compendium.factionToggle
-        local firstLimit = overviewWidth - (toggle and toggle:GetWidth() + 4 or 110)
+        local firstLimit = overviewWidth - (toggle and toggle:GetWidth() + 20 or 110)
         local scaleSlider = compendium.overviewScaleSlider
         local sliderLabelWidth = scaleSlider and scaleSlider.text:GetStringWidth() or 0
         if inline and scaleSlider then firstLimit = firstLimit - scaleSlider:GetWidth() - sliderLabelWidth - 18 end
@@ -6029,7 +6100,7 @@ function AzerothCompendium:CreateInstanceControls()
             scaleSlider.text:ClearAllPoints()
             scaleSlider.text:SetPoint("LEFT", scaleSlider, "RIGHT", 6, 0)
             scaleSlider:ClearAllPoints()
-            scaleSlider:SetPoint("RIGHT", toggle, "LEFT", -sliderLabelWidth - 8, 0)
+            scaleSlider:SetPoint("RIGHT", toggle.factionSeparator or toggle, "LEFT", -sliderLabelWidth - 14, 0)
         end
         if inline and toggle then
             toggle:ClearAllPoints()
@@ -6060,7 +6131,7 @@ function AzerothCompendium:CreateInstanceControls()
                 active = true
             end
         end
-        if AzerothCompendium:GetConfig("CLASSFILTER", true) == true then
+        if AzerothCompendium:IsClassFilterOn() == true then
             GameTooltip:AddLine(AzerothCompendium:Trans("LID_ONLYOWNCLASS"), 1, 0.82, 0)
             active = true
         end
@@ -7283,7 +7354,10 @@ local function CreateJournal()
     local lfgTab = CreateFrame("Button", nil, compendium)
     lfgTab:SetSize(32, 32)
     lfgTab:SetFrameLevel(compendium:GetFrameLevel() + 4)
-    lfgTab:SetPoint("LEFT", questTab, "RIGHT", 10, 0)
+    AzerothCompendium:AddLayout(lfgTab, function(modern)
+        lfgTab:ClearAllPoints()
+        lfgTab:SetPoint("LEFT", questTab, "RIGHT", 10, modern and 0 or 4)
+    end)
     lfgTab.ring = lfgTab:CreateTexture(nil, "BACKGROUND", nil, -1)
     lfgTab.ring:SetAllPoints()
     lfgTab.ring:SetTexture(AzerothCompendium.Theme.MEDIA .. "circle")
@@ -7403,12 +7477,12 @@ local function CreateJournal()
     compendium.factionToggle.classFilter = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
     compendium.factionToggle.classFilter:SetSize(24, 24)
     compendium.factionToggle.classFilter:SetPoint("RIGHT", compendium.factionToggle, "LEFT", -4, 0)
-    compendium.factionToggle.classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
+    compendium.factionToggle.classFilter:SetChecked(AzerothCompendium:IsClassFilterOn() == true)
     compendium.factionToggle.classFilter.label = compendium.factionToggle.classFilter:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     compendium.factionToggle.classFilter.label:SetPoint("LEFT", compendium.factionToggle.classFilter, "RIGHT", 2, 0)
     compendium.factionToggle.classFilter.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
     compendium.factionToggle.classFilter:SetScript("OnClick", function(owner)
-        AzerothCompendium:SetClassFilter(owner:GetChecked() == true)
+        AzerothCompendium:SetScopedClassFilter(owner:GetChecked() == true)
     end)
 
     compendium.factionToggle.classFilter:SetScript("OnEnter", function(owner)
@@ -7422,11 +7496,11 @@ local function CreateJournal()
     compendium.factionToggle.classHeader = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
     compendium.factionToggle.classHeader:SetSize(26, 26)
     compendium.factionToggle.classHeader:SetPoint("RIGHT", compendium.factionToggle, "LEFT", -4, 0)
-    compendium.factionToggle.classHeader:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
+    compendium.factionToggle.classHeader:SetChecked(AzerothCompendium:IsClassFilterOn() == true)
     compendium.factionToggle.classHeader.label = compendium.factionToggle.classHeader:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     compendium.factionToggle.classHeader.label:SetPoint("RIGHT", compendium.factionToggle.classHeader, "LEFT", 0, 1)
     compendium.factionToggle.classHeader.label:SetText(AzerothCompendium:Trans("LID_ONLYOWNCLASS"))
-    compendium.factionToggle.classHeader:SetScript("OnClick", function(owner) AzerothCompendium:SetClassFilter(owner:GetChecked() == true) end)
+    compendium.factionToggle.classHeader:SetScript("OnClick", function(owner) AzerothCompendium:SetScopedClassFilter(owner:GetChecked() == true) end)
     compendium.factionToggle.classHeader:SetScript("OnEnter", compendium.factionToggle.classFilter:GetScript("OnEnter"))
     compendium.factionToggle.classHeader:SetScript("OnLeave", function() GameTooltip:Hide() end)
     compendium.factionToggle.completedFilter = CreateFrame("CheckButton", nil, compendium.factionToggle, "UICheckButtonTemplate")
@@ -7470,6 +7544,48 @@ local function CreateJournal()
     end)
 
     compendium.factionToggle.spoilerFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    do
+        local toggle = compendium.factionToggle
+        local _, playerClass = UnitClass("player")
+        local classCoords = CLASS_ICON_TCOORDS and playerClass and CLASS_ICON_TCOORDS[playerClass]
+        AzerothCompendium:MakeIconToggle(toggle.classHeader, classCoords and "Interface\\TargetingFrame\\UI-Classes-Circles" or "Interface\\Icons\\INV_Misc_QuestionMark", classCoords)        AzerothCompendium:MakeIconToggle(toggle.completedFilter, "Interface\\RaidFrame\\ReadyCheck-Ready")
+        AzerothCompendium:MakeIconToggle(toggle.spoilerFilter, "Interface\\Icons\\Ability_Stealth")
+        toggle.separator = toggle:CreateTexture(nil, "ARTWORK")
+        toggle.separator:SetSize(1, 20)
+        toggle.separator:SetColorTexture(1, 1, 1, 0.2)
+        toggle.factionSeparator = toggle:CreateTexture(nil, "ARTWORK")
+        toggle.factionSeparator:SetSize(1, 20)
+        toggle.factionSeparator:SetColorTexture(1, 1, 1, 0.2)
+        function toggle:LayoutButtons(questMode)
+            local alliance, horde = self.buttons[1], self.buttons[2]
+            for _, region in ipairs({self.classHeader, self.spoilerFilter, self.separator, self.factionSeparator, self.completedFilter, alliance, horde}) do
+                region:ClearAllPoints()
+            end
+
+            self.separator:SetShown(questMode)
+            self.factionSeparator:Show()
+            if not questMode then
+                alliance:SetPoint("LEFT", self, "LEFT", 0, 0)
+                horde:SetPoint("LEFT", self, "LEFT", 34, 0)
+                self.factionSeparator:SetPoint("RIGHT", alliance, "LEFT", -8, 0)
+                self.classHeader:SetPoint("RIGHT", self.factionSeparator, "LEFT", -8, 0)
+                self.spoilerFilter:SetPoint("RIGHT", self.classHeader, "LEFT", -6, 0)
+                self.completedFilter:SetPoint("RIGHT", self.spoilerFilter, "LEFT", -6, 0)
+                return
+            end
+
+            horde:SetPoint("RIGHT", self, "RIGHT", 0, 0)
+            alliance:SetPoint("RIGHT", horde, "LEFT", -6, 0)
+            self.factionSeparator:SetPoint("RIGHT", alliance, "LEFT", -8, 0)
+            self.classHeader:SetPoint("RIGHT", self.factionSeparator, "LEFT", -8, 0)
+            self.spoilerFilter:SetPoint("RIGHT", self.classHeader, "LEFT", -6, 0)
+            self.separator:Hide()
+            self.completedFilter:SetPoint("RIGHT", self.spoilerFilter:IsShown() and self.spoilerFilter or self.classHeader, "LEFT", -6, 0)
+        end
+
+        toggle:LayoutButtons(false)
+    end
+
     compendium.factionToggle:Hide()
     local loot = CreateScroller(compendium, LOOT_ROW_H + 6, CreateLootRow, 2, nil, true)
     loot.rowGap = 0
@@ -7583,13 +7699,13 @@ local function CreateJournal()
     classFilter:SetSize(24, 24)
     AzerothCompendium:AddLayout(classFilter, function(modern)
         classFilter:ClearAllPoints()
-        classFilter:SetPoint("RIGHT", loot, "TOPRIGHT", 2, modern and 11 or 13)
+        classFilter:SetPoint("RIGHT", loot, "TOPRIGHT", 2, modern and 18 or 20)
     end)
-    classFilter:SetChecked(AzerothCompendium:GetConfig("CLASSFILTER", true) == true)
-    local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", AzerothCompendium:GetConfig("CLASSFILTER", true) == true and "GameFontNormalSmall" or "GameFontDisableSmall")
+    classFilter:SetChecked(AzerothCompendium:IsClassFilterOn() == true)
+    local classFilterLabel = compendium:CreateFontString(nil, "ARTWORK", AzerothCompendium:IsClassFilterOn() == true and "GameFontNormalSmall" or "GameFontDisableSmall")
     classFilterLabel:SetPoint("RIGHT", classFilter, "LEFT", 0, 0)
     classFilterLabel:SetText(AzerothCompendium:Trans("LID_CLASSFILTER"))
-    classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetClassFilter(sel:GetChecked() == true) end)
+    classFilter:SetScript("OnClick", function(sel) AzerothCompendium:SetScopedClassFilter(sel:GetChecked() == true) end)
     compendium.classFilter = classFilter
     compendium.classFilterLabel = classFilterLabel
     compendium.spoilerLootFilter = CreateTemplated("CheckButton", "AzerothCompendiumSpoilerLootFilter", classFilter, {"UICheckButtonTemplate", "ChatConfigCheckButtonTemplate"})
@@ -7610,6 +7726,22 @@ local function CreateJournal()
         GameTooltip:Show()
     end)
     compendium.spoilerLootFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    classFilter:SetScript("OnEnter", function(sel)
+        GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
+        GameTooltip:SetText(AzerothCompendium:GetCompendiumTooltipLabel(AzerothCompendium:Trans("LID_CLASSFILTER")))
+        GameTooltip:Show()
+    end)
+    classFilter:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    classFilter.label = classFilterLabel
+    do
+        local _, playerClass = UnitClass("player")
+        local classCoords = CLASS_ICON_TCOORDS and playerClass and CLASS_ICON_TCOORDS[playerClass]
+        AzerothCompendium:MakeIconToggle(classFilter, classCoords and "Interface\\TargetingFrame\\UI-Classes-Circles" or "Interface\\Icons\\INV_Misc_QuestionMark", classCoords)
+        AzerothCompendium:MakeIconToggle(compendium.spoilerLootFilter, "Interface\\Icons\\Ability_Stealth")
+        compendium.spoilerLootFilter:ClearAllPoints()
+        compendium.spoilerLootFilter:SetPoint("RIGHT", classFilter, "LEFT", -6, 0)
+    end
+
     CreateSettingsPanel()
     compendium.specialTabs = {}
     for _, info in ipairs({{"settings", "LID_SETTINGS", compendium.settingsPanel}, {"worldquestitems", "LID_WORLDQUESTITEMS", worldQuestItems}}) do
@@ -7660,7 +7792,7 @@ end
 
 function AzerothCompendium:SyncCompendiumClassFilter()
     if compendium == nil or compendium.classFilter == nil then return end
-    local active = AzerothCompendium:GetConfig("CLASSFILTER", true) == true
+    local active = AzerothCompendium:IsClassFilterOn() == true
     compendium.classFilter:SetChecked(active)
     if compendium.factionToggle and compendium.factionToggle.classFilter then compendium.factionToggle.classFilter:SetChecked(active) end
     if compendium.factionToggle and compendium.factionToggle.classHeader then compendium.factionToggle.classHeader:SetChecked(active) end
@@ -8679,7 +8811,7 @@ loader:SetScript("OnEvent", function(sel, event, itemID, success)
         AzerothCompendium.ItemJunkPending[itemID] = nil
         local loot = compendium and compendium.loot
         if success and loot and compendium:IsShown() and loot:IsShown() and loot.filterItems and loot.filterItems[itemID]
-            and (classChanged and AzerothCompendium:GetConfig("CLASSFILTER", true) or junkPending and AzerothCompendium:IsJunkItem(itemID)) then
+            and (classChanged and AzerothCompendium:IsClassFilterOn() or junkPending and AzerothCompendium:IsJunkItem(itemID)) then
             sel.lootFilterRefreshPending = true
         end
     end
