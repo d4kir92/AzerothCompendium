@@ -2905,8 +2905,9 @@ local function CreateLegend(tree, anchor)
     return button
 end
 
-function AzerothCompendium:CreateQuestTree(parent)
+function AzerothCompendium:CreateQuestTree(parent, compact)
     local tree = CreateFrame("Frame", nil, parent)
+    tree.compact = compact == true
     local scroll = nil
     local minimal = HasMinimalScrollBar()
     if minimal then
@@ -2931,7 +2932,7 @@ function AzerothCompendium:CreateQuestTree(parent)
     local detail = CreateQuestDetail(tree)
     detail:SetPoint("TOPRIGHT", tree, "TOPRIGHT", -6, -6)
     detail:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
-    local widgetPane = AzerothCompendium.QuestWidget and AzerothCompendium.QuestWidget:CreateEmbeddedView(tree, function() return tree.instance end) or nil
+    local widgetPane = not tree.compact and AzerothCompendium.QuestWidget and AzerothCompendium.QuestWidget:CreateEmbeddedView(tree, function() return tree.instance end) or nil
     if widgetPane then
         widgetPane:SetPoint("TOPLEFT", tree, "TOPLEFT", 6, -6)
         widgetPane:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
@@ -3183,9 +3184,12 @@ function AzerothCompendium:CreateQuestTree(parent)
             self.listCollapseOverride = {}
         end
 
+        local keep = self.compact and self.graphKey == self.lastScrollKey
+        self.lastScrollKey = self.graphKey
+        local offset = scroll:GetVerticalScroll()
         self:Layout()
         SetHScroll(0)
-        scroll:SetVerticalScroll(0)
+        scroll:SetVerticalScroll(keep and ClampScroll(scroll, false, offset) or 0)
     end
 
     tree.listRows = {}
@@ -3250,7 +3254,9 @@ function AzerothCompendium:CreateQuestTree(parent)
         local treeW = floor((self:GetWidth() or 0) + 0.5)
         local narrow = treeW < 640
         local listW
-        if narrow ~= self.listNarrow then
+        if self.compact then
+            listW = treeW - 6 - SCROLLBAR_W
+        elseif narrow ~= self.listNarrow then
             self.listNarrow = narrow
             detail:ClearAllPoints()
             detail:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -6, BOTTOM_H + 2)
@@ -3265,7 +3271,9 @@ function AzerothCompendium:CreateQuestTree(parent)
             end
         end
 
-        if narrow then
+        if self.compact then
+            detail:Hide()
+        elseif narrow then
             detail:SetHeight(max(1, floor(self:GetHeight() * 0.45)))
             listW = treeW - 18 - SCROLLBAR_W
         else
@@ -3431,8 +3439,9 @@ function AzerothCompendium:CreateQuestTree(parent)
     end
 
     function tree:SetViewMode(mode)
+        if self.compact then mode = "flow" end
         if mode ~= "list" and mode ~= "chains" and mode ~= "flow" and (mode ~= "widget" or widgetPane == nil) then mode = "tree" end
-        AzerothCompendium:SetConfig("QUESTVIEW", mode)
+        if not self.compact then AzerothCompendium:SetConfig("QUESTVIEW", mode) end
         self.viewMode = mode
         local list = mode == "list" or mode == "chains" or mode == "flow"
         local widget = mode == "widget"
@@ -3468,6 +3477,15 @@ function AzerothCompendium:CreateQuestTree(parent)
             legendButton:SetPoint("RIGHT", zoomIcon, "LEFT", -8, 0)
         end
         viewSwitch:SetMode(mode)
+        if self.compact then
+            detail:Hide()
+            viewSwitch:Hide()
+            legendButton:Hide()
+            scroll:ClearAllPoints()
+            scroll:SetPoint("TOPLEFT", tree, "TOPLEFT", 0, 0)
+            scroll:SetPoint("BOTTOMRIGHT", tree, "BOTTOMRIGHT", -SCROLLBAR_W - 2, 0)
+        end
+
         self:Layout()
         if not widget then
             SetHScroll(0)

@@ -216,7 +216,17 @@ function Widget:IsZoneOnly()
     return AzerothCompendium:GetConfig("QUESTWIDGETZONEONLY", true) == true
 end
 
+function Widget:IsFlowMode()
+    return AzerothCompendium:GetConfig("QUESTWIDGETFLOW", true) == true
+end
+
+function Widget:SetFlowMode(flow)
+    AzerothCompendium:SetConfig("QUESTWIDGETFLOW", flow == true)
+    self:Refresh()
+end
+
 function Widget:SetZoneOnly(zoneOnly)
+    AzerothCompendium:SetConfig("QUESTWIDGETFLOW", false)
     AzerothCompendium:SetConfig("QUESTWIDGETZONEONLY", zoneOnly == true)
     self:Refresh()
     self:RefreshEmbedded()
@@ -2312,15 +2322,20 @@ function Widget:CreateFrame()
     frame.modeGroup.acoSegmentGroup = true
     frame.modeGroup:SetPoint("TOPRIGHT", frame.bar, "TOPRIGHT", 0, 0)
     frame.modeGroup:SetPoint("BOTTOMRIGHT", frame.bar, "BOTTOMRIGHT", 0, 0)
+    frame.flowBtn = CreateFrame("Button", nil, frame.modeGroup, "UIPanelButtonTemplate")
+    frame.flowBtn:SetHeight(c.barH)
+    frame.flowBtn:SetPoint("LEFT", frame.modeGroup, "LEFT", 0, 0)
+    frame.flowBtn.acoSegment = function() return Widget:IsFlowMode() end
+    frame.flowBtn:SetScript("OnClick", function() Widget:SetFlowMode(true) end)
     frame.zoneOnlyBtn = CreateFrame("Button", nil, frame.modeGroup, "UIPanelButtonTemplate")
     frame.zoneOnlyBtn:SetHeight(c.barH)
-    frame.zoneOnlyBtn:SetPoint("LEFT", frame.modeGroup, "LEFT", 0, 0)
-    frame.zoneOnlyBtn.acoSegment = function() return Widget:IsZoneOnly() end
+    frame.zoneOnlyBtn:SetPoint("LEFT", frame.flowBtn, "RIGHT", 2, 0)
+    frame.zoneOnlyBtn.acoSegment = function() return not Widget:IsFlowMode() and Widget:IsZoneOnly() end
     frame.zoneOnlyBtn:SetScript("OnClick", function() Widget:SetZoneOnly(true) end)
     frame.allZonesBtn = CreateFrame("Button", nil, frame.modeGroup, "UIPanelButtonTemplate")
     frame.allZonesBtn:SetHeight(c.barH)
     frame.allZonesBtn:SetPoint("LEFT", frame.zoneOnlyBtn, "RIGHT", 2, 0)
-    frame.allZonesBtn.acoSegment = function() return not Widget:IsZoneOnly() end
+    frame.allZonesBtn.acoSegment = function() return not Widget:IsFlowMode() and not Widget:IsZoneOnly() end
     frame.allZonesBtn:SetScript("OnClick", function() Widget:SetZoneOnly(false) end)
     frame.zoneFixedLabel = frame.bar:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     frame.zoneFixedLabel:SetPoint("RIGHT", frame.bar, "RIGHT", -2, 0)
@@ -2345,6 +2360,10 @@ function Widget:CreateFrame()
     if frame.list.borderOverlay then frame.list.borderOverlay:Hide() end
     frame.list:SetPoint("TOPLEFT", frame.bar, "BOTTOMLEFT", 0, -c.gap)
     frame.list:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
+    frame.flowTree = AzerothCompendium:CreateQuestTree(frame.content, true)
+    frame.flowTree:SetPoint("TOPLEFT", frame.bar, "BOTTOMLEFT", 0, -c.gap)
+    frame.flowTree:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", 0, 0)
+    frame.flowTree:Hide()
     frame.empty = frame.list:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     frame.empty:SetPoint("CENTER", frame.list, "CENTER", 0, 12)
     frame.empty:SetJustifyH("CENTER")
@@ -2386,30 +2405,29 @@ function Widget:UpdateSegmentButtons()
     frame.zoneLabel:ClearAllPoints()
     frame.zoneLabel:SetPoint("LEFT", frame.bar, "LEFT", 2, 0)
     frame.zoneLabel:SetPoint("RIGHT", frame.modeGroup, "LEFT", -6, 0)
-    local allText = AzerothCompendium:Trans("LID_QW_ALLZONES")
-    frame.zoneOnlyBtn:SetText(zoneText)
-    frame.allZonesBtn:SetText(allText)
-    local zoneW = max(56, (frame.zoneOnlyBtn:GetFontString() and frame.zoneOnlyBtn:GetFontString():GetStringWidth() or 40) + 16)
-    local allW = max(40, (frame.allZonesBtn:GetFontString() and frame.allZonesBtn:GetFontString():GetStringWidth() or 28) + 16)
-    frame.zoneOnlyBtn:SetWidth(zoneW)
-    frame.allZonesBtn:SetWidth(allW)
-    frame.modeGroup:SetWidth(zoneW + allW + 2)
     local modern = AzerothCompendium.Theme:IsModern()
+    local flow = self:IsFlowMode()
     local zoneOnly = self:IsZoneOnly()
-    if zoneOnly then
-        frame.zoneOnlyBtn:LockHighlight()
-        frame.allZonesBtn:UnlockHighlight()
-        frame.zoneOnlyBtn:SetNormalFontObject("GameFontHighlightSmall")
-        frame.allZonesBtn:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
-    else
-        frame.zoneOnlyBtn:UnlockHighlight()
-        frame.allZonesBtn:LockHighlight()
-        frame.zoneOnlyBtn:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
-        frame.allZonesBtn:SetNormalFontObject("GameFontHighlightSmall")
+    local total = 0
+    for _, def in ipairs({{frame.flowBtn, "LID_QUESTVIEWFLOW", flow}, {frame.zoneOnlyBtn, "LID_QW_ZONEONLY", not flow and zoneOnly}, {frame.allZonesBtn, "LID_QW_ALLZONES", not flow and not zoneOnly}}) do
+        local button, active = def[1], def[3]
+        button:SetText(AzerothCompendium:Trans(def[2]))
+        local text = button:GetFontString()
+        local width = max(40, (text and text:GetStringWidth() or 28) + 16)
+        button:SetWidth(width)
+        total = total + width
+        if active then
+            button:LockHighlight()
+            button:SetNormalFontObject("GameFontHighlightSmall")
+        else
+            button:UnlockHighlight()
+            button:SetNormalFontObject(modern and "GameFontDisableSmall" or "GameFontNormalSmall")
+        end
+
+        AzerothCompendium.Theme:UpdateFrame(button)
     end
 
-    AzerothCompendium.Theme:UpdateFrame(frame.zoneOnlyBtn)
-    AzerothCompendium.Theme:UpdateFrame(frame.allZonesBtn)
+    frame.modeGroup:SetWidth(total + 4)
 end
 
 function Widget:Layout()
@@ -2538,6 +2556,18 @@ function Widget:Refresh()
     else
         frame.empty:Hide()
         frame.showAllBtn:Hide()
+    end
+
+    local flow = not self.allMode and inst ~= nil and self:IsFlowMode()
+    frame.list:SetShown(not flow)
+    frame.flowTree:SetShown(flow)
+    if flow then
+        frame.empty:Hide()
+        frame.showAllBtn:Hide()
+        local graph = AzerothCompendium:GetInstanceQuestGraph(inst, nil, type(ACOTABPC) ~= "table" or ACOTABPC.QUESTHIDECOMPLETED ~= false)
+        frame.flowTree.instance = inst
+        frame.flowTree:SetGraph(graph)
+        frame.headerCount:SetText(tostring(#graph))
     end
 
     self:Layout()
