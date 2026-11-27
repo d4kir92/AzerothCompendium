@@ -2845,7 +2845,7 @@ function MapPins.UpdateBossScaleSlider(view, last)
     return slider:IsShown() and slider or last
 end
 
-MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTITEMPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}}, {"quest", "MAPPINS_QUEST", "QUESTPINS", {"Interface\\GossipFrame\\AvailableQuestIcon"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
+MapPins.types = {{"boss", "MAPPINS_BOSS", "BOSSPINS", {"Interface\\TargetingFrame\\UI-RaidTargetingIcons", false, true}, {0.75, 1, 0.25, 0.5}}, {"item", "MAPPINS_ITEM", "QUESTITEMPINS", {"Interface\\Icons\\INV_Misc_Bag_10"}, {0.08, 0.92, 0.08, 0.92}}, {"quest", "MAPPINS_QUEST", "QUESTPINS", {"Interface\\GossipFrame\\AvailableQuestIcon"}}, {"entrance", "MAPPINS_ENTRANCE", "ENTRANCEPINS"}, {"level", "MAPPINS_LEVEL", "LEVELPINS"},}
 function MapPins.IsEnabled(kind)
     if MapPins.debug then return true end
     if kind == "queststart" or kind == "questend" then kind = "quest" end
@@ -2863,8 +2863,15 @@ function MapPins.UpdateToggle(view)
         if button == nil then
             button = CreateFrame("Button", nil, view)
             button:SetSize(20, 20)
+            button:SetHitRectInsets(-3, -3, -3, -3)
+            button.bg = button:CreateTexture(nil, "BACKGROUND")
+            button.bg:SetAllPoints(button)
+            button.bg:SetColorTexture(0.07, 0.07, 0.09, 0.92)
             button.icon = button:CreateTexture(nil, "ARTWORK")
+            button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+            button.icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
             button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
+            button.highlight:SetAllPoints(button.icon)
             local icon = def[3] == "ENTRANCEPINS" and ResolveIcon(DUNGEON_ICON_CANDIDATES, DUNGEON_ICON_FALLBACK) or def[3] == "LEVELPINS" and ResolveIcon(MapPins.upIcons, MapPins.levelFallback) or def[4]
             ApplyIcon(button.icon, icon)
             ApplyIcon(button.highlight, icon)
@@ -2874,13 +2881,14 @@ function MapPins.UpdateToggle(view)
             end
 
             button.highlight:SetBlendMode("ADD")
-            button.highlight:SetAlpha(0.4)
+            button.highlight:SetAlpha(0.35)
             button.ring = AddIconRing(button, button, 20)
             button.ring:SetDesaturated(true)
             if button.CreateMaskTexture and button.icon.AddMaskTexture then
                 local mask = button:CreateMaskTexture()
                 mask:SetAllPoints(button)
                 mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                button.bg:AddMaskTexture(mask)
                 button.icon:AddMaskTexture(mask)
                 button.highlight:AddMaskTexture(mask)
             end
@@ -2893,27 +2901,43 @@ function MapPins.UpdateToggle(view)
             end)
 
             button:SetScript("OnEnter", function(sel)
+                local on = MapPins.IsEnabled(def[1])
+                if on then
+                    sel.ring:SetVertexColor(0.42, 0.98, 0.5)
+                else
+                    sel.ring:SetVertexColor(0.95, 0.38, 0.38)
+                end
+
                 GameTooltip:SetOwner(sel, "ANCHOR_RIGHT")
                 local hidden = AzerothCompendium:GetConfig(def[2], AzerothCompendium:GetConfig("MAPPINS", true)) == false
                 GameTooltip:SetText(AzerothCompendium:Trans((hidden and "LID_SHOW" or "LID_HIDE") .. def[3]))
                 GameTooltip:Show()
             end)
 
-            button:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
+            button:SetScript("OnLeave", function(sel)
+                local on = MapPins.IsEnabled(def[1])
+                if on then
+                    sel.ring:SetVertexColor(0.26, 0.86, 0.36)
+                else
+                    sel.ring:SetVertexColor(0.78, 0.26, 0.26)
+                end
+
+                AzerothCompendium:HideGameTooltip()
+            end)
             view.pinToggles[index] = button
         end
 
         button:ClearAllPoints()
-        button:SetPoint(point, anchor, relativePoint, anchorX - 4 - (index - 1) * 30, anchorY)
+        button:SetPoint(point, anchor, relativePoint, anchorX - 4 - (index - 1) * 28, anchorY)
         local enabled = MapPins.IsEnabled(def[1])
         if enabled then
-            button.ring:SetVertexColor(0.2, 1, 0.2)
+            button.ring:SetVertexColor(0.26, 0.86, 0.36)
         else
-            button.ring:SetVertexColor(1, 0.2, 0.2)
+            button.ring:SetVertexColor(0.78, 0.26, 0.26)
         end
 
         button.icon:SetDesaturated(not enabled)
-        button.icon:SetAlpha(enabled and 1 or 0.5)
+        button.icon:SetAlpha(enabled and 1 or 0.45)
         button:SetShown(view.info ~= nil)
         button:SetFrameLevel((view.pinTopLevel or view:GetFrameLevel()) + 1)
     end
