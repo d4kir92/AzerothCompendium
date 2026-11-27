@@ -1147,7 +1147,57 @@ function Tracker:ShowsXP()
 end
 
 Tracker.collapsedNineSliceKeys = {"LeftEdge", "RightEdge", "BottomEdge", "BottomLeftCorner", "BottomRightCorner", "Center"}
+Tracker.collapsedTopCornerKeys = {"TopLeftCorner", "TopRightCorner"}
 Tracker.collapsedFrameKeys = {"Bg", "LeftBorder", "RightBorder", "BottomBorder", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner", "BottomRightCorner", "BtnCornerLeft", "BtnCornerRight", "ButtonBottomBorder"}
+
+function Tracker:SyncCollapsedCorners(frame, crop)
+    local ns = frame and frame.NineSlice
+    if ns == nil then return end
+    frame.savedTopCorners = frame.savedTopCorners or {}
+    local needsRetry = false
+    for _, key in ipairs(self.collapsedTopCornerKeys) do
+        local corner = ns[key]
+        if corner and corner.GetTexCoord and corner.SetTexCoord and corner.GetHeight and corner.SetHeight then
+            local saved = frame.savedTopCorners[key]
+            if crop then
+                if saved == nil then
+                    local origH = corner:GetHeight()
+                    if origH and origH > 0 then
+                        saved = {h = origH, tc = {corner:GetTexCoord()}}
+                        frame.savedTopCorners[key] = saved
+                    end
+                end
+
+                if saved ~= nil then
+                    local topY = corner:GetTop()
+                    local botY = frame:GetBottom()
+                    if topY == nil or botY == nil then needsRetry = true end
+                    local cropH = (topY ~= nil and botY ~= nil and topY > botY) and (topY - botY) or self.config.collapsed
+                    if cropH > 0 and cropH < saved.h then
+                        local frac = cropH / saved.h
+                        local tc = saved.tc
+                        corner:SetTexCoord(tc[1], tc[2], tc[1] + (tc[3] - tc[1]) * frac, tc[2] + (tc[4] - tc[2]) * frac, tc[5], tc[6], tc[5] + (tc[7] - tc[5]) * frac, tc[6] + (tc[8] - tc[6]) * frac)
+                        corner:SetHeight(cropH)
+                    end
+                end
+            elseif saved ~= nil then
+                local tc = saved.tc
+                corner:SetTexCoord(tc[1], tc[2], tc[3], tc[4], tc[5], tc[6], tc[7], tc[8])
+                corner:SetHeight(saved.h)
+            end
+        end
+    end
+
+    if crop and needsRetry and not frame.cornerCropRetry and C_Timer ~= nil and C_Timer.After ~= nil then
+        frame.cornerCropRetry = true
+        C_Timer.After(0, function()
+            frame.cornerCropRetry = nil
+            if frame:IsShown() and Tracker:IsCollapsed() and not Tracker.listMode then
+                Tracker:SyncCollapsedCorners(frame, not AzerothCompendium.Theme:IsModern())
+            end
+        end)
+    end
+end
 
 function Tracker:SyncCollapsedChrome(frame, collapsed)
     if frame == nil then return end
@@ -1161,6 +1211,7 @@ function Tracker:SyncCollapsedChrome(frame, collapsed)
         end
     end
 
+    self:SyncCollapsedCorners(frame, hideBody)
     for _, key in ipairs(self.collapsedFrameKeys) do
         local region = frame[key]
         if region and region.SetShown then
@@ -1888,14 +1939,17 @@ function Tracker:Layout()
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
     frame.headerTime:SetShown(collapsed)
-    self:SyncCollapsedChrome(frame, collapsed)
-    self:LayoutHeaderTitle(frame, collapsed)
     if collapsed then
         frame:SetHeight(AzerothCompendium.Theme:IsModern() and c.collapsedModern or c.collapsed)
+        self:SyncCollapsedChrome(frame, true)
+        self:LayoutHeaderTitle(frame, true)
         frame.layingOut = false
 
         return
     end
+
+    self:SyncCollapsedChrome(frame, false)
+    self:LayoutHeaderTitle(frame, false)
 
     local innerWidth = frame:GetWidth() - c.side * 2
     local columnWidth = innerWidth / 3
