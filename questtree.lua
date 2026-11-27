@@ -3217,19 +3217,21 @@ function AzerothCompendium:CreateQuestTree(parent, compact)
 
     function tree:SetGraph(graph)
         self.graph = graph or {}
-        local graphKey = (self.graph[1] and self.graph[1].id or 0) .. ":" .. #self.graph
+        local instID = self.instance and (self.instance.id or self.instance.name) or 0
+        local graphKey = tostring(instID) .. ":" .. (self.graph[1] and self.graph[1].id or 0) .. ":" .. #self.graph
         if graphKey ~= self.graphKey then
             self.graphKey = graphKey
             self.collapseOverride = {}
             self.listCollapseOverride = {}
         end
 
-        local keep = self.compact and self.graphKey == self.lastScrollKey
+        local keep = self.graphKey == self.lastScrollKey
         self.lastScrollKey = self.graphKey
-        local offset = scroll:GetVerticalScroll()
+        local hOffset = scroll:GetHorizontalScroll()
+        local vOffset = scroll:GetVerticalScroll()
         self:Layout()
-        SetHScroll(0)
-        scroll:SetVerticalScroll(keep and ClampScroll(scroll, false, offset) or 0)
+        SetHScroll(keep and hOffset or 0)
+        scroll:SetVerticalScroll(keep and ClampScroll(scroll, false, vOffset) or 0)
     end
 
     tree.listRows = {}
