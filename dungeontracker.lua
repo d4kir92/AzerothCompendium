@@ -1146,6 +1146,47 @@ function Tracker:ShowsXP()
     return level < maxLevel
 end
 
+Tracker.collapsedNineSliceKeys = {"LeftEdge", "RightEdge", "BottomEdge", "BottomLeftCorner", "BottomRightCorner", "Center"}
+Tracker.collapsedFrameKeys = {"Bg", "LeftBorder", "RightBorder", "BottomBorder", "BotLeftCorner", "BotRightCorner", "BottomLeftCorner", "BottomRightCorner", "BtnCornerLeft", "BtnCornerRight", "ButtonBottomBorder"}
+
+function Tracker:SyncCollapsedChrome(frame, collapsed)
+    if frame == nil then return end
+    local hideBody = collapsed == true and not AzerothCompendium.Theme:IsModern()
+    if not hideBody and not frame.collapsedChromeHidden then return end
+    local ns = frame.NineSlice
+    if ns then
+        for _, key in ipairs(self.collapsedNineSliceKeys) do
+            local region = ns[key]
+            if region and region.SetShown then region:SetShown(not hideBody) end
+        end
+    end
+
+    for _, key in ipairs(self.collapsedFrameKeys) do
+        local region = frame[key]
+        if region and region.SetShown then
+            if hideBody then
+                region:Hide()
+            elseif not AzerothCompendium.Theme:IsModern() then
+                region:Show()
+            end
+        end
+    end
+
+    frame.collapsedChromeHidden = hideBody
+end
+
+function Tracker:LayoutHeaderTitle(frame, collapsed)
+    if frame == nil or frame.titleText == nil or frame.headerOverlay == nil then return end
+    local title = frame.titleText
+    local rightAnchor = (collapsed and not self.listMode and frame.headerTime) or frame.runsButton
+    local leftPad = AzerothCompendium.Theme:IsModern() and 44 or 12
+    title:ClearAllPoints()
+    title:SetPoint("LEFT", frame.headerOverlay, "LEFT", leftPad, 0)
+    if rightAnchor then title:SetPoint("RIGHT", rightAnchor, "LEFT", -6, 0) end
+    title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+end
+
 function Tracker:GetChromeLevel(frame)
     local level = frame:GetFrameLevel() + 30
     if frame.NineSlice then level = max(level, frame.NineSlice:GetFrameLevel() + 10) end
@@ -1418,7 +1459,10 @@ function Tracker:CreateFrame()
 
     frame.runsButton:SetScript("OnLeave", function() AzerothCompendium:HideGameTooltip() end)
     frame.headerOverlay = CreateFrame("Frame", nil, frame)
-    frame.headerOverlay:SetAllPoints(frame)
+    frame.headerOverlay:SetPoint("TOP", frame.runsButton, "TOP", 0, 2)
+    frame.headerOverlay:SetPoint("BOTTOM", frame.runsButton, "BOTTOM", 0, -2)
+    frame.headerOverlay:SetPoint("LEFT", frame, "LEFT", 0, 0)
+    frame.headerOverlay:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
     frame.headerOverlay:EnableMouse(false)
     frame.headerTime = frame.headerOverlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.headerTime:SetPoint("RIGHT", frame.runsButton, "LEFT", -6, 0)
@@ -1779,6 +1823,8 @@ function Tracker:RefreshRuns()
     local c = self.config
     local runs = self:GetAllRuns()
     if frame.titleText then frame.titleText:SetText(format("%s (%d)", AzerothCompendium:Trans("LID_DT_RUNS"), #runs)) end
+    self:SyncCollapsedChrome(frame, false)
+    self:LayoutHeaderTitle(frame, false)
     frame.content:Hide()
     frame.headerTime:Hide()
     frame.post:Hide()
@@ -1842,6 +1888,8 @@ function Tracker:Layout()
     frame.content:SetShown(not collapsed)
     frame.grip:SetShown(not collapsed)
     frame.headerTime:SetShown(collapsed)
+    self:SyncCollapsedChrome(frame, collapsed)
+    self:LayoutHeaderTitle(frame, collapsed)
     if collapsed then
         frame:SetHeight(AzerothCompendium.Theme:IsModern() and c.collapsedModern or c.collapsed)
         frame.layingOut = false

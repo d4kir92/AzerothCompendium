@@ -38,16 +38,22 @@ function Library:DB()
 end
 
 function Library:Flag(book)
-    return C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted and C_QuestLog.IsQuestFlaggedCompleted(book.questId) or false
+    if book == nil or book.questId == nil then return false end
+    if C_QuestLog ~= nil and C_QuestLog.IsQuestFlaggedCompleted ~= nil then
+        return C_QuestLog.IsQuestFlaggedCompleted(book.questId) == true
+    end
+    if IsQuestFlaggedCompleted ~= nil then
+        return IsQuestFlaggedCompleted(book.questId) == true
+    end
+    return false
 end
 
 function Library:State(book)
     local db = self:DB()
-    if db.done[book.itemId] then return "done" end
+    if db.done[book.itemId] or self:Flag(book) then return "done" end
     if db.manual[book.itemId] then return "manual" end
     if self.bags[book.itemId] then return "bag" end
     if db.bank[book.itemId] then return "bank" end
-    if self:Flag(book) then return "questflag" end
     return "missing"
 end
 
@@ -102,7 +108,6 @@ function Library:Tooltip(row, book)
 
     GameTooltip:AddLine(self:Text(self:State(book)), 0.7, 0.85, 1)
     GameTooltip:AddLine(string.format("Quest: %d / Item: %d", book.questId, book.itemId), 0.6, 0.6, 0.6)
-    if self:Flag(book) then GameTooltip:AddLine(self:Text("flaghint"), 1, 0.6, 0.2, true) end
     GameTooltip:AddLine(self:Text("hidehint"), 0.7, 0.7, 0.7, true)
     local scanned = self:DB().bankScanned
     GameTooltip:AddLine(self:Text("bankscan") .. (scanned and date("%Y-%m-%d %H:%M", scanned) or self:Text("unknown")), 0.7, 0.7, 0.7, true)
@@ -473,13 +478,6 @@ end
 function Library:CreatePin(parent)
     local maskPath = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
     local pin = CreateFrame("Button", nil, parent)
-    pin.border = pin:CreateTexture(nil, "OVERLAY", nil, -2)
-    pin.border:SetTexture(maskPath)
-    pin.bg = pin:CreateTexture(nil, "OVERLAY", nil, -1)
-    pin.bg:SetTexture(maskPath)
-    pin.bg:SetVertexColor(0, 0, 0, 0.75)
-    pin.bg:SetAllPoints(pin)
-    pin.bg:Hide()
     pin.icon = pin:CreateTexture(nil, "OVERLAY")
     pin.icon:SetAllPoints(pin)
     pin.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -489,6 +487,9 @@ function Library:CreatePin(parent)
         pin.iconMask:SetAllPoints(pin.icon)
         pin.icon:AddMaskTexture(pin.iconMask)
     end
+
+    pin.border = pin:CreateTexture(nil, "OVERLAY", nil, 1)
+    pin.border:SetTexture("Interface\\AddOns\\AzerothCompendium\\media\\book_ring.blp")
 
     local hl = pin:CreateTexture(nil, "HIGHLIGHT")
     hl:SetAllPoints(pin.icon)
@@ -504,7 +505,8 @@ end
 
 function Library:StylePin(pin, state, pixel)
     local owned = state == "bag" or state == "bank"
-    pin.icon:SetAlpha(owned and 0.5 or 1)
+    pin.icon:SetAlpha(1)
+    pin:SetAlpha(owned and 0.5 or 1)
     local color = owned and self.borderColors.owned or state == "missing" and self.borderColors.missing or nil
     local t = pixel * 1.5
     if color then
@@ -516,8 +518,6 @@ function Library:StylePin(pin, state, pixel)
     else
         pin.border:Hide()
     end
-
-    pin.bg:SetShown(owned and color ~= nil)
 end
 
 function Library:Project(point, mapID)
@@ -608,7 +608,7 @@ if WorldMapFrame ~= nil then
 end
 
 Library.events = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_LOGIN", "QUEST_TURNED_IN", "BAG_UPDATE_DELAYED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "QUEST_LOG_UPDATE", "GET_ITEM_INFO_RECEIVED"}) do
+for _, event in ipairs({"PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "QUEST_TURNED_IN", "BAG_UPDATE_DELAYED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "QUEST_LOG_UPDATE", "GET_ITEM_INFO_RECEIVED"}) do
     Library.events:RegisterEvent(event)
 end
 
