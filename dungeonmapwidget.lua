@@ -415,7 +415,8 @@ function MapWidget:RefreshPins()
         })
     end
 
-    self.pinSet:Update(rows, frame.art, 1)
+    local artScale = AzerothCompendium.GetInstancePinArtScale ~= nil and AzerothCompendium:GetInstancePinArtScale(self.view.baseWidth, self.view.baseHeight) or 1
+    self.pinSet:Update(rows, frame.art, 1, nil, artScale)
 end
 
 function MapWidget:GetTitleRegion(frame)

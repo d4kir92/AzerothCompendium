@@ -1375,8 +1375,11 @@ function D4:CreateInstanceMap(provider)
 
         local artW = pinArt ~= nil and (pinArt:GetWidth() or 0) or 0
         local artH = pinArt ~= nil and (pinArt:GetHeight() or 0) or 0
+        local baseW = view.baseWidth > 0 and view.baseWidth or (overlay:GetWidth() or 0)
+        local baseH = view.baseHeight > 0 and view.baseHeight or (overlay:GetHeight() or 0)
+        local artScale = D4.GetInstancePinArtScale ~= nil and D4:GetInstancePinArtScale(baseW, baseH) or 1
         local modeKey = hidePins and "H" or (useMinimap and "M" or "A")
-        local key = format("%s|%s|%.4f|%.1f|%.1f|%d|%s|%s", info.key, modeKey, scale, artW, artH, #rows, table.concat(questKey), table.concat(killedKey))
+        local key = format("%s|%s|%.4f|%.4f|%.1f|%.1f|%d|%s|%s", info.key, modeKey, scale, artScale, artW, artH, #rows, table.concat(questKey), table.concat(killedKey))
         if key == mapPinKey then return end
         mapPinKey = key
         if mapPinSet == nil then
@@ -1406,7 +1409,7 @@ function D4:CreateInstanceMap(provider)
                 pin:Hide()
             end
         else
-            mapPinSet:Update(rows, pinArt, scale, project)
+            mapPinSet:Update(rows, pinArt, scale, project, artScale)
         end
 
         mapPinSet:UpdateToggles()

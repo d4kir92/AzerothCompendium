@@ -2785,10 +2785,15 @@ end
 function MapPins.Layout(view)
     local w = view.art:GetWidth()
     local h = view.art:GetHeight()
+    local zoom = view.zoom or 1
+    local baseW = view.baseWidth or (w / zoom)
+    local baseH = view.baseHeight or (h / zoom)
+    local artScale = AzerothCompendium.GetInstancePinArtScale ~= nil and AzerothCompendium:GetInstancePinArtScale(baseW, baseH) or 1
     local bossScale = MapPins.bossScale.base * MapPins.GetBossScale()
     for _, pin in ipairs(MapPins.pool) do
         if pin:IsShown() then
-            local scale = pin.kind == "boss" and bossScale or 1
+            local scale = (pin.kind == "boss" and bossScale or 1) * artScale
+            if scale <= 0 then scale = 1 end
             pin:SetScale(scale)
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", view.art, "TOPLEFT", w * pin.x / scale, -h * pin.y / scale)
@@ -3115,6 +3120,8 @@ local function LayoutMapArt()
         width = h / ratio
     end
 
+    view.baseWidth = width
+    view.baseHeight = height
     width = width * (view.zoom or 1)
     height = height * (view.zoom or 1)
     local maxX = math.max(0, (width - w) / 2)
